@@ -20,13 +20,14 @@ const films = (n) => Array.from({ length: n }, (_, i) => film(i + 1))
 const ratings = (n) => Array.from({ length: n }, (_, i) => ({ movie_id: i + 1, rating: 8 }))
 
 let writes
+let writeError = null   // F7.9: simulate an editorial cache-write {error} (Edge OK, persistence fails)
 function makeQuery(result) {
   const p = Promise.resolve(result)
   const chain = {
     select: () => chain, eq: () => chain, order: () => chain, limit: () => chain, in: () => chain,
     maybeSingle: () => Promise.resolve({ data: result.data, error: null }),
-    update: () => { writes++; return { eq: () => Promise.resolve({ error: null }) } },
-    insert: () => { writes++; return Promise.resolve({ error: null }) },
+    update: () => { writes++; return { eq: () => Promise.resolve({ error: writeError }) } },
+    insert: () => { writes++; return Promise.resolve({ error: writeError }) },
     then: (res, rej) => p.then(res, rej), catch: (fn) => p.catch(fn),
   }
   return chain
@@ -48,7 +49,7 @@ const CURRENT_EDITORIAL = { user_id: 'u1', editorial_summary: 'cached summary', 
 
 let fetchSpy
 beforeEach(() => {
-  fetchOk = true; writes = 0
+  fetchOk = true; writes = 0; writeError = null
   fetchSpy = vi.fn(() => Promise.resolve({ ok: fetchOk, json: () => Promise.resolve({ summary: 'fresh summary', signature: 'fresh sig' }) }))
   vi.stubGlobal('fetch', fetchSpy)
 })
@@ -131,5 +132,46 @@ describe('F7.6 — explicit refresh action', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     await act(async () => { await result.current.refreshEditorial() })
     expect(fetchSpy).not.toHaveBeenCalled()
+  })
+})
+
+// F7.9 — an Edge success followed by a cache-WRITE failure must NOT announce durable success.
+describe('F7.9 — editorial cache-write failure settles honestly', () => {
+  it('UPDATE path write error → status error, NOT current; prior reflection preserved; retryable', async () => {
+    fpEditorialVersion = 2; editorialRow = CURRENT_EDITORIAL   // existing row → UPDATE path; starts 'current'
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    writeError = { code: 'MOCK', message: 'mock write failure' }
+    await act(async () => { await result.current.refreshEditorial() })
+    expect(fetchSpy).toHaveBeenCalledTimes(1)          // Edge DID succeed
+    expect(writes).toBe(1)                              // a write was attempted
+    expect(result.current.refreshStatus).toBe('error') // settled to error, not success
+    expect(result.current.editorial.summary).toBe('cached summary') // prior reflection intact
+    await waitFor(() => expect(result.current.loading).toBe(false))
+  })
+
+  it('INSERT path write error → status error, NOT current; no partial reflection becomes current', async () => {
+    fpEditorialVersion = undefined; editorialRow = null    // no existing row → INSERT path; starts 'none'
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    writeError = { code: 'MOCK', message: 'mock insert failure' }
+    await act(async () => { await result.current.refreshEditorial() })
+    expect(result.current.refreshStatus).toBe('error')
+    expect(result.current.editorialStatus).not.toBe('current')   // no false current
+    expect(result.current.editorial.summary).toBeFalsy()         // the fresh summary did NOT become current
+  })
+
+  it('retry after a write failure can persist successfully', async () => {
+    fpEditorialVersion = undefined; editorialRow = null
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    writeError = { code: 'MOCK', message: 'transient' }
+    await act(async () => { await result.current.refreshEditorial() })
+    expect(result.current.refreshStatus).toBe('error')
+    writeError = null                                  // the transient failure clears
+    await act(async () => { await result.current.refreshEditorial() })
+    expect(result.current.refreshStatus).toBe('success')
+    expect(result.current.editorialStatus).toBe('current')
+    expect(result.current.editorial.summary).toBe('fresh summary')
   })
 })

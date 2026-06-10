@@ -149,6 +149,26 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
     expect(ledger.writes).toEqual([])
   })
 
+  // J — Edge success + cache-WRITE failure must settle to an honest error (no false durable success)
+  test('J — refresh: Edge success + cache-write failure → honest error, no false "updated"', async ({ page }) => {
+    const ledger = await installProfileFixture(page, { mode: 'established_missing', edgeMode: 'success', cacheWriteMode: 'failure' })
+    await openProfile(page)
+    await page.getByRole('button', { name: /generate reflection/i }).click()
+    await expect(page.getByText(/We couldn’t refresh your reflection/i).first()).toBeVisible({ timeout: 10_000 })
+    expect(ledger.edgeCalls, 'Edge succeeded exactly once').toHaveLength(1)
+    expect(ledger.writes, 'exactly one cache write attempted').toHaveLength(1)
+    await expect(page.getByText('Your FeelFlick reflection is updated.')).toHaveCount(0) // no false success announcement
+    await expect(page.getByText(/A freshly generated reflection/)).toHaveCount(0)        // fresh prose NOT shown as current
+    await expect(page.getByRole('button', { name: /generate reflection/i })).toBeEnabled() // re-enabled / retryable
+    expect(ledger.unexpectedRequests, 'fixture still fails closed').toEqual([])
+    // retry succeeds once the transient write failure clears
+    ledger.setCacheWriteMode('success')
+    await page.getByRole('button', { name: /generate reflection/i }).click()
+    await expect(page.getByText(/A freshly generated reflection/)).toBeVisible({ timeout: 10_000 })
+    expect(ledger.edgeCalls).toHaveLength(2)
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
   // M — private other-user route: no behavioral query for the target, no Edge/write
   test('M — /profile/:otherId is private, fetches nothing for the target', async ({ page }) => {
     const ledger = await installProfileFixture(page)

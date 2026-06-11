@@ -32,6 +32,17 @@ Sentry.init({
   tracesSampleRate: 0.2,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
+  // B1.3: defense-in-depth PII scrub — never ship account email/name/IP in error context.
+  // (Sentry's default integrations already capture window.onerror + unhandledrejection.)
+  beforeSend(event) {
+    if (event.user) {
+      delete event.user.email
+      delete event.user.username
+      delete event.user.ip_address
+      delete event.user.name
+    }
+    return event
+  },
 })
 
 // Handle OAuth callback hash immediately, before React Router processes anything

@@ -13,6 +13,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
+import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
 
 // ── pure focus-after-removal (People-local; neutral, kept out of Library to avoid coupling) ──────
 // The id to focus after `removedId` leaves `orderedIds`: prefer the NEXT, else PREVIOUS, else null.
@@ -79,9 +80,11 @@ export function usePeopleFollowActions({ userId, followingIds, applyFollowState 
         .insert({ follower_id: userId, following_id: targetId })
       if (error && error.code !== '23505') throw error        // 23505 = already following → success
       if (mounted.current) { applyFollowState(targetId, true); announce(`You're now following ${name || 'this person'}.`) }
+      trackEvent(EVENTS.people_follow_succeeded, { surface: 'people' }) // no target id/name
     } catch (e) {
       if (import.meta.env?.DEV) console.error('[people.follow]', e)
       if (mounted.current) { mark(setErrored, targetId, true); announce(`Could not follow ${name || 'this person'}. Try again.`) }
+      trackEvent(EVENTS.people_follow_failed, { surface: 'people', error_kind: errorKind(e) })
     } finally {
       inFlight.current.delete(targetId)
       mark(setPending, targetId, false)
@@ -103,6 +106,7 @@ export function usePeopleFollowActions({ userId, followingIds, applyFollowState 
         .eq('following_id', targetId)
       if (error) throw error
       if (mounted.current) { applyFollowState(targetId, false); announce(`You stopped following ${name || 'this person'}.`) }
+      trackEvent(EVENTS.people_unfollow_succeeded, { surface: 'people' })
     } catch (e) {
       if (import.meta.env?.DEV) console.error('[people.unfollow]', e)
       if (mounted.current) { mark(setErrored, targetId, true); announce(`Could not unfollow ${name || 'this person'}. Try again.`) }
@@ -118,6 +122,7 @@ export function usePeopleFollowActions({ userId, followingIds, applyFollowState 
     if (!targetId) return
     mark(setHidden, targetId, true)
     announce('Hidden from your suggestions.')
+    trackEvent(EVENTS.people_hide_suggestion, { surface: 'people' })
   }, [announce, mark])
 
   const isPending = useCallback((id) => pending.has(id), [pending])

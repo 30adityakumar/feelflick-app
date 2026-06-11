@@ -11,6 +11,9 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD } from './data'
 import { PeopleDataProvider, usePeopleData } from './usePeopleData'
+import { trackEvent, EVENTS, queryLengthBucket } from '@/shared/services/betaEvents'
+import { isEnabled } from '@/shared/config/betaFlags'
+import PeopleUnavailable from './PeopleUnavailable'
 import { nextFocusId, scheduleFocus } from './hooks/usePeopleFollowActions'
 import './people.css'
 
@@ -405,6 +408,9 @@ function PeopleV2Body() {
   const { user: authUser } = useAuthSession()
   const { relStatus } = usePeopleData()
 
+  // B1.3: privacy-safe open signal (no ids/names).
+  useEffect(() => { trackEvent(EVENTS.people_opened, { surface: 'people' }) }, [])
+
   // Debounce 300ms
   useEffect(() => {
     if (!query.trim()) {
@@ -431,6 +437,10 @@ function PeopleV2Body() {
         const { data, error } = await supabase.rpc('search_people_by_name', { search_query: debouncedQuery })
         if (error) throw error
         if (!abort) {
+          // B1.3: search telemetry — coarse only, NEVER the typed query text or any result id/name.
+          const n = (data || []).length
+          if (n === 0) trackEvent(EVENTS.people_search_empty, { surface: 'people', query_length_bucket: queryLengthBucket(debouncedQuery.length) })
+          else trackEvent(EVENTS.people_search_used, { surface: 'people', result_count: n, result_kind: 'person', query_length_bucket: queryLengthBucket(debouncedQuery.length) })
           setResults((data || []).map(u => ({
             id: u.id,
             name: u.name || 'Anonymous',
@@ -477,6 +487,9 @@ function PeopleV2Body() {
 
 export default function People() {
   usePageMeta({ title: 'People — FeelFlick' })
+  // B1.3 kill-switch: when People is disabled for beta, show an honest fallback and load NO data
+  // (the provider — and every People RPC — is never mounted). Defaults to enabled (no behavior change).
+  if (!isEnabled('people')) return <PeopleUnavailable />
   return (
     <PeopleDataProvider>
       <PeopleV2Body />

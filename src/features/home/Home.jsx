@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackInteraction } from '@/shared/services/interactions'
 import { updateImpression } from '@/shared/services/recommendations'
@@ -42,6 +43,7 @@ function HomeBody() {
   const { loading, error, moods: liveMoods } = useHomeData()
   const [currentMood, setMood] = useState(MOOD_META[0])
   const [userPickedMood, setUserPickedMood] = useState(false)
+  useEffect(() => { trackEvent(EVENTS.home_opened, { surface: 'home' }) }, []) // B1.3 funnel entry
 
   // When the data hook finishes, snap the initial mood tab to the user's first
   // baseline pick from Onboarding Step 1 (useHomeData reorders `moods` so the

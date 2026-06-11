@@ -90,10 +90,8 @@ export default function AppShell() {
   useEffect(() => {
     const uid = user?.id ?? null
     if (uid && uid !== prevUserIdRef.current) {
-      identify(uid, {
-        email: user.email,
-        name: user.user_metadata?.name,
-      })
+      // B1.2: identify by stable id ONLY — never email/name (no PII to PostHog).
+      identify(uid)
     } else if (!uid && prevUserIdRef.current) {
       resetAnalytics()
     }

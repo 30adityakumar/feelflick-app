@@ -189,6 +189,9 @@ export default function Privacy() {
               We use trusted infrastructure providers to run FeelFlick. Today, that includes Supabase (authentication, database, hosting) and TMDB (movie metadata and artwork).
             </p>
             <p>
+              <span className="font-semibold text-white/85">Usage analytics &amp; error monitoring.</span> We use PostHog for privacy-safe product analytics and Sentry for error monitoring, to understand reliability and usability during our beta. We do <span className="font-semibold">not</span> send your email, name, search text, reviews, Diary entries, or Cinematic DNA reflection to PostHog &mdash; only a stable internal account identifier and coarse, non-identifying usage events. Where session replay is used, all text and form inputs are masked so private content is not captured. You can turn product analytics off any time in Account &rarr; Privacy.
+            </p>
+            <p>
               These providers process data on our behalf under strict contractual and security obligations. We do not grant them permission to use your personal information for their own marketing.
             </p>
             <p>

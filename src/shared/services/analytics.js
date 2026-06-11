@@ -22,12 +22,15 @@ export function initAnalytics() {
     // full autocapture.
     enable_heatmaps: true,
     // Session replay. Honors the same consent as events — opt_out_capturing()
-    // below also stops recording. Mask all form inputs so emails/passwords are
-    // never captured; add `data-ph-mask` to any other sensitive element.
+    // below also stops recording. B1.2 privacy hardening: mask ALL form inputs AND
+    // ALL rendered text (maskTextSelector: '*'), matching Sentry's maskAllText=true,
+    // so private surfaces (Diary, reviews/"Your Take", Cinematic DNA reflection,
+    // People names/search) can never be captured in a replay. Global, not per-element,
+    // so new private surfaces are masked by default.
     // NOTE: also enable Session Replay in the PostHog project settings.
     session_recording: {
       maskAllInputs: true,
-      maskTextSelector: '[data-ph-mask]',
+      maskTextSelector: '*',
     },
     loaded(ph) {
       if (import.meta.env.DEV) ph.debug()
@@ -39,12 +42,15 @@ export function initAnalytics() {
 /**
  * Associate the current session with an authenticated user.
  * Also reads their `user_settings.privacy.analytics` flag and honors opt-out.
+ *
+ * B1.2 privacy hardening: identify by the stable user id ONLY. We never send email,
+ * name, display name, username, avatar, or any freeform/profile trait to PostHog —
+ * the id is sufficient to stitch a session and is not directly identifying on its own.
  * @param {string} userId
- * @param {{ email?: string, name?: string }} [traits]
  */
-export async function identify(userId, traits = {}) {
-  if (!_initialized) return
-  posthog.identify(userId, traits)
+export async function identify(userId) {
+  if (!_initialized || !userId) return
+  posthog.identify(userId)
   // Best-effort opt-out check; failure leaves us opted-in (the safe default
   // for product analytics — explicit opt-out should be persisted by the time
   // we identify).

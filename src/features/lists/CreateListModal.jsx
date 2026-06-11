@@ -1,5 +1,5 @@
 // src/features/lists/CreateListModal.jsx
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 import { X } from 'lucide-react'
 
@@ -26,13 +26,17 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
   // to public via the explicit "Public — anyone can see this list" checkbox below.
   const [isPublic, setIsPublic] = useState(existingList?.is_public ?? false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const savingRef = useRef(false) // F9.3: synchronous guard — blocks a 2nd submit before React re-renders
 
   const canSubmit = title.trim().length > 0 && !saving
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!canSubmit) return
+    if (title.trim().length === 0 || savingRef.current) return // duplicate-submit guard
+    savingRef.current = true
     setSaving(true)
+    setError('')
 
     try {
       if (isEdit) {
@@ -66,8 +70,10 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
         onSave(data)
       }
     } catch (err) {
-      console.error('[CreateListModal] save error:', err)
+      console.error('[CreateListModal] save error:', err) // raw error stays in the console, never the UI
+      setError(isEdit ? 'Could not save your changes. Please try again.' : 'Could not create your list. Please try again.')
     } finally {
+      savingRef.current = false
       setSaving(false)
     }
   }
@@ -124,9 +130,12 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
           label="Public — anyone can see this list"
         />
 
+        {/* Safe, user-facing error (never raw backend text); inputs are preserved for retry */}
+        {error && <p role="alert" className="text-[13px] text-red-400">{error}</p>}
+
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2">
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" type="button" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="primary" type="submit" disabled={!canSubmit}>

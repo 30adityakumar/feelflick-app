@@ -54,7 +54,7 @@ function MoodDials() {
   return (
     <section style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
       <H kicker="Mood weights" title="Lean the engine." sub="Drag each mood toward how much you want it in your weekly briefing." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '28px 48px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '28px 48px' }}>
         {catalogs.MOODS.map(m => {
           const w = draft.moodWeights[m.id] ?? 0.5
           return (
@@ -294,7 +294,7 @@ function Daypart() {
   return (
     <section style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
       <H kicker="When you watch" title="Time-of-day fit." sub="The briefing tunes itself to when you actually settle in." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 14 }}>
         {catalogs.DAYPARTS.map(d => {
           const on = !!draft.daypart[d.id]
           return (
@@ -339,7 +339,7 @@ function Subscriptions() {
           We&rsquo;ll bias recommendations toward what you can actually watch tonight &mdash; once we wire up streamer-availability data.
         </p>
       </header>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, opacity: 0.45, pointerEvents: 'none' }} aria-disabled="true">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 14, opacity: 0.45, pointerEvents: 'none' }} aria-disabled="true">
         {catalogs.STREAMERS.map(s => (
           <div
             key={s.id}
@@ -442,7 +442,7 @@ function Segmented({ value, onChange, options }) {
 }
 
 function PreviewPanel() {
-  const { dirty, saving, savedAt, save, discard } = usePreferencesData()
+  const { dirty, saving, savedAt, saveError, save, discard } = usePreferencesData()
   const justSaved = savedAt && Date.now() - savedAt < 3000
   return (
     <section style={{ padding: '56px 88px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(167,139,250,0.04)' }}>
@@ -456,6 +456,8 @@ function PreviewPanel() {
                 ? <>Unsaved changes &mdash; <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>save to apply.</em></>
                 : <>Engine is up to date <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>with your dials.</em></>}
           </h2>
+          {/* F9.3: save failures are now user-visible + retryable (the Save button stays enabled while dirty) */}
+          {saveError && <p role="alert" style={{ marginTop: 12, fontSize: 14, color: HP.red, fontFamily: 'Inter, sans-serif' }}>{saveError}</p>}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <SecondaryActionButton

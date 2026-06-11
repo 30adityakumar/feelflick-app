@@ -8,6 +8,16 @@ import { getMoodTag } from './components'
 // Hooks aliases
 const useE = useEffect;
 
+// F9.3: Browse shows a QUALITATIVE fit label, never an exact composite "Match %" (false precision).
+// The underlying score (mood fit + ratings + runtime) is unchanged — only the presentation is honest.
+function fitLabel(score) {
+  if (score == null) return '—';
+  if (score >= 75) return 'Strong fit';
+  if (score >= 55) return 'Good fit';
+  if (score >= 40) return 'Light fit';
+  return 'Worth a look';
+}
+
 // Local icons
 const Ic = ({ d, s=16, fill='none' }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
@@ -76,13 +86,13 @@ function QuickLook({ film, mood, watched, inWatchlist, onTW, onTWL, onClose }) {
           {/* Stats row */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:10, padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
             {[
-              { label:'Match', value: matchScore + '%', tint:HP.purple },
+              { label:'Fit', value: fitLabel(matchScore), tint:HP.purple },
               { label:'FF', value: film.ff,    tint:HP.text },
               { label:'Critics', value: film.critic,  tint:HP.textHi },
               { label:'Audience', value: film.audience, tint:HP.textHi },
             ].map(s => (
               <div key={s.label} style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'Outfit', fontSize:22, fontWeight:300, color:s.tint, letterSpacing:'-0.02em', lineHeight:1 }}>{s.value}</div>
+                <div style={{ fontFamily:'Outfit', fontSize: typeof s.value === 'string' ? 14 : 22, fontWeight: typeof s.value === 'string' ? 500 : 300, color:s.tint, letterSpacing:'-0.02em', lineHeight:1.1 }}>{s.value}</div>
                 <div style={{ marginTop:4, fontFamily:'Inter', fontSize:10, color:HP.textFaint, letterSpacing:'0.08em', textTransform:'uppercase' }}>{s.label}</div>
               </div>
             ))}

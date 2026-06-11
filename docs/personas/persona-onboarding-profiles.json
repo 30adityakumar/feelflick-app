@@ -1,0 +1,308 @@
+[
+  {
+    "id": "P1",
+    "moods": ["wired", "tender", "mythic"],
+    "genres": ["Drama", "Mystery", "History", "Sci-Fi"],
+    "anchorMovies": [
+      { "query": "In the Mood for Love", "expectedTitleHint": "Mood for Love", "sentiment": "loved", "whyThisPersonaChoseIt": "A precise romantic memory piece with formal control." },
+      { "query": "Yi Yi", "expectedTitleHint": "Yi Yi", "sentiment": "loved", "whyThisPersonaChoseIt": "A humane long-view family epic that rewards attention." },
+      { "query": "Persona", "expectedTitleHint": "Persona", "sentiment": "loved", "whyThisPersonaChoseIt": "A canonical identity fracture and a real auteur anchor." },
+      { "query": "Stalker", "expectedTitleHint": "Stalker", "sentiment": "liked", "whyThisPersonaChoseIt": "Slow cinema with philosophical texture and atmosphere." },
+      { "query": "Paris Texas", "expectedTitleHint": "Paris", "sentiment": "liked", "whyThisPersonaChoseIt": "Lyrical road-movie melancholy without easy sentiment." }
+    ],
+    "onboardingBehavior": {
+      "speed": "slow",
+      "confidence": "high",
+      "likelyFriction": "Suspicious of obvious crowd-pleasers and generic explanations.",
+      "humanNote": "Do not flatten my taste into popularity with subtitles."
+    }
+  },
+  {
+    "id": "P2",
+    "moods": ["wired", "tense"],
+    "genres": ["Drama", "Crime", "Sci-Fi", "Thriller"],
+    "anchorMovies": [
+      { "query": "The Social Network", "expectedTitleHint": "Social Network", "sentiment": "loved", "whyThisPersonaChoseIt": "Cleanly checkable cast, writer, director, and cultural footprint." },
+      { "query": "Zodiac", "expectedTitleHint": "Zodiac", "sentiment": "loved", "whyThisPersonaChoseIt": "Procedural detail and metadata-rich craft signals." },
+      { "query": "Arrival", "expectedTitleHint": "Arrival", "sentiment": "liked", "whyThisPersonaChoseIt": "High-concept sci-fi with visible authorship and awards context." },
+      { "query": "Moneyball", "expectedTitleHint": "Moneyball", "sentiment": "liked", "whyThisPersonaChoseIt": "Numbers, systems, and a satisfying evidence trail." },
+      { "query": "Blade Runner 2049", "expectedTitleHint": "Blade Runner", "sentiment": "liked", "whyThisPersonaChoseIt": "Known technical craft and strong searchable metadata." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "medium",
+      "likelyFriction": "Will question whether scores and reasons are grounded.",
+      "humanNote": "Show me what signal you are using, not just a vibe."
+    }
+  },
+  {
+    "id": "P3",
+    "moods": ["cozy", "fun", "tense"],
+    "genres": ["Comedy", "Thriller", "Crime", "Drama"],
+    "anchorMovies": [
+      { "query": "Knives Out", "expectedTitleHint": "Knives Out", "sentiment": "loved", "whyThisPersonaChoseIt": "Fun, familiar, and easy to start." },
+      { "query": "The Devil Wears Prada", "expectedTitleHint": "Devil Wears Prada", "sentiment": "liked", "whyThisPersonaChoseIt": "Comfortable rewatch energy with recognizable stars." },
+      { "query": "Gone Girl", "expectedTitleHint": "Gone Girl", "sentiment": "liked", "whyThisPersonaChoseIt": "A glossy thriller that keeps attention." },
+      { "query": "Bridesmaids", "expectedTitleHint": "Bridesmaids", "sentiment": "liked", "whyThisPersonaChoseIt": "Low-friction comedy that works when tired." },
+      { "query": "The Nice Guys", "expectedTitleHint": "Nice Guys", "sentiment": "okay", "whyThisPersonaChoseIt": "Fun enough, but not worth overthinking." }
+    ],
+    "onboardingBehavior": {
+      "speed": "fast",
+      "confidence": "medium",
+      "likelyFriction": "May abandon if the search or rating flow feels like homework.",
+      "humanNote": "I just want this to get me to something good quickly."
+    }
+  },
+  {
+    "id": "P4",
+    "moods": ["fun", "tense"],
+    "genres": ["Action", "Comedy", "Thriller", "Adventure"],
+    "anchorMovies": [
+      { "query": "Top Gun Maverick", "expectedTitleHint": "Top Gun", "sentiment": "liked", "whyThisPersonaChoseIt": "Mainstream, easy to watch with a household." },
+      { "query": "Spider-Man Into the Spider-Verse", "expectedTitleHint": "Spider", "sentiment": "loved", "whyThisPersonaChoseIt": "Broad appeal and strong family-room energy." },
+      { "query": "Edge of Tomorrow", "expectedTitleHint": "Edge of Tomorrow", "sentiment": "liked", "whyThisPersonaChoseIt": "Action premise that is easy to sell tonight." },
+      { "query": "The Martian", "expectedTitleHint": "Martian", "sentiment": "liked", "whyThisPersonaChoseIt": "Accessible and widely available-feeling comfort sci-fi." },
+      { "query": "Crazy Rich Asians", "expectedTitleHint": "Crazy Rich Asians", "sentiment": "okay", "whyThisPersonaChoseIt": "A safe shared watch when availability matters." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "medium",
+      "likelyFriction": "Will wonder whether the eventual pick is actually watchable.",
+      "humanNote": "Great, but can I press play on it tonight?"
+    }
+  },
+  {
+    "id": "P5",
+    "moods": ["wired", "mythic", "tense"],
+    "genres": ["Drama", "Crime", "Adventure", "Sci-Fi"],
+    "anchorMovies": [
+      { "query": "The Godfather", "expectedTitleHint": "Godfather", "sentiment": "loved", "whyThisPersonaChoseIt": "A major logged-history anchor and prestige staple." },
+      { "query": "The Lord of the Rings The Fellowship of the Ring", "expectedTitleHint": "Fellowship", "sentiment": "loved", "whyThisPersonaChoseIt": "Franchise progress and a long-term collection marker." },
+      { "query": "Heat", "expectedTitleHint": "Heat", "sentiment": "liked", "whyThisPersonaChoseIt": "Crime craft with strong rewatch and tracking value." },
+      { "query": "Mad Max Fury Road", "expectedTitleHint": "Fury Road", "sentiment": "liked", "whyThisPersonaChoseIt": "A modern benchmark that should not be re-recommended once logged." },
+      { "query": "Dune Part Two", "expectedTitleHint": "Dune", "sentiment": "liked", "whyThisPersonaChoseIt": "A franchise/prestige marker for completionist history." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "high",
+      "likelyFriction": "Will notice duplicate or already-watched recommendations.",
+      "humanNote": "Use my history; do not make me tell you twice."
+    }
+  },
+  {
+    "id": "P6",
+    "moods": ["tender", "mythic", "wired"],
+    "genres": ["Drama", "History", "Sci-Fi", "Romance"],
+    "anchorMovies": [
+      { "query": "Her", "expectedTitleHint": "Her", "sentiment": "loved", "whyThisPersonaChoseIt": "Polished emotional design and precise production craft." },
+      { "query": "Moonlight", "expectedTitleHint": "Moonlight", "sentiment": "loved", "whyThisPersonaChoseIt": "Elegant visual language and restrained emotional force." },
+      { "query": "The Grand Budapest Hotel", "expectedTitleHint": "Grand Budapest", "sentiment": "liked", "whyThisPersonaChoseIt": "Deliberate composition and editorial personality." },
+      { "query": "Phantom Thread", "expectedTitleHint": "Phantom Thread", "sentiment": "liked", "whyThisPersonaChoseIt": "Craft-led drama with exacting tone." },
+      { "query": "The Favourite", "expectedTitleHint": "Favourite", "sentiment": "liked", "whyThisPersonaChoseIt": "Sharp, designed, and tonally controlled." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "high",
+      "likelyFriction": "Will be sensitive to rough UI edges or generic copy.",
+      "humanNote": "Make the case with restraint and taste."
+    }
+  },
+  {
+    "id": "P7",
+    "moods": ["fun", "cozy"],
+    "genres": ["Action", "Comedy", "Adventure", "Romance"],
+    "anchorMovies": [
+      { "query": "Jumanji Welcome to the Jungle", "expectedTitleHint": "Jumanji", "sentiment": "liked", "whyThisPersonaChoseIt": "Safe, familiar, and easy with family." },
+      { "query": "The Proposal", "expectedTitleHint": "Proposal", "sentiment": "liked", "whyThisPersonaChoseIt": "Comfortable star-driven rom-com." },
+      { "query": "Mission Impossible Fallout", "expectedTitleHint": "Mission", "sentiment": "liked", "whyThisPersonaChoseIt": "Known franchise action with low decision cost." },
+      { "query": "Guardians of the Galaxy", "expectedTitleHint": "Guardians", "sentiment": "loved", "whyThisPersonaChoseIt": "Fun, broad, and familiar enough." },
+      { "query": "Free Guy", "expectedTitleHint": "Free Guy", "sentiment": "okay", "whyThisPersonaChoseIt": "Easy background-friendly entertainment." }
+    ],
+    "onboardingBehavior": {
+      "speed": "fast",
+      "confidence": "medium",
+      "likelyFriction": "Will not tolerate much setup before a safe pick.",
+      "humanNote": "Just put something good on."
+    }
+  },
+  {
+    "id": "P8",
+    "moods": ["wired", "tense", "mythic"],
+    "genres": ["Sci-Fi", "Horror", "Crime", "Action"],
+    "anchorMovies": [
+      { "query": "The Thing", "expectedTitleHint": "Thing", "sentiment": "loved", "whyThisPersonaChoseIt": "Cult-library staple with practical craft." },
+      { "query": "Alien", "expectedTitleHint": "Alien", "sentiment": "loved", "whyThisPersonaChoseIt": "Owned-media canon and atmosphere." },
+      { "query": "The Raid Redemption", "expectedTitleHint": "Raid", "sentiment": "liked", "whyThisPersonaChoseIt": "High-control action favorite in a personal library." },
+      { "query": "Akira", "expectedTitleHint": "Akira", "sentiment": "liked", "whyThisPersonaChoseIt": "Collection-worthy animation and cult status." },
+      { "query": "Children of Men", "expectedTitleHint": "Children of Men", "sentiment": "liked", "whyThisPersonaChoseIt": "Technical craft with durable shelf value." }
+    ],
+    "onboardingBehavior": {
+      "speed": "slow",
+      "confidence": "high",
+      "likelyFriction": "Will ask whether personal library ownership is respected.",
+      "humanNote": "Do not assume streaming is my whole world."
+    }
+  },
+  {
+    "id": "P9",
+    "moods": ["fun", "wired", "tense"],
+    "genres": ["Action", "Horror", "Comedy", "Sci-Fi"],
+    "anchorMovies": [
+      { "query": "Everything Everywhere All at Once", "expectedTitleHint": "Everything Everywhere", "sentiment": "loved", "whyThisPersonaChoseIt": "Immediate visual energy and meme-speed momentum." },
+      { "query": "Baby Driver", "expectedTitleHint": "Baby Driver", "sentiment": "liked", "whyThisPersonaChoseIt": "Music, movement, and trailer-friendly pacing." },
+      { "query": "Get Out", "expectedTitleHint": "Get Out", "sentiment": "liked", "whyThisPersonaChoseIt": "High-concept hook that sells fast." },
+      { "query": "Scott Pilgrim vs the World", "expectedTitleHint": "Scott Pilgrim", "sentiment": "liked", "whyThisPersonaChoseIt": "Kinetic, clip-friendly visual language." },
+      { "query": "Mad Max Fury Road", "expectedTitleHint": "Fury Road", "sentiment": "loved", "whyThisPersonaChoseIt": "Instant spectacle and clear vibe." }
+    ],
+    "onboardingBehavior": {
+      "speed": "fast",
+      "confidence": "medium",
+      "likelyFriction": "Will disengage if the flow feels text-heavy or slow.",
+      "humanNote": "Show me something that looks good now."
+    }
+  },
+  {
+    "id": "P10",
+    "moods": ["wired", "tense", "fun"],
+    "genres": ["Horror", "Crime", "Drama", "Mystery"],
+    "anchorMovies": [
+      { "query": "Parasite", "expectedTitleHint": "Parasite", "sentiment": "loved", "whyThisPersonaChoseIt": "A smart recommendation people can actually defend." },
+      { "query": "The Handmaiden", "expectedTitleHint": "Handmaiden", "sentiment": "loved", "whyThisPersonaChoseIt": "A hidden-gem feeling without relying on fake hype." },
+      { "query": "Prisoners", "expectedTitleHint": "Prisoners", "sentiment": "liked", "whyThisPersonaChoseIt": "A tense word-of-mouth thriller anchor." },
+      { "query": "The Invitation", "expectedTitleHint": "Invitation", "sentiment": "liked", "whyThisPersonaChoseIt": "Small-scale dread that benefits from a real why." },
+      { "query": "Coherence", "expectedTitleHint": "Coherence", "sentiment": "liked", "whyThisPersonaChoseIt": "Conversation-worthy puzzle-box energy." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "medium",
+      "likelyFriction": "Will reject invented social proof or marketing tone.",
+      "humanNote": "Give me a reason a smart friend would actually say."
+    }
+  },
+  {
+    "id": "P11",
+    "moods": ["cozy", "tender", "fun"],
+    "genres": ["Comedy", "Drama", "Romance", "Animation"],
+    "anchorMovies": [
+      { "query": "Paddington 2", "expectedTitleHint": "Paddington", "sentiment": "loved", "whyThisPersonaChoseIt": "Pure comfort that restores energy." },
+      { "query": "Chef", "expectedTitleHint": "Chef", "sentiment": "liked", "whyThisPersonaChoseIt": "Low-stakes warmth after a long day." },
+      { "query": "About Time", "expectedTitleHint": "About Time", "sentiment": "liked", "whyThisPersonaChoseIt": "Tender without being too hard to start." },
+      { "query": "Little Miss Sunshine", "expectedTitleHint": "Little Miss Sunshine", "sentiment": "liked", "whyThisPersonaChoseIt": "Messy family warmth with emotional payoff." },
+      { "query": "The Intern", "expectedTitleHint": "Intern", "sentiment": "okay", "whyThisPersonaChoseIt": "Easy comfort when there is no energy left." }
+    ],
+    "onboardingBehavior": {
+      "speed": "fast",
+      "confidence": "low",
+      "likelyFriction": "Any extra work feels expensive at 9pm.",
+      "humanNote": "Please just understand the mood and let me stop scrolling."
+    }
+  },
+  {
+    "id": "P12",
+    "moods": ["cozy", "tender", "wired"],
+    "genres": ["Drama", "Comedy", "Romance", "Animation"],
+    "anchorMovies": [
+      { "query": "Lady Bird", "expectedTitleHint": "Lady Bird", "sentiment": "loved", "whyThisPersonaChoseIt": "Accessible, personal, and not intimidating." },
+      { "query": "Past Lives", "expectedTitleHint": "Past Lives", "sentiment": "liked", "whyThisPersonaChoseIt": "A gentle stretch into quieter drama." },
+      { "query": "The Farewell", "expectedTitleHint": "Farewell", "sentiment": "liked", "whyThisPersonaChoseIt": "Human and specific without film-school language." },
+      { "query": "Little Women", "expectedTitleHint": "Little Women", "sentiment": "liked", "whyThisPersonaChoseIt": "Warm craft with approachable literary drama." },
+      { "query": "Amelie", "expectedTitleHint": "Amelie", "sentiment": "okay", "whyThisPersonaChoseIt": "A playful taste-expansion anchor." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "medium",
+      "likelyFriction": "Will notice if DNA feels flattering rather than true.",
+      "humanNote": "Help me learn my taste without talking down to me."
+    }
+  },
+  {
+    "id": "P13",
+    "moods": ["fun", "cozy", "tense"],
+    "genres": ["Comedy", "Action", "Thriller", "Adventure"],
+    "anchorMovies": [
+      { "query": "The Princess Bride", "expectedTitleHint": "Princess Bride", "sentiment": "loved", "whyThisPersonaChoseIt": "A shared-safe favorite with charm and adventure." },
+      { "query": "Knives Out", "expectedTitleHint": "Knives Out", "sentiment": "liked", "whyThisPersonaChoseIt": "Funny mystery that both sides can accept." },
+      { "query": "Ocean's Eleven", "expectedTitleHint": "Ocean", "sentiment": "liked", "whyThisPersonaChoseIt": "Stylish, light, and low-conflict." },
+      { "query": "The Incredibles", "expectedTitleHint": "Incredibles", "sentiment": "liked", "whyThisPersonaChoseIt": "Family-friendly compromise with real craft." },
+      { "query": "The Bourne Identity", "expectedTitleHint": "Bourne", "sentiment": "okay", "whyThisPersonaChoseIt": "Action compromise when one person wants momentum." }
+    ],
+    "onboardingBehavior": {
+      "speed": "fast",
+      "confidence": "medium",
+      "likelyFriction": "Will worry the product only models one person's taste.",
+      "humanNote": "Pick something neither of us vetoes."
+    }
+  },
+  {
+    "id": "P14",
+    "moods": ["wired", "tender", "mythic"],
+    "genres": ["Drama", "History", "Mystery", "Sci-Fi"],
+    "anchorMovies": [
+      { "query": "2001 A Space Odyssey", "expectedTitleHint": "2001", "sentiment": "loved", "whyThisPersonaChoseIt": "A high bar for cinema as form." },
+      { "query": "There Will Be Blood", "expectedTitleHint": "There Will Be Blood", "sentiment": "loved", "whyThisPersonaChoseIt": "Serious, uncompromising, and built to last." },
+      { "query": "A Separation", "expectedTitleHint": "Separation", "sentiment": "loved", "whyThisPersonaChoseIt": "Moral complexity without algorithmic sludge." },
+      { "query": "Mulholland Drive", "expectedTitleHint": "Mulholland", "sentiment": "liked", "whyThisPersonaChoseIt": "A difficult, specific trust test." },
+      { "query": "Portrait of a Lady on Fire", "expectedTitleHint": "Portrait", "sentiment": "liked", "whyThisPersonaChoseIt": "Exacting craft and emotional rigor." }
+    ],
+    "onboardingBehavior": {
+      "speed": "slow",
+      "confidence": "high",
+      "likelyFriction": "One mediocre or dishonest signal breaks trust.",
+      "humanNote": "Do not insult me with algorithmic slop."
+    }
+  },
+  {
+    "id": "P15",
+    "moods": ["cozy", "tense"],
+    "genres": ["Comedy", "Drama", "Thriller"],
+    "anchorMovies": [
+      { "query": "The Truman Show", "expectedTitleHint": "Truman", "sentiment": "liked", "whyThisPersonaChoseIt": "A familiar but thoughtful first signal." },
+      { "query": "The Menu", "expectedTitleHint": "Menu", "sentiment": "okay", "whyThisPersonaChoseIt": "A recent-ish thriller signal, but uncertainty remains." },
+      { "query": "Forrest Gump", "expectedTitleHint": "Forrest Gump", "sentiment": "liked", "whyThisPersonaChoseIt": "Mainstream known favorite for a thin profile." },
+      { "query": "La La Land", "expectedTitleHint": "La La Land", "sentiment": "okay", "whyThisPersonaChoseIt": "Testing whether musical warmth is part of taste." },
+      { "query": "The Dark Knight", "expectedTitleHint": "Dark Knight", "sentiment": "liked", "whyThisPersonaChoseIt": "A broad anchor when the profile is still forming." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "low",
+      "likelyFriction": "Will distrust any overconfident read from thin data.",
+      "humanNote": "You barely know me yet; be honest about that."
+    }
+  },
+  {
+    "id": "P16",
+    "moods": ["tender", "wired", "tense"],
+    "genres": ["Drama", "Crime", "Mystery", "Romance"],
+    "anchorMovies": [
+      { "query": "Before Sunset", "expectedTitleHint": "Before Sunset", "sentiment": "loved", "whyThisPersonaChoseIt": "A coherent emotional and conversational anchor." },
+      { "query": "Eternal Sunshine of the Spotless Mind", "expectedTitleHint": "Eternal Sunshine", "sentiment": "loved", "whyThisPersonaChoseIt": "Romantic memory and melancholy that should compound." },
+      { "query": "Drive", "expectedTitleHint": "Drive", "sentiment": "liked", "whyThisPersonaChoseIt": "Stylized mood and crime texture." },
+      { "query": "Burning", "expectedTitleHint": "Burning", "sentiment": "liked", "whyThisPersonaChoseIt": "Slow-burn ambiguity for a deeper taste profile." },
+      { "query": "The Worst Person in the World", "expectedTitleHint": "Worst Person", "sentiment": "liked", "whyThisPersonaChoseIt": "Modern emotional specificity that should inform future picks." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "high",
+      "likelyFriction": "Will be disappointed if depth does not compound.",
+      "humanNote": "This should get better because I have fed it real signals."
+    }
+  },
+  {
+    "id": "CTRL",
+    "moods": ["cozy", "wired"],
+    "genres": ["Comedy", "Drama", "Action", "Sci-Fi"],
+    "anchorMovies": [
+      { "query": "Back to the Future", "expectedTitleHint": "Back to the Future", "sentiment": "liked", "whyThisPersonaChoseIt": "Neutral broad test anchor." },
+      { "query": "The Matrix", "expectedTitleHint": "Matrix", "sentiment": "liked", "whyThisPersonaChoseIt": "Broad sci-fi/action baseline." },
+      { "query": "Toy Story", "expectedTitleHint": "Toy Story", "sentiment": "liked", "whyThisPersonaChoseIt": "Family animation baseline." },
+      { "query": "The Shawshank Redemption", "expectedTitleHint": "Shawshank", "sentiment": "liked", "whyThisPersonaChoseIt": "Broad drama baseline." },
+      { "query": "Groundhog Day", "expectedTitleHint": "Groundhog", "sentiment": "okay", "whyThisPersonaChoseIt": "Neutral comedy baseline." }
+    ],
+    "onboardingBehavior": {
+      "speed": "normal",
+      "confidence": "medium",
+      "likelyFriction": "Operational control account only.",
+      "humanNote": "Use me for control checks, not persona findings."
+    }
+  }
+]

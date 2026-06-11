@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// E2E config for FeelFlick. Tests live in e2e/ and use the *.e2e.js / *.setup.js
-// naming so Vitest (which scans **/*.{test,spec}.*) never picks them up.
+// E2E config for FeelFlick. Tests live in e2e/ and use the *.e2e.js /
+// *.setup.js / *.persona.js / *.visual.js naming so Vitest (which scans
+// **/*.{test,spec}.*) never picks them up.
 const baseURL = 'http://localhost:5173'
 
 export default defineConfig({
@@ -55,6 +56,30 @@ export default defineConfig({
       testMatch: 'visual-auth/**/*.visual.js',
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/user.json' },
+    },
+
+    // Persona auth-state generation. Opt-in only via
+    // `npm run persona:auth-states`; never depends on the shared dev user.
+    {
+      name: 'persona-auth',
+      testMatch: 'persona/auth-states.persona.js',
+      use: { ...devices['Desktop Chrome'] },
+    },
+
+    // Persona onboarding completion through real browser UI. Opt-in only via
+    // `npm run persona:onboard`; uses per-persona auth states, not the dev user.
+    {
+      name: 'persona-onboarding',
+      testMatch: 'persona/onboarding.persona.js',
+      use: { ...devices['Desktop Chrome'] },
+    },
+
+    // Persona revisit + synthetic felt-experience QA. Opt-in only via
+    // `npm run persona:revisit`; uses per-persona auth states, not the dev user.
+    {
+      name: 'persona-revisit',
+      testMatch: 'persona/revisit.persona.js',
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 

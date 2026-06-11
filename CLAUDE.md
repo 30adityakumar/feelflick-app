@@ -202,3 +202,41 @@ Load only what the task needs:
 - end-to-end delivery → `.claude/skills/ship-to-production/SKILL.md`
 
 Use skills for repeatable procedures. Use rules for durable standards. Do not duplicate volatile facts across multiple documents.
+
+## Persona QA / Synthetic Feedback Lab
+
+FeelFlick has a reusable synthetic persona QA workflow under `docs/personas/`.
+
+Use it for read-only product feedback when the user asks about persona QA, synthetic beta users, felt-experience audit, trust/clarity feedback, or how the app feels to different users.
+
+Primary read-only skill:
+
+```text
+/persona-feedback-audit
+```
+
+Skill file:
+
+```text
+.claude/skills/persona-feedback-audit/SKILL.md
+```
+
+Guardrails:
+
+- Synthetic persona findings are UX inspection only, not real-user validation.
+- Do not treat local console/request warnings as confirmed production bugs without review.
+- Do not tune recommendation logic from synthetic findings alone.
+- Do not modify source code when the user asks for feedback only.
+- Never read or print `e2e/.auth/personas/*.json`.
+- Never print cookies, localStorage, JWTs, passwords, service role keys, anon keys, or auth-state contents.
+
+Safe docs:
+
+- `docs/personas/persona-qa-workflow.md`
+- `docs/personas/synthetic-personas-f10c.md`
+- `docs/personas/persona-revisit-rubric.json`
+
+Safe generated summaries:
+
+- `e2e/.persona-artifacts/revisit-summary.json`
+- `e2e/.persona-artifacts/reports/*.md`

@@ -33,6 +33,7 @@ import RatingStep from './steps/RatingStep'
 
 import { MOODS_LS_KEY, SENTIMENT_RATINGS } from './data'
 import { loadDraft, saveDraft, clearDraft } from './draft'
+import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
 import './onboarding.css'
 
 // Drafts the in-flight onboarding (per signed-in user) so a refresh doesn't wipe
@@ -46,6 +47,7 @@ export default function Onboarding() {
   const reduced = useReducedMotion()
 
   usePageMeta({ title: 'Taste profile · FeelFlick' })
+  useEffect(() => { trackEvent(EVENTS.onboarding_started, { surface: 'onboarding' }) }, []) // B1.4b funnel entry
 
   const [checking, setChecking] = useState(true)
   const [celebrate, setCelebrate] = useState(false)
@@ -247,6 +249,7 @@ export default function Onboarding() {
       await markOnboardingAuthComplete()
     } catch (e) {
       console.error('Onboarding save failed:', e)
+      trackEvent(EVENTS.onboarding_error, { surface: 'onboarding', source: 'finish', error_kind: errorKind(e) })
       setError(e.message || 'Could not save your preferences. Please try again.')
       setLoading(false)
       setCelebrate(false)
@@ -321,7 +324,7 @@ export default function Onboarding() {
                 <MoodStep
                   moods={moods}
                   setMoods={setMoods}
-                  onNext={() => { setError(''); setStep(1) }}
+                  onNext={() => { setError(''); setStep(1); trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'mood' }) }}
                   firstName={session?.user?.user_metadata?.name?.split(' ')[0] ?? null}
                 />
               )}
@@ -330,7 +333,7 @@ export default function Onboarding() {
                   selectedGenres={selectedGenres}
                   toggleGenre={toggleGenre}
                   onBack={() => { setError(''); setStep(0) }}
-                  onNext={() => { setError(''); setStep(2) }}
+                  onNext={() => { setError(''); setStep(2); trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'genres' }) }}
                 />
               )}
               {step === 2 && (
@@ -342,7 +345,7 @@ export default function Onboarding() {
                   removeMovie={removeMovie}
                   isMovieSelected={isMovieSelected}
                   onBack={() => { setError(''); setStep(1) }}
-                  onFinish={() => { setError(''); setStep(3) }}
+                  onFinish={() => { setError(''); setStep(3); trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'movies' }) }}
                   loading={false}
                   error={error}
                 />

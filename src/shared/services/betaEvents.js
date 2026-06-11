@@ -13,10 +13,15 @@ import { track as analyticsTrack } from './analytics'
 
 // ── Event allow-list (add here intentionally; the test fails on un-listed names) ──────────────
 export const EVENTS = Object.freeze({
-  // Onboarding (onboarding_completed predates B1.3 and is emitted via analytics.track directly)
+  // Onboarding
+  onboarding_started: 'onboarding_started',
+  onboarding_step_completed: 'onboarding_step_completed',
+  onboarding_abandoned: 'onboarding_abandoned',
+  onboarding_error: 'onboarding_error',
   onboarding_completed: 'onboarding_completed',
   // Discover
   discover_opened: 'discover_opened',
+  recommendation_requested: 'recommendation_requested',
   recommendation_shown: 'recommendation_shown',
   recommendation_opened: 'recommendation_opened',
   recommendation_saved: 'recommendation_saved',
@@ -44,6 +49,7 @@ export const EVENTS = Object.freeze({
   route_error: 'route_error',
   auth_error: 'auth_error',
   supabase_error: 'supabase_error',
+  edge_function_error: 'edge_function_error',
 })
 
 const EVENT_NAMES = new Set(Object.values(EVENTS))
@@ -53,7 +59,7 @@ export const ALLOWED_KEYS = new Set([
   'event_version', 'surface', 'source', 'step_key', 'reaction', 'placement',
   'result_count', 'result_kind', 'has_results', 'from_cache',
   'movie_id', // catalog id — safe + useful
-  'genre_count_bucket', 'mood_count_bucket', 'count_bucket',
+  'genre_count_bucket', 'movie_count_bucket', 'rating_count_bucket', 'mood_count_bucket', 'count_bucket',
   'query_length_bucket', 'latency_bucket', 'retry_count_bucket', 'status_bucket',
   'error_kind',
 ])

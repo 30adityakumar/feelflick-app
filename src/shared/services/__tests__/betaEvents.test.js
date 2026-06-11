@@ -43,6 +43,23 @@ describe('betaEvents — fail-closed event contract', () => {
     trackEvent(EVENTS.recommendation_shown, { movie_id: 12345, source: null, result_count: undefined })
     expect(analyticsTrack).toHaveBeenCalledWith('recommendation_shown', { movie_id: 12345 })
   })
+
+  it('allows the B1.4b onboarding + Discover funnel events (bucketed/safe payloads)', () => {
+    trackEvent(EVENTS.onboarding_started, { surface: 'onboarding' })
+    trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'mood' })
+    trackEvent(EVENTS.onboarding_completed, { surface: 'onboarding', genre_count_bucket: '3-5', rating_count_bucket: '1-2' })
+    trackEvent(EVENTS.recommendation_requested, { surface: 'discover' })
+    trackEvent(EVENTS.recommendation_shown, { surface: 'discover', result_count: 3, from_cache: false })
+    trackEvent(EVENTS.edge_function_error, { surface: 'profile', error_kind: 'edge_error' })
+    expect(analyticsTrack).toHaveBeenCalledTimes(6)
+  })
+
+  it('drops raw context / title / genre text from Discover & onboarding events', () => {
+    trackEvent(EVENTS.recommendation_shown, {
+      surface: 'discover', context: 'cozy rainy night', movie_title: 'Jaws', genre: 'horror', prompt: 'find me something',
+    })
+    expect(analyticsTrack).toHaveBeenCalledWith('recommendation_shown', { surface: 'discover' })
+  })
 })
 
 describe('betaEvents — helpers never leak raw text', () => {

@@ -22,7 +22,9 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
   const isEdit = !!existingList
   const [title, setTitle] = useState(existingList?.title || '')
   const [description, setDescription] = useState(existingList?.description || '')
-  const [isPublic, setIsPublic] = useState(existingList?.is_public ?? true)
+  // F9.2: new lists default PRIVATE. Editing keeps the existing list's value. The user opts in
+  // to public via the explicit "Public — anyone can see this list" checkbox below.
+  const [isPublic, setIsPublic] = useState(existingList?.is_public ?? false)
   const [saving, setSaving] = useState(false)
 
   const canSubmit = title.trim().length > 0 && !saving

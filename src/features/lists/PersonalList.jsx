@@ -343,7 +343,7 @@ export default function PersonalList() {
           user_id: user.id,
           title: savedTitle,
           description: resolved.description || null,
-          is_public: true,
+          is_public: false, // F9.2: snapshots default private; owner can make public from /lists.
         })
         .select('id')
         .single()

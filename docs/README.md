@@ -50,6 +50,7 @@ guardrails, workflows), the source of truth is **`CLAUDE.md`** at the root, plus
 | [`PLANNING.md`](PLANNING.md) | The active-sprint slice of the phased rebuild. |
 | [`user-journey.md`](user-journey.md) | End-to-end user journey — ⚠️ **stale** (references removed `/x-legacy` routes + a `HeroSection` that no longer exists); pending a later refresh. |
 | [`SUPABASE_SCHEMA.md`](SUPABASE_SCHEMA.md) | DB schema reference — ⚠️ auto-generated snapshot (pre-2026-05-29); the live DB is the source of truth. |
+| [`beta/first-invite-runbook-b16.md`](beta/first-invite-runbook-b16.md) | **First private-beta invite runbook (B1.6)** — the operator procedure to invite the first 1–2 trusted users (B1.5 = 0 P0/P1): pre-invite checks, enable the gate, add members (service-role), verify RLS, the analytics/privacy disclosure + invite template, kill-switches, during-beta monitoring, rollback, and the graduation gate to the 5–10 wave. See also [`beta/operator-dashboard-b1.md`](beta/operator-dashboard-b1.md) + [`beta/instrumentation-b1.md`](beta/instrumentation-b1.md). |
 
 ## Structured
 - [`decisions/`](decisions/) — Architecture Decision Records (ADRs) + `DECISIONS.md` index.

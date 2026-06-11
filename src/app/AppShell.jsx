@@ -9,6 +9,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePendingDeletion } from '@/shared/hooks/usePendingDeletion'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { identify, resetAnalytics, track } from '@/shared/services/analytics'
+import { redactPath } from '@/shared/services/betaEvents'
 
 export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -74,7 +75,9 @@ export default function AppShell() {
   // Reset header visibility on route change + track page view
   useEffect(() => {
     setHeaderVisible(true)
-    track('page_viewed', { path: location.pathname })
+    // B1.4: redact dynamic path segments (/profile/:id, /lists/:id, /movie/:id …) so no real
+    // user/content id ever reaches analytics in the page path.
+    track('page_viewed', { path: redactPath(location.pathname) })
 
     const prefersReducedMotion =
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false

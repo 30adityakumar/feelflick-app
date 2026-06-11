@@ -103,6 +103,27 @@ export const latencyBucket = (ms) =>
 export const queryLengthBucket = (len) =>
   len == null ? undefined : len <= 0 ? '0' : len <= 2 ? '1-2' : len <= 5 ? '3-5' : len <= 10 ? '6-10' : '11+'
 
+// Replace dynamic route segments (ids / uuids / slugs that could identify a user or their content)
+// with a stable route-pattern label, so `page_viewed` never carries a real id in its path value.
+// Order matters: the more specific /lists/curated|personal must run before the generic /lists/:id.
+const PATH_RULES = [
+  [/^\/profile\/[^/]+/, '/profile/:id'],
+  [/^\/movie\/[^/]+/, '/movie/:id'],
+  [/^\/collection\/[^/]+/, '/collection/:id'],
+  [/^\/lists\/curated\/[^/]+/, '/lists/curated/:slug'],
+  [/^\/lists\/personal\/[^/]+/, '/lists/personal/:type'],
+  [/^\/lists\/[^/]+/, '/lists/:id'],
+  [/^\/mood\/[^/]+/, '/mood/:tag'],
+  [/^\/tone\/[^/]+/, '/tone/:tag'],
+  [/^\/browse\/fit\/[^/]+/, '/browse/fit/:profile'],
+]
+export function redactPath(pathname) {
+  if (typeof pathname !== 'string' || !pathname) return '/'
+  const path = pathname.split('?')[0].split('#')[0] // drop any query/hash
+  for (const [re, label] of PATH_RULES) if (re.test(path)) return label
+  return path
+}
+
 /**
  * Map any error to a stable, non-identifying bucket. NEVER returns raw error text.
  */

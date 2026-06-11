@@ -27,3 +27,13 @@ export function isEnabled(key) {
 }
 
 export const FLAG_KEYS = Object.freeze(Object.keys(FLAG_ENV))
+
+// The private-beta access gate is the INVERSE of the feature kill-switches: it defaults to OFF
+// (only 'true'/'1' turns it on) so dev/CI/E2E and current users are unaffected until an operator
+// explicitly enables it for a production beta deploy via VITE_ENABLE_BETA_GATE.
+export function isBetaGateEnabled() {
+  let raw
+  try { raw = import.meta.env?.VITE_ENABLE_BETA_GATE } catch { raw = undefined }
+  const v = String(raw).toLowerCase()
+  return v === 'true' || v === '1' || v === 'on'
+}

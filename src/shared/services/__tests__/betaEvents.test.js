@@ -6,7 +6,7 @@ const analyticsTrack = vi.hoisted(() => vi.fn())
 vi.mock('../analytics', () => ({ track: analyticsTrack }))
 
 import {
-  trackEvent, EVENTS, isUnsafeValue, errorKind, countBucket, latencyBucket, queryLengthBucket,
+  trackEvent, EVENTS, isUnsafeValue, errorKind, countBucket, latencyBucket, queryLengthBucket, redactPath,
 } from '../betaEvents'
 
 describe('betaEvents — fail-closed event contract', () => {
@@ -77,5 +77,28 @@ describe('betaEvents — helpers never leak raw text', () => {
     expect(isUnsafeValue('permission_denied')).toBe(false)
     expect(isUnsafeValue(42)).toBe(false)
     expect(isUnsafeValue(true)).toBe(false)
+  })
+})
+
+describe('redactPath — no dynamic id/slug ever reaches the page path', () => {
+  it('replaces dynamic segments with a stable route pattern', () => {
+    expect(redactPath('/profile/9f1c-uuid')).toBe('/profile/:id')
+    expect(redactPath('/movie/550')).toBe('/movie/:id')
+    expect(redactPath('/lists/abc-123')).toBe('/lists/:id')
+    expect(redactPath('/lists/curated/best-of-2024')).toBe('/lists/curated/:slug')
+    expect(redactPath('/lists/personal/watchlist')).toBe('/lists/personal/:type')
+    expect(redactPath('/collection/99')).toBe('/collection/:id')
+    expect(redactPath('/mood/cozy')).toBe('/mood/:tag')
+    expect(redactPath('/tone/wistful')).toBe('/tone/:tag')
+    expect(redactPath('/browse/fit/slow-burn')).toBe('/browse/fit/:profile')
+  })
+
+  it('keeps static paths and strips any query/hash', () => {
+    expect(redactPath('/home')).toBe('/home')
+    expect(redactPath('/people')).toBe('/people')
+    expect(redactPath('/browse')).toBe('/browse')
+    expect(redactPath('/movie/5?ref=home#cast')).toBe('/movie/:id')
+    expect(redactPath('')).toBe('/')
+    expect(redactPath(null)).toBe('/')
   })
 })

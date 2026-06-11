@@ -49,6 +49,18 @@ First-party event/session tables are purged on account deletion by the `process-
 
 The Privacy page therefore (correctly) makes **no** PostHog-deletion claim. **Follow-up (B1.x):** add a server-side PostHog `DELETE /api/person` (by distinct id = user id, no email/name) to the account-deletion pipeline once that function is in-repo and the secret is provisioned, plus a documented PostHog retention window. Until then, treat PostHog as retaining pseudonymous (id-only) event data per its project retention.
 
-## Retained gaps (deferred to B1.4b)
+## B1.4b funnel + health (shipped)
 
-Deeper funnel instrumentation — the Discover recommendation funnel (`discover_opened`/`recommendation_shown`/`_opened`/`_saved`/`_error`) + onboarding step events (`onboarding_started`/`step_completed`/`abandoned`) — and the Discover-recommendations kill-switch wiring + Edge/RLS error-bucket capture at client call sites. Deferred to avoid touching the recommendation/onboarding flows in this access-control phase. The `EVENTS` names are already reserved in `betaEvents.js`.
+**Onboarding funnel:** `onboarding_started` (mount), `onboarding_step_completed` (`step_key` = `mood`/`genres`/`movies`), `onboarding_error` (`error_kind`), `onboarding_completed` (now through the central wrapper with **bucketed** counts — `genre_count_bucket` etc., never raw counts/titles/genres). *`onboarding_abandoned` not wired — no clean abandonment signal exists; revisit if drop-off needs it.*
+
+**Discover funnel:** `discover_opened` (mount), `recommendation_requested` (resolve stage), `recommendation_shown` (`result_count` + `from_cache`), `recommendation_error` (`error_kind`), `recommendation_opened` + `recommendation_saved` (carry `movie_id` only — never title/context). These are a **minimal PostHog funnel bridge**; `recommendation_impressions` remains the first-party source of truth for detailed outcomes.
+
+**Discover funnel suggestion:** `discover_opened` → `recommendation_requested` → `recommendation_shown` → `recommendation_opened`/`recommendation_saved`; watch `recommendation_error` by `error_kind`.
+
+**Discover kill-switch (now wired):** `VITE_ENABLE_DISCOVER_RECOMMENDATIONS=false` → the scoring (`scoreMovieForUser`) is **not** run and the pick stage shows an honest "Tonight's pick is paused" fallback (`DiscoverPaused`) with a Start-over button — no request, no spinner hang, no crash. Default on.
+
+**Safe error buckets:** failures emit `error_kind` only (via `errorKind()`) — onboarding (`onboarding_error`), Discover save/resolve (`recommendation_error`), Profile refresh (`profile_reflection_refresh_failed`), People follow (`people_follow_failed`), route (`route_error`). Never raw error text / Supabase error objects / SQL / tokens.
+
+## Retained gaps (B1.x)
+
+`onboarding_abandoned` (no signal); `edge_function_error`/`supabase_error` are reserved in `EVENTS` but emitted only where a clean swallowed-error boundary exists; an operator dashboard UI; the PostHog account-deletion implementation (below).

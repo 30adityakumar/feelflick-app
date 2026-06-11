@@ -7,6 +7,8 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { scoreMovieForUser } from '@/shared/services/recommendations'
 import { computeMatchPercent } from '@/shared/services/matchScore'
 import { DiscoverDataProvider, useDiscoverData } from './useDiscoverData'
+import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
+import { isEnabled } from '@/shared/config/betaFlags'
 import { MOODS, ONBOARDING_TO_DISCOVER, diversifyTop3, predictDiscoverDefaults } from './derive'
 import { HP, TIME_OPTIONS } from './constants'
 import StageMood from './sections/StageMood'
@@ -191,6 +193,23 @@ async function commitDiscoverPreferences({ userId, intention, time, who, energy 
   }
 }
 
+// B1.4b kill-switch fallback — shown at the pick stage when Discover recommendations are disabled.
+// Honest, no spinner, no crash; the mood/context stages still work and the user can restart.
+function DiscoverPaused({ onRestart }) {
+  return (
+    <div style={{ maxWidth: 560, margin: '0 auto', padding: '100px 24px', textAlign: 'center' }}>
+      <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>Tonight&rsquo;s pick is paused</h2>
+      <p style={{ color: 'rgba(250,250,250,0.62)', fontSize: 15, lineHeight: 1.6, marginBottom: 20 }}>
+        Recommendations are taking a short break during beta. Please check back soon.
+      </p>
+      <button type="button" onClick={onRestart}
+        style={{ minHeight: 44, padding: '0 20px', borderRadius: 10, border: '1px solid rgba(250,250,250,0.18)', background: 'transparent', color: '#fafafa', fontWeight: 600, cursor: 'pointer' }}>
+        Start over
+      </button>
+    </div>
+  )
+}
+
 function DiscoverBody() {
   // /discover opens directly on the mood front door (stage 1) — the separate
   // hero/"How do you feel?" launch screen was removed in F3.5 (it re-asked mood
@@ -315,7 +334,12 @@ function DiscoverBody() {
     return MOODS.find(m => m.id === selected[0])?.hex || HP.purple;
   }, [selected]);
 
+  // B1.4b kill-switch: when Discover recommendations are disabled for beta, compute NO picks
+  // (scoreMovieForUser is never called) and show an honest "paused" fallback at the pick stage.
+  // Defaults to enabled → the normal scoring path below is unchanged.
+  const recsEnabled = isEnabled('discoverRecommendations')
   const allResults = useMemo(() => {
+    if (!recsEnabled) return [];
     const runtimeBand = TIME_OPTIONS.find(t => t.id === time)?.v || [0,300];
     // Save-affinity lookup sets — directors and primary_genres the user
     // has saved (user_watchlist) in the last 90 days. Built once per
@@ -433,7 +457,19 @@ function DiscoverBody() {
     // already shown in this /discover session get demoted, giving the
     // user fresh picks when they tweak moods/inputs across scenarios.
     return diversifyTop3(scored, sessionShownIds.current);
-  }, [selected, time, who, energy, intention, films, profile, recentSaves]);
+  }, [recsEnabled, selected, time, who, energy, intention, films, profile, recentSaves]);
+
+  // ── B1.4b privacy-safe Discover funnel (additive; no raw context/mood/title text) ──────────────
+  useEffect(() => { trackEvent(EVENTS.discover_opened, { surface: 'discover' }) }, [])
+  useEffect(() => {
+    if (stage === 2.3) trackEvent(EVENTS.recommendation_requested, { surface: 'discover' })
+  }, [stage])
+  useEffect(() => {
+    if (stage !== 3 || !recsEnabled) return
+    if (isFallback) trackEvent(EVENTS.recommendation_error, { surface: 'discover', source: 'resolve', error_kind: fallbackReason ? 'supabase_error' : 'unknown' })
+    else trackEvent(EVENTS.recommendation_shown, { surface: 'discover', result_count: allResults.length, from_cache: !usingLiveFilms })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage])
 
   return (
     <div className="ff-discover" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, fontFamily:'Inter, sans-serif', position:'relative', overflow:'hidden' }}>
@@ -442,7 +478,9 @@ function DiscoverBody() {
         {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2   && <StageNightContext time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onUserEdit={()=>{ contextTouchedRef.current = true }} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2.3 && <StageResolve blendHex={blendHex} onDone={()=>setStage(3)} />}
-        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} time={time} results={allResults} profile={profile} sessionShownIds={sessionShownIds} isFallback={isFallback} fallbackReason={fallbackReason} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
+        {stage === 3   && (recsEnabled
+          ? <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} time={time} results={allResults} profile={profile} sessionShownIds={sessionShownIds} isFallback={isFallback} fallbackReason={fallbackReason} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />
+          : <DiscoverPaused onRestart={()=>setStage(1)} />)}
       </div>
     </div>
   );

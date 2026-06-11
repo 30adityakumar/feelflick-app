@@ -3,7 +3,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { fetchJson } from '@/shared/api/tmdb'
 import { computeUserProfileV3 } from './recommendations'
 import { getTasteFingerprint } from './tasteCache'
-import { track } from './analytics'
+import { trackEvent, EVENTS, countBucket } from './betaEvents'
 
 // === HELPERS ===
 
@@ -255,11 +255,13 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
     console.warn('Taste fingerprint pre-warm failed (non-fatal):', err)
   }
 
-  // 8. Analytics
-  track('onboarding_completed', {
-    genre_count: selectedGenres.length,
-    movie_count: favoriteMovies.length,
-    rating_count: ratingEntries.length,
-    mood_count: Array.isArray(moods) ? moods.length : 0,
+  // 8. Analytics — B1.4b: through the central fail-closed wrapper, COARSE BUCKETS only
+  // (no raw counts that could fingerprint a taste profile, no titles/genres/moods text).
+  trackEvent(EVENTS.onboarding_completed, {
+    surface: 'onboarding',
+    genre_count_bucket: countBucket(selectedGenres.length),
+    movie_count_bucket: countBucket(favoriteMovies.length),
+    rating_count_bucket: countBucket(ratingEntries.length),
+    mood_count_bucket: countBucket(Array.isArray(moods) ? moods.length : 0),
   })
 }

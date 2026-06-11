@@ -55,6 +55,8 @@ vi.mock('@/shared/services/recommendations', () => ({
 vi.mock('@/shared/services/analytics', () => ({
   track: vi.fn(),
 }))
+// B1.4b: onboarding_completed now flows through the central betaEvents wrapper (bucketed counts).
+vi.mock('@/shared/services/betaEvents', async (orig) => ({ ...(await orig()), trackEvent: vi.fn() }))
 
 // framer-motion's useReducedMotion reads window.matchMedia, which jsdom doesn't
 // provide. Stub it (test-local, guarded) so the real step components render.
@@ -224,7 +226,7 @@ describe('RatingStep — real sentiment buttons (auto-finishes; no confirm butto
 import { completeOnboarding } from '@/shared/services/onboarding'
 import { supabase } from '@/shared/lib/supabase/client'
 import { computeUserProfileV3 } from '@/shared/services/recommendations'
-import { track } from '@/shared/services/analytics'
+import { trackEvent, EVENTS, countBucket } from '@/shared/services/betaEvents'
 
 const MOCK_SESSION = {
   user: {
@@ -296,10 +298,11 @@ describe('completeOnboarding — service writes', () => {
       ratings: { 1: 9, 2: 7 },
     })
 
-    expect(track).toHaveBeenCalledWith('onboarding_completed', expect.objectContaining({
-      genre_count: 3,
-      movie_count: 5,
-      rating_count: 2,
+    expect(trackEvent).toHaveBeenCalledWith(EVENTS.onboarding_completed, expect.objectContaining({
+      surface: 'onboarding',
+      genre_count_bucket: countBucket(3),
+      movie_count_bucket: countBucket(5),
+      rating_count_bucket: countBucket(2),
     }))
   })
 
@@ -311,8 +314,8 @@ describe('completeOnboarding — service writes', () => {
       ratings: {},
     })
 
-    expect(track).toHaveBeenCalledWith('onboarding_completed', expect.objectContaining({
-      rating_count: 0,
+    expect(trackEvent).toHaveBeenCalledWith(EVENTS.onboarding_completed, expect.objectContaining({
+      rating_count_bucket: countBucket(0),
     }))
   })
 

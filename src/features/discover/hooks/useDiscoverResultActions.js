@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { updateImpression } from '@/shared/services/recommendations'
 import { trackInteraction } from '@/shared/services/interactions'
+import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
 
 export function useDiscoverResultActions({ top, user, selected, intention, energy, who, setHiddenTopIds, setSelectedTopId, navigate }) {
   const [savedState, setSavedState] = useState('idle'); // idle | saving | saved | error
@@ -42,6 +43,8 @@ export function useDiscoverResultActions({ top, user, selected, intention, energ
       updateImpression(user.id, top.id, 'clicked').catch(() => {})
       trackInteraction('click', interactionContext('see_more')).catch(() => {})
     }
+    // B1.4b: minimal PostHog funnel bridge (movie_id is catalog-safe; no title/context text).
+    trackEvent(EVENTS.recommendation_opened, { surface: 'discover', movie_id: top.id })
     navigate(`/movie/${top.tmdbId}`);
   };
   const handleSaveForLater = async () => {
@@ -59,9 +62,11 @@ export function useDiscoverResultActions({ top, user, selected, intention, energ
       // the watchlist write succeeds so we don't credit a failed save.
       updateImpression(user.id, filmId, 'saved').catch(() => {})
       trackInteraction('save', interactionContext('save_for_later')).catch(() => {})
+      trackEvent(EVENTS.recommendation_saved, { surface: 'discover', movie_id: filmId })
     } catch (e) {
       console.error('[Discover.saveForLater]', e);
       setSavedState('error');
+      trackEvent(EVENTS.recommendation_error, { surface: 'discover', source: 'save', error_kind: errorKind(e) })
     }
   };
   // Skip Tonight — auto-advances to the next pick instead of bouncing home.

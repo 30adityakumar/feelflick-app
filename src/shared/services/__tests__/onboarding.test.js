@@ -45,11 +45,13 @@ vi.mock('@/shared/api/tmdb', () => ({ fetchJson: vi.fn().mockResolvedValue({ id:
 vi.mock('@/shared/services/recommendations', () => ({ computeUserProfileV3: vi.fn().mockResolvedValue(undefined) }))
 vi.mock('@/shared/services/tasteCache', () => ({ getTasteFingerprint: vi.fn().mockResolvedValue({}) }))
 vi.mock('@/shared/services/analytics', () => ({ track: vi.fn() }))
+// B1.4b: onboarding_completed now routes through the central betaEvents wrapper (bucketed counts).
+vi.mock('@/shared/services/betaEvents', async (orig) => ({ ...(await orig()), trackEvent: vi.fn() }))
 
 import { completeOnboarding } from '../onboarding'
 import { computeUserProfileV3 } from '@/shared/services/recommendations'
 import { getTasteFingerprint } from '@/shared/services/tasteCache'
-import { track } from '@/shared/services/analytics'
+import { trackEvent, EVENTS, countBucket } from '@/shared/services/betaEvents'
 
 const session = { user: { id: 'u1', email: 'u1@test.dev', user_metadata: {} } }
 const baseArgs = () => ({
@@ -79,7 +81,7 @@ describe('completeOnboarding — first completion writes', () => {
     expect(byTable('users', 'update')[0].vals).toMatchObject({ onboarding_complete: true })
     expect(computeUserProfileV3).toHaveBeenCalledWith('u1', { forceRefresh: true })
     expect(getTasteFingerprint).toHaveBeenCalledWith('u1')
-    expect(track).toHaveBeenCalledWith('onboarding_completed', expect.objectContaining({ movie_count: 3 }))
+    expect(trackEvent).toHaveBeenCalledWith(EVENTS.onboarding_completed, expect.objectContaining({ movie_count_bucket: countBucket(3) }))
   })
 
   it('inserts the users row when it does not yet exist', async () => {

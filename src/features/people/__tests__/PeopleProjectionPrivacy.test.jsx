@@ -275,3 +275,20 @@ describe('F8.7 — accessibility, contrast, touch targets, responsive', () => {
     expect(peopleCssSource).toMatch(/prefers-reduced-motion/)
   })
 })
+
+describe('F8.8-prep — similarity-card identity resolves via the RPC, not the RLS-null embedded join', () => {
+  it('the similarity query no longer embeds the owner-only users() FK join', () => {
+    expect(peopleSource).not.toMatch(/users!user_similarity_user_[ab]_fkey/)
+  })
+
+  it('the merge keeps rows by user_b_id (not by the embedded join) — the rail is no longer always empty', () => {
+    expect(peopleSource).not.toMatch(/\.filter\(r => r\.users\)/)            // the old drop-everything gate is gone
+    expect(peopleSource).toMatch(/\.filter\(r => r\.user_b_id && r\.user_b_id !== userId\)/)
+  })
+
+  it('card shapers resolve identity from usersById (the get_people_public_identities RPC)', () => {
+    expect(peopleSource).toMatch(/const u = usersById\.get\(row\.user_b_id\)/)
+    expect(peopleSource).not.toMatch(/const u = row\.users/)                 // no embedded-join identity remains
+    expect(peopleSource).toMatch(/deriveTwins\(similarityRows, followingIds, usersById, fingerprintByUser\)/)
+  })
+})

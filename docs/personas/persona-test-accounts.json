@@ -1,0 +1,361 @@
+[
+  {
+    "id": "P1",
+    "email": "codex-letterboxd@feelflick.test",
+    "displayName": "Diarist",
+    "archetype": "Letterboxd power user",
+    "sourceMindset": "List-driven and identity-driven cinephile who logs everything and treats the watchlist as a curated canon.",
+    "survivalInstinct": "Protects taste depth and rejects anything that feels like mainstream popularity wearing a cinephile costume.",
+    "patienceLevel": "High for depth; low for being condescended to.",
+    "trustRequirement": "Specific, grounded reasons that name real taste seeds and avoid fake authority.",
+    "abandonmentTrigger": "Picks feel mainstream, reasons are generic, or FeelFlick feels like a worse Letterboxd.",
+    "returnTrigger": "One surprising deep-cut pick that proves the engine read actual taste.",
+    "feedbackStyle": "Analytical, comparative, blunt.",
+    "onboardingIntent": "Seed loved films that define taste canon and check whether FeelFlick respects deep cuts.",
+    "qaFocusAreas": [
+      "Tonight pick judgment",
+      "Film File depth",
+      "Cinematic DNA honesty",
+      "diary and list expectations",
+      "not-a-Letterboxd-clone boundary"
+    ],
+    "notes": "Use to stress whether a recommendation has taste literacy without pretending to replace logging, lists, or diary workflows."
+  },
+  {
+    "id": "P2",
+    "email": "codex-tmdb@feelflick.test",
+    "displayName": "Spec-checker",
+    "archetype": "TMDB metadata browser",
+    "sourceMindset": "Fact-first evaluator who checks cast, crew, runtime, ratings, vote counts, and metadata before deciding.",
+    "survivalInstinct": "Distrusts arbitrary scores and asks whether every claim can be backed by a checkable signal.",
+    "patienceLevel": "Medium; willing to inspect evidence but not hand-waving.",
+    "trustRequirement": "Reasons and match signals must cite something verifiable and make clear what numbers mean.",
+    "abandonmentTrigger": "Match percentages feel inflated, arbitrary, or unsupported by the visible evidence.",
+    "returnTrigger": "A pick whose reasoning is transparent enough to verify and agree with.",
+    "feedbackStyle": "Precise, skeptical.",
+    "onboardingIntent": "Provide broad seeds and then scrutinize whether the product turns data into a decision honestly.",
+    "qaFocusAreas": [
+      "Tonight pick evidence",
+      "match percentage clarity",
+      "Film File data",
+      "numbers-mean-what-they-say"
+    ],
+    "notes": "Use to pressure-test score labeling, rationale precision, and whether metadata supports the recommendation rather than decorating it."
+  },
+  {
+    "id": "P3",
+    "email": "codex-netflix@feelflick.test",
+    "displayName": "Scroller",
+    "archetype": "Netflix casual scroller",
+    "sourceMindset": "Tired evening viewer who browses until exhausted and often gives up or rewatches something safe.",
+    "survivalInstinct": "Avoids setup, niche homework, and anything that turns into another grid to evaluate.",
+    "patienceLevel": "Low; wants to be watching within minutes.",
+    "trustRequirement": "The pick must feel right quickly, low-effort, and not pretentious.",
+    "abandonmentTrigger": "Onboarding is long, the pick feels random or too arty, or the experience becomes another scroll surface.",
+    "returnTrigger": "One good pick removes the scroll and gets them watching.",
+    "feedbackStyle": "Terse, gut-reaction.",
+    "onboardingIntent": "Give just enough signal to get a safe and immediate Tonight pick.",
+    "qaFocusAreas": [
+      "first-10-second clarity",
+      "onboarding friction",
+      "Tonight pick",
+      "anti-scroll strength"
+    ],
+    "notes": "Use to test whether FeelFlick actually reduces decision fatigue for low-patience casual viewers."
+  },
+  {
+    "id": "P4",
+    "email": "codex-justwatch@feelflick.test",
+    "displayName": "Where-can-I-watch",
+    "archetype": "JustWatch availability-first user",
+    "sourceMindset": "Availability-first household chooser who will not invest in a recommendation that cannot be watched tonight.",
+    "survivalInstinct": "Avoids dead ends where a great recommendation has no clear way to press play.",
+    "patienceLevel": "Medium; practical but allergic to wasted effort.",
+    "trustRequirement": "The product must answer or honestly handle where the film can be watched.",
+    "abandonmentTrigger": "FeelFlick recommends unavailable films and never says where or why availability is missing.",
+    "returnTrigger": "A pick that is clearly watchable tonight within their subscriptions or availability expectations.",
+    "feedbackStyle": "Practical, impatient.",
+    "onboardingIntent": "Look for whether the recommendation path respects access constraints without becoming an availability app.",
+    "qaFocusAreas": [
+      "Tonight pick watchability",
+      "where-to-watch clarity",
+      "Film File availability cues",
+      "do-not-become JustWatch boundary"
+    ],
+    "notes": "Use to stress the boundary between useful availability context and drifting into a where-to-watch replacement."
+  },
+  {
+    "id": "P5",
+    "email": "codex-trakt@feelflick.test",
+    "displayName": "Completionist",
+    "archetype": "Trakt tracker",
+    "sourceMindset": "Systematic tracker who expects history, stats, progress, and watch state to matter.",
+    "survivalInstinct": "Rejects products that ignore watched history or repeatedly recommend films already seen.",
+    "patienceLevel": "High for tracking; low for tools that ignore logged behavior.",
+    "trustRequirement": "Must not re-recommend watched films and must show that history improves future picks.",
+    "abandonmentTrigger": "Repeated watched picks, stale history awareness, or missing tracking expectations.",
+    "returnTrigger": "A pick that clearly reflects logged history and proves the system learns.",
+    "feedbackStyle": "Systematic, detail-oriented.",
+    "onboardingIntent": "Seed a coherent watched history and inspect whether it affects recommendations and DNA.",
+    "qaFocusAreas": [
+      "Tonight pick",
+      "history and diary expectations",
+      "Cinematic DNA",
+      "repeated-pick guard"
+    ],
+    "notes": "Use to test compounding behavior and the line between taste history and full tracker replacement."
+  },
+  {
+    "id": "P6",
+    "email": "codex-apple-tv@feelflick.test",
+    "displayName": "Curator's-eye",
+    "archetype": "Apple TV editorial-quality user",
+    "sourceMindset": "Design-literate viewer who values polish, craft, restraint, and an editorial point of view.",
+    "survivalInstinct": "Leaves when the interface feels cheap, cluttered, overhyped, or generically written.",
+    "patienceLevel": "Medium; tolerant of considered experiences but not jank.",
+    "trustRequirement": "Polished presentation, credible writing, honest case-making, and no fake hype.",
+    "abandonmentTrigger": "The product looks unfinished, over-promises, or makes a thin editorial case.",
+    "returnTrigger": "The Film File and recommendation feel considered and tastefully presented.",
+    "feedbackStyle": "Discerning, aesthetic.",
+    "onboardingIntent": "Assess whether first impressions and recommendation writing feel editorially credible.",
+    "qaFocusAreas": [
+      "first-impression craft",
+      "Film File case-making",
+      "Why this pick quality",
+      "editorial voice"
+    ],
+    "notes": "Use to evaluate product craft and whether restraint strengthens trust."
+  },
+  {
+    "id": "P7",
+    "email": "codex-prime@feelflick.test",
+    "displayName": "Just-put-something-on",
+    "archetype": "Prime Video mainstream convenience user",
+    "sourceMindset": "Mainstream low-effort viewer who wants familiar, safe entertainment without a lot of setup.",
+    "survivalInstinct": "Avoids niche, arty, difficult, or high-commitment choices.",
+    "patienceLevel": "Low.",
+    "trustRequirement": "The pick must feel familiar enough to be safe and require almost no effort.",
+    "abandonmentTrigger": "Picks feel obscure or onboarding asks too much before proving value.",
+    "returnTrigger": "A no-brainer pick that is enjoyable and easy to accept.",
+    "feedbackStyle": "Casual, brief.",
+    "onboardingIntent": "Move through onboarding quickly and judge whether the first recommendation feels safe.",
+    "qaFocusAreas": [
+      "onboarding friction",
+      "Tonight pick",
+      "anti-scroll",
+      "low-effort convenience"
+    ],
+    "notes": "Use to test whether FeelFlick can serve mainstream convenience without becoming another generic grid."
+  },
+  {
+    "id": "P8",
+    "email": "codex-plex@feelflick.test",
+    "displayName": "Library-owner",
+    "archetype": "Plex collector",
+    "sourceMindset": "Tech-savvy media owner who values library control, ownership, transparency, and configurability.",
+    "survivalInstinct": "Rejects walled-garden assumptions and cloud-only products that ignore personal collections.",
+    "patienceLevel": "High for setup; expects control.",
+    "trustRequirement": "Clear controls, transparent scope, and honest handling of unsupported personal-library workflows.",
+    "abandonmentTrigger": "FeelFlick assumes only streaming behavior or hides the absence of library integration.",
+    "returnTrigger": "A pick that fits taste and a product boundary that is honest about library support.",
+    "feedbackStyle": "Technical, control-focused.",
+    "onboardingIntent": "Probe controls, preferences, and whether personal-library expectations are acknowledged gracefully.",
+    "qaFocusAreas": [
+      "Tonight pick",
+      "Preferences and dials",
+      "library support scope honesty",
+      "control and transparency"
+    ],
+    "notes": "Use to test how gracefully FeelFlick says not yet to personal-library integration."
+  },
+  {
+    "id": "P9",
+    "email": "codex-youtube@feelflick.test",
+    "displayName": "Trailer-led",
+    "archetype": "YouTube/trailer casual chooser",
+    "sourceMindset": "Visual, impulse-led chooser who decides from trailers, clips, posters, and immediate vibe.",
+    "survivalInstinct": "Bails when the experience is text-heavy, slow, or visually boring.",
+    "patienceLevel": "Very low.",
+    "trustRequirement": "The recommendation must look exciting within seconds; a trailer or strong visual hook helps.",
+    "abandonmentTrigger": "Too much reading, slow explanation, or a pick that looks boring.",
+    "returnTrigger": "An instant visual hook that makes the pick feel exciting.",
+    "feedbackStyle": "Impulsive, visual.",
+    "onboardingIntent": "Move quickly and judge whether the product communicates vibe without a long text burden.",
+    "qaFocusAreas": [
+      "first-10-second clarity",
+      "visual appeal",
+      "Film File trailer",
+      "Tonight pick immediacy"
+    ],
+    "notes": "Use to test whether visual evidence supports fast decision-making without turning the app into clip browsing."
+  },
+  {
+    "id": "P10",
+    "email": "codex-reddit@feelflick.test",
+    "displayName": "Tell-me-what's-good",
+    "archetype": "Reddit/word-of-mouth seeker",
+    "sourceMindset": "Trusts people and authentic reasons more than algorithmic claims or marketing copy.",
+    "survivalInstinct": "Hunts for fabricated hype, fake social proof, and soulless generic recommendations.",
+    "patienceLevel": "Medium.",
+    "trustRequirement": "An honest, human-sounding reason grounded in taste, with no fabricated social proof.",
+    "abandonmentTrigger": "Claims like people like you without basis, generic marketing language, or invented hype.",
+    "returnTrigger": "A pick and rationale that feel repeatable to a friend.",
+    "feedbackStyle": "Skeptical of hype, values authenticity.",
+    "onboardingIntent": "Seed enough taste to check whether FeelFlick can make a human-feeling case.",
+    "qaFocusAreas": [
+      "Why this pick honesty",
+      "Film File case",
+      "Cinematic DNA",
+      "no fake social proof"
+    ],
+    "notes": "Use to pressure-test generated authority, social proof, and reason authenticity."
+  },
+  {
+    "id": "P11",
+    "email": "codex-fried@feelflick.test",
+    "displayName": "Fried",
+    "archetype": "Mood-first exhausted scroller",
+    "sourceMindset": "Exhausted nightly viewer who wants not to decide and needs the product to read mood without extra work.",
+    "survivalInstinct": "Protects limited evening energy and abandons anything that feels like a survey or chore.",
+    "patienceLevel": "Low for setup; high for something that finally gets the mood.",
+    "trustRequirement": "The pick must feel like it understood tonight's mood and the reason must ring true.",
+    "abandonmentTrigger": "The app makes them work or the pick ignores how they feel.",
+    "returnTrigger": "Mood in, one pick out, watched with no fatigue.",
+    "feedbackStyle": "Emotional, relief-or-frustration.",
+    "onboardingIntent": "Give minimal taste and mood signals, then test whether the app ends the scroll.",
+    "qaFocusAreas": [
+      "mood signal",
+      "Tonight pick fit",
+      "anti-scroll",
+      "return reason"
+    ],
+    "notes": "Core target persona for the primary user problem: a trusted pick that ends decision fatigue."
+  },
+  {
+    "id": "P12",
+    "email": "codex-curious@feelflick.test",
+    "displayName": "Curious",
+    "archetype": "Taste-curious but not cinephile",
+    "sourceMindset": "Open-minded streamer who wants to discover personal taste without film-school vocabulary or condescension.",
+    "survivalInstinct": "Rejects fake flattery, random picks, and personalization that overstates what it knows.",
+    "patienceLevel": "Medium.",
+    "trustRequirement": "Cinematic DNA must feel true and picks must feel personal without being generic.",
+    "abandonmentTrigger": "DNA feels fake, flattering, or picks feel random.",
+    "returnTrigger": "The product reflects something real about taste and stretches just enough.",
+    "feedbackStyle": "Curious, reflective.",
+    "onboardingIntent": "Seed accessible favorites and see whether the product explains taste in a useful way.",
+    "qaFocusAreas": [
+      "onboarding",
+      "Tonight pick",
+      "Cinematic DNA honesty",
+      "find another"
+    ],
+    "notes": "Core target persona for taste discovery without condescension."
+  },
+  {
+    "id": "P13",
+    "email": "codex-couple@feelflick.test",
+    "displayName": "The Couple",
+    "archetype": "Deciding what to watch tonight",
+    "sourceMindset": "Two-person shared-sofa decision maker trying to break the nightly what do we watch standoff.",
+    "survivalInstinct": "Avoids anything that restarts negotiation or appears to model only one person's taste.",
+    "patienceLevel": "Very low.",
+    "trustRequirement": "One pick neither person vetoes, with a reason both can accept.",
+    "abandonmentTrigger": "The product models only one person or turns the decision back into a debate.",
+    "returnTrigger": "It picked, both said yes, and the negotiation ended.",
+    "feedbackStyle": "Two voices, relief-seeking.",
+    "onboardingIntent": "Seed overlap tastes and evaluate whether a single-user pick still helps a shared decision.",
+    "qaFocusAreas": [
+      "Tonight pick as tiebreaker",
+      "shared decision-making",
+      "single-pick acceptance",
+      "multi-user scope gap"
+    ],
+    "notes": "Use to surface the multi-user gap while testing whether the single-pick loop can still reduce household friction."
+  },
+  {
+    "id": "P14",
+    "email": "codex-anti-slop@feelflick.test",
+    "displayName": "Allergic-to-slop",
+    "archetype": "Serious film lover who hates algorithmic slop",
+    "sourceMindset": "Quality-gated film lover burned by recommendation engines and dishonest popularity bias.",
+    "survivalInstinct": "Rejects mediocre popular picks, fabricated claims, fake social proof, and recency bias instantly.",
+    "patienceLevel": "High for quality; zero for slop.",
+    "trustRequirement": "Specific true reasons, genuinely good picks, anti-recency discipline, and no fabricated authority.",
+    "abandonmentTrigger": "One fabricated claim, one mediocre popular pick, or one fake social-proof cue.",
+    "returnTrigger": "A recommendation that feels real, honest, and not insulting.",
+    "feedbackStyle": "Exacting, unforgiving, high-signal.",
+    "onboardingIntent": "Seed serious taste and pressure-test whether the product stays honest under high standards.",
+    "qaFocusAreas": [
+      "Tonight pick quality",
+      "Film File honesty",
+      "Cinematic DNA",
+      "find another without slop",
+      "anti-drift tells"
+    ],
+    "notes": "Harshest honesty persona; use to test the trust moat under adversarial quality expectations."
+  },
+  {
+    "id": "P15",
+    "email": "codex-cold-start@feelflick.test",
+    "displayName": "Cold-start",
+    "archetype": "New user with almost no logged history",
+    "sourceMindset": "New arrival with thin data who needs value before commitment and honesty about uncertainty.",
+    "survivalInstinct": "Leaves if the app demands too much data or pretends to know them deeply too soon.",
+    "patienceLevel": "Low; must see value before committing.",
+    "trustRequirement": "Honest cold-state language and a plausible first pick without fake confidence.",
+    "abandonmentTrigger": "Fake confidence, fabricated DNA, or a random first pick.",
+    "returnTrigger": "A believable first pick plus honest still-learning framing.",
+    "feedbackStyle": "Wary, first-impression-driven.",
+    "onboardingIntent": "Provide minimal seeds and inspect whether the product creates a credible cold-start experience.",
+    "qaFocusAreas": [
+      "onboarding",
+      "first Tonight pick",
+      "Cinematic DNA cold-state honesty",
+      "value before commitment"
+    ],
+    "notes": "Core target persona for the cold-to-warm trust jump."
+  },
+  {
+    "id": "P16",
+    "email": "codex-warmed-up@feelflick.test",
+    "displayName": "Warmed-up",
+    "archetype": "Returning user with enough history for Cinematic DNA",
+    "sourceMindset": "Returning user with enough logged history to expect the product to compound and feel personal.",
+    "survivalInstinct": "Protects the ritual from stale DNA, repeated picks, and recommendations that stop using depth.",
+    "patienceLevel": "Medium; expects payoff from having fed the system.",
+    "trustRequirement": "Picks visibly use history, DNA feels accurate, and tonight does not repeat yesterday.",
+    "abandonmentTrigger": "Repeated picks, stale DNA, or recommendations that stop feeling personal.",
+    "returnTrigger": "The app feels better because it knows more now.",
+    "feedbackStyle": "Invested, expects compounding value.",
+    "onboardingIntent": "Represent a warmed-up account with enough history to test compounding behavior.",
+    "qaFocusAreas": [
+      "Tonight pick depth",
+      "Cinematic DNA accuracy",
+      "repeated-pick fatigue",
+      "return loop"
+    ],
+    "notes": "Payoff persona for long-term reusable beta accounts and repeated regression-style walkthroughs."
+  },
+  {
+    "id": "CTRL",
+    "email": "claude-dev@feelflick.test",
+    "displayName": "Control",
+    "archetype": "Shared developer control account",
+    "sourceMindset": "Neutral baseline account for setup checks, auth-state verification, and workflow debugging.",
+    "survivalInstinct": "Keeps persona-specific findings separate from tooling and environment failures.",
+    "patienceLevel": "Medium.",
+    "trustRequirement": "The account should be clearly labeled synthetic and never treated as a persona finding source.",
+    "abandonmentTrigger": "Used as evidence for UX conclusions or mixed into persona-specific reports.",
+    "returnTrigger": "Provides a stable control path for confirming provisioning and auth storage workflows.",
+    "feedbackStyle": "Operational, not persona-voiced.",
+    "onboardingIntent": "Reserved for shared QA setup and control checks, not synthetic persona walkthrough conclusions.",
+    "qaFocusAreas": [
+      "account provisioning smoke checks",
+      "auth state generation",
+      "workflow debugging",
+      "control comparison"
+    ],
+    "notes": "Shared/control account. Do not use as a synthetic beta persona or real-user validation source."
+  }
+]

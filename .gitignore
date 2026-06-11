@@ -45,6 +45,7 @@ consistency-audit.md
 /playwright-report/
 /blob-report/
 /e2e/.auth/
+/e2e/.persona-artifacts/
 # pipeline run logs (regenerated each cron run; keep the dir, ignore the output)
 logs/*
 !logs/.gitkeep

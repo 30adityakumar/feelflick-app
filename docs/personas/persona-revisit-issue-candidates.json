@@ -1,0 +1,207 @@
+{
+  "source": "Step 5 persona revisit synthetic UX inspection",
+  "syntheticOnly": true,
+  "notRealUserValidation": true,
+  "items": [
+    {
+      "id": "PRQA-001",
+      "title": "Investigate cross-route browser errors during persona revisits",
+      "priority": "P1",
+      "type": "bug",
+      "personasMostAffected": ["P1", "P2", "P5", "P11", "P14", "ALL"],
+      "surfacesAffected": ["/", "/home", "/discover", "/profile", "/watchlist", "/history"],
+      "evidence": [
+        "Step 5 passed for 17 selected personas with 0 hard test failures, but issue candidates recorded browser errors on every core route.",
+        "Observed counts repeated across sampled reports: / and /home reported consoleErrors=30, /discover reported consoleErrors=45, /profile reported consoleErrors=27, /watchlist and /history reported consoleErrors=21.",
+        "Aggregate issue severity summary contained 136 P2 synthetic issue candidates, dominated by browser error evidence and trust-trigger activation."
+      ],
+      "whyItMatters": "Persona trust and clarity scores cannot be interpreted confidently while every core route reports browser-level errors.",
+      "suggestedNextAction": "Run a focused local Playwright trace for one persona, group browser errors by route and stack, and fix the shared root cause before product-tuning recommendations.",
+      "acceptanceCriteria": [
+        "A P11 smoke revisit records zero browser errors on /, /home, /discover, /profile, /watchlist, and /history.",
+        "An all-persona revisit records no cross-route browser-error issue candidates for the six core routes.",
+        "The safe revisit summary clearly distinguishes route visit success from browser diagnostic warnings."
+      ],
+      "nonGoals": [
+        "Do not change recommendation ranking or taste scoring.",
+        "Do not alter visible UX, copy, layout, or styling as part of this investigation.",
+        "Do not inspect raw session state or generated browser artifacts."
+      ]
+    },
+    {
+      "id": "PRQA-002",
+      "title": "Fix or explain thin/error behavior on the Cinematic DNA profile route",
+      "priority": "P1",
+      "type": "bug",
+      "personasMostAffected": ["P1", "P2", "P5", "P11", "P14", "ALL"],
+      "surfacesAffected": ["/profile"],
+      "evidence": [
+        "Every sampled report recorded recovery or error copy on /profile.",
+        "Every sampled report recorded /profile as empty or thin for the persona.",
+        "The aggregate weakest surface list ranked /profile with 17 visits, 17 issues, and 17 trust signals."
+      ],
+      "whyItMatters": "Profile is where personas expect proof that onboarding and viewing history compound into Cinematic DNA. A thin or errored profile blocks trust for evidence-seeking and anti-slop personas.",
+      "suggestedNextAction": "Debug the /profile data-loading path with a freshly onboarded persona and determine whether the route is missing required rows, querying the wrong shape, or classifying a load failure as an empty profile.",
+      "acceptanceCriteria": [
+        "/profile loads without recovery/error copy for P1, P2, P5, P11, and P14 after local onboarding.",
+        "The route shows either a credible Cinematic DNA state or an explicit honest empty state that is not caused by a failed data load.",
+        "A persona revisit no longer flags /profile as empty or thin for all 17 personas."
+      ],
+      "nonGoals": [
+        "Do not redesign the profile page.",
+        "Do not rewrite Cinematic DNA copy.",
+        "Do not seed taste data directly as a shortcut for the browser workflow."
+      ]
+    },
+    {
+      "id": "PRQA-003",
+      "title": "Clarify watchlist and history recovery states after onboarding",
+      "priority": "P1",
+      "type": "bug",
+      "personasMostAffected": ["P5", "P11", "P14", "P1", "ALL"],
+      "surfacesAffected": ["/watchlist", "/history"],
+      "evidence": [
+        "Sampled reports recorded recovery or error copy on /watchlist and /history.",
+        "P5's survival instinct depends on memory and no-repeat behavior, but the history surface showed route-level errors.",
+        "P11 and P14 reports treated thin/error states as reasons the product felt less ready than onboarding implied."
+      ],
+      "whyItMatters": "Watchlist and history are the proof surfaces for saved and watched memory. If they look broken after onboarding, personas cannot trust that future recommendations will compound.",
+      "suggestedNextAction": "Trace /watchlist and /history with a local persona, classify whether the state is a real empty list or a failed load, and fix any query or data-shape mismatch.",
+      "acceptanceCriteria": [
+        "/watchlist and /history load without recovery/error copy for at least P5 and P11.",
+        "The revisit summary records a clear empty state only when the underlying data truly has no rows.",
+        "P5's report no longer treats history memory as blocked by route errors."
+      ],
+      "nonGoals": [
+        "Do not add new watchlist or history features.",
+        "Do not alter recommendation de-duplication behavior.",
+        "Do not use direct database seeding to make the route appear populated."
+      ]
+    },
+    {
+      "id": "PRQA-004",
+      "title": "Make a movie detail path reachable from Home or Discover during persona revisit",
+      "priority": "P2",
+      "type": "product",
+      "personasMostAffected": ["P2", "P4", "P9", "P11", "P14", "ALL"],
+      "surfacesAffected": ["/home", "/discover", "/movie/:id"],
+      "evidence": [
+        "Every sampled report recorded /movie/:id as not_found.",
+        "The revisit runner could not find a safe /movie/:id link from /home or /discover.",
+        "Personas still saw recommendation or pick language, but could not reach detail evidence through the captured path."
+      ],
+      "whyItMatters": "Movie detail is where evidence, metadata, availability, trailer energy, and Film File trust can be inspected. If the revisit cannot reach it, believability remains shallow.",
+      "suggestedNextAction": "Confirm whether Home and Discover expose a real link to a selected film in the current UI and, if they do, update the runner's safe locator. If they do not, file a scoped product task for a reachable detail path.",
+      "acceptanceCriteria": [
+        "A P11 revisit captures one visited /movie/:id observation from either /home or /discover.",
+        "The captured detail route includes a safe heading or title for the selected film.",
+        "The runner still records not_found without failing when no detail link is available."
+      ],
+      "nonGoals": [
+        "Do not change recommendation selection.",
+        "Do not add new metadata providers.",
+        "Do not evaluate where-to-watch or trailer depth until the detail route is reliably reachable."
+      ]
+    },
+    {
+      "id": "PRQA-005",
+      "title": "Separate true empty states from failed load states in revisit findings",
+      "priority": "P2",
+      "type": "qa",
+      "personasMostAffected": ["P5", "P11", "P14", "P15", "ALL"],
+      "surfacesAffected": ["/profile", "/watchlist", "/history"],
+      "evidence": [
+        "The current revisit artifacts report empty or thin states and recovery/error copy together.",
+        "A true empty state has different product meaning than a route that failed to load personalized data.",
+        "P15 cold-start and P16 warmed-up personas need this distinction to make longitudinal comparisons credible."
+      ],
+      "whyItMatters": "Without separating empty from failed, the backlog can overstate product gaps or miss technical failures that invalidate persona interpretation.",
+      "suggestedNextAction": "Add route observation fields that classify empty, failed_load, and loaded_with_no_rows separately using visible copy and safe app-side signals.",
+      "acceptanceCriteria": [
+        "Revisit summary includes a route-level state classification for each surface.",
+        "Reports distinguish OBSERVED true empty states from OBSERVED failed load states.",
+        "Persona voice feedback does not infer product thinness from a technical load failure."
+      ],
+      "nonGoals": [
+        "Do not modify visible empty-state copy.",
+        "Do not add direct database probes to the persona revisit flow by default.",
+        "Do not store raw page snapshots in committed files."
+      ]
+    },
+    {
+      "id": "PRQA-006",
+      "title": "Group persona revisit diagnostics by route and root cause",
+      "priority": "P2",
+      "type": "qa",
+      "personasMostAffected": ["ALL"],
+      "surfacesAffected": ["/", "/home", "/discover", "/profile", "/watchlist", "/history", "/movie/:id"],
+      "evidence": [
+        "The Step 5 artifact reports 136 repeated P2 issue candidates.",
+        "Many candidates repeat the same browser-error pattern across personas and routes.",
+        "The current summary is useful, but still requires manual grouping before it becomes a fix queue."
+      ],
+      "whyItMatters": "Repeated per-persona evidence is good for confidence, but engineers need grouped root-cause buckets to act efficiently.",
+      "suggestedNextAction": "Enhance the revisit summary or helper summary to include grouped issue counts by route, issue title, and first safe evidence line.",
+      "acceptanceCriteria": [
+        "The summary output includes grouped issue counts by route and issue.",
+        "Repeated browser-error candidates collapse into a small diagnostic table.",
+        "Per-persona detail remains available without duplicating the main backlog."
+      ],
+      "nonGoals": [
+        "Do not remove per-persona reports.",
+        "Do not collect sensitive browser storage.",
+        "Do not depend on agent-specific tooling."
+      ]
+    },
+    {
+      "id": "PRQA-007",
+      "title": "Make fresh local persona QA reproducible from durable schema/bootstrap",
+      "priority": "P2",
+      "type": "workflow",
+      "personasMostAffected": ["ALL"],
+      "surfacesAffected": ["local Supabase", "persona QA workflow"],
+      "evidence": [
+        "Prior local persona steps required attention to local Supabase schema and Vite environment alignment.",
+        "Step 6 should preserve a path where provisioning, auth states, onboarding, and revisit can run after a fresh local reset.",
+        "Technical route failures should not be hidden by ad hoc local scaffolding."
+      ],
+      "whyItMatters": "Persona QA only compounds if future developers can recreate the same local baseline without private setup knowledge.",
+      "suggestedNextAction": "Capture the authoritative base Supabase schema in migrations or a documented bootstrap workflow, then validate the full persona chain after a local reset.",
+      "acceptanceCriteria": [
+        "A fresh local reset can run persona account provisioning, auth-state generation, onboarding, and revisit from documented commands.",
+        "Required local Vite environment values are documented without committing secrets.",
+        "No ad hoc schema patch is needed outside the durable workflow."
+      ],
+      "nonGoals": [
+        "Do not support production persona provisioning.",
+        "Do not add production data workflows.",
+        "Do not hardcode project-specific credentials."
+      ]
+    },
+    {
+      "id": "PRQA-008",
+      "title": "Re-check persona-specific trust lenses after technical blockers are fixed",
+      "priority": "Insight",
+      "type": "product",
+      "personasMostAffected": ["P2", "P4", "P5", "P9", "P11", "P14"],
+      "surfacesAffected": ["/home", "/discover", "/profile", "/history", "/movie/:id"],
+      "evidence": [
+        "Step 5 observed promising mood, DNA, watched, and saved language.",
+        "P11 needs decision relief, P14 needs anti-slop proof, P2 needs evidence and number credibility, and P5 needs memory/no-repeat confidence.",
+        "P4 where-to-watch and P9 visual/trailer energy remain product-scope-sensitive until the detail route and technical confidence blockers are resolved."
+      ],
+      "whyItMatters": "These persona lenses are the right product questions, but current technical blockers make product tuning premature.",
+      "suggestedNextAction": "After P1 blockers pass, rerun P11, P14, P2, P5, P4, and P9 and compare their reports before tuning recommendations.",
+      "acceptanceCriteria": [
+        "A follow-up revisit has zero P1 technical confidence blockers.",
+        "Persona reports include route evidence for the surfaces each trust lens depends on.",
+        "Any recommendation or product changes are based on observed post-fix evidence, not this blocked baseline alone."
+      ],
+      "nonGoals": [
+        "Do not tune recommendation logic from the current blocked baseline.",
+        "Do not claim these synthetic findings are real user feedback.",
+        "Do not expand scope into availability or trailer provider integrations before detail-route confidence exists."
+      ]
+    }
+  ]
+}

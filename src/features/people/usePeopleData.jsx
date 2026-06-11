@@ -94,12 +94,13 @@ function deriveUser({ session, followingCount, followersCount }) {
 
 // recentByUser: Map<userId, { kind, film, rating, when }>
 // moodByUser:   Map<userId, string>  (top mood_tag across their watched films)
-// F8.5: a single card-shaper for the similarity rails (twins = ranks 1-4, rising = ranks 5-7). The
-// dead `meta`/mood/recent fields (fed by the removed cross-user behavioral reads) are gone; cards
-// carry only identity + the F8.3 evidence-qualified taste-match presentation + the follow state.
-function deriveSimilarityCards(similarityRows, followingIds, fingerprintByUser, from, to) {
+// A single card-shaper for the similarity rails (twins = ranks 1-4, rising = ranks 5-7). Identity
+// (name/avatar) is resolved from `usersById` — the get_people_public_identities RPC — NOT from an
+// embedded users() join: public.users is owner-only (F8.2), so the FK-embedded counterpart row is
+// always RLS-null. A candidate with no RPC identity (e.g. opted out of discovery) is dropped.
+function deriveSimilarityCards(similarityRows, followingIds, usersById, fingerprintByUser, from, to) {
   return similarityRows.slice(from, to).map(row => {
-    const u = row.users
+    const u = usersById.get(row.user_b_id)
     if (!u) return null
     const matchPct = Math.max(0, Math.min(100, Math.round((row.overall_similarity ?? 0) * 100)))
     const inCommon = Number.isFinite(row.movies_in_common) ? row.movies_in_common : null
@@ -121,20 +122,22 @@ function deriveSimilarityCards(similarityRows, followingIds, fingerprintByUser, 
   }).filter(Boolean)
 }
 
-const deriveTwins = (similarityRows, followingIds, fingerprintByUser) =>
-  deriveSimilarityCards(similarityRows, followingIds, fingerprintByUser, 0, 4)
-const deriveRising = (similarityRows, followingIds, fingerprintByUser) =>
-  deriveSimilarityCards(similarityRows, followingIds, fingerprintByUser, 4, 7)
+// Exported for unit testing the identity-resolution contract (twins/rising resolve from the RPC
+// usersById, never an embedded users() join). Pure: no React/Supabase.
+export const deriveTwins = (similarityRows, followingIds, usersById, fingerprintByUser) =>
+  deriveSimilarityCards(similarityRows, followingIds, usersById, fingerprintByUser, 0, 4)
+export const deriveRising = (similarityRows, followingIds, usersById, fingerprintByUser) =>
+  deriveSimilarityCards(similarityRows, followingIds, usersById, fingerprintByUser, 4, 7)
 
-function deriveSuggested(similarityRows, followingIds, currentUserId, fingerprintByUser) {
-  // "People you might know" — top-similarity users I don't follow, beyond the
-  // twins+rising rails. Cap at 6.
+export function deriveSuggested(similarityRows, followingIds, currentUserId, usersById, fingerprintByUser) {
+  // "People you might know" — top-similarity users I don't follow, beyond the twins+rising rails.
+  // Identity from the RPC (usersById), not the RLS-null embedded users() join. Cap at 6.
   return similarityRows
-    .filter(row => row.users && row.user_b_id !== currentUserId && !followingIds.has(row.user_b_id))
+    .filter(row => usersById.get(row.user_b_id) && row.user_b_id !== currentUserId && !followingIds.has(row.user_b_id))
     .slice(7, 13)
     .map(row => {
-      const u = row.users
-      const watchCount = u.user_history?.[0]?.count || row.movies_in_common || 0
+      const u = usersById.get(row.user_b_id)
+      const watchCount = row.movies_in_common || 0
       return {
         id: u.id,
         name: u.name || 'Anonymous',
@@ -238,21 +241,17 @@ export function PeopleDataProvider({ children }) {
           .from('user_follows')
           .select('follower_id', { count: 'exact', head: true })
           .eq('following_id', userId),
+        // No embedded users() join: public.users is owner-only (F8.2), so the FK-embedded counterpart
+        // is always RLS-null. Identity is resolved below via the get_people_public_identities RPC.
         supabase
           .from('user_similarity')
-          .select(`
-            user_b_id, overall_similarity, movies_in_common,
-            users!user_similarity_user_b_fkey ( id, name, avatar_url )
-          `)
+          .select('user_b_id, overall_similarity, movies_in_common')
           .eq('user_a_id', userId)
           .order('overall_similarity', { ascending: false })
           .limit(30),
         supabase
           .from('user_similarity')
-          .select(`
-            user_a_id, overall_similarity, movies_in_common,
-            users!user_similarity_user_a_fkey ( id, name, avatar_url )
-          `)
+          .select('user_a_id, overall_similarity, movies_in_common')
           .eq('user_b_id', userId)
           .order('overall_similarity', { ascending: false })
           .limit(30),
@@ -261,16 +260,11 @@ export function PeopleDataProvider({ children }) {
       const followingRows = followingRes.data || []
       const followingIds = new Set(followingRows.map(r => r.following_id))
       const followersCount = followersRes.count ?? 0
-      // Normalize both directions into a unified shape: { user_b_id (= friend id), overall_similarity, movies_in_common, users (= friend) }
-      const simAsA = (simAsARes.data || []).map(r => ({ ...r, users: r.users }))
-      const simAsB = (simAsBRes.data || []).map(r => ({
-        user_b_id: r.user_a_id, // remap so "user_b_id" always means the friend
-        overall_similarity: r.overall_similarity,
-        movies_in_common: r.movies_in_common,
-        users: r.users,
-      }))
+      // Normalize both directions to { user_b_id (= the counterpart), overall_similarity, movies_in_common }.
+      const simAsA = (simAsARes.data || []).map(r => ({ user_b_id: r.user_b_id, overall_similarity: r.overall_similarity, movies_in_common: r.movies_in_common }))
+      const simAsB = (simAsBRes.data || []).map(r => ({ user_b_id: r.user_a_id, overall_similarity: r.overall_similarity, movies_in_common: r.movies_in_common }))
       const mergedSimilarity = [...simAsA, ...simAsB]
-        .filter(r => r.users) // drop rows where the join didn't resolve
+        .filter(r => r.user_b_id && r.user_b_id !== userId) // identity comes from the RPC, not an embedded join
         .sort((a, b) => (b.overall_similarity ?? 0) - (a.overall_similarity ?? 0))
 
       // Privacy gate: drop candidates whose user_settings.privacy.showOnLeaderboards
@@ -322,9 +316,9 @@ export function PeopleDataProvider({ children }) {
         }])
       )
 
-      const twins = deriveTwins(similarityRows, followingIds, fingerprintByUser)
-      const rising = deriveRising(similarityRows, followingIds, fingerprintByUser)
-      const similaritySuggested = deriveSuggested(similarityRows, followingIds, userId, fingerprintByUser)
+      const twins = deriveTwins(similarityRows, followingIds, usersById, fingerprintByUser)
+      const rising = deriveRising(similarityRows, followingIds, usersById, fingerprintByUser)
+      const similaritySuggested = deriveSuggested(similarityRows, followingIds, userId, usersById, fingerprintByUser)
       // FOF fallback: when similarity Suggested doesn't fill the rail (<6
       // entries), walk the social graph one hop. Only fires when the user
       // has at least one follow (otherwise nothing to walk from).

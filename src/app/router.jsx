@@ -36,6 +36,7 @@ import Footer from '@/components/layout/Footer'
 
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
+import BetaAccessGate from '@/features/auth/BetaAccessGate'
 const OAuthCallback = lazy(() => import('@/features/auth/OAuthCallback'))
 
 // Import the new pages
@@ -298,20 +299,28 @@ export const router = sentryCreateBrowserRouter([
             element: <PostAuthGate />,
             errorElement: <ErrorBoundary />,
             children: [
-              { path: 'home', element: <LazyRoute Component={Home} />, errorElement: <ErrorBoundary /> },
-              { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
-              { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
-              { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },
-              { path: 'history', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
-              { path: 'watched', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
-              { path: 'profile', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
-              { path: 'profile/:userId', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
-              { path: 'people', element: <LazyRoute Component={People} />, errorElement: <ErrorBoundary /> },
-              { path: 'lists', element: <LazyRoute Component={Lists} />, errorElement: <ErrorBoundary /> },
-              // Confirmed unfinished — redirect until shipped
-              { path: 'feed', element: <Navigate to="/home" replace /> },
-              { path: 'challenges', element: <Navigate to="/home" replace /> },
-
+              // B1.4 private-beta gate. Transparent pass-through unless VITE_ENABLE_BETA_GATE is on
+              // (default off → no change for dev/CI/current users). Gates only the authenticated app
+              // surfaces below — never legal/auth/public-catalog/public-list routes.
+              {
+                element: <BetaAccessGate />,
+                errorElement: <ErrorBoundary />,
+                children: [
+                  { path: 'home', element: <LazyRoute Component={Home} />, errorElement: <ErrorBoundary /> },
+                  { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
+                  { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
+                  { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },
+                  { path: 'history', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
+                  { path: 'watched', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
+                  { path: 'profile', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+                  { path: 'profile/:userId', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+                  { path: 'people', element: <LazyRoute Component={People} />, errorElement: <ErrorBoundary /> },
+                  { path: 'lists', element: <LazyRoute Component={Lists} />, errorElement: <ErrorBoundary /> },
+                  // Confirmed unfinished — redirect until shipped
+                  { path: 'feed', element: <Navigate to="/home" replace /> },
+                  { path: 'challenges', element: <Navigate to="/home" replace /> },
+                ],
+              },
             ],
           },
         ],

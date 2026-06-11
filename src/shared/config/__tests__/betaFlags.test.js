@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { isEnabled, FLAG_KEYS } from '../betaFlags'
+import { isEnabled, isBetaGateEnabled, FLAG_KEYS } from '../betaFlags'
 
 describe('betaFlags — kill switches default safe', () => {
   afterEach(() => vi.unstubAllEnvs())
@@ -24,5 +24,27 @@ describe('betaFlags — kill switches default safe', () => {
 
   it('an unknown flag never gates (returns true)', () => {
     expect(isEnabled('nope')).toBe(true)
+  })
+})
+
+describe('betaFlags — private-beta gate defaults OFF (inverse of kill-switches)', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('is disabled by default (no env)', () => {
+    expect(isBetaGateEnabled()).toBe(false)
+  })
+
+  it('enables ONLY on true / 1 / on', () => {
+    for (const v of ['true', 'TRUE', '1', 'on']) {
+      vi.stubEnv('VITE_ENABLE_BETA_GATE', v)
+      expect(isBetaGateEnabled()).toBe(true)
+    }
+  })
+
+  it('stays OFF for false / 0 / empty / anything else', () => {
+    for (const v of ['false', '0', '', 'nope']) {
+      vi.stubEnv('VITE_ENABLE_BETA_GATE', v)
+      expect(isBetaGateEnabled()).toBe(false)
+    }
   })
 })

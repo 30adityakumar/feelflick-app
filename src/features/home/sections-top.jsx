@@ -67,7 +67,7 @@ export function MoodReactor({ currentMood, setMood }) {
               data-mood-id={m.id}
               aria-pressed={active}
               onClick={() => setMood(m)}
-              className="ff-tap focus:outline-none focus-visible:ring-2 focus-visible:ring-white/55"
+              className="ff-tap focus-visible:ring-2 focus-visible:ring-white/55"
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 minHeight: 44, padding: '8px 14px', borderRadius: 999,
@@ -96,10 +96,11 @@ export function MoodReactor({ currentMood, setMood }) {
 // (rounded-8, Outfit — shared with /movie so the briefing actions don't feel like a
 // different system). The three below are thin wrappers that add the icon, label, and
 // active state on top of <SecondaryActionButton>; the gradient "Open Film File"
-// primary uses <ActionButton> directly. F4.6: a Home-local focus-visible ring is
-// passed via className (without touching the shared component), and the decorative
-// icons are aria-hidden (the text label is the accessible name).
-const FOCUS_RING = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-white/55 focus-visible:ring-offset-0'
+// primary uses <ActionButton> directly. F4.6/F1-A: the ring classes below currently
+// render nothing (Tailwind v4.3 ring layers collapse at box-shadow substitution);
+// visible keyboard focus comes from the global :focus-visible outline in
+// src/styles/globals.css — do NOT add focus:outline-none here, it suppresses it.
+const FOCUS_RING = 'focus-visible:ring-2 focus-visible:ring-white/55 focus-visible:ring-offset-0'
 
 function WatchedButton({ isWatched, loading, error, onClick }) {
   return (
@@ -607,7 +608,7 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
           <button
             type="button"
             onClick={clearHidden}
-            className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-white/25 hover:bg-white/12 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-white/25 hover:bg-white/12 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/40"
             style={{ fontFamily: 'Outfit', letterSpacing: '0.02em' }}
           >
             Show all again

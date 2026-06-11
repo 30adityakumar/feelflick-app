@@ -459,7 +459,7 @@ export function CuratedLists({ onOpenList }) {
         <button
           type="button"
           onClick={() => onOpenList?.()}
-          className="group inline-flex items-center gap-1.5 self-start rounded-full border border-white/10 bg-white/4 px-4 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/25 hover:bg-white/8 hover:text-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 lg:self-end"
+          className="group inline-flex items-center gap-1.5 self-start rounded-full border border-white/10 bg-white/4 px-4 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/25 hover:bg-white/8 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/40 lg:self-end"
           style={{ fontFamily: 'Outfit', letterSpacing: '0.04em' }}
         >
           View all
@@ -533,7 +533,7 @@ function SeenTile({ film, onConfirm }) {
       aria-pressed={state === 'saved'}
       onClick={handleClick}
       disabled={state === 'saving' || state === 'saved'}
-      className="rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      className="rounded-lg focus-visible:ring-2 focus-visible:ring-white/40"
       style={{
         background: 'transparent', border: 'none', padding: 0, cursor: state === 'idle' ? 'pointer' : 'default',
         textAlign: 'left', fontFamily: 'inherit', color: 'inherit', width: '100%',
@@ -714,7 +714,7 @@ export function QuickLog({ onLog }) {
         <button
           type="button"
           onClick={() => onLog?.()}
-          className="group inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/4 px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/8 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          className="group inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/4 px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/8 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/40"
           style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: HP.textSoft, letterSpacing: '0.02em' }}
         >
           Open Browse
@@ -794,7 +794,7 @@ export function PageEndCard({ currentMood, onDiscover }) {
               cursor: 'pointer',
               boxShadow: '0 10px 24px -12px rgba(236,72,153,0.42)',
             }}
-            className="transition-transform duration-200 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            className="transition-transform duration-200 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/70"
           >
             Open Discover
             <ChevronRight className="h-4 w-4" aria-hidden />

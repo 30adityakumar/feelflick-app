@@ -1,0 +1,31 @@
+-- S1.3 — close the latent beta_members browser grants.
+--
+-- SCOPE: grant-only. No schema change, no row mutation, no RLS-policy change, no
+--   app-source change. Idempotent. Per-statement rollback below.
+--
+-- DASHBOARD-ONLY ITEMS (NOT changed here — not representable in SQL):
+--   Supabase Auth leaked-password protection, OTP expiry, redirect URLs / signup
+--   posture, the Postgres security patch, and the extensions-in-public relocation
+--   are operator/dashboard actions. They are documented with exact steps + timing in
+--   docs/security/s1-auth-dashboard-hardening.md and were intentionally NOT applied by
+--   this migration.
+--
+-- AUTHENTICATED SECURITY DEFINER RPC review (S1.3): audited all SECURITY DEFINER
+--   functions in `public`. Every authenticated-executable one is an intentional,
+--   auth.uid()-scoped browser RPC (F8 People least-data RPCs + account-deletion +
+--   the bounded session counter). All service-role-only functions are already
+--   anon+authenticated-denied. No mis-grant found, so no EXECUTE tightening is applied
+--   in this phase (see the doc for the full inventory + S1.4 follow-ups).
+--
+-- FROZEN CONTRACTS PRESERVED: B1.4a beta gate (owner-only SELECT kept), F9.2, S1.2,
+--   F8.6-SEC, F8 People RPCs, account-deletion semantics.
+
+-- beta_members (B1.4a): `authenticated` held REFERENCES, SELECT, TRIGGER, TRUNCATE.
+-- SELECT is the intended owner self-read (RLS policy: auth.uid() = user_id). The rest
+-- are inert/unnecessary default grants — TRUNCATE in particular bypasses RLS and would
+-- let a signed-in user wipe the gate table. Remove all non-SELECT grants from the
+-- browser roles. `service_role` keeps full management privileges; `anon` already holds
+-- nothing here (the revoke is a no-op for anon).
+-- ROLLBACK: grant truncate, references, trigger on table public.beta_members to authenticated;
+revoke insert, update, delete, truncate, references, trigger
+  on table public.beta_members from anon, authenticated;

@@ -216,7 +216,7 @@ export const CarouselRow = memo(function CarouselRow({
             type="button"
             onClick={handleShuffle}
             aria-label="Shuffle this row"
-            className="flex-none flex items-center gap-1 px-2.5 py-1 rounded-full border border-white/8 hover:border-white/20 bg-transparent hover:bg-white/6 text-white/35 hover:text-white/60 text-[0.7rem] font-medium transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+            className="flex-none flex items-center gap-1 px-2.5 py-1 rounded-full border border-white/8 hover:border-white/20 bg-transparent hover:bg-white/6 text-white/35 hover:text-white/60 text-[0.7rem] font-medium transition-all duration-200 focus-visible:ring-1 focus-visible:ring-white/30"
           >
             <RefreshCw className="h-3 w-3" />
             <span className="hidden sm:inline">Shuffle</span>

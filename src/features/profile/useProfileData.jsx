@@ -10,6 +10,8 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { getTasteFingerprint } from '@/shared/services/tasteCache'
 import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
 import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
+import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
+import { isEnabled } from '@/shared/config/betaFlags'
 import { PROFILE_EVIDENCE_VERSION, isEditorialVersionCurrent } from '@/shared/lib/profileEvidenceVersion'
 
 import {
@@ -87,9 +89,13 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
     // Eligible only for the signed-in user with a non-forming profile — never from forming,
     // never from a non-self/private view. Duplicate rapid clicks collapse to one call.
     if (!inputs || !inputs.isSelf || inputs.maturity === MATURITY.FORMING) return
+    // B1.3 kill-switch: when reflection refresh is disabled for beta, surface the honest
+    // "couldn't refresh" state instead of calling the Edge function (safe fallback, no crash).
+    if (!isEnabled('profileRefresh')) { if (mountedRef.current) setRefreshStatus('error'); return }
     if (inFlightRef.current) return
     inFlightRef.current = true
     setRefreshStatus('generating')
+    trackEvent(EVENTS.profile_reflection_refresh_started, { surface: 'profile' })
     try {
       const updated = await regenerateEditorial(inputs)
       if (!updated) throw new Error('refresh_failed')
@@ -99,8 +105,10 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
         setState(s => ({ ...s, editorial: { ...s.editorial, ...updated }, editorialStatus: 'current' }))
         setRefreshStatus('success')
       }
-    } catch {
+      trackEvent(EVENTS.profile_reflection_refresh_succeeded, { surface: 'profile' })
+    } catch (e) {
       if (mountedRef.current) setRefreshStatus('error')   // raw backend text never surfaced
+      trackEvent(EVENTS.profile_reflection_refresh_failed, { surface: 'profile', error_kind: errorKind(e) })
     } finally {
       inFlightRef.current = false
     }

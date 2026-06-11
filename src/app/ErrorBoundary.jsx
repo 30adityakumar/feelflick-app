@@ -3,6 +3,7 @@ import { Component } from 'react'
 import * as Sentry from '@sentry/react'
 import { AlertTriangle, RefreshCw, Home, Mail } from 'lucide-react'
 import Button from '@/shared/ui/Button'
+import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
 
 /**
  * Production-grade Error Boundary with:
@@ -37,7 +38,9 @@ export default class ErrorBoundary extends Component {
     
     // Report to error tracking service (Sentry, LogRocket, etc.)
     this.reportError(error, errorInfo)
-    
+    // B1.3: privacy-safe reliability signal — coarse error bucket only, never raw error text.
+    trackEvent(EVENTS.route_error, { error_kind: this.state.errorType || 'unknown' })
+
     // Auto-retry for network errors (max 3 attempts)
     if (this.state.errorType === 'network' && this.state.retryCount < 3) {
       this.scheduleRetry()

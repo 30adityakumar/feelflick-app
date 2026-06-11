@@ -4,7 +4,7 @@
 // film rows with mood chips and optional italic notes. Owns its own data
 // (list + owner + list_movies) so users can deep-link straight in.
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
@@ -51,6 +51,9 @@ export default function ListDetail() {
   const [showEdit, setShowEdit] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const deletingRef = useRef(false) // F9.3: synchronous in-flight guard against double-delete
   const [linkCopied, setLinkCopied] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followBusy, setFollowBusy] = useState(false)
@@ -193,12 +196,21 @@ export default function ListDetail() {
       setTimeout(() => setConfirmDelete(false), 3000)
       return
     }
+    if (deletingRef.current) return // F9.3: no double-delete while a request is in flight
+    deletingRef.current = true
+    setDeleting(true)
+    setDeleteError('')
     const { error } = await supabase.from('lists').delete().eq('id', listId)
     if (error) {
+      // F9.3: settle honestly — the list stays visible (no false success); raw error never shown.
       console.error('[ListDetail.delete]', error)
+      deletingRef.current = false
+      setDeleting(false)
+      setConfirmDelete(false)
+      setDeleteError('Could not delete this list. Please try again.')
       return
     }
-    navigate('/lists', { replace: true })
+    navigate('/lists', { replace: true }) // success only after the DB delete resolves
   }
 
   const handleRemoveFilm = async (movieId) => {
@@ -363,13 +375,16 @@ export default function ListDetail() {
                     <button
                       type="button"
                       onClick={handleDelete}
-                      style={{ padding: '10px 16px', borderRadius: 6, background: confirmDelete ? 'rgba(239,68,68,0.18)' : 'transparent', border: `1px solid ${confirmDelete ? HP.red + '66' : HP.border}`, color: confirmDelete ? HP.red : HP.textMuted, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                      disabled={deleting}
+                      style={{ padding: '10px 16px', borderRadius: 6, background: confirmDelete ? 'rgba(239,68,68,0.18)' : 'transparent', border: `1px solid ${confirmDelete ? HP.red + '66' : HP.border}`, color: confirmDelete ? HP.red : HP.textMuted, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: deleting ? 'wait' : 'pointer', opacity: deleting ? 0.6 : 1 }}
                     >
-                      {confirmDelete ? 'Confirm delete?' : 'Delete'}
+                      {deleting ? 'Deleting…' : confirmDelete ? 'Confirm delete?' : 'Delete'}
                     </button>
                   </>
                 )}
               </div>
+              {/* F9.3: safe, user-facing delete error — list stays visible, raw error never shown */}
+              {deleteError && <p role="alert" style={{ marginTop: 8, fontSize: 13, color: HP.red }}>{deleteError}</p>}
             </div>
 
             {/* === RIGHT: numbered film rows === */}

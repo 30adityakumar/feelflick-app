@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { formatMonthYear } from '@/shared/lib/format/date'
@@ -264,11 +264,12 @@ function DangerZone() {
       <div className="ff-acct-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
         <Danger
           title="Reset taste profile"
-          desc="Re-run onboarding. Your existing watches stay logged, but mood weights start from zero."
+          desc="Clears the genres and films you chose during onboarding and starts onboarding over. Films you've logged since then stay in your history."
           cta="Reset DNA"
           color={HP.amber}
           onClick={rerunOnboarding}
           disabled={busy}
+          confirmFirst
         />
         {isPending ? (
           <DangerPending
@@ -290,6 +291,7 @@ function DangerZone() {
       {showDeleteModal && (
         <DeleteConfirmModal
           email={authUser?.email}
+          busy={busy}
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={async (reason) => {
             try {
@@ -323,16 +325,24 @@ function DangerPending({ scheduledLabel, onCancel, disabled }) {
   );
 }
 
-function DeleteConfirmModal({ email, onCancel, onConfirm }) {
+function DeleteConfirmModal({ email, onCancel, onConfirm, busy = false }) {
   const [typed, setTyped] = useState('');
   const [reason, setReason] = useState('');
+  const emailRef = useRef(null);
   const enabled = typed.trim().toLowerCase() === (email || '').trim().toLowerCase();
+  // F9.3: focus the first field on open + close on Escape (parity with the shared Modal primitive).
+  useEffect(() => { emailRef.current?.focus(); }, []);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape' && !busy) onCancel(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onCancel, busy]);
   return (
-    <div role="dialog" aria-modal="true" style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:20 }}>
+    <div role="dialog" aria-modal="true" aria-labelledby="del-modal-title" style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:20 }}>
       <div style={{ maxWidth:520, width:'100%', padding:32, borderRadius:10, background:HP.bgDeep, border:`1px solid ${HP.red}55` }}>
-        <div style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', marginBottom:12 }}>
+        <h2 id="del-modal-title" style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', margin:'0 0 12px' }}>
           Delete your account?
-        </div>
+        </h2>
         <p style={{ margin:'0 0 18px 0', fontSize:14, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55 }}>
           We&rsquo;ll permanently delete your profile, watches, ratings, lists, and DNA <strong style={{ color:HP.text, fontWeight:600 }}>after 7 days</strong>. You can cancel anytime before then by signing back in.
         </p>
@@ -340,13 +350,14 @@ function DeleteConfirmModal({ email, onCancel, onConfirm }) {
           Type your email to confirm
         </label>
         <input
+          ref={emailRef}
           id="del-confirm-email"
           type="email"
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           placeholder={email || 'your@email.com'}
           autoComplete="off"
-          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, outline:'none', marginBottom:16 }}
+          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, marginBottom:16 }}
         />
         <label htmlFor="del-reason" style={{ display:'block', fontFamily:'Outfit', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:HP.textMuted, marginBottom:8 }}>
           Reason (optional)
@@ -357,7 +368,7 @@ function DeleteConfirmModal({ email, onCancel, onConfirm }) {
           onChange={(e) => setReason(e.target.value)}
           rows={3}
           placeholder="What pushed you away?"
-          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:13, outline:'none', resize:'vertical', marginBottom:24 }}
+          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:13, resize:'vertical', marginBottom:24 }}
         />
         <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
           <button
@@ -368,26 +379,38 @@ function DeleteConfirmModal({ email, onCancel, onConfirm }) {
           <button
             type="button"
             onClick={() => onConfirm(reason)}
-            disabled={!enabled}
-            style={{ padding:'12px 22px', borderRadius:6, background: enabled ? HP.red : 'rgba(255,255,255,0.06)', border:'none', color: enabled ? '#fff' : HP.textFaint, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: enabled ? 'pointer' : 'not-allowed' }}
-          >Schedule deletion</button>
+            disabled={!enabled || busy}
+            style={{ padding:'12px 22px', borderRadius:6, background: (enabled && !busy) ? HP.red : 'rgba(255,255,255,0.06)', border:'none', color: (enabled && !busy) ? '#fff' : HP.textFaint, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: busy ? 'wait' : enabled ? 'pointer' : 'not-allowed' }}
+          >{busy ? 'Scheduling…' : 'Schedule deletion'}</button>
         </div>
       </div>
     </div>
   );
 }
 
-function Danger({ title, desc, cta, color, onClick, disabled }) {
+function Danger({ title, desc, cta, color, onClick, disabled, confirmFirst = false }) {
+  // F9.3: confirmFirst adds a two-step confirm for destructive actions that don't open their own modal
+  // (e.g. Reset taste profile). The first click arms; a second click within ~3.5s runs the action.
+  const [confirming, setConfirming] = useState(false);
+  const handleClick = () => {
+    if (confirmFirst && !confirming) {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 3500);
+      return;
+    }
+    setConfirming(false);
+    onClick();
+  };
   return (
     <div style={{ padding:'24px 26px', borderRadius:6, background:`${color}08`, border:`1px solid ${color}33` }}>
       <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:6 }}>{title}</div>
       <p style={{ margin:'0 0 18px 0', fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55, fontStyle:'italic', textWrap:'pretty' }}>{desc}</p>
       <button
         type="button"
-        onClick={onClick}
+        onClick={handleClick}
         disabled={disabled}
-        style={{ padding:'10px 16px', borderRadius:6, background:'transparent', border:`1px solid ${color}77`, color, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.6 : 1 }}
-      >{cta}</button>
+        style={{ padding:'10px 16px', borderRadius:6, background: confirming ? `${color}18` : 'transparent', border:`1px solid ${color}77`, color, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.6 : 1 }}
+      >{confirming ? `Confirm — ${cta}?` : cta}</button>
     </div>
   );
 }

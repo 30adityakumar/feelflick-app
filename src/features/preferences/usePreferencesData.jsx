@@ -12,7 +12,7 @@
 //   • Everything else (mood weights, directors trusted/muted, runtime band,
 //     daypart, subscriptions, boundaries, display knobs) → settings.prefs.
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
@@ -185,6 +185,8 @@ export function PreferencesDataProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState(null) // for toast / dot
+  const [saveError, setSaveError] = useState('') // F9.3: surfaced to the user, never raw backend text
+  const savingRef = useRef(false) // F9.3: synchronous duplicate-submit guard
 
   // Watch-history-derived director suggestions (so "+ Director" picker is real)
   const [directorSuggestions, setDirectorSuggestions] = useState([])
@@ -268,14 +270,21 @@ export function PreferencesDataProvider({ children }) {
 
   // === Save (writes to user_preferences + user_settings.settings.prefs) ===
   const save = useCallback(async () => {
-    if (!userId || !dirty || saving) return
+    if (!userId || !dirty || savingRef.current) return // F9.3: synchronous duplicate-submit guard
+    savingRef.current = true
     setSaving(true)
+    setSaveError('')
     try {
-      // 1) Replace drawn-to genre rows. We deliberately do NOT write avoid
-      //    rows here — the engine selects only `genre_id` from this table
+      // 1) Replace this user's drawn-to genre rows. We deliberately do NOT write
+      //    avoid rows here — the engine selects only `genre_id` from this table
       //    and treats every row as PREFERRED. Avoid lives in
       //    settings.prefs.avoidGenres (written below), which is what the
       //    Discover engine actually reads.
+      //    F9.3 onboarding-write race: this delete is scoped to THIS user's genre
+      //    rows. /preferences is only reachable after onboarding completes
+      //    (PostAuthGate gates it), so a user can never be saving preferences
+      //    while onboarding is concurrently writing user_preferences — the two
+      //    delete-then-write paths cannot overlap for the same user.
       await supabase.from('user_preferences').delete().eq('user_id', userId)
       const rows = draft.drawnGenreIds.map(id => ({ user_id: userId, genre_id: id, excluded: false }))
       if (rows.length) {
@@ -336,14 +345,16 @@ export function PreferencesDataProvider({ children }) {
       setBaseline(draft)
       setSavedAt(Date.now())
     } catch (e) {
-      console.error('[usePreferencesData.save]', e)
+      console.error('[usePreferencesData.save]', e) // raw error stays in console, never the UI
+      setSaveError('Could not save your preferences. Please try again.')
     } finally {
+      savingRef.current = false
       setSaving(false)
     }
-  }, [userId, dirty, saving, draft])
+  }, [userId, dirty, draft])
 
   const value = useMemo(() => ({
-    loading, saving, savedAt, dirty,
+    loading, saving, savedAt, saveError, dirty,
     draft, baseline,
     directorSuggestions,
     catalogs: { MOODS, GENRES, STREAMERS, DAYPARTS, BOUNDARIES, LANGUAGES, SUBTITLE_MODES, SPOILER_TIERS },
@@ -358,7 +369,7 @@ export function PreferencesDataProvider({ children }) {
     setSubtitles, setSpoilerTier, addLanguage, removeLanguage,
     discard, save,
   }), [
-    loading, saving, savedAt, dirty, draft, baseline, directorSuggestions,
+    loading, saving, savedAt, saveError, dirty, draft, baseline, directorSuggestions,
     setMoodWeight,
     addDrawnGenre, removeDrawnGenre, addAvoidGenre, removeAvoidGenre,
     addTrustedDirector, removeTrustedDirector,

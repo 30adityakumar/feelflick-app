@@ -141,13 +141,23 @@ export default function SearchBar({ open, onClose }) {
     setRecentSearches(updated.slice(0, MAX_RECENT_SEARCHES))
   }
 
+  // B1.2: never send raw query text (freeform user input) to analytics — only a coarse
+  // length bucket + safe result metadata. movie_id is a catalog id (not user text).
+  function queryLengthBucket(len) {
+    if (len <= 0) return '0'
+    if (len <= 2) return '1-2'
+    if (len <= 5) return '3-5'
+    if (len <= 10) return '6-10'
+    return '11+'
+  }
+
   function goToMovie(movie) {
     saveRecentSearch(movie)
     track('search_performed', {
-      query: q.trim(),
       result_count: results.length,
+      result_kind: 'movie',
+      query_length_bucket: queryLengthBucket(q.trim().length),
       movie_id: movie.id,
-      movie_title: movie.title,
     })
     onClose?.()
     nav(`/movie/${movie.id}`)

@@ -30,7 +30,7 @@ function Privacy() {
   // becomes visible to other signed-in members.
   const rows = [
     { k:'showOnLeaderboards', label:'Appear in taste-match discovery',  desc:'When on, other signed-in members may see your name, avatar, your top film-taste tags and film count when FeelFlick suggests compatible people. Your watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private.' },
-    { k:'analytics',          label:'Product analytics',    desc:'Help us improve. Aggregated, no PII.' },
+    { k:'analytics',          label:'Product analytics',    desc:'Privacy-safe usage analytics to help us improve. We never send your email, name, search text, reviews, Diary, or Cinematic DNA reflection. May include privacy-masked session replay (all text and inputs masked) to diagnose bugs. Turn off any time.' },
   ];
   return (
     <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>

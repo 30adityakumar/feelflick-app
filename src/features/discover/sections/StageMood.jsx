@@ -33,7 +33,7 @@ export default function StageMood({ selected, setSelected, onNext, blendHex, bur
       {audioToggle}
       <div style={{ textAlign:'center', marginBottom:8 }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:ROSE, marginBottom:14 }}>Step 1 of 2</div>
-        <h2 style={{ fontFamily:'var(--font-editorial)', fontSize:'clamp(28px, 5vw, 56px)', lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color:HP.text, margin:0 }}>What&rsquo;s the <em style={{ fontStyle:'italic', color:blendHex, transition:'color 0.5s ease' }}>shape</em> of your mood?</h2>
+        <h1 style={{ fontFamily:'var(--font-editorial)', fontSize:'clamp(28px, 5vw, 56px)', lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color:HP.text, margin:0 }}>What&rsquo;s the <em style={{ fontStyle:'italic', color:blendHex, transition:'color 0.5s ease' }}>shape</em> of your mood?</h1>
         <p style={{ marginTop:14, fontFamily:'Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic' }}>Pick 1–3 moods. Form your constellation.</p>
       </div>
       <div className="ff-mood-canvas" role="group" aria-label="Choose one to three moods" style={{ position:'relative', width:'100%', maxWidth:1080, borderRadius:18, background:'rgba(255,255,255,0.012)', border:`1px solid ${HP.border}`, overflow:'hidden' }}>

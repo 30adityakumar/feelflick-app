@@ -55,11 +55,14 @@ test('landing: drop-cap sentence is intact for assistive tech, split fragments h
   expect(probe.srOnlyText).toMatch(/^Near-future Los Angeles\./)
 })
 
-test('discover: single <main> and exactly one (sr-only) h1', async ({ page }) => {
+test('discover: single <main> and exactly one h1 (the mood question)', async ({ page }) => {
   await page.goto('/discover')
   await expect(page.locator('main')).toHaveCount(1)
 
+  // Each Discover stage owns exactly one <h1>; the opening stage's is the mood
+  // question. Later stages swap in their own single h1 (the night-context
+  // checkpoint, then the pick title) — never two at once.
   const h1 = page.locator('h1')
   await expect(h1).toHaveCount(1, { timeout: 15_000 })
-  await expect(h1).toHaveText('Discover — find tonight’s film')
+  await expect(h1).toHaveText(/shape\b.*\bof your mood\?$/)
 })

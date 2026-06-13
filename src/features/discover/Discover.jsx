@@ -515,9 +515,9 @@ export default function Discover() {
   )
   return (
     <DiscoverDataProvider>
-      {/* a11y (F2-B): sr-only page h1, mirroring Home's pattern (Home.jsx) — the
-          visible mood question is presentation, not the document heading. */}
-      <h1 className="sr-only">Discover — find tonight’s film</h1>
+      {/* a11y: each stage owns exactly one visible <h1> (the mood question, the
+          night-context checkpoint, then the pick title) — a distinct screen per
+          step. No separate sr-only page h1 (that produced two h1s on the result). */}
       <DiscoverBody />
       {handoffOverlayVisible && (
         <motion.div

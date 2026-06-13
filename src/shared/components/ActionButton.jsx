@@ -89,7 +89,10 @@ export function SecondaryActionButton({
       style={{
         fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: HP.textSoft,
         background: isActive ? `${accent}2e` : 'rgba(255,255,255,0.06)',
-        border: `1px solid ${isActive ? `${accent}66` : HP.border}`,
+        // Longhand border props (not the `border` shorthand) so a caller's `style`
+        // can override `borderColor` alone (e.g. /home's warm keyline) without
+        // mixing shorthand + longhand — which makes React warn on rerender.
+        borderWidth: 1, borderStyle: 'solid', borderColor: isActive ? `${accent}66` : HP.border,
         cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.65 : 1,
         ...style,
       }}

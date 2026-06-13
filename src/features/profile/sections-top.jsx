@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FollowButton from '@/shared/components/FollowButton'
-import { USER as USER_DEFAULT, HP, ROSE, RADIUS } from './data'
+import { USER as USER_DEFAULT, HP, ROSE, ROSE_DEEP, RADIUS } from './data'
 import { useProfileData } from './useProfileData'
 import { classifyProfileMaturity, MATURITY, formatEvidenceSummary, INK_LABEL } from './derive/profilePresentation'
 
@@ -58,7 +58,7 @@ function EditorialRefresh({ status, refreshStatus, onRefresh }) {
           disabled={generating}
           aria-busy={generating}
           className="ff-tap"
-          style={{ minHeight:44, padding:'11px 20px', borderRadius:RADIUS.sm, background:generating?'rgba(255,255,255,0.06)':ROSE, color:generating?INK_LABEL:'#fff', border:'none', cursor:generating?'wait':'pointer', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, letterSpacing:'0.02em', opacity:generating?0.85:1 }}
+          style={{ minHeight:44, padding:'11px 20px', borderRadius:RADIUS.sm, background:generating?'rgba(255,255,255,0.06)':ROSE_DEEP, color:generating?INK_LABEL:'#fff', border:'none', cursor:generating?'wait':'pointer', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, letterSpacing:'0.02em', opacity:generating?0.85:1 }}
         >{generating ? 'Refreshing…' : label}</button>
       )}
     </div>
@@ -134,7 +134,7 @@ function Masthead() {
               >Edit profile</button>
               <button
                 onClick={handleShareDNA}
-                style={{ padding:'8px 14px', borderRadius:RADIUS.sm, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(221,78,131,0.35)' }}
+                style={{ padding:'8px 14px', borderRadius:RADIUS.sm, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(221,78,131,0.35)' }}
               >Share my DNA →</button>
             </>
           ) : (

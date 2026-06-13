@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Play, Bookmark } from 'lucide-react'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
-import { ROSE } from '@/shared/lib/tokens'
+import { ROSE_DEEP } from '@/shared/lib/tokens'
 import { constellationName, buildBecauseLine } from '../derive'
 import { HP } from '../constants'
 import { moodFilter, buildRuntimeFitLine } from '../resultPresentation'
@@ -182,7 +182,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
             Adjust tonight&rsquo;s details, or start again with a different mood.
           </p>
           <div style={{ marginTop:32, display:'flex', gap:10, flexWrap:'wrap', justifyContent:'center' }}>
-            <button onClick={onBack} style={{ minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(221,78,131,0.55)' }}>Adjust tonight</button>
+            <button onClick={onBack} style={{ minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(221,78,131,0.55)' }}>Adjust tonight</button>
             <button onClick={onRestart} style={{ minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, cursor:'pointer' }}>Start over</button>
           </div>
         </section>
@@ -283,7 +283,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
                       type="button"
                       className="ff-pick-actions__primary"
                       onClick={handleSeeMore}
-                      style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(221,78,131,0.55)' }}
+                      style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(221,78,131,0.55)' }}
                     >
                       Open Film File &rarr;
                     </button>

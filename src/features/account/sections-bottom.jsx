@@ -4,7 +4,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { formatMonthYear } from '@/shared/lib/format/date'
 import { setAnalyticsOptOut } from '@/shared/services/analytics'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, ROSE, CONNECTIONS, FOUNDING_CUTOFF } from './data'
+import { HP, ROSE, ROSE_DEEP, CONNECTIONS, FOUNDING_CUTOFF } from './data'
 import { SectionHead, Toggle } from './sections-top'
 import { useAccountData } from './useAccountData'
 
@@ -94,7 +94,7 @@ function Connections() {
                 disabled={disabled}
                 aria-disabled={disabled}
                 title={title}
-                style={{ padding:'8px 14px', borderRadius:6, background: on ? 'transparent' : ROSE, border: on ? `1px solid ${HP.border}` : 'none', color: on ? HP.textMuted : '#fff', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.65 : 1 }}
+                style={{ padding:'8px 14px', borderRadius:6, background: on ? 'transparent' : ROSE_DEEP, border: on ? `1px solid ${HP.border}` : 'none', color: on ? HP.textMuted : '#fff', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.65 : 1 }}
               >
                 {on ? 'Manage' : 'Connect'}
               </button>
@@ -427,7 +427,7 @@ function AccountFooter() {
   return (
     <footer className="ff-acct-section ff-acct-foot" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:6, background:ROSE, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff', fontFamily:'Inter, sans-serif' }}>FF</div>
+        <div style={{ width:28, height:28, borderRadius:6, background:ROSE_DEEP, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff', fontFamily:'Inter, sans-serif' }}>FF</div>
         <span style={{ fontSize:13, color:HP.textMuted }}>FeelFlick · Account</span>
       </div>
       <div className="ff-acct-foot__links" style={{ display:'flex', gap:24, alignItems:'center' }}>

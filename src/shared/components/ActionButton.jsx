@@ -1,6 +1,6 @@
 // src/shared/components/ActionButton.jsx
 import { Loader2 } from 'lucide-react'
-import { HP, ROSE } from '@/shared/lib/tokens'
+import { HP, ROSE_DEEP } from '@/shared/lib/tokens'
 
 /**
  * Canonical in-card action buttons (rounded-8, Inter 14) — the "act on this card"
@@ -25,7 +25,7 @@ export function ActionButton({ className = '', style, children, ...props }) {
       type="button"
       className={`${BASE} rounded-lg ${className}`.trim()}
       style={{
-        background: ROSE, border: 'none', color: '#fff',
+        background: ROSE_DEEP, border: 'none', color: '#fff',
         fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
         padding: '14px 22px', cursor: 'pointer',
         boxShadow: '0 12px 28px -8px rgba(221,78,131,0.5)',
@@ -52,7 +52,7 @@ export function ChipButton({ className = '', style, children, ...props }) {
       type="button"
       className={`${BASE} rounded-md ${className}`.trim()}
       style={{
-        background: ROSE, border: 'none', color: '#fff',
+        background: ROSE_DEEP, border: 'none', color: '#fff',
         fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
         textTransform: 'uppercase', padding: '10px 18px', cursor: 'pointer',
         ...style,

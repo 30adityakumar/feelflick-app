@@ -9,7 +9,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, ROSE } from './data'
+import { HP, ROSE, ROSE_DEEP } from './data'
 import { PeopleDataProvider, usePeopleData } from './usePeopleData'
 import { trackEvent, EVENTS, queryLengthBucket } from '@/shared/services/betaEvents'
 import { isEnabled } from '@/shared/config/betaFlags'
@@ -122,7 +122,7 @@ function Masthead({ onSearch, query, setQuery }) {
             onClick={handleInvite}
             aria-label="Invite a friend to FeelFlick"
             className="ff-people-invite-btn"
-            style={{ minHeight: 44, padding: '0 20px', borderRadius: 8, background: ROSE, border: 'none', color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', cursor: 'pointer' }}
+            style={{ minHeight: 44, padding: '0 20px', borderRadius: 8, background: ROSE_DEEP, border: 'none', color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', cursor: 'pointer' }}
           >
             Invite a friend
           </button>
@@ -163,7 +163,7 @@ function FollowBtn({ id, following, pending, errored, name, onFollow, onUnfollow
         minWidth: 44,
         padding: '0 16px',
         borderRadius: 999,
-        background: following ? 'transparent' : ROSE,
+        background: following ? 'transparent' : ROSE_DEEP,
         border: following ? `1px solid ${HP.border}` : 'none',
         color: following ? HP.textSoft : '#fff',
         fontFamily: 'Inter, sans-serif',

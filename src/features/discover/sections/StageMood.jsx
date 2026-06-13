@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ROSE } from '@/shared/lib/tokens'
+import { ROSE, ROSE_DEEP } from '@/shared/lib/tokens'
 import { MOODS, constellationName } from '../derive'
 import { HP } from '../constants'
 
@@ -82,7 +82,7 @@ export default function StageMood({ selected, setSelected, onNext, blendHex, bur
             : selected.length === 3 ? 'Locked in'
             : `${selected.length} chosen`}
         </div>
-        <button onClick={()=>{ playContinueCue(); onNext(); }} disabled={selected.length===0} style={{ padding:'14px 26px', borderRadius:999, background: selected.length>0?ROSE:'rgba(255,255,255,0.04)', border: selected.length>0?'none':`1px solid ${HP.border}`, color: selected.length>0?'#fff':HP.textFaint, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor: selected.length>0?'pointer':'not-allowed' }}>Continue →</button>
+        <button onClick={()=>{ playContinueCue(); onNext(); }} disabled={selected.length===0} style={{ padding:'14px 26px', borderRadius:999, background: selected.length>0?ROSE_DEEP:'rgba(255,255,255,0.04)', border: selected.length>0?'none':`1px solid ${HP.border}`, color: selected.length>0?'#fff':HP.textFaint, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor: selected.length>0?'pointer':'not-allowed' }}>Continue →</button>
       </div>
     </section>
   );

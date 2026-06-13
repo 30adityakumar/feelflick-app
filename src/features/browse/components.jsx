@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import MoodPill from '@/shared/components/MoodPill'
-import { HP, ROSE, MOODS, SORT_OPTIONS, DECADE_OPTIONS, LANG_OPTIONS, GENRE_OPTIONS, RUNTIME_OPTIONS, PACING_OPTIONS, INTENSITY_OPTIONS, DEPTH_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
+import { HP, ROSE, ROSE_DEEP, MOODS, SORT_OPTIONS, DECADE_OPTIONS, LANG_OPTIONS, GENRE_OPTIONS, RUNTIME_OPTIONS, PACING_OPTIONS, INTENSITY_OPTIONS, DEPTH_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
 
 // FeelFlick — Browse v3 components.
 // /browse v5 — components & helpers.
@@ -51,7 +51,7 @@ function Nav() {
   return (
     <header style={{ padding:'14px 56px', borderBottom:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(6,6,10,0.7)', backdropFilter:'blur(18px) saturate(140%)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-        <div style={{ width:26, height:26, borderRadius:6, background:ROSE, display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:12, color:'#fff' }}>FF</div>
+        <div style={{ width:26, height:26, borderRadius:6, background:ROSE_DEEP, display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:12, color:'#fff' }}>FF</div>
         <span style={{ fontFamily:'Inter, sans-serif', fontWeight:600, fontSize:14, color:HP.text, letterSpacing:'-0.005em' }}>FeelFlick</span>
       </div>
       <nav style={{ display:'flex', gap:24 }}>
@@ -113,7 +113,7 @@ function MoodRow({ mood, setMood, sortBy, setSortBy, view, setView }) {
           {[{v:'grid',I:IcGrid},{v:'list',I:IcList}].map(({v,I}) => {
             const on = view === v;
             return (
-              <button key={v} onClick={()=>setView(v)} aria-label={`${v} view`} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:32, borderRadius:999, background: on ? ROSE : 'transparent', color: on ? '#fff' : HP.textLow, border:'none', cursor:'pointer', transition:'all 0.2s ease' }}>
+              <button key={v} onClick={()=>setView(v)} aria-label={`${v} view`} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:32, borderRadius:999, background: on ? ROSE_DEEP : 'transparent', color: on ? '#fff' : HP.textLow, border:'none', cursor:'pointer', transition:'all 0.2s ease' }}>
                 <I s={14} />
               </button>
             );
@@ -324,7 +324,7 @@ function Toolbar(props) {
           {draftQuery && <button type="button" onClick={()=>{setDraftQuery(''); setQuery('');}} style={{ position:'absolute', right:42, top:'50%', transform:'translateY(-50%)', background:'transparent', border:'none', color:HP.textLow, cursor:'pointer', padding:4 }}><IcX s={14}/></button>}
           <span style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', padding:'3px 7px', borderRadius:4, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textLow, fontFamily:'Inter', fontSize:11, letterSpacing:'0.04em' }}>/</span>
         </div>
-        <button type="submit" aria-label="Search" className="ff-browse-search-btn ff-tap" style={{ height:42, padding:'0 22px', borderRadius:999, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', boxShadow:'0 8px 18px -6px rgba(221,78,131,0.4)', display:'inline-flex', alignItems:'center', gap:7 }}>
+        <button type="submit" aria-label="Search" className="ff-browse-search-btn ff-tap" style={{ height:42, padding:'0 22px', borderRadius:999, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', boxShadow:'0 8px 18px -6px rgba(221,78,131,0.4)', display:'inline-flex', alignItems:'center', gap:7 }}>
           <span className="ff-browse-search-btn-icon" aria-hidden style={{ display:'none' }}><IcSearch s={16}/></span>
           <span className="ff-browse-search-btn-label">Search</span>
         </button>
@@ -348,7 +348,7 @@ function Toolbar(props) {
 
         <button className="ff-browse-refine-btn ff-tap" onClick={()=>setPanel(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${panelOpen||advancedCount>0 ? ROSE+'66' : HP.border}`, background: panelOpen||advancedCount>0 ? `${ROSE}1a` : 'rgba(255,255,255,0.04)', color: panelOpen||advancedCount>0 ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
           {panelOpen ? <IcChevU s={13}/> : <IcSlide s={13}/>}<span>Filters</span>
-          {advancedCount > 0 && <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:18, height:18, borderRadius:999, background:ROSE, fontSize:10, fontWeight:700, color:'#fff' }}>{advancedCount}</span>}
+          {advancedCount > 0 && <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:18, height:18, borderRadius:999, background:ROSE_DEEP, fontSize:10, fontWeight:700, color:'#fff' }}>{advancedCount}</span>}
         </button>
 
         <div className="ff-browse-quick-toggles" style={{ display:'inline-flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
@@ -510,7 +510,7 @@ function RefinePanel(props) {
           >
             Reset all
           </button>
-          <button onClick={props.onClose} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 22px', borderRadius:999, background:ROSE, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', boxShadow:'0 8px 18px -6px rgba(221,78,131,0.4)' }}>
+          <button onClick={props.onClose} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 22px', borderRadius:999, background:ROSE_DEEP, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', boxShadow:'0 8px 18px -6px rgba(221,78,131,0.4)' }}>
             {typeof totalResults === 'number' ? (
               <>Show <span style={{ fontVariantNumeric:'tabular-nums' }}>{totalResults.toLocaleString()}</span> {totalResults === 1 ? 'film' : 'films'}</>
             ) : 'Done'}

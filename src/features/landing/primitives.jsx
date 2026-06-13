@@ -1,6 +1,6 @@
 import { forwardRef, useState, useMemo } from 'react'
 import CanonicalEyebrow from '@/shared/ui/Eyebrow'
-import { ROSE, C } from '@/shared/lib/tokens'
+import { ROSE, ROSE_DEEP, C } from '@/shared/lib/tokens'
 import { useInView } from '@/shared/hooks/useInView'
 
 // Landing-flavored eyebrow — the canonical `shared/ui/Eyebrow` primitive at the
@@ -25,7 +25,7 @@ export function Eyebrow(props){
 // `style` merges the per-instance layout (padding/size/shadow/width); `children`
 // is a node or a (loading)=>node render-fn so each call-site keeps its exact
 // label and loading swap.
-const CTA_PILL = { borderRadius:999, background:ROSE, color:'#fff', fontFamily:'Inter', fontWeight:600, border:'none' }
+const CTA_PILL = { borderRadius:999, background:ROSE_DEEP, color:'#fff', fontFamily:'Inter', fontWeight:600, border:'none' }
 export function AuthCTA({ onClick, loading=false, style, ariaLabel, children }){
   return (
     <button

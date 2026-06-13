@@ -59,6 +59,14 @@ export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 /** Brand rose — the red-ink accent replacing the purple→pink gradient on migrated surfaces. */
 export const ROSE = '#DD4E83'
 
+/**
+ * Deep rose — for FILLED buttons that carry white text. White on `ROSE` (#DD4E83)
+ * is only 3.82:1 (below WCAG AA 4.5:1 for normal text); white on `ROSE_DEEP` is
+ * ≈5:1. Use `ROSE_DEEP` for solid white-text CTAs; keep `ROSE` for accents,
+ * kickers, rose-on-dark text, borders, bars, and glows (which pass on dark).
+ */
+export const ROSE_DEEP = '#C0356C'
+
 /** Warm ivory — primary text color for editorial/cinematic surfaces. */
 export const IVORY = '#F2ECE1'
 

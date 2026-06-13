@@ -14,7 +14,7 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { recommendationCache } from '@/shared/lib/cache'
 import Pagination from '@/shared/components/Pagination'
 
-import { HP, ROSE, MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS } from './data'
+import { HP, ROSE, ROSE_DEEP, MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS } from './data'
 import { MoodRow, Toolbar, RefinePanel, GridCard, ListRow } from './components'
 import { MoodBackdrop } from './immersive'
 import './browse.css'
@@ -727,7 +727,7 @@ export default function Browse() {
             <div style={{ padding:'80px 0', textAlign:'center' }}>
               <div style={{ fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:300, color:HP.textMid, letterSpacing:'-0.015em' }}>Nothing matches.</div>
               <div style={{ marginTop:8, fontFamily:'Inter', fontSize:13.5, color:HP.textLow }}>Loosen a filter, or clear them all.</div>
-              {hasAnyFilter && <button onClick={clearAll} style={{ marginTop:18, padding:'10px 20px', borderRadius:999, background:ROSE, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer' }}>Clear filters →</button>}
+              {hasAnyFilter && <button onClick={clearAll} style={{ marginTop:18, padding:'10px 20px', borderRadius:999, background:ROSE_DEEP, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer' }}>Clear filters →</button>}
             </div>
           ) : view === 'grid' ? (
             // Inline grid template is the desktop default; browse.css overrides it

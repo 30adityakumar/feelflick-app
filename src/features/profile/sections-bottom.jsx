@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toPng } from 'html-to-image'
-import { HP, ROSE, RADIUS, USER as USER_DEFAULT } from './data'
+import { HP, ROSE, ROSE_DEEP, RADIUS, USER as USER_DEFAULT } from './data'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useProfileData } from './useProfileData'
 import { INK_LABEL } from './derive/profilePresentation'
@@ -135,7 +135,7 @@ function Trajectory() {
                   className="ff-tap"
                   aria-pressed={active}
                   onClick={() => setRange(p)}
-                  style={{ padding:'7px 14px', borderRadius:RADIUS.pill, background:active?ROSE:'transparent', color:active?'#fff':INK_LABEL, border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.04em' }}
+                  style={{ padding:'7px 14px', borderRadius:RADIUS.pill, background:active?ROSE_DEEP:'transparent', color:active?'#fff':INK_LABEL, border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.04em' }}
                 >{p}</button>
               );
             })}
@@ -414,7 +414,7 @@ function FriendsRanked() {
           <button
             type="button"
             onClick={() => navigate('/people')}
-            style={{ padding:'10px 18px', borderRadius:RADIUS.sm, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(221,78,131,0.35)' }}
+            style={{ padding:'10px 18px', borderRadius:RADIUS.sm, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(221,78,131,0.35)' }}
           >Find people on FeelFlick →</button>
         </div>
       )}
@@ -566,7 +566,7 @@ function ProfileFooter() {
   return (
     <footer className="ff-profile-section" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background:ROSE, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
+        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background:ROSE_DEEP, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
         <span style={{ fontSize:13, color:INK_LABEL, letterSpacing:'0.04em' }}>FeelFlick · Cinematic DNA</span>
       </div>
       <div style={{ display:'flex', gap:24 }}>

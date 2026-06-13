@@ -14,7 +14,7 @@
 // USER + stats are now live. They're fetched via useAccountData() against
 // auth.getUser() + the users table + user_history/user_ratings counts.
 
-export { HP, ROSE } from '@/shared/lib/tokens'
+export { HP, ROSE, ROSE_DEEP } from '@/shared/lib/tokens'
 
 export const SETTINGS = {
   notifications: [

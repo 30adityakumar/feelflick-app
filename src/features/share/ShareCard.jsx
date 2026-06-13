@@ -13,7 +13,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Download, Loader2, Check } from 'lucide-react'
 import { toPng } from 'html-to-image'
-import { ROSE } from '@/shared/lib/tokens'
+import { ROSE, ROSE_DEEP } from '@/shared/lib/tokens'
 
 // === Demo pick — the same Past Lives the landing leads with ===================
 const DEMO_PICK = {
@@ -289,7 +289,7 @@ export default function ShareStudio({ pick = DEMO_PICK }) {
                 style={{
                   padding: '9px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
-                  background: active ? ROSE : 'transparent',
+                  background: active ? ROSE_DEEP : 'transparent',
                   color: active ? '#fff' : 'rgba(250,250,250,0.6)',
                   transition: 'all 0.2s ease',
                 }}
@@ -306,7 +306,7 @@ export default function ShareStudio({ pick = DEMO_PICK }) {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 9,
             padding: '12px 22px', borderRadius: 999, border: 'none',
-            background: status === 'done' ? 'rgba(16,185,129,0.18)' : ROSE,
+            background: status === 'done' ? 'rgba(16,185,129,0.18)' : ROSE_DEEP,
             color: status === 'done' ? '#34d399' : '#fff',
             fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
             cursor: status === 'working' ? 'progress' : 'pointer',

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ROSE } from '@/shared/lib/tokens'
+import { ROSE, ROSE_DEEP } from '@/shared/lib/tokens'
 import { HP, TIME_OPTIONS, WHO_OPTIONS, ENERGY_OPTIONS, INTENTIONS } from '../constants'
 
 // Stage 2 (F3.6) — the night-context CHECKPOINT. Replaces the forced 4-question
@@ -98,7 +98,7 @@ export default function StageNightContext({ time, setTime, who, setWho, energy, 
       <div className="ff-stage-action-bar">
         <button onClick={onBack} style={{ padding:'10px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:500, cursor:'pointer' }}>← Back</button>
         <div className="ff-stage-action-bar__meta" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Inter, sans-serif' }}>These details shape tonight’s ranking.</div>
-        <button onClick={()=>{ playContinueCue(); onNext(); }} style={{ padding:'14px 28px', borderRadius:999, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 12px 30px -10px rgba(221,78,131,0.5)' }}>Find my film →</button>
+        <button onClick={()=>{ playContinueCue(); onNext(); }} style={{ padding:'14px 28px', borderRadius:999, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 12px 30px -10px rgba(221,78,131,0.5)' }}>Find my film →</button>
       </div>
     </section>
   )

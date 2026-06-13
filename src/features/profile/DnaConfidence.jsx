@@ -11,7 +11,7 @@
 
 import { Link } from 'react-router-dom'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, ROSE, RADIUS, SPACE } from './data'
+import { HP, ROSE, ROSE_DEEP, RADIUS, SPACE } from './data'
 import { deriveConfidenceBand, INK_LABEL } from './derive/profilePresentation'
 
 // F7.4: the confidence value is the SHARED computeDnaConfidence number (unchanged), but it is
@@ -63,7 +63,7 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
           {cold && (
             <Link
               to="/home"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 24, padding: '11px 20px', borderRadius: RADIUS.sm, background: ROSE, color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textDecoration: 'none', boxShadow: '0 10px 26px -10px rgba(221,78,131,0.35)' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 24, padding: '11px 20px', borderRadius: RADIUS.sm, background: ROSE_DEEP, color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textDecoration: 'none', boxShadow: '0 10px 26px -10px rgba(221,78,131,0.35)' }}
             >
               See tonight’s pick →
             </Link>

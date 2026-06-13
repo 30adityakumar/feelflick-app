@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronRight } from 'lucide-react'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP } from './data'
+import { HP, ROSE_DEEP } from './data'
 import { SmartImg } from './atoms'
 import { ROSE } from './WhyThisPick'
 import { useHomeData } from './useHomeData'
@@ -67,7 +67,7 @@ export function ContinueWatching({ onResume }) {
             <div style={{ fontSize: 10, color: HP.textFaint, fontFamily: 'Inter, sans-serif', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{Math.round(continueItem.progress * 100)}% watched</div>
           </div>
         </div>
-        <span style={{ alignSelf: 'center', padding: '10px 18px', borderRadius: 4, background: ROSE, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 12, letterSpacing: '0.04em' }}>Resume &rarr;</span>
+        <span style={{ alignSelf: 'center', padding: '10px 18px', borderRadius: 4, background: ROSE_DEEP, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 12, letterSpacing: '0.04em' }}>Resume &rarr;</span>
       </button>
     </section>
   )

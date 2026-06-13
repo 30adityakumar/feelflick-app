@@ -581,10 +581,42 @@ function parsePositiveInt(value, fallback) {
 }
 
 function stripHtmlDanger(value) {
-  return String(value || '')
-    .replace(/<script[\s\S]*?<\/script>/gi, '<script>REDACTED</script>')
-    .replace(/<style[\s\S]*?<\/style>/gi, '<style>REDACTED</style>')
-    .replace(/\s(?:src|href)=["']data:[^"']+["']/gi, ' data-redacted="true"')
+  const input = String(value || '')
+  let output = ''
+  let skippingTag = null
+  let index = 0
+
+  while (index < input.length) {
+    if (input[index] !== '<') {
+      if (!skippingTag) output += input[index]
+      index += 1
+      continue
+    }
+
+    const tagEnd = input.indexOf('>', index + 1)
+    if (tagEnd === -1) break
+
+    const tagName = readTagName(input.slice(index + 1, tagEnd))
+    if (tagName === 'script' || tagName === 'style') {
+      skippingTag = isClosingTag(input.slice(index + 1, tagEnd)) ? null : tagName
+    }
+
+    if (!skippingTag) output += ' '
+    index = tagEnd + 1
+  }
+
+  return output.replace(/\s+/g, ' ').trim()
+}
+
+function readTagName(tagContent) {
+  const trimmed = String(tagContent || '').trim().toLowerCase()
+  const withoutSlash = trimmed.startsWith('/') ? trimmed.slice(1).trimStart() : trimmed
+  const spaceIndex = withoutSlash.search(/\s/)
+  return spaceIndex === -1 ? withoutSlash : withoutSlash.slice(0, spaceIndex)
+}
+
+function isClosingTag(tagContent) {
+  return String(tagContent || '').trim().startsWith('/')
 }
 
 function safeTextExcerpt(value, maxChars) {

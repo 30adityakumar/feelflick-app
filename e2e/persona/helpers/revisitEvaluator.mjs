@@ -69,7 +69,6 @@ export function clampScore(value) {
 export function evaluatePersona({ account, profile, rubric, observations, movieDetail = null }) {
   const safeObservations = Array.isArray(observations) ? observations : []
   const allObservations = movieDetail ? [...safeObservations, movieDetail] : safeObservations
-  const visited = allObservations.filter((observation) => observation?.status === 'visited')
   const failed = allObservations.filter((observation) => observation?.status === 'failed')
   const combinedText = allObservations.map((observation) => observation?.textExcerpt || '').join('\n').toLowerCase()
   const observedRoutes = allObservations.map((observation) => observation?.route).filter(Boolean)

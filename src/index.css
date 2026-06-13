@@ -27,8 +27,10 @@
   }
 }
 
-/* === Purple / Pink scales — Tailwind extends these via CSS var() =========
-   These are the ONLY palette vars this app needs. Do not add amber/rose/orange.
+/* === Colour scales — Tailwind extends these via CSS var() ================
+   Purple/pink remain for legacy Tailwind utilities and semantic states.
+   Brand direction (F3 lock): rose #DD4E83 + warm ivory #F2ECE1 are the
+   editorial-surface accents. See --brand-rose / --brand-ivory below.
    ========================================================================= */
 :root {
   --purple-50: #faf5ff;  --purple-100: #f3e8ff;  --purple-200: #e9d5ff;
@@ -41,14 +43,25 @@
   --pink-600: #db2777;   --pink-700: #be185d;    --pink-800: #9f1239;
   --pink-900: #831843;
 
-  /* Brand gradient — single source of truth. purple-600 → pink-500 per v3 landing canon. */
+  /* Brand gradient — kept for legacy purple-system surfaces still mid-migration. */
   --brand-gradient: linear-gradient(135deg, var(--purple-600) 0%, var(--pink-500) 100%);
-  /* Backwards-compat alias (older code expected --gradient-primary). */
-  --gradient-primary: var(--brand-gradient);
+  --gradient-primary: var(--brand-gradient); /* backwards-compat alias */
 
-  /* Font stacks — keep inline fontFamily strings pointing here for consistency. */
-  --font-display: 'Outfit', 'Inter', sans-serif;
+  /* Approved direction accent (F3 lock) — warm rose as the editorial/CTA signature. */
+  --brand-rose: #DD4E83;
+  --brand-rose-soft: rgba(221, 78, 131, 0.15);
+  --brand-ivory: #F2ECE1;
+  --brand-ivory-soft: rgba(242, 236, 225, 0.72);
+  --brand-warm-hairline: rgba(242, 236, 225, 0.15);
+
+  /* Font stacks — keep inline fontFamily strings pointing here for consistency.
+     Migration (F4): Newsreader = editorial display (heroes, film titles, explanations).
+     Inter = interface voice (controls, nav, chips, labels). */
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif; /* editorial/display hero */
   --font-body: 'Inter', sans-serif;
+  --font-ui: 'Inter', sans-serif; /* alias for controls, keeps intent explicit */
+  /* --font-editorial mirrors --font-display; keep both so existing consumers work. */
+  --font-editorial: 'Newsreader', Georgia, 'Times New Roman', serif;
 
   /* Surface backgrounds — match HP.bgDeep / v3 landing C.bg. */
   --bg-base: #06060a;

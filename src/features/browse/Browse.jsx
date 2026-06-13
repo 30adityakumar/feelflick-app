@@ -14,7 +14,7 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { recommendationCache } from '@/shared/lib/cache'
 import Pagination from '@/shared/components/Pagination'
 
-import { HP, HP_GRAD, MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS } from './data'
+import { HP, ROSE, MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS } from './data'
 import { MoodRow, Toolbar, RefinePanel, GridCard, ListRow } from './components'
 import { MoodBackdrop } from './immersive'
 import './browse.css'
@@ -610,7 +610,7 @@ export default function Browse() {
 
   return (
     <div style={{ minHeight:'100vh', background:HP.bg, color:HP.text, fontFamily:'Inter, sans-serif', position:'relative' }}>
-      <MoodBackdrop tint={MOODS.find(m=>m.id===mood)?.hex || HP.purple} />
+      <MoodBackdrop tint={MOODS.find(m=>m.id===mood)?.hex || ROSE} />
       <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
         {/* a11y landmark (F12B): Browse leads with the filter toolbar; sr-only h1 supplies the page heading. */}
         <h1 className="sr-only">Browse films</h1>
@@ -703,7 +703,7 @@ export default function Browse() {
             // column count (2 / 3 / 4 / 5 / 6 at each breakpoint).
             <div className="ff-browse-grid" style={{ display:'grid', gridTemplateColumns:'repeat(6, minmax(0, 1fr))', gap:18 }}>
               {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <div key={i} className="animate-pulse" style={{ aspectRatio:'2/3', borderRadius:10, background:'rgba(167,139,250,0.06)' }} />
+                <div key={i} className="animate-pulse" style={{ aspectRatio:'2/3', borderRadius:10, background:'rgba(255,255,255,0.06)' }} />
               ))}
             </div>
           ) : loadFailed ? (
@@ -713,7 +713,7 @@ export default function Browse() {
             // state. Tailwind classes by design (no new inline-style objects);
             // no focus:outline-none — the global :focus-visible outline applies.
             <div role="alert" className="py-20 text-center">
-              <h2 className="font-[Outfit] text-2xl font-light tracking-[-0.015em] text-white/75">The catalog didn’t load.</h2>
+              <h2 className="font-[Inter] text-2xl font-light tracking-[-0.015em] text-white/75">The catalog didn’t load.</h2>
               <p className="mt-2 text-[13.5px] text-white/40">Your filters are fine — this is on our side. Try again in a moment.</p>
               <button
                 type="button"
@@ -725,9 +725,9 @@ export default function Browse() {
             </div>
           ) : movies.length === 0 ? (
             <div style={{ padding:'80px 0', textAlign:'center' }}>
-              <div style={{ fontFamily:'Outfit', fontSize:24, fontWeight:300, color:HP.textMid, letterSpacing:'-0.015em' }}>Nothing matches.</div>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:300, color:HP.textMid, letterSpacing:'-0.015em' }}>Nothing matches.</div>
               <div style={{ marginTop:8, fontFamily:'Inter', fontSize:13.5, color:HP.textLow }}>Loosen a filter, or clear them all.</div>
-              {hasAnyFilter && <button onClick={clearAll} style={{ marginTop:18, padding:'10px 20px', borderRadius:999, background:HP_GRAD, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer' }}>Clear filters →</button>}
+              {hasAnyFilter && <button onClick={clearAll} style={{ marginTop:18, padding:'10px 20px', borderRadius:999, background:ROSE, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer' }}>Clear filters →</button>}
             </div>
           ) : view === 'grid' ? (
             // Inline grid template is the desktop default; browse.css overrides it

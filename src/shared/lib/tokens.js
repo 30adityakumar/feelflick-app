@@ -36,7 +36,11 @@ export const HP = {
   // AA-large floor (~3.3:1). Was 0.28 ≈ 2.4:1, which failed AA outright across
   // every feature surface's faint labels. Matches the landing's C.textFaint.
   textFaint: 'rgba(250,250,250,0.40)',
-  // — Brand (the ONLY identity / gradient hues) —
+  // — Legacy brand hues (purple system, mid-migration) —
+  // Use ROSE for new surfaces and migrations. HP.purple is retained for:
+  //   • semantic focus rings (SHADOW.focus)
+  //   • existing unmigrated surfaces
+  // Do not add new purple brand usage on surfaces being migrated.
   purple: '#A78BFA',
   purpleDeep: '#7C3AED',
   pink: '#EC4899',
@@ -46,8 +50,29 @@ export const HP = {
   green: '#34D399', // success / public / watched
 }
 
-/** The one brand gradient — purple-600 → pink-500. Never invent per-vibe variants. */
+/** The one brand gradient — retained for legacy surfaces. Prefer ROSE on migrated surfaces. */
 export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
+
+// === Approved direction warm palette (F3 lock, F4 migration) ================
+// Use these on surfaces being migrated away from the purple system.
+
+/** Brand rose — the red-ink accent replacing the purple→pink gradient on migrated surfaces. */
+export const ROSE = '#DD4E83'
+
+/** Warm ivory — primary text color for editorial/cinematic surfaces. */
+export const IVORY = '#F2ECE1'
+
+/** Warm palette constants for inline-style surfaces. */
+export const WARM = {
+  ivory:        '#F2ECE1',
+  ivorySoft:    'rgba(242,236,225,0.82)',
+  ivoryMeta:    'rgba(242,236,225,0.62)',
+  ivoryLabel:   'rgba(242,236,225,0.70)',
+  hairline:     'rgba(242,236,225,0.12)',
+  warmKeyline:  'rgba(242,236,225,0.20)',
+  roseMat:      'rgba(221,78,131,0.30)',
+  roseFaint:    'rgba(221,78,131,0.15)',
+}
 
 /**
  * v3 landing palette. Same hexes as `HP`, different key names (hairline≈border,

@@ -35,7 +35,11 @@ export default function Landing(){
       {/* Keyboard-only skip link. Invisible until focused; jumps past the fixed header + nav. */}
       <a href="#main" className="ff-skip">Skip to content</a>
       <Header/>
-      <main id="main">
+      {/* F2-B: a <div>, not <main> — PublicShell (src/app/router.jsx) already
+          wraps every public route in the document's single <main id="main">,
+          which is also the skip-link target. A second main + duplicate id here
+          was an a11y landmark violation. */}
+      <div>
         <Hero/>
         <TheProblem/>
         <Ritual/>
@@ -46,7 +50,7 @@ export default function Landing(){
         <MLetter/>
         <Pricing/>
         <FinalCTA/>
-      </main>
+      </div>
       <Footer/>
     </div>
   );

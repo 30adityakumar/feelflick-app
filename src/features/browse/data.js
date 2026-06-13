@@ -1,7 +1,7 @@
 // FeelFlick — Browse v3 data layer.
 // /browse v5 — data layer.
 
-import { HP as baseHP, HP_GRAD } from '@/shared/lib/tokens'
+import { HP as baseHP, ROSE } from '@/shared/lib/tokens'
 
 // Browse keeps a deeper page bg, extra text tiers, and a couple of accents;
 // spread the shared core and override only those (explicit, not drift).
@@ -13,11 +13,11 @@ export const HP = {
   textHi: 'rgba(250,250,250,0.92)', textMid: 'rgba(250,250,250,0.72)', textLow: 'rgba(250,250,250,0.5)',
   blue: '#7DD3FC',
 }
-export { HP_GRAD }
+export { ROSE }
 export const TMDB = (p) => `https://image.tmdb.org/t/p/w500${p}`;
 
 export const MOODS = [
-  { id:'all',       label:'All moods', hex:HP.purple, hint:'Ranked by your overall taste DNA' },
+  { id:'all',       label:'All moods', hex:ROSE, hint:'Ranked by your overall taste DNA' },
   { id:'tense',     label:'Tense',     hex:'#EF4444', hint:'Pulse up. Held breath.' },
   { id:'slow',      label:'Slow-burn', hex:'#A78BFA', hint:'Patient escalation. Long takes.' },
   { id:'tender',    label:'Tender',    hex:'#F472B6', hint:'Two-handers. Soft ache.' },

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Play, Bookmark } from 'lucide-react'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
-import { HP_GRAD } from '@/shared/lib/tokens'
+import { ROSE } from '@/shared/lib/tokens'
 import { constellationName, buildBecauseLine } from '../derive'
 import { HP } from '../constants'
 import { moodFilter, buildRuntimeFitLine } from '../resultPresentation'
@@ -175,15 +175,15 @@ export default function StagePick({ selected, who, energy, intention, results, p
             <span aria-hidden="true" style={{ height:1, width:22, background:blendHex, opacity:0.6 }} />
             No more strong fits
           </div>
-          <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(32px, 4.6vw, 56px)', lineHeight:1.04, fontWeight:200, letterSpacing:'-0.04em', color:HP.text, margin:0, maxWidth:760, textWrap:'balance' }}>
+          <h1 style={{ fontFamily:'var(--font-editorial)', fontSize:'clamp(32px, 4.6vw, 56px)', lineHeight:1.04, fontWeight:400, letterSpacing:'-0.03em', color:HP.text, margin:0, maxWidth:760, textWrap:'balance' }}>
             That&rsquo;s the honest edge of tonight&rsquo;s list.
           </h1>
-          <p style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic', maxWidth:480, lineHeight:1.6 }}>
+          <p style={{ marginTop:18, fontFamily:'Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic', maxWidth:480, lineHeight:1.6 }}>
             Adjust tonight&rsquo;s details, or start again with a different mood.
           </p>
           <div style={{ marginTop:32, display:'flex', gap:10, flexWrap:'wrap', justifyContent:'center' }}>
-            <button onClick={onBack} style={{ minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(236,72,153,0.55)' }}>Adjust tonight</button>
-            <button onClick={onRestart} style={{ minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor:'pointer' }}>Start over</button>
+            <button onClick={onBack} style={{ minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(221,78,131,0.55)' }}>Adjust tonight</button>
+            <button onClick={onRestart} style={{ minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, cursor:'pointer' }}>Start over</button>
           </div>
         </section>
       </>
@@ -227,12 +227,12 @@ export default function StagePick({ selected, who, energy, intention, results, p
                 {fallbackNote && (
                   <p className="ff-pick-fallback-note" role="note" aria-label="Recommendation source note">{fallbackNote}</p>
                 )}
-                <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(44px, 5.6vw, 76px)', lineHeight:0.96, fontWeight:300, letterSpacing:'-0.045em', color:HP.text, margin:'12px 0 0', textWrap:'balance' }}>
+                <h1 style={{ fontFamily:'var(--font-editorial)', fontSize:'clamp(44px, 5.6vw, 76px)', lineHeight:0.96, fontWeight:400, letterSpacing:'-0.04em', color:HP.text, margin:'12px 0 0', textWrap:'balance' }}>
                   {titleWords.map((w, i) => <span key={i} className="ff-pick-word" style={{ display:'inline-block', opacity:0, animation:`ff-word-in 0.55s cubic-bezier(.2,.7,.2,1) ${0.1 + i*0.06}s forwards`, marginRight:'0.2em' }}>{w}</span>)}
                 </h1>
 
                 {/* Meta — director · year · runtime (no percentages). */}
-                <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', fontFamily:'Outfit', fontSize:13, color:HP.textMuted, letterSpacing:'0.04em' }}>
+                <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', fontFamily:'Inter, sans-serif', fontSize:13, color:HP.textMuted, letterSpacing:'0.04em' }}>
                   <span>{top.dir}</span>
                   <span aria-hidden="true" style={{ color:HP.textFaint }}>·</span>
                   <span>{top.year}</span>
@@ -243,7 +243,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
                 {chips.length > 0 && (
                   <div style={{ marginTop:14, display:'flex', flexWrap:'wrap', gap:7 }}>
                     {chips.map((c, i) => (
-                      <span key={`${c}-${i}`} style={{ display:'inline-flex', alignItems:'center', padding:'4px 10px', borderRadius:999, border:`1px solid ${HP.border}`, fontFamily:'Outfit', fontSize:11, fontWeight:500, color:HP.textSoft, letterSpacing:'0.02em' }}>
+                      <span key={`${c}-${i}`} style={{ display:'inline-flex', alignItems:'center', padding:'4px 10px', borderRadius:999, border:`1px solid ${HP.border}`, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:500, color:HP.textSoft, letterSpacing:'0.02em' }}>
                         {c}
                       </span>
                     ))}
@@ -256,10 +256,10 @@ export default function StagePick({ selected, who, energy, intention, results, p
                   <div className="ff-pick-case" style={{ marginTop:22 }}>
                     <div className="ff-pick-case__label" style={{ color:HP.textMuted }}>Why this one</div>
                     {becauseLine && (
-                      <p className="ff-pick-case__line" style={{ margin:'10px 0 0', fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontStyle:'italic', color:blendHex, letterSpacing:'0.01em', textWrap:'balance' }}>{becauseLine}</p>
+                      <p className="ff-pick-case__line" style={{ margin:'10px 0 0', fontFamily:'Inter, sans-serif', fontSize:14, fontStyle:'italic', color:blendHex, letterSpacing:'0.01em', textWrap:'balance' }}>{becauseLine}</p>
                     )}
                     {runtimeFitLine && (
-                      <p className="ff-pick-case__line" style={{ margin:'6px 0 0', fontFamily:'Outfit, Inter, sans-serif', fontSize:13, color:HP.textSoft }}>{runtimeFitLine}</p>
+                      <p className="ff-pick-case__line" style={{ margin:'6px 0 0', fontFamily:'Inter, sans-serif', fontSize:13, color:HP.textSoft }}>{runtimeFitLine}</p>
                     )}
                   </div>
                 )}
@@ -283,7 +283,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
                       type="button"
                       className="ff-pick-actions__primary"
                       onClick={handleSeeMore}
-                      style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(236,72,153,0.55)' }}
+                      style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:ROSE, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(221,78,131,0.55)' }}
                     >
                       Open Film File &rarr;
                     </button>
@@ -296,7 +296,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
                       className="ff-pick-actions__secondary"
                       onClick={() => setTrailerOpen(true)}
                       title="Watch the trailer"
-                      style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor:'pointer' }}
+                      style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, cursor:'pointer' }}
                     >
                       <Play size={14} fill="currentColor" aria-hidden="true" />
                       <span>Trailer</span>
@@ -309,7 +309,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
                     disabled={savedState === 'saving' || savedState === 'saved'}
                     aria-busy={savedState === 'saving'}
                     aria-pressed={savedState === 'saved'}
-                    style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background: savedState === 'saved' ? `${HP.green}14` : HP.surface, border:`1px solid ${savedState === 'saved' ? HP.green + '66' : HP.borderStrong}`, color: savedState === 'saved' ? HP.green : HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor: (savedState === 'idle' || savedState === 'error') ? 'pointer' : 'default' }}
+                    style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background: savedState === 'saved' ? `${HP.green}14` : HP.surface, border:`1px solid ${savedState === 'saved' ? HP.green + '66' : HP.borderStrong}`, color: savedState === 'saved' ? HP.green : HP.text, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, cursor: (savedState === 'idle' || savedState === 'error') ? 'pointer' : 'default' }}
                   >
                     <Bookmark size={14} fill={savedState === 'saved' ? 'currentColor' : 'none'} strokeWidth={2} aria-hidden="true" />
                     <span>{SAVE_LABEL[savedState]}</span>
@@ -322,7 +322,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
                     aria-busy={watchedState === 'saving'}
                     aria-pressed={watchedState === 'watched'}
                     title="I've already seen this one"
-                    style={{ background:'transparent', border:'none', color: watchedState === 'watched' ? HP.green : watchedState === 'error' ? HP.text : HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, letterSpacing:'0.01em', cursor: (watchedState === 'saving' || watchedState === 'watched') ? 'default' : 'pointer', padding:'0 8px' }}
+                    style={{ background:'transparent', border:'none', color: watchedState === 'watched' ? HP.green : watchedState === 'error' ? HP.text : HP.textMuted, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:500, letterSpacing:'0.01em', cursor: (watchedState === 'saving' || watchedState === 'watched') ? 'default' : 'pointer', padding:'0 8px' }}
                   >
                     {watchedLabel}
                   </button>
@@ -330,7 +330,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
                     type="button"
                     className="ff-pick-actions__tertiary"
                     onClick={onNotTonight}
-                    style={{ background:'transparent', border:'none', color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, letterSpacing:'0.01em', cursor:'pointer', padding:'0 8px' }}
+                    style={{ background:'transparent', border:'none', color:HP.textMuted, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:500, letterSpacing:'0.01em', cursor:'pointer', padding:'0 8px' }}
                   >
                     Not tonight
                   </button>
@@ -340,8 +340,8 @@ export default function StagePick({ selected, who, energy, intention, results, p
 
             {/* Footer — quiet ways back into the flow. */}
             <div className="ff-pick-footer">
-              <button onClick={onBack}    style={{ minHeight:44, padding:'9px 14px', borderRadius:8, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:500, cursor:'pointer' }}>Adjust tonight</button>
-              <button onClick={onRestart} style={{ minHeight:44, padding:'9px 14px', borderRadius:8, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:500, cursor:'pointer' }}>Start over</button>
+              <button onClick={onBack}    style={{ minHeight:44, padding:'9px 14px', borderRadius:8, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:500, cursor:'pointer' }}>Adjust tonight</button>
+              <button onClick={onRestart} style={{ minHeight:44, padding:'9px 14px', borderRadius:8, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:500, cursor:'pointer' }}>Start over</button>
             </div>
           </motion.div>
         </AnimatePresence>

@@ -4,16 +4,16 @@
 // The wedge, made postable: one film, its mood, and the line that makes its case
 // — rendered as a Criterion/A24-style editorial object the user can drop into a
 // story or feed. Atmosphere over flatness: mood-tinted gradient mesh, film grain,
-// a dramatic poster halo, Outfit display + the italic "because" payload.
+// a dramatic poster halo, Newsreader editorial title + the italic "because" payload.
 //
-// Pure on-brand: ink #06060a, Outfit/Inter (loaded globally), purple→pink, and
-// the pick's own mood hex as the single tint that ties the whole card together.
+// Pure on-brand: ink #06060a, Newsreader/Inter (loaded globally), restrained rose,
+// and the pick's own mood hex as the single tint that ties the whole card together.
 // Export via html-to-image → a real PNG at 2× for crisp social crops.
 
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Download, Loader2, Check } from 'lucide-react'
 import { toPng } from 'html-to-image'
-import { HP } from '@/shared/lib/tokens'
+import { ROSE } from '@/shared/lib/tokens'
 
 // === Demo pick — the same Past Lives the landing leads with ===================
 const DEMO_PICK = {
@@ -40,8 +40,6 @@ const FORMATS = {
 // reads as a screen, not a flat fill. The fingerprint of every FeelFlick surface.
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
-
-const GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 
 /**
  * The card artifact itself — fixed-pixel so html-to-image captures it cleanly.
@@ -72,8 +70,8 @@ function PickCard({ pick, format, cardRef }) {
         background: `
           radial-gradient(120% 70% at 12% -8%, ${tint}3a 0%, transparent 52%),
           radial-gradient(90% 60% at 100% 8%, ${tint}1c 0%, transparent 55%),
-          radial-gradient(140% 80% at 88% 112%, #ec48991f 0%, transparent 58%),
-          radial-gradient(100% 60% at 50% 50%, #9333ea12 0%, transparent 70%)
+          radial-gradient(140% 80% at 88% 112%, #DD4E831f 0%, transparent 58%),
+          radial-gradient(100% 60% at 50% 50%, #DD4E8312 0%, transparent 70%)
         `,
       }} />
       {/* Vignette — pulls the eye in, frames the poster */}
@@ -91,13 +89,12 @@ function PickCard({ pick, format, cardRef }) {
       {/* ── Eyebrow: wordmark · mood kicker ───────────────────────────────── */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{
-          fontFamily: 'Outfit, sans-serif', fontSize: 26, fontWeight: 700,
-          letterSpacing: '-0.01em',
-          background: GRAD, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          fontFamily: 'Inter, sans-serif', fontSize: 26, fontWeight: 700,
+          letterSpacing: '0.02em', color: ROSE,
         }}>FEELFLICK</div>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 12,
-          fontFamily: 'Outfit, sans-serif', fontSize: 14, fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
           letterSpacing: '0.30em', textTransform: 'uppercase', color: tint,
         }}>
           <span aria-hidden style={{ width: 26, height: 2, borderRadius: 2, background: tint, opacity: 0.7 }} />
@@ -139,10 +136,10 @@ function PickCard({ pick, format, cardRef }) {
             boxShadow: `0 18px 40px -12px rgba(0,0,0,0.7), 0 0 30px -6px ${tint}66`,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           }}>
-            <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: 34, fontWeight: 300, letterSpacing: '-0.04em', lineHeight: 1, color: '#FAFAFA' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 34, fontWeight: 300, letterSpacing: '-0.04em', lineHeight: 1, color: '#FAFAFA' }}>
               {pick.matchPct}<span style={{ fontSize: 15, color: tint }}>%</span>
             </div>
-            <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: tint, marginTop: 3 }}>Match</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: tint, marginTop: 3 }}>Match</div>
           </div>
         </div>
       </div>
@@ -159,16 +156,16 @@ function PickCard({ pick, format, cardRef }) {
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: '#FAFAFA', letterSpacing: '0.01em' }}>{pick.mood}</span>
         </div>
 
-        {/* Title — Outfit display, the hero scale */}
+        {/* Title — Newsreader editorial display, the hero scale */}
         <h1 style={{
-          fontFamily: 'Outfit, sans-serif', fontSize: sq ? 64 : 92, fontWeight: 300,
-          letterSpacing: '-0.05em', lineHeight: 0.94, margin: 0, color: '#FAFAFA',
+          fontFamily: 'var(--font-editorial)', fontSize: sq ? 64 : 92, fontWeight: 400,
+          letterSpacing: '-0.03em', lineHeight: 0.96, margin: 0, color: '#FAFAFA',
           textWrap: 'balance',
         }}>{pick.title}</h1>
 
         {/* Meta */}
         <div style={{
-          marginTop: 18, fontFamily: 'Outfit, sans-serif', fontSize: 16, fontWeight: 500,
+          marginTop: 18, fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500,
           letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(250,250,250,0.55)',
           display: 'flex', flexWrap: 'wrap', gap: 12,
         }}>
@@ -179,27 +176,27 @@ function PickCard({ pick, format, cardRef }) {
           <span>{pick.runtime}</span>
         </div>
 
-        {/* The case — the emotional payload, italic, mood-hex rule */}
+        {/* The case — the emotional payload, Newsreader italic, mood-hex rule */}
         <p style={{
           margin: '30px 0 0 0', paddingLeft: 22, borderLeft: `2px solid ${tint}`,
-          fontFamily: 'Inter, sans-serif', fontStyle: 'italic', fontWeight: 400,
+          fontFamily: 'var(--font-editorial)', fontStyle: 'italic', fontWeight: 400,
           fontSize: sq ? 21 : 26, lineHeight: 1.5, color: 'rgba(250,250,250,0.82)',
           maxWidth: 760, textWrap: 'pretty',
         }}>“{pick.because}”</p>
 
-        {/* Footer: tagline + gradient signature */}
+        {/* Footer: tagline + rose signature */}
         <div style={{ marginTop: tall ? 72 : 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: 17, fontWeight: 400, color: 'rgba(250,250,250,0.7)' }}>
+          <div style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, fontWeight: 400, color: 'rgba(250,250,250,0.7)' }}>
             The right film. <span style={{ fontStyle: 'italic', color: tint }}>Right now.</span>
           </div>
-          <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(250,250,250,0.32)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(250,250,250,0.32)' }}>
             feelflick.com
           </div>
         </div>
       </div>
 
       {/* Brand gradient bar — the signature seal */}
-      <div aria-hidden style={{ position: 'absolute', left: 0, bottom: 0, height: 8, width: '100%', background: GRAD }} />
+      <div aria-hidden style={{ position: 'absolute', left: 0, bottom: 0, height: 8, width: '100%', background: ROSE }} />
     </div>
   )
 }
@@ -251,14 +248,14 @@ export default function ShareStudio({ pick = DEMO_PICK }) {
       {/* Studio ambient */}
       <div aria-hidden style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(90% 50% at 50% -5%, ${pick.moodHex}14 0%, transparent 55%), radial-gradient(70% 50% at 100% 100%, #9333ea10 0%, transparent 60%)`,
+        background: `radial-gradient(90% 50% at 50% -5%, ${pick.moodHex}14 0%, transparent 55%), radial-gradient(70% 50% at 100% 100%, #DD4E8310 0%, transparent 60%)`,
       }} />
 
       <div style={{ position: 'relative', textAlign: 'center', marginBottom: 40 }}>
-        <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.30em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.30em', textTransform: 'uppercase', color: ROSE, marginBottom: 14 }}>
           Share Studio
         </div>
-        <h1 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 'clamp(34px, 5vw, 56px)', fontWeight: 300, letterSpacing: '-0.045em', lineHeight: 1, margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-editorial)', fontSize: 'clamp(34px, 5vw, 56px)', fontWeight: 400, letterSpacing: '-0.045em', lineHeight: 1, margin: 0 }}>
           Post your <em style={{ fontStyle: 'italic', color: pick.moodHex }}>pick.</em>
         </h1>
         <p style={{ marginTop: 16, fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'rgba(250,250,250,0.6)', maxWidth: 440, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>
@@ -291,8 +288,8 @@ export default function ShareStudio({ pick = DEMO_PICK }) {
                 onClick={() => setFormatId(f.id)}
                 style={{
                   padding: '9px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  fontFamily: 'Outfit, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
-                  background: active ? GRAD : 'transparent',
+                  fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
+                  background: active ? ROSE : 'transparent',
                   color: active ? '#fff' : 'rgba(250,250,250,0.6)',
                   transition: 'all 0.2s ease',
                 }}
@@ -309,11 +306,11 @@ export default function ShareStudio({ pick = DEMO_PICK }) {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 9,
             padding: '12px 22px', borderRadius: 999, border: 'none',
-            background: status === 'done' ? 'rgba(16,185,129,0.18)' : GRAD,
+            background: status === 'done' ? 'rgba(16,185,129,0.18)' : ROSE,
             color: status === 'done' ? '#34d399' : '#fff',
-            fontFamily: 'Outfit, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
+            fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
             cursor: status === 'working' ? 'progress' : 'pointer',
-            boxShadow: '0 14px 32px -10px rgba(236,72,153,0.5)',
+            boxShadow: '0 14px 32px -10px rgba(221,78,131,0.5)',
             transition: 'all 0.2s ease',
           }}
         >

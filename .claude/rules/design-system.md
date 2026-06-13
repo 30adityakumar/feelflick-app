@@ -69,33 +69,29 @@ Choose principles that serve the specific user problem and surface.
 
 ## System status
 
-The project currently uses:
+Non-migrated surfaces currently use:
 
-* Outfit for much of its display typography
+* Outfit for much of their display typography (retained for wordmark and specific brand labels; not a permanent third family)
 * Inter for body and interface text
-* dark surfaces
-* purple and pink brand colors
-* a purple-to-pink gradient
-* poster-forward presentation
-* restrained motion
+* dark surfaces with purple and pink brand colors
 * shared tokens and UI primitives
 
-This is the existing implementation baseline.
+This is the remaining baseline on unmigrated surfaces, valid for maintenance work.
 
-The preferred direction to validate is:
+The approved direction (F0 Design Lab + adversarial critique + `/home` production migration, 2026-06-12) is:
 
-* warm cinematic neutrals
-* rose as the stable brand signature
-* muted plum as a supporting hue
+* warm cinematic dark neutrals — near-black canvas, ivory/bone text (`#F2ECE1`), hairline separators over generic cards
+* rose (`#DD4E83`) as the restrained brand signature — a red-ink accent, not a saturated gradient
+* muted plum as a supporting atmospheric hue (secondary use only, not beside rose in every expression)
 * contextual color derived from mood or film imagery
 * Inter as the interface voice
-* Newsreader as the editorial and curator voice
-* poster-first composition
+* Newsreader as the editorial and curator voice — recommendation titles, Film File headings, case explanations
+* poster as a cinematic/editorial object — tipped-in, framed, given physical weight — not a flat grid thumbnail
 * deliberate, content-supporting motion
-* reduced decorative chrome
+* reduced decorative chrome — hairline rules and restrained surface separation over ambient glow and rounded glass
 * clearer separation between interface and editorial storytelling
 
-Do not describe the proposed direction as fully adopted until representative prototypes and rendered comparisons support it.
+The direction has been validated by rendered prototypes, a six-judge adversarial critique, and full production migration of `/home`. It is the target for all remaining surfaces. See `docs/ui/design-authority-f3.md` for the full decision record, anti-patterns, migration order, and scope boundaries.
 
 ## Design modes
 
@@ -402,7 +398,7 @@ Semantic meaning should not rely on color alone.
 
 ## Gradients
 
-The existing purple-to-pink gradient is part of the current baseline, not the required future identity.
+The purple-to-pink gradient CTA is explicitly retired on migrated surfaces. On `/home` it has been replaced with the bone-slab primary button. Do not reintroduce this gradient as a primary action on surfaces that have adopted the approved direction. It may be reassessed for atmospheric or wordmark moments during dedicated brand-identity work — but it must not simultaneously carry brand identity, premium signal, AI identity, and primary CTA weight.
 
 Gradients are appropriate when they communicate:
 
@@ -666,6 +662,23 @@ Copy may evolve during explicit positioning, conversion, onboarding, or product-
 
 Preserve the underlying promise unless that promise itself is under review.
 
+## Recommendation case presentation
+
+The explanation is the emotional center of a recommendation, not a small tinted panel.
+
+The approved numbered case structure:
+
+* `I · Why this pick` — the engine reason, Newsreader italic at editorial scale
+* `II · What you're in for` — synopsis or curatorial context, Inter at body scale
+
+Rules:
+
+* Use roman numerals only when both rungs exist. A lone rung is presented unnumbered.
+* Never fabricate a reason. If `engineReason` is null, the case is absent — not replaced with generic copy.
+* Never claim the user's current mood as a visible assertion ("For your tender night"). The auto-selected baseline mood is a ranking signal only, never a visible claim about the user's current state.
+* "Not tonight" and skip actions should feel dignified, not destructive.
+* The Emotional Mood Instrument direction (from F0) is reserved for Discover and mood-specific surfaces, not the primary briefing.
+
 ## Accessibility
 
 Design quality includes accessibility.
@@ -759,30 +772,31 @@ Capture desktop and mobile comparisons.
 
 Perform at least one critique and refinement pass.
 
-## Adoption criteria
+## Migration status
 
-The proposed direction should become the default system only when rendered evidence shows that it:
+The direction is approved. Migration is in progress surface-by-surface.
 
-* improves FeelFlick’s distinct identity
-* strengthens editorial authority
-* improves or preserves usability
-* supports film imagery better
-* remains coherent in dense interfaces
-* meets accessibility requirements
-* has acceptable loading and rendering cost
-* can be migrated without indefinite dual-system complexity
+**Completed:**
+* `/home` Tonight’s Pick briefing and shell — F1–F2, 2026-06-12. Purple→pink gradient CTA, glow card, gradient-accent hierarchy removed.
 
-If testing does not support the full direction, adopt only the parts that prove stronger.
+**Recommended migration order:**
+1. Movie Detail / Film File (`/movie/:id`)
+2. Discover mood ritual
+3. Landing page
+4. Onboarding, profile, and library surfaces
 
-Possible outcomes include:
+**Not yet migrated — do not force the direction onto these during unrelated work:**
+* AppShell header (gradient wordmark, "Tonight" tab, avatar ring)
+* Global `:focus-visible` ring (still purple — needs a global token pass)
+* Unrendered `/home` modules (ContinueWatching, CinematicDNA, CuratedLists, TasteMatch) — migrate when those routes surface
 
-* Newsreader adopted, current color retained temporarily
-* rose system adopted, Outfit retained for wordmark
-* contextual color adopted only on Film File and recommendation surfaces
-* warm neutrals adopted before broader component redesign
-* proposed system rejected or revised
+**Do not change yet:**
+* Recommendation engine, scoring, data contracts
+* Shared components until at least two production surfaces confirm the pattern
+* Global CSS token values until two migrated surfaces validate the constants
+* Design Lab directions (`src/features/design-lab/`) — keep isolated
 
-Do not force the entire package through as one irreversible decision.
+For the full rationale, evidence, and anti-pattern catalogue, read `docs/ui/design-authority-f3.md`.
 
 ## Updating this rule
 

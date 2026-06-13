@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { tmdbImg } from '@/shared/api/tmdb'
-import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, HP_GRAD, RADIUS } from './data'
+import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, ROSE, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
 
@@ -21,13 +21,13 @@ function CastSection() {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:32, flexWrap:'wrap', gap:24 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Ensemble
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Ensemble
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color: HP.text, margin:0 }}>The cast.</h2>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:44, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color: HP.text, margin:0 }}>The cast.</h2>
         </div>
         {hasCrew && (
-          <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em' }}>
+          <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em' }}>
             {mv.cinematographer && mv.cinematographer !== '—' && <>
               <span style={{ color: HP.textSoft }}>Cinematography</span> {mv.cinematographer}
             </>}
@@ -71,7 +71,7 @@ function CastCard({ p }) {
           {hasProfile ? (
             <img src={tmdbImg(p.profilePath, 'w342')} alt={p.name} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
           ) : (
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontSize:54, fontWeight:200, color:p.tint, opacity:0.6 }}>{p.name.split(' ').map(w=>w[0]).join('')}</div>
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontSize:54, fontWeight:200, color:p.tint, opacity:0.6 }}>{p.name.split(' ').map(w=>w[0]).join('')}</div>
           )}
           <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.65))' }} />
         </div>
@@ -81,7 +81,7 @@ function CastCard({ p }) {
             <div>
               <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.text, opacity:0.85, marginBottom:10 }}>Also in</div>
               <ul style={{ margin:0, padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:6 }}>
-                {p.also.map(t => <li key={t} style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:12, color: HP.text, fontStyle:'italic', letterSpacing:'-0.005em' }}>{t}</li>)}
+                {p.also.map(t => <li key={t} style={{ fontFamily:'Inter, sans-serif', fontSize:12, color: HP.text, fontStyle:'italic', letterSpacing:'-0.005em' }}>{t}</li>)}
               </ul>
             </div>
             {/* Real overlap count from user_history. When the user has zero
@@ -95,8 +95,8 @@ function CastCard({ p }) {
           </div>
         )}
       </div>
-      <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:4 }}>{p.name}</div>
-      <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{p.role}</div>
+      <div style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:4 }}>{p.name}</div>
+      <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>{p.role}</div>
     </button>
   );
 }
@@ -116,10 +116,10 @@ function VideosSection({ onPlayVideo }) {
   if (extras.length === 0) return null;
   return (
     <section className="ff-movie-section" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />More to watch
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
+        <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />More to watch
       </div>
-      <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:'0 0 28px 0' }}>
+      <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:'0 0 28px 0' }}>
         Featurettes & <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>extras.</em>
       </h2>
       <div className="ff-movie-videos-rest" style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(extras.length, 3)},1fr)`, gap:18 }}>
@@ -145,15 +145,15 @@ function VideoThumb({ v, onPlay }) {
       <div style={{ position:'relative', aspectRatio:'16/9', borderRadius:RADIUS.xs, overflow:'hidden', marginBottom:12, transform: hover?'translateY(-2px)':'none', transition:'transform 0.25s ease', boxShadow: hover ? `0 16px 40px -10px rgba(0,0,0,0.6)` : 'none' }}>
         <img src={v.thumb} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter: hover?'brightness(0.55) saturate(1.2)':'none', transition:'filter 0.3s ease' }} />
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.7))' }} />
-        <div style={{ position:'absolute', top:10, left:10, padding:'3px 8px', borderRadius:3, background:'rgba(0,0,0,0.7)', fontSize:9, fontWeight:600, color: HP.textSoft, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>{v.kind}</div>
+        <div style={{ position:'absolute', top:10, left:10, padding:'3px 8px', borderRadius:3, background:'rgba(0,0,0,0.7)', fontSize:9, fontWeight:600, color: HP.textSoft, fontFamily:'Inter, sans-serif', letterSpacing:'0.14em', textTransform:'uppercase' }}>{v.kind}</div>
         {v.duration && v.duration !== '—' && (
-          <div style={{ position:'absolute', bottom:10, right:10, fontSize:11, color: HP.text, fontFamily:'Outfit', fontWeight:500 }}>{v.duration}</div>
+          <div style={{ position:'absolute', bottom:10, right:10, fontSize:11, color: HP.text, fontFamily:'Inter, sans-serif', fontWeight:500 }}>{v.duration}</div>
         )}
         <div style={{ position:'absolute', top:'50%', left:'50%', transform:`translate(-50%,-50%) scale(${hover?1.15:1})`, width:48, height:48, borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.95)', display:'flex', alignItems:'center', justifyContent:'center', transition:'transform 0.3s ease' }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#0a0510"><path d="M5 3v18l16-9z"/></svg>
         </div>
       </div>
-      <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color: HP.text, letterSpacing:'-0.01em' }}>{v.title}</div>
+      <div style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:500, color: HP.text, letterSpacing:'-0.01em' }}>{v.title}</div>
     </button>
   );
 }
@@ -165,16 +165,16 @@ const PROVIDER_ATTRIBUTION = 'Availability for the United States via TMDB and Ju
 function ProviderSectionShell({ children }) {
   return (
     <section className="ff-movie-section ff-movie-providers" aria-label="Where to watch" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Where to watch
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+        <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Where to watch
       </div>
       {children}
     </section>
   );
 }
-const sectionH2 = { fontFamily:'Outfit', fontSize:36, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color: 'var(--ff-text, #FAFAFA)', margin:0 };
-const stateBody = { margin:'14px 0 0 0', fontSize:14, lineHeight:1.6, color:'rgba(250,250,250,0.7)', fontFamily:'Outfit, Inter, sans-serif', maxWidth:520, overflowWrap:'anywhere' };
-const attributionStyle = { margin:'18px 0 0 0', fontSize:11.5, lineHeight:1.5, color:'rgba(250,250,250,0.45)', fontFamily:'Outfit, Inter, sans-serif', maxWidth:560, overflowWrap:'anywhere' };
+const sectionH2 = { fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: 'var(--ff-text, #FAFAFA)', margin:0 };
+const stateBody = { margin:'14px 0 0 0', fontSize:14, lineHeight:1.6, color:'rgba(250,250,250,0.7)', fontFamily:'Inter, sans-serif', maxWidth:520, overflowWrap:'anywhere' };
+const attributionStyle = { margin:'18px 0 0 0', fontSize:11.5, lineHeight:1.5, color:'rgba(250,250,250,0.45)', fontFamily:'Inter, sans-serif', maxWidth:560, overflowWrap:'anywhere' };
 
 function ProvidersSection() {
   const { providers, providerStatus } = useMovieData();
@@ -186,7 +186,7 @@ function ProvidersSection() {
   if (status === 'loading') {
     return (
       <ProviderSectionShell>
-        <div role="status" aria-live="polite" style={{ marginTop:6, fontSize:14, color:'rgba(250,250,250,0.7)', fontFamily:'Outfit, Inter, sans-serif' }}>
+        <div role="status" aria-live="polite" style={{ marginTop:6, fontSize:14, color:'rgba(250,250,250,0.7)', fontFamily:'Inter, sans-serif' }}>
           Checking availability…
         </div>
       </ProviderSectionShell>
@@ -213,7 +213,7 @@ function ProvidersSection() {
           href="https://www.justwatch.com"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ marginTop:18, display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color: HP.textSoft, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', textDecoration:'none' }}
+          style={{ marginTop:18, display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', textDecoration:'none' }}
         >
           Search on JustWatch <span aria-hidden="true">↗</span><span className="sr-only"> (opens in a new tab)</span>
         </a>
@@ -234,7 +234,7 @@ function ProvidersSection() {
       {p.logoPath ? (
         <img src={tmdbImg(p.logoPath, 'w92')} alt="" style={{ width:40, height:40, objectFit:'contain', borderRadius:RADIUS.xs }} />
       ) : (
-        <span style={{ fontFamily:'Outfit', fontWeight:700, fontSize:20, color:p.tint }}>{p.logo}</span>
+        <span style={{ fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:20, color:p.tint }}>{p.logo}</span>
       )}
     </a>
   );
@@ -243,28 +243,28 @@ function ProvidersSection() {
     <section className="ff-movie-section ff-movie-providers" aria-label="Where to watch" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div className="ff-movie-providers-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:64, alignItems:'flex-start' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Where to watch
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Where to watch
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
             Streaming <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>now.</em>
           </h2>
           <a
             href={providers.link || 'https://www.justwatch.com'}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ marginTop:18, display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color: HP.textSoft, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', textDecoration:'none' }}
+            style={{ marginTop:18, display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', textDecoration:'none' }}
           >
             More options on JustWatch <span aria-hidden="true">›</span><span className="sr-only"> (opens in a new tab)</span>
           </a>
         </div>
         <div>
           {providers.flatrate.length > 0 && <>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, marginBottom:14, fontFamily:'Outfit' }}>Stream</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, marginBottom:14, fontFamily:'Inter, sans-serif' }}>Stream</div>
             <div style={{ display:'flex', gap:10, marginBottom:28, flexWrap:'wrap' }}>{providers.flatrate.map((p,i) => <ProviderChip key={i} p={p} />)}</div>
           </>}
           {(providers.rent.length > 0 || providers.buy.length > 0) && <>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, marginBottom:14, fontFamily:'Outfit' }}>Rent / Buy</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, marginBottom:14, fontFamily:'Inter, sans-serif' }}>Rent / Buy</div>
             <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
               {providers.rent.map((p,i) => <ProviderChip key={`r${i}`} p={p} />)}
               {providers.buy.map((p,i) => <ProviderChip key={`b${i}`} p={p} />)}
@@ -293,15 +293,15 @@ function PairsWith({ goToMovie }) {
     <section className="ff-movie-section" style={{ padding:'88px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:36, flexWrap:'wrap', gap:20 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Pairs with
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Pairs with
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:48, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:48, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
             If this hits, <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>these will too.</em>
           </h2>
         </div>
         {canReshuffle && (
-          <button onClick={()=>setSeed(s=>s+1)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor:'pointer' }}>
+          <button onClick={()=>setSeed(s=>s+1)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor:'pointer' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 18 0M3 12l3-3M3 12l3 3"/></svg>
             Show me more
           </button>
@@ -321,12 +321,12 @@ function PairsWith({ goToMovie }) {
               {/* F5.3: user-match % removed from Pairs-With cards (no fit number
                   outside the PrimaryCase band; s.match is unchanged in the data). */}
             </div>
-            <div style={{ fontFamily:'Outfit', fontSize:17, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>{s.title}</div>
-            <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:17, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>{s.title}</div>
+            <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
               {s.year}{s.dir ? ` · ${s.dir}` : ''}
             </div>
             {s.why && (
-              <span style={{ display:'block', fontSize:12.5, lineHeight:1.55, color: HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{s.why}</span>
+              <span style={{ display:'block', fontSize:12.5, lineHeight:1.55, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>{s.why}</span>
             )}
           </button>
         ))}
@@ -350,7 +350,7 @@ function FriendsLoved({ friends }) {
         <div style={{ display:'flex', alignItems:'center', gap:24 }}>
           <div style={{ display:'flex' }}>
             {friends.slice(0, 5).map((f, i) => (
-              <div key={f.id} style={{ width:36, height:36, borderRadius:RADIUS.pill, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:14, border:'2px solid #06060a', marginLeft: i>0 ? -10 : 0, overflow:'hidden' }}>
+              <div key={f.id} style={{ width:36, height:36, borderRadius:RADIUS.pill, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, color:'#0A0510', fontSize:14, border:'2px solid #06060a', marginLeft: i>0 ? -10 : 0, overflow:'hidden' }}>
                 {f.avatarUrl ? (
                   <img src={f.avatarUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 ) : (
@@ -360,10 +360,10 @@ function FriendsLoved({ friends }) {
             ))}
           </div>
           <div>
-            <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.01em' }}>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.01em' }}>
               {friends.length} {friends.length === 1 ? 'person' : 'people'} you follow loved this
             </div>
-            <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Outfit', marginTop:2 }}>
+            <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', marginTop:2 }}>
               {summaryNames} · avg <span style={{ color: HP.amber, fontWeight:600 }}>{avgDisplay}★</span>
             </div>
           </div>
@@ -372,7 +372,7 @@ function FriendsLoved({ friends }) {
           <button
             onClick={() => setOpen(o => !o)}
             aria-expanded={open}
-            style={{ padding:'10px 18px', borderRadius:RADIUS.sm, background:'transparent', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
+            style={{ padding:'10px 18px', borderRadius:RADIUS.sm, background:'transparent', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
           >
             {open ? 'Hide notes' : 'See their notes →'}
           </button>
@@ -383,13 +383,13 @@ function FriendsLoved({ friends }) {
           {friends.filter(f => f.reviewText).map(f => (
             <div key={f.id} style={{ padding:'14px 16px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.03)', border:`1px solid ${HP.border}` }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                <div style={{ width:28, height:28, borderRadius:RADIUS.pill, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:12, overflow:'hidden' }}>
+                <div style={{ width:28, height:28, borderRadius:RADIUS.pill, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, color:'#0A0510', fontSize:12, overflow:'hidden' }}>
                   {f.avatarUrl ? <img src={f.avatarUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : (f.name || '?').charAt(0).toUpperCase()}
                 </div>
-                <div style={{ fontFamily:'Outfit', fontSize:13, fontWeight:600, color: HP.text }}>{f.name}</div>
-                <div style={{ marginLeft:'auto', fontSize:11, color: HP.amber, fontFamily:'Outfit', fontWeight:700 }}>{(f.rating / 2).toFixed(1)}★</div>
+                <div style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, color: HP.text }}>{f.name}</div>
+                <div style={{ marginLeft:'auto', fontSize:11, color: HP.amber, fontFamily:'Inter, sans-serif', fontWeight:700 }}>{(f.rating / 2).toFixed(1)}★</div>
               </div>
-              <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>
+              <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>
                 {f.reviewText}
               </div>
             </div>
@@ -414,28 +414,28 @@ function TasteTwinReview({ twin }) {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div className="ff-movie-twin-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:48, alignItems:'flex-start' }}>
         <div style={{ textAlign:'center' }}>
-          <div style={{ position:'relative', width:96, height:96, borderRadius:RADIUS.pill, background: twin.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:36, margin:'0 auto', boxShadow:`0 0 32px ${twin.avatarBg}55`, overflow:'hidden' }}>
+          <div style={{ position:'relative', width:96, height:96, borderRadius:RADIUS.pill, background: twin.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, color:'#0A0510', fontSize:36, margin:'0 auto', boxShadow:`0 0 32px ${twin.avatarBg}55`, overflow:'hidden' }}>
             {twin.avatarUrl ? (
               <img src={twin.avatarUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
             ) : (
               (twin.name || '?').charAt(0).toUpperCase()
             )}
-            <div aria-label={`${twin.matchPct}% overall taste similarity`} style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:RADIUS.pill, background: HP.bgDeep, border:`1px solid ${HP.purple}`, fontSize:10, fontWeight:700, color: HP.purple, fontFamily:'Outfit' }}>{twin.matchPct}%</div>
+            <div aria-label={`${twin.matchPct}% overall taste similarity`} style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:RADIUS.pill, background: HP.bgDeep, border:`1px solid ${ROSE}`, fontSize:10, fontWeight:700, color: ROSE, fontFamily:'Inter, sans-serif' }}>{twin.matchPct}%</div>
           </div>
-          <div style={{ marginTop:14, fontFamily:'Outfit', fontSize:14, fontWeight:600, color: HP.text }}>{twin.name}</div>
-          <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', marginTop:3 }}>Your taste twin</div>
-          <div style={{ fontSize:10.5, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:4 }}>{twin.matchPct}% overall taste similarity</div>
+          <div style={{ marginTop:14, fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color: HP.text }}>{twin.name}</div>
+          <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginTop:3 }}>Your taste twin</div>
+          <div style={{ fontSize:10.5, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.04em', marginTop:4 }}>{twin.matchPct}% overall taste similarity</div>
         </div>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />They rated it · {twin.watchedDate}
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />They rated it · {twin.watchedDate}
           </div>
           {twin.note ? (
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:24, lineHeight:1.5, color: HP.text, fontStyle:'italic', letterSpacing:'-0.012em', textWrap:'pretty' }}>
+            <p style={{ margin:0, fontFamily:'var(--font-editorial)', fontSize:24, lineHeight:1.5, color: HP.text, fontStyle:'italic', letterSpacing:'-0.012em', textWrap:'pretty' }}>
               “{twin.note}”
             </p>
           ) : (
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:18, lineHeight:1.5, color: HP.textSoft, fontStyle:'italic', letterSpacing:'-0.012em' }}>
+            <p style={{ margin:0, fontFamily:'Inter, sans-serif', fontSize:18, lineHeight:1.5, color: HP.textSoft, fontStyle:'italic', letterSpacing:'-0.012em' }}>
               No note yet — just the rating.
             </p>
           )}
@@ -474,10 +474,10 @@ function TimelineSection() {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-movie-timeline-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:64, alignItems:'flex-start' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14 }}>{kicker}</div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>{headline}</h2>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14 }}>{kicker}</div>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>{headline}</h2>
           {mv.languages.length > 0 && (
-            <div style={{ marginTop:24, display:'flex', alignItems:'center', gap:10, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
+            <div style={{ marginTop:24, display:'flex', alignItems:'center', gap:10, fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
               <span>Languages</span>
               {mv.languages.map(l => (
                 <span key={l.code} style={{ padding:'3px 8px', borderRadius:3, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontWeight:600 }}>{l.code || '—'}</span>
@@ -489,10 +489,10 @@ function TimelineSection() {
           <div style={{ position:'absolute', left:5, top:6, bottom:6, width:1, background: HP.border }} />
           {timeline.map((t, i) => (
             <div key={i} style={{ position:'relative', paddingBottom:24, paddingLeft:24 }}>
-              <div style={{ position:'absolute', left:-3.5, top:4, width:11, height:11, borderRadius:RADIUS.pill, background: i===0 ? FILM_PALETTE.primary : HP.purple, boxShadow:`0 0 12px ${i===0 ? FILM_PALETTE.primary : HP.purple}66` }} />
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Outfit' }}>{t.date}</div>
-              <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginTop:4 }}>{t.label}</div>
-              {t.note && <div style={{ fontSize:12, color: HP.textSoft, marginTop:3, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{t.note}</div>}
+              <div style={{ position:'absolute', left:-3.5, top:4, width:11, height:11, borderRadius:RADIUS.pill, background: i===0 ? FILM_PALETTE.primary : ROSE, boxShadow:`0 0 12px ${i===0 ? FILM_PALETTE.primary : ROSE}66` }} />
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Inter, sans-serif' }}>{t.date}</div>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:18, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginTop:4 }}>{t.label}</div>
+              {t.note && <div style={{ fontSize:12, color: HP.textSoft, marginTop:3, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>{t.note}</div>}
             </div>
           ))}
         </div>
@@ -510,10 +510,10 @@ function DirectorShelf({ goToMovie }) {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:32 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />{directorLabel}
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />{directorLabel}
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
             Where to go <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>next.</em>
           </h2>
         </div>
@@ -522,7 +522,7 @@ function DirectorShelf({ goToMovie }) {
             href={`https://www.themoviedb.org/person/${mv.directorId}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ padding:'9px 16px', borderRadius:RADIUS.pill, background:'transparent', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', cursor:'pointer', textDecoration:'none' }}
+            style={{ padding:'9px 16px', borderRadius:RADIUS.pill, background:'transparent', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', cursor:'pointer', textDecoration:'none' }}
           >Full filmography →</a>
         )}
       </div>
@@ -539,13 +539,13 @@ function DirectorShelf({ goToMovie }) {
               <img src={f.poster} alt={f.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} onError={(e)=>{ e.currentTarget.style.display='none'; }} />
               <div style={{ position:'absolute', inset:0, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}11, transparent)` }} />
               {f.yourRating ? (
-                <div style={{ position:'absolute', top:8, right:8, padding:'3px 7px', borderRadius:3, background:'rgba(0,0,0,0.85)', border:`1px solid ${HP.amber}55`, fontSize:9, fontWeight:700, color: HP.amber, fontFamily:'Outfit', letterSpacing:'0.06em' }}>{f.yourRating}★ YOU</div>
+                <div style={{ position:'absolute', top:8, right:8, padding:'3px 7px', borderRadius:3, background:'rgba(0,0,0,0.85)', border:`1px solid ${HP.amber}55`, fontSize:9, fontWeight:700, color: HP.amber, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em' }}>{f.yourRating}★ YOU</div>
               ) : (
-                <div style={{ position:'absolute', top:8, right:8, padding:'3px 7px', borderRadius:3, background:'rgba(0,0,0,0.75)', border:`1px solid ${HP.border}`, fontSize:9, fontWeight:600, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em' }}>NEW TO YOU</div>
+                <div style={{ position:'absolute', top:8, right:8, padding:'3px 7px', borderRadius:3, background:'rgba(0,0,0,0.75)', border:`1px solid ${HP.border}`, fontSize:9, fontWeight:600, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em' }}>NEW TO YOU</div>
               )}
             </div>
-            <div style={{ fontFamily:'Outfit', fontSize:13, fontWeight:500, color: HP.text, letterSpacing:'-0.01em' }}>{f.title}</div>
-            <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit' }}>{f.year}</div>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, color: HP.text, letterSpacing:'-0.01em' }}>{f.title}</div>
+            <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif' }}>{f.year}</div>
           </button>
         ))}
       </div>
@@ -569,9 +569,9 @@ function YourTake({ isWatched, userId, internalId, onSaved, onError }) {
 function YourTakeLockedPrompt() {
   return (
     <section className="ff-movie-section ff-movie-your-take-compact" style={{ padding:'28px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: HP.purple, marginBottom:8 }}>After watching</div>
-      <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:22, lineHeight:1.1, fontWeight:500, color: HP.text, margin:0, letterSpacing:'-0.02em' }}>Your take</h2>
-      <p style={{ margin:'8px 0 0 0', fontSize:13.5, lineHeight:1.5, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', maxWidth:560 }}>
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: ROSE, marginBottom:8 }}>After watching</div>
+      <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:22, lineHeight:1.1, fontWeight:500, color: HP.text, margin:0, letterSpacing:'-0.02em' }}>Your take</h2>
+      <p style={{ margin:'8px 0 0 0', fontSize:13.5, lineHeight:1.5, color: HP.textMuted, fontFamily:'Inter, sans-serif', maxWidth:560 }}>
         Mark this film watched above to rate it — your ratings sharpen your engine.
       </p>
     </section>
@@ -618,7 +618,7 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
 
   return (
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, animation:'mv-fade-in 0.6s ease both' }}>
-      <div className="ff-movie-your-take-card" aria-busy={saveStatus === 'saving' || undefined} style={{ padding:'32px 28px', borderRadius:RADIUS.sm, background:`linear-gradient(135deg, ${FILM_PALETTE.primary}11, rgba(167,139,250,0.04))`, border:`1px solid ${FILM_PALETTE.primary}33` }}>
+      <div className="ff-movie-your-take-card" aria-busy={saveStatus === 'saving' || undefined} style={{ padding:'32px 28px', borderRadius:RADIUS.sm, background:`linear-gradient(135deg, ${FILM_PALETTE.primary}11, rgba(221,78,131,0.04))`, border:`1px solid ${FILM_PALETTE.primary}33` }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:14, flexWrap:'wrap', marginBottom:14 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: FILM_PALETTE.primary, display:'inline-flex', alignItems:'center', gap:10 }}>
             <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: FILM_PALETTE.primary, boxShadow:`0 0 12px ${FILM_PALETTE.primary}` }} />
@@ -661,10 +661,10 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
                     onClick={() => setReaction(active ? '' : t)}
                     style={{
                       padding:'7px 12px', borderRadius:RADIUS.pill,
-                      background: active ? 'rgba(167,139,250,0.14)' : 'rgba(255,255,255,0.04)',
-                      border:`1px solid ${active ? HP.purple + '88' : HP.border}`,
+                      background: active ? 'rgba(221,78,131,0.12)' : 'rgba(255,255,255,0.04)',
+                      border:`1px solid ${active ? ROSE + '88' : HP.border}`,
                       color: active ? HP.text : HP.textSoft,
-                      fontFamily:'Outfit', fontSize:11.5, fontWeight:500, cursor:'pointer', letterSpacing:'-0.005em',
+                      fontFamily:'Inter, sans-serif', fontSize:11.5, fontWeight:500, cursor:'pointer', letterSpacing:'-0.005em',
                       transition:'all 0.18s ease',
                     }}>
                     {t}
@@ -681,7 +681,7 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
                 placeholder={canPersist
                   ? 'Optional: one sentence on what stuck with you…'
                   : 'Sign in to save your note.'}
-                style={{ width:'100%', minHeight:80, padding:'12px 14px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.4)', border:`1px solid ${HP.border}`, color: HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:13.5, lineHeight:1.5, resize:'vertical', outline:'none', opacity: canPersist ? 1 : 0.55 }}
+                style={{ width:'100%', minHeight:80, padding:'12px 14px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.4)', border:`1px solid ${HP.border}`, color: HP.text, fontFamily:'Inter, sans-serif', fontSize:13.5, lineHeight:1.5, resize:'vertical', outline:'none', opacity: canPersist ? 1 : 0.55 }}
               />
             </label>
           </div>
@@ -701,14 +701,14 @@ function SaveIndicator({ status, showIdleSavedHint }) {
   if (status === 'idle' && !showIdleSavedHint) return null;
   const map = {
     saving:    { label: 'Saving…',                color: HP.textMuted },
-    saved:     { label: 'Saved ✓',                color: HP.purple    },
+    saved:     { label: 'Saved ✓',                color: ROSE         },
     error:     { label: 'Could not save. Try again.', color: '#f87171' },
     idleSaved: { label: 'Saved',                  color: HP.textMuted },
   };
   const key = status === 'idle' ? 'idleSaved' : status;
   const cfg = map[key] || map.saving;
   return (
-    <span style={{ fontSize:10.5, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color: cfg.color, fontFamily:'Outfit', transition:'color 0.2s ease' }}>
+    <span style={{ fontSize:10.5, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color: cfg.color, fontFamily:'Inter, sans-serif', transition:'color 0.2s ease' }}>
       {cfg.label}
     </span>
   );
@@ -722,8 +722,8 @@ function DNADelta() {
   }, []);
   return (
     <div style={{ padding:'22px 24px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.35)', border:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: HP.purple, marginBottom:6 }}>Your engine projects this shift</div>
-      <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', marginBottom:18 }}>Real before/after deltas land in a follow-up — for now, projected from your taste profile.</div>
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: ROSE, marginBottom:6 }}>Your engine projects this shift</div>
+      <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic', marginBottom:18 }}>Real before/after deltas land in a follow-up — for now, projected from your taste profile.</div>
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
         {PARASITE_DNA_DELTA_SAMPLE.map(d => {
           const w = animated ? d.after : d.before;
@@ -731,11 +731,11 @@ function DNADelta() {
           return (
             <div key={d.motif}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
-                <span style={{ fontFamily:'Outfit', fontSize:13, fontWeight:500, color: HP.text }}>{d.motif}</span>
-                <span style={{ fontFamily:'Outfit', fontSize:11, color: FILM_PALETTE.primary, fontWeight:700 }}>+{delta}</span>
+                <span style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, color: HP.text }}>{d.motif}</span>
+                <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, color: FILM_PALETTE.primary, fontWeight:700 }}>+{delta}</span>
               </div>
               <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
-                <div style={{ height:'100%', width:`${w*100}%`, background:`linear-gradient(90deg, ${HP.purple}, ${FILM_PALETTE.primary})`, transition:'width 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
+                <div style={{ height:'100%', width:`${w*100}%`, background:`linear-gradient(90deg, ${ROSE}, ${FILM_PALETTE.primary})`, transition:'width 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
               </div>
             </div>
           );
@@ -753,8 +753,8 @@ function DetailsSection() {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:80 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Production</div>
-          <h3 style={{ fontFamily:'Outfit', fontSize:28, fontWeight:500, color: HP.text, margin:'0 0 24px 0', letterSpacing:'-0.025em' }}>The receipts.</h3>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18 }}>Production</div>
+          <h3 style={{ fontFamily:'var(--font-editorial)', fontSize:28, fontWeight:400, color: HP.text, margin:'0 0 24px 0', letterSpacing:'-0.025em' }}>The receipts.</h3>
           <div className="ff-movie-details-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'20px 32px' }}>
             {mv.releaseDate && <Stat label="Released"   value={mv.releaseDate} />}
             {hasRuntime && <Stat label="Runtime"    value={`${Math.floor(mv.runtime/60)}h ${mv.runtime%60}m`} />}
@@ -773,8 +773,8 @@ function DetailsSection() {
 function Stat({ label, value }) {
   return (
     <div>
-      <div style={{ fontSize:10, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:6 }}>{label}</div>
-      <div style={{ fontFamily:'Outfit', fontSize:15, color: HP.text, letterSpacing:'-0.01em', fontWeight:500 }}>{value}</div>
+      <div style={{ fontSize:10, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:6 }}>{label}</div>
+      <div style={{ fontFamily:'Inter, sans-serif', fontSize:15, color: HP.text, letterSpacing:'-0.01em', fontWeight:500 }}>{value}</div>
     </div>
   );
 }
@@ -784,12 +784,12 @@ function MovieFooter({ onBackToBriefing }) {
   const linkStyle = { fontSize:12, color: HP.textMuted, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
   const btnStyle = { ...linkStyle, background:'none', border:'none', padding:0, font:'inherit' };
   return (
-    <footer className="ff-movie-section ff-movie-footer" style={{ padding:'48px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit, Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
+    <footer className="ff-movie-section ff-movie-footer" style={{ padding:'48px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background: HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
+        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background: '#DD4E83', display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
         <span style={{ fontSize:13, color: HP.textMuted, letterSpacing:'0.04em' }}>FeelFlick · Film File Nº {String(mv.id).padStart(4, '0')}</span>
       </div>
-      <div style={{ display:'flex', gap:28, fontFamily:'Outfit, Inter, sans-serif' }}>
+      <div style={{ display:'flex', gap:28, fontFamily:'Inter, sans-serif' }}>
         <a
           href={`mailto:hello@feelflick.com?subject=${encodeURIComponent(`Report issue: ${mv.title}`)}`}
           style={linkStyle}

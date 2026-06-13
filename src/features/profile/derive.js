@@ -5,7 +5,7 @@
 //
 // All functions are pure — no Supabase calls, no React. Test by hand if needed.
 
-import { HP } from './data'
+
 import { computeDnaConfidence } from '@/shared/services/dnaConfidence'
 
 // 6-color cycle for mood axes / radar / chart bars. Order is roughly
@@ -170,7 +170,7 @@ export function deriveMixtape({ history, ratingsByMovieId }) {
 // === TRAJECTORY (last 12 months, count + dominant mood per month) ===
 
 function pickDominantMood(moodCounts) {
-  if (moodCounts.size === 0) return { mood: null, hex: HP.purple }
+  if (moodCounts.size === 0) return { mood: null, hex: '#DD4E83' }
   const sorted = [...moodCounts.entries()].sort((a, b) => b[1] - a[1])
   const mood = capitalize(sorted[0][0])
   const idx = Math.abs(mood.charCodeAt(0) + mood.length) % MOOD_PALETTE.length

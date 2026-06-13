@@ -38,7 +38,7 @@ function applyExcludeIds(query, ids) {
   return query.not('id', 'in', `(${ids.join(',')})`)
 }
 
-import { HP, HP_GRAD } from '@/shared/lib/tokens'
+import { HP, ROSE } from '@/shared/lib/tokens'
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 const TMDB_IMG = (path, size = 'w342') => path ? `https://image.tmdb.org/t/p/${size}${path}` : null
 
@@ -379,7 +379,7 @@ export default function PersonalList() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            style={{ ...RESET_BTN, fontSize: 11, color: HP.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Outfit', marginBottom: 24 }}
+            style={{ ...RESET_BTN, fontSize: 11, color: HP.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif', marginBottom: 24 }}
           >
             ← Back
           </button>
@@ -389,16 +389,16 @@ export default function PersonalList() {
           <div className="ff-lists-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 64, alignItems: 'flex-start' }}>
             {/* LEFT — sticky meta */}
             <div className="ff-lists-detail-meta" style={{ position: 'sticky', top: 32 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14 }}>{resolved.kicker}</div>
-              <h1 className="ff-lists-detail-h1" style={{ fontFamily: 'Outfit', fontSize: 52, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE, marginBottom: 14 }}>{resolved.kicker}</div>
+              <h1 className="ff-lists-detail-h1" style={{ fontFamily: 'var(--font-editorial)', fontSize: 52, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
                 {resolved.title}
               </h1>
               {resolved.description && (
-                <p style={{ marginTop: 20, fontSize: 15, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.6, textWrap: 'pretty' }}>
+                <p style={{ marginTop: 20, fontSize: 15, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.6, textWrap: 'pretty' }}>
                   &ldquo;{resolved.description}&rdquo;
                 </p>
               )}
-              <div style={{ marginTop: 22, display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.06em' }}>
+              <div style={{ marginTop: 22, display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.06em' }}>
                 <span>{loading ? 'Loading…' : `${movies.length} film${movies.length === 1 ? '' : 's'}`}</span>
                 <span>·</span>
                 <span>Built from your taste profile</span>
@@ -417,11 +417,11 @@ export default function PersonalList() {
                   style={{
                     marginTop: 28,
                     padding: '12px 22px', borderRadius: 8,
-                    background: saveState === 'error' ? 'rgba(239,68,68,0.18)' : HP_GRAD,
+                    background: saveState === 'error' ? 'rgba(239,68,68,0.18)' : '#DD4E83',
                     border: 'none', color: '#fff',
-                    fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
+                    fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
                     cursor: saveState === 'saving' ? 'default' : 'pointer',
-                    boxShadow: '0 12px 28px -8px rgba(236,72,153,0.45)',
+                    boxShadow: '0 12px 28px -8px rgba(221,78,131,0.40)',
                     opacity: saveState === 'saving' ? 0.85 : 1,
                     transition: 'all 0.25s ease',
                   }}
@@ -432,7 +432,7 @@ export default function PersonalList() {
                   {saveState === 'idle' && 'Save & share this list →'}
                 </button>
               )}
-              <p style={{ marginTop: 10, fontSize: 11, color: HP.textFaint, fontFamily: 'Outfit', maxWidth: 280, lineHeight: 1.4 }}>
+              <p style={{ marginTop: 10, fontSize: 11, color: HP.textFaint, fontFamily: 'Inter, sans-serif', maxWidth: 280, lineHeight: 1.4 }}>
                 Snapshots the current films into a list you own. Shareable link, editable later.
               </p>
             </div>
@@ -447,8 +447,8 @@ export default function PersonalList() {
                 </div>
               ) : movies.length === 0 ? (
                 <div style={{ padding: '64px 0', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'Outfit', fontSize: 16, fontWeight: 500, color: HP.text }}>No films match yet</div>
-                  <div style={{ fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', marginTop: 8 }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: HP.text }}>No films match yet</div>
+                  <div style={{ fontSize: 13, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 8 }}>
                     The signal that built this list didn&rsquo;t turn up films you haven&rsquo;t already seen.
                   </div>
                 </div>
@@ -469,8 +469,8 @@ export default function PersonalList() {
                         )}
                       </div>
                       <div style={{ padding: '10px 12px' }}>
-                        <div style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: HP.text, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title}</div>
-                        <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, letterSpacing: '0.04em' }}>
+                        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title}</div>
+                        <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 2, letterSpacing: '0.04em' }}>
                           {m.release_year || ''}{m.primary_genre ? ` · ${m.primary_genre}` : ''}
                         </div>
                       </div>
@@ -506,8 +506,8 @@ function NotFound({ onBack }) {
   return (
     <div style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 520 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 18 }}>For you · 404</div>
-        <h1 style={{ fontFamily: 'Outfit', fontSize: 40, fontWeight: 500, color: HP.text, margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>This list isn&rsquo;t available.</h1>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE, marginBottom: 18 }}>For you · 404</div>
+        <h1 style={{ fontFamily: 'var(--font-editorial)', fontSize: 40, fontWeight: 400, color: HP.text, margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>This list isn&rsquo;t available.</h1>
         <ChipButton onClick={onBack}>
           Back to lists →
         </ChipButton>

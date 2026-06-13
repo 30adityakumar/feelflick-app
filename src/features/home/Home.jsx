@@ -26,10 +26,10 @@ import './home.css'
 function HomeLoadError() {
   return (
     <div role="alert" className="flex flex-col items-center gap-2 px-6 py-24 text-center">
-      <p style={{ fontSize: 16, fontWeight: 600, color: HP.text, fontFamily: 'Outfit, Inter, sans-serif', margin: 0 }}>
+      <p style={{ fontSize: 16, fontWeight: 600, color: HP.text, fontFamily: 'Inter, sans-serif', margin: 0 }}>
         We couldn&rsquo;t load your home briefing.
       </p>
-      <p style={{ fontSize: 14, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', margin: 0 }}>
+      <p style={{ fontSize: 14, color: HP.textMuted, fontFamily: 'Inter, sans-serif', margin: 0 }}>
         Try refreshing in a moment.
       </p>
     </div>

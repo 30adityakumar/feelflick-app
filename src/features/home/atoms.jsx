@@ -3,7 +3,7 @@
 // from useHomeData. HPNav is removed — AppShell owns the global TopNav.
 
 import { useState } from 'react'
-import { HP, HP_GRAD, gradForId } from './data'
+import { HP, gradForId } from './data'
 import { tmdbImg, posterSrcSet } from '@/shared/api/tmdb'
 
 export function FFMark({ size = 28 }) {
@@ -11,10 +11,10 @@ export function FFMark({ size = 28 }) {
     <div style={{
       width: size, height: size, borderRadius: size * 0.22,
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      background: HP_GRAD, color: '#fff',
-      fontFamily: 'Outfit, Inter, sans-serif', fontWeight: 700, fontSize: size * 0.5,
+      background: '#DD4E83', color: '#fff',
+      fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: size * 0.5,
       letterSpacing: '-0.02em',
-      boxShadow: '0 4px 18px -2px rgba(167,139,250,0.5)',
+      boxShadow: '0 4px 18px -2px rgba(221,78,131,0.35)',
     }}>FF</div>
   )
 }
@@ -44,8 +44,8 @@ export function SmartImg({
       <div style={{ ...style, display: 'flex', alignItems: 'flex-end', padding: big ? 28 : 14, background: `linear-gradient(135deg, ${a} 0%, ${b} 100%)`, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.16), transparent 50%), radial-gradient(circle at 80% 90%, rgba(0,0,0,0.4), transparent 60%)' }} />
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: big ? 42 : 18, lineHeight: 1, letterSpacing: '-0.02em', color: '#fff', textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>{film.title}</div>
-          <div style={{ fontSize: big ? 13 : 10, color: 'rgba(255,255,255,0.75)', marginTop: big ? 8 : 4, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{film.year}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: big ? 42 : 18, lineHeight: 1, letterSpacing: '-0.02em', color: '#fff', textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>{film.title}</div>
+          <div style={{ fontSize: big ? 13 : 10, color: 'rgba(255,255,255,0.75)', marginTop: big ? 8 : 4, fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em' }}>{film.year}</div>
         </div>
       </div>
     )

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import Tooltip from '@/shared/ui/Tooltip'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
-import { FILM_PALETTE, HP, HP_GRAD, RADIUS } from './data'
+import { FILM_PALETTE, HP, ROSE, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 
 // FeelFlick — Movie page · Hero, scroll progress, trailer modal, why-for-you, synopsis, mood radar, take, critic quotes.
@@ -28,7 +28,7 @@ function ScrollProgress() {
   }, []);
   return (
     <div style={{ position:'fixed', top:0, left:0, right:0, height:2, zIndex:200, pointerEvents:'none' }}>
-      <div style={{ height:'100%', width:`${pct}%`, background: HP_GRAD, transition:'width 0.1s linear', boxShadow:`0 0 12px ${FILM_PALETTE.primary}88` }} />
+      <div style={{ height:'100%', width:`${pct}%`, background: FILM_PALETTE.primary, transition:'width 0.1s linear', boxShadow:`0 0 12px ${FILM_PALETTE.primary}88` }} />
     </div>
   );
 }
@@ -102,7 +102,7 @@ function MovieHero({
 
       {/* Top nav */}
       <div className="ff-movie-top-nav" style={{ position:'absolute', top:0, left:0, right:0, padding:'24px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', zIndex:5 }}>
-        <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'8px 16px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
+        <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'8px 16px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
           <span aria-hidden="true" style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
         </button>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
@@ -126,7 +126,7 @@ function MovieHero({
           }}>
             {mv.poster
               ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:RADIUS.md, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
-              : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:RADIUS.md, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
+              : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:RADIUS.md, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Inter, sans-serif', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
             }
             {/* F5.3: the user-match ring is removed from the hero — the qualitative
                 fit band lives only in the PrimaryCase (mv.ffMatch is unchanged). */}
@@ -135,30 +135,30 @@ function MovieHero({
 
         <div style={{ maxWidth:780 }}>
           <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:22 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple }}>Film File</div>
-            <div style={{ flex:'none', height:1, width:36, background: HP.purple, opacity:0.5 }} />
-            <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Outfit' }}>Nº {String(mv.id).padStart(4, '0')} · {mv.year || '—'} · {mv.language}</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE }}>Film File</div>
+            <div style={{ flex:'none', height:1, width:36, background: ROSE, opacity:0.5 }} />
+            <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Inter, sans-serif' }}>Nº {String(mv.id).padStart(4, '0')} · {mv.year || '—'} · {mv.language}</div>
           </div>
 
-          <h1 className="ff-movie-hero-h1" style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:92, lineHeight:0.94, fontWeight:600, letterSpacing:'-0.05em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h1 className="ff-movie-hero-h1" style={{ fontFamily:'var(--font-editorial)', fontSize:92, lineHeight:0.94, fontWeight:400, letterSpacing:'-0.05em', color: HP.text, margin:0, textWrap:'balance' }}>
             {mv.title}
           </h1>
 
           {(mv.originalTitle && mv.originalTitle !== mv.title) || mv.tagline ? (
             <div style={{ display:'flex', alignItems:'baseline', gap:18, marginTop:14, flexWrap:'wrap' }}>
               {mv.originalTitle && mv.originalTitle !== mv.title && (
-                <span style={{ fontFamily:'Outfit', fontSize:24, fontWeight:300, color: HP.textSoft, fontStyle:'italic', letterSpacing:'-0.01em' }}>{mv.originalTitle}</span>
+                <span style={{ fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:300, color: HP.textSoft, fontStyle:'italic', letterSpacing:'-0.01em' }}>{mv.originalTitle}</span>
               )}
               {mv.originalTitle && mv.originalTitle !== mv.title && mv.tagline && (
                 <span style={{ width:1, height:18, background: HP.border }} />
               )}
               {mv.tagline && (
-                <span style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:15, color: HP.textMuted, fontStyle:'italic' }}>“{mv.tagline}”</span>
+                <span style={{ fontFamily:'Inter, sans-serif', fontSize:15, color: HP.textMuted, fontStyle:'italic' }}>”{mv.tagline}”</span>
               )}
             </div>
           ) : null}
 
-          <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:24, fontSize:12, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', flexWrap:'wrap' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:24, fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', flexWrap:'wrap' }}>
             <span style={{ padding:'3px 8px', border:`1px solid ${HP.borderStrong}`, borderRadius:3, fontWeight:600, color: HP.textSoft }}>{mv.certification}</span>
             {mv.year && <span>{mv.year}</span>}
             {hasRuntime && <>
@@ -177,16 +177,16 @@ function MovieHero({
 
           {mv.daypartFit && (
             // F5.3: generated suggestion — FeelFlick-owned, not an objective "best time".
-            <div aria-label={`FeelFlick-generated viewing suggestion: ${mv.daypartFit}`} style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(167,139,250,0.08)', border:`1px solid ${HP.purple}33`, color: HP.purple }}>
+            <div aria-label={`FeelFlick-generated viewing suggestion: ${mv.daypartFit}`} style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(221,78,131,0.10)', border:`1px solid ${ROSE}33`, color: ROSE }}>
               <svg aria-hidden width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-              <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>FeelFlick suggests · {mv.daypartFit}</span>
+              <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>FeelFlick suggests · {mv.daypartFit}</span>
             </div>
           )}
 
           {boundaryWarnings?.length > 0 && (
             <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:14, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(245,158,11,0.10)', border:`1px solid ${HP.amber || '#F59E0B'}33`, color:'#F59E0B' }} role="note">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-              <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
+              <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
                 Heads up · {boundaryWarnings.map(w => w.label).join(' · ')}
               </span>
             </div>
@@ -222,7 +222,7 @@ function MovieHero({
                 {mv.tmdbRating != null && (
                   <span style={{ display:'flex', alignItems:'center', gap:4 }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill={HP.amber}><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
-                    <span style={{ fontFamily:'Outfit', fontSize:13, fontWeight:600, color: HP.text }}>{mv.tmdbRating}</span>
+                    <span style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, color: HP.text }}>{mv.tmdbRating}</span>
                     <span style={{ fontSize:10, color: HP.textFaint, marginLeft:2 }}>TMDB</span>
                   </span>
                 )}
@@ -231,11 +231,11 @@ function MovieHero({
                     when the film hasn't been scored yet. */}
                 {mv.ffCritic != null && <>
                   {mv.tmdbRating != null && <span style={{ width:1, height:12, background: HP.border }} />}
-                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Outfit' }}><span style={{ color: HP.amber, fontWeight:700 }}>{mv.ffCritic}%</span> Critics</span>
+                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif' }}><span style={{ color: HP.amber, fontWeight:700 }}>{mv.ffCritic}%</span> Critics</span>
                 </>}
                 {mv.ffAudience != null && <>
                   {(mv.tmdbRating != null || mv.ffCritic != null) && <span style={{ width:1, height:12, background: HP.border }} />}
-                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Outfit' }}><span style={{ color: HP.text, fontWeight:700 }}>{mv.ffAudience}%</span> Audience</span>
+                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif' }}><span style={{ color: HP.text, fontWeight:700 }}>{mv.ffAudience}%</span> Audience</span>
                 </>}
               </div>
             )}
@@ -294,7 +294,7 @@ function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
 }
 
 function Confetti() {
-  const colors = [HP.purple, HP.pink, HP.amber, FILM_PALETTE.primary, FILM_PALETTE.secondary];
+  const colors = [ROSE, HP.pink, HP.amber, FILM_PALETTE.primary, FILM_PALETTE.secondary];
   const pieces = Array.from({ length: 28 }, (_, i) => ({
     left: Math.random() * 100,
     delay: Math.random() * 0.3,
@@ -366,8 +366,8 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
       <div style={{ display:'flex', alignItems:'center', gap:14, flex:1 }}>
         {mv.poster && <img src={mv.poster} alt="" style={{ width:30, height:45, objectFit:'cover', borderRadius:3 }} />}
         <div>
-          <div style={{ fontFamily:'Outfit', fontSize:15, fontWeight:600, color: HP.text, letterSpacing:'-0.01em' }}>{mv.title}</div>
-          <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>
+          <div style={{ fontFamily:'Inter, sans-serif', fontSize:15, fontWeight:600, color: HP.text, letterSpacing:'-0.01em' }}>{mv.title}</div>
+          <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.04em' }}>
             {mv.year || '—'}
             {mv.director && mv.director !== '—' && <> · {mv.director}</>}
             {/* F5.3: user-match % removed from the sticky bar (no fit number outside the PrimaryCase band). */}
@@ -379,8 +379,8 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         disabled={!hasTrailer}
         title={hasTrailer ? undefined : 'No trailer available'}
         style={{
-          padding:'8px 14px', borderRadius:RADIUS.sm, background: HP_GRAD, border:'none', color:'#fff',
-          fontFamily:'Outfit', fontSize:12, fontWeight:600,
+          padding:'8px 14px', borderRadius:RADIUS.sm, background: '#DD4E83', border:'none', color:'#fff',
+          fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600,
           cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5,
         }}
       >
@@ -394,9 +394,9 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         title={wlTitle}
         style={{
           padding:'8px 14px', borderRadius:RADIUS.sm,
-          background: isInWatchlist ? 'rgba(167,139,250,0.14)' : 'rgba(255,255,255,0.06)',
-          border:`1px solid ${isInWatchlist ? HP.purple + '66' : HP.borderStrong}`,
-          color: HP.text, fontFamily:'Outfit', fontSize:12, fontWeight:600,
+          background: isInWatchlist ? 'rgba(221,78,131,0.12)' : 'rgba(255,255,255,0.06)',
+          border:`1px solid ${isInWatchlist ? ROSE + '66' : HP.borderStrong}`,
+          color: HP.text, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600,
           cursor: wlDisabled ? 'not-allowed' : 'pointer', opacity: wlDisabled && !isInWatchlist ? 0.6 : 1,
         }}>
         {isInWatchlist ? '✓ On Watchlist' : '+ Watchlist'}
@@ -422,15 +422,15 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
           that left a tall void below it. Centering balances the visual mass. */}
       <div className="ff-movie-why-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:72, alignItems:'center' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />
             {eyebrow || 'Why this fits you'}
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1.02, fontWeight:500, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:44, lineHeight:1.02, fontWeight:500, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
             {headline || 'A signal-driven fit.'}
           </h2>
           {rationale && (
-            <p style={{ marginTop:24, fontSize:15, lineHeight:1.7, color: HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', maxWidth:380, textWrap:'pretty' }}>
+            <p style={{ marginTop:24, fontSize:15, lineHeight:1.7, color: HP.textSoft, fontFamily:'Inter, sans-serif', maxWidth:380, textWrap:'pretty' }}>
               {rationale}
             </p>
           )}
@@ -446,19 +446,19 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
                 onMouseLeave={() => onHoverReason?.(null)}
                 style={{
                   padding:'28px 24px', borderRadius:RADIUS.sm,
-                  border:`1px solid ${active ? HP.purple+'66' : HP.border}`,
-                  background: active ? 'rgba(167,139,250,0.06)' : 'rgba(255,255,255,0.025)',
+                  border:`1px solid ${active ? ROSE+'66' : HP.border}`,
+                  background: active ? 'rgba(221,78,131,0.06)' : 'rgba(255,255,255,0.025)',
                   transition:'all 0.25s ease',
                   transform: active ? 'translateY(-2px)' : 'translateY(0)',
                   cursor:'default',
                 }}>
                 <div className="ff-movie-why-card-header">
-                  <div className="ff-movie-why-card-icon" style={{ width:36, height:36, borderRadius:RADIUS.md, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center', color: HP.purple, marginBottom:18 }}>
+                  <div className="ff-movie-why-card-icon" style={{ width:36, height:36, borderRadius:RADIUS.md, background:'rgba(221,78,131,0.12)', border:`1px solid ${ROSE}33`, display:'flex', alignItems:'center', justifyContent:'center', color: ROSE, marginBottom:18 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{iconMap[r.icon] || iconMap.dna}</svg>
                   </div>
-                  <div className="ff-movie-why-card-title" style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:8 }}>{r.title}</div>
+                  <div className="ff-movie-why-card-title" style={{ fontFamily:'Inter, sans-serif', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:8 }}>{r.title}</div>
                 </div>
-                <p style={{ margin:0, fontSize:13, lineHeight:1.6, color: HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', textWrap:'pretty' }}>{r.detail}</p>
+                <p style={{ margin:0, fontSize:13, lineHeight:1.6, color: HP.textSoft, fontFamily:'Inter, sans-serif', textWrap:'pretty' }}>{r.detail}</p>
               </div>
             );
           })}
@@ -479,12 +479,12 @@ function Synopsis() {
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ maxWidth:780 }}>
         <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:20 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Synopsis
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Synopsis
           </div>
         </div>
-        <p className="ff-movie-synopsis-text" style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:19, lineHeight:1.6, color: HP.text, letterSpacing:'-0.01em', textWrap:'pretty', animation:'mv-fade-in 0.5s ease both' }}>
-          <span style={{ fontFamily:'Outfit', fontSize:56, fontWeight:300, color: FILM_PALETTE.primary, float:'left', lineHeight:0.85, marginRight:10, marginTop:4, marginBottom:-6 }}>{first}</span>
+        <p className="ff-movie-synopsis-text" style={{ margin:0, fontFamily:'var(--font-editorial)', fontSize:19, lineHeight:1.6, color: HP.text, letterSpacing:'-0.01em', textWrap:'pretty', animation:'mv-fade-in 0.5s ease both' }}>
+          <span style={{ fontFamily:'var(--font-editorial)', fontSize:56, fontWeight:400, color: FILM_PALETTE.primary, float:'left', lineHeight:0.85, marginRight:10, marginTop:4, marginBottom:-6 }}>{first}</span>
           {rest}
         </p>
       </div>
@@ -524,15 +524,15 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
     <section ref={ref} className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-movie-radar-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.2fr', gap:56, alignItems:'center' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />FeelFlick mood profile
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />FeelFlick mood profile
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:40, lineHeight:1.02, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:40, lineHeight:1.02, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0, textWrap:'balance' }}>
             How it <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>feels.</em>
           </h2>
           {/* F5.3: generated origin made explicit; raw 0–100 numbers removed (the
               radar geometry still uses the unchanged weights internally). */}
-          <p style={{ marginTop:20, fontSize:14, lineHeight:1.7, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', maxWidth:380 }}>
+          <p style={{ marginTop:20, fontSize:14, lineHeight:1.7, color: HP.textMuted, fontFamily:'Inter, sans-serif', maxWidth:380 }}>
             A generated reading of the film’s tone — not a measured fact. Six axes:
             pace, depth, dialogue, focus, range, intensity.
           </p>
@@ -546,7 +546,7 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
                   style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:RADIUS.sm, background: lit ? `${m.hex}1a` : 'transparent', border:`1px solid ${lit ? m.hex+'55' : 'transparent'}`, transition:'all 0.25s ease', cursor:'default' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                     <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: m.hex, boxShadow:`0 0 ${lit?12:0}px ${m.hex}` }} />
-                    <span style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color: HP.text }}>{m.name}</span>
+                    <span style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:500, color: HP.text }}>{m.name}</span>
                   </div>
                   {/* F5.3: raw 0–100 value removed; axis label only (geometry uses m.weight). */}
                 </div>
@@ -583,7 +583,7 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
               return (
                 <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
                   onMouseEnter={() => enter(m.name)} onMouseLeave={leave}
-                  style={{ fontFamily:'Outfit', fontSize:12, fontWeight:500, fill: highlightMood===m.name ? m.hex : HP.textSoft, letterSpacing:'0.02em', transition:'fill 0.25s ease', cursor:'default' }}>
+                  style={{ fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:500, fill: highlightMood===m.name ? m.hex : HP.textSoft, letterSpacing:'0.02em', transition:'fill 0.25s ease', cursor:'default' }}>
                   {m.name}
                 </text>
               );

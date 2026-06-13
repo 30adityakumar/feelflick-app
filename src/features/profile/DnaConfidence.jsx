@@ -11,7 +11,7 @@
 
 import { Link } from 'react-router-dom'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, HP_GRAD, RADIUS, SPACE } from './data'
+import { HP, ROSE, RADIUS, SPACE } from './data'
 import { deriveConfidenceBand, INK_LABEL } from './derive/profilePresentation'
 
 // F7.4: the confidence value is the SHARED computeDnaConfidence number (unchanged), but it is
@@ -36,9 +36,9 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
       <div className="ff-profile-dnaconf-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 64, alignItems: 'flex-start' }}>
         {/* Left — the maturity band (no % / no completion meter) + the evidence it's built from */}
         <div>
-          <Eyebrow rule color={HP.purple} style={{ marginBottom: 16 }}>DNA confidence</Eyebrow>
-          <div style={{ fontFamily: 'Outfit', fontSize: 48, fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1.05 }}>{band.label}</div>
-          <div style={{ marginTop: 22, fontSize: 12, color: INK_LABEL, fontFamily: 'Outfit', letterSpacing: '0.02em' }}>
+          <Eyebrow rule color={ROSE} style={{ marginBottom: 16 }}>DNA confidence</Eyebrow>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 48, fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1.05 }}>{band.label}</div>
+          <div style={{ marginTop: 22, fontSize: 12, color: INK_LABEL, fontFamily: 'Inter, sans-serif', letterSpacing: '0.02em' }}>
             Built from <span style={{ color: HP.textSoft, fontWeight: 600 }}>{filmsLogged}</span> logged ·{' '}
             <span style={{ color: HP.textSoft, fontWeight: 600 }}>{filmsRated}</span> rated ·{' '}
             <span style={{ color: HP.textSoft, fontWeight: 600 }}>{moodSignals}</span> mood signal{moodSignals === 1 ? '' : 's'}
@@ -47,23 +47,23 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
 
         {/* Right — honest explanation, state-aware guidance, Tonight connection */}
         <div style={{ maxWidth: 520 }}>
-          <p style={{ margin: 0, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 16, lineHeight: 1.65, color: HP.textSoft, textWrap: 'pretty' }}>
+          <p style={{ margin: 0, fontFamily: 'Inter, sans-serif', fontSize: 16, lineHeight: 1.65, color: HP.textSoft, textWrap: 'pretty' }}>
             This is how much <strong style={{ color: HP.text, fontWeight: 600 }}>taste evidence</strong> FeelFlick has to
             work with — not a score of you, and not a measure of accuracy. It climbs as you log films, rate them, set
             preferences, and react to your nightly picks.
           </p>
-          <p style={{ margin: '16px 0 0 0', fontSize: 14, lineHeight: 1.6, color: INK_LABEL, fontFamily: 'Outfit, Inter, sans-serif' }}>
+          <p style={{ margin: '16px 0 0 0', fontSize: 14, lineHeight: 1.6, color: INK_LABEL, fontFamily: 'Inter, sans-serif' }}>
             {cold
               ? 'A low number is completely normal when you’re new — the more you watch and react, the more personal your nightly pick gets.'
               : 'FeelFlick is reading you well — keep logging and rating, and it keeps sharpening.'}
           </p>
-          <p style={{ margin: '20px 0 0 0', fontSize: 13, lineHeight: 1.5, color: INK_LABEL, fontFamily: 'Outfit', fontStyle: 'italic' }}>
+          <p style={{ margin: '20px 0 0 0', fontSize: 13, lineHeight: 1.5, color: INK_LABEL, fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>
             This profile is what FeelFlick weighs when it chooses your one film each night.
           </p>
           {cold && (
             <Link
               to="/home"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 24, padding: '11px 20px', borderRadius: RADIUS.sm, background: HP_GRAD, color: '#fff', fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textDecoration: 'none', boxShadow: '0 10px 26px -10px rgba(167,139,250,0.5)' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 24, padding: '11px 20px', borderRadius: RADIUS.sm, background: ROSE, color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textDecoration: 'none', boxShadow: '0 10px 26px -10px rgba(221,78,131,0.35)' }}
             >
               See tonight’s pick →
             </Link>

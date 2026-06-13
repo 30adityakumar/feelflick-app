@@ -154,9 +154,9 @@ For architecture, file placement, imports, dependencies, configuration, and refa
 
 The current design system is a baseline, not a permanent constraint.
 
-The preferred direction under validation is warm cinematic neutrals, controlled rose, muted plum, contextual mood or poster-derived color, Inter for interface, Newsreader for editorial voice, poster-first composition, deliberate motion, and reduced decorative chrome.
+The approved direction (validated by F0 Design Lab prototypes + adversarial critique, migrated to `/home` in F1–F2, 2026-06-12) is: warm cinematic dark neutrals, ivory/bone text, hairline rules, restrained rose (`#DD4E83`) as red-ink accent, Newsreader for editorial voice, Inter for interface, poster as cinematic object, numbered I/II recommendation case where truthful data supports it, reduced decorative chrome. The purple→pink gradient CTA is retired on migrated surfaces.
 
-Do not treat this direction as fully adopted until rendered comparisons demonstrate that it improves the product.
+This direction is confirmed for `/home`. Migration order: Movie Detail → Discover → Landing → profile/library. For anti-patterns, recommendation case rules, and what not to touch yet, read `docs/ui/design-authority-f3.md`.
 
 For brand, typography, color, layout, motion, composition, and design migration, read `.claude/rules/design-system.md`.
 
@@ -205,38 +205,6 @@ Use skills for repeatable procedures. Use rules for durable standards. Do not du
 
 ## Persona QA / Synthetic Feedback Lab
 
-FeelFlick has a reusable synthetic persona QA workflow under `docs/personas/`.
+Use `/persona-feedback-audit` for read-only synthetic persona feedback audits. Detailed workflow, safety rules, safe artifacts, and handoff guidance live in `.claude/skills/persona-feedback-audit/SKILL.md` and `docs/personas/README.md`.
 
-Use it for read-only product feedback when the user asks about persona QA, synthetic beta users, felt-experience audit, trust/clarity feedback, or how the app feels to different users.
-
-Primary read-only skill:
-
-```text
-/persona-feedback-audit
-```
-
-Skill file:
-
-```text
-.claude/skills/persona-feedback-audit/SKILL.md
-```
-
-Guardrails:
-
-- Synthetic persona findings are UX inspection only, not real-user validation.
-- Do not treat local console/request warnings as confirmed production bugs without review.
-- Do not tune recommendation logic from synthetic findings alone.
-- Do not modify source code when the user asks for feedback only.
-- Never read or print `e2e/.auth/personas/*.json`.
-- Never print cookies, localStorage, JWTs, passwords, service role keys, anon keys, or auth-state contents.
-
-Safe docs:
-
-- `docs/personas/persona-qa-workflow.md`
-- `docs/personas/synthetic-personas-f10c.md`
-- `docs/personas/persona-revisit-rubric.json`
-
-Safe generated summaries:
-
-- `e2e/.persona-artifacts/revisit-summary.json`
-- `e2e/.persona-artifacts/reports/*.md`
+Synthetic persona findings are UX inspection only, not real-user validation; never read or print `e2e/.auth/personas/*.json`, browser storage, screenshots, `.env` files, or secrets.

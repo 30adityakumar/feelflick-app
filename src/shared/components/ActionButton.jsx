@@ -1,9 +1,9 @@
 // src/shared/components/ActionButton.jsx
 import { Loader2 } from 'lucide-react'
-import { HP, HP_GRAD } from '@/shared/lib/tokens'
+import { HP, ROSE } from '@/shared/lib/tokens'
 
 /**
- * Canonical in-card action buttons (rounded-8, Outfit 14) — the "act on this card"
+ * Canonical in-card action buttons (rounded-8, Inter 14) — the "act on this card"
  * family shared by the /home Briefing and the /movie Film File. Distinct from the
  * shared <Button> (rounded-full CTA pill) by design.
  *
@@ -11,10 +11,10 @@ import { HP, HP_GRAD } from '@/shared/lib/tokens'
  * surface owns its LAYOUT (flex / width / mobile arrangement) via `className`, since
  * the Briefing's 4-in-a-row and the Film File's 3-stack are legitimately different.
  *
- * <ActionButton>          — gradient primary ("See More" / "Play Trailer").
+ * <ActionButton>          — solid rose primary ("See More" / "Play Trailer").
  * <SecondaryActionButton> — outline Watched/Save/Skip taps. `active` tints to
- *   `accent` (purple by default; /movie passes its film-palette colour); `collapse`
- *   makes it a 44×44 icon-only target on mobile (for tight rows) → labeled on lg+.
+ *   `accent` (purple by default; migrated surfaces pass rose / a film-palette colour);
+ *   `collapse` makes it a 44×44 icon-only target on mobile (tight rows) → labeled on lg+.
  */
 
 const BASE = 'inline-flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed'
@@ -25,10 +25,10 @@ export function ActionButton({ className = '', style, children, ...props }) {
       type="button"
       className={`${BASE} rounded-lg ${className}`.trim()}
       style={{
-        background: HP_GRAD, border: 'none', color: '#fff',
-        fontFamily: 'Outfit', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
+        background: ROSE, border: 'none', color: '#fff',
+        fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
         padding: '14px 22px', cursor: 'pointer',
-        boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)',
+        boxShadow: '0 12px 28px -8px rgba(221,78,131,0.5)',
         ...style,
       }}
       {...props}
@@ -39,8 +39,8 @@ export function ActionButton({ className = '', style, children, ...props }) {
 }
 
 /**
- * Canonical gradient micro-CTA chip — the small uppercase "Open shelf →" /
- * "Back to shelves →" pill used across the lists surfaces. Gradient, Outfit 11,
+ * Canonical rose micro-CTA chip — the small uppercase "Open shelf →" /
+ * "Back to shelves →" pill used across the lists surfaces. Solid rose, Inter 11,
  * radius-6, uppercase with wide tracking. The compact sibling of <ActionButton>
  * (full-size primary) — same brand DNA, chip scale.
  *
@@ -52,8 +52,8 @@ export function ChipButton({ className = '', style, children, ...props }) {
       type="button"
       className={`${BASE} rounded-md ${className}`.trim()}
       style={{
-        background: HP_GRAD, border: 'none', color: '#fff',
-        fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
+        background: ROSE, border: 'none', color: '#fff',
+        fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
         textTransform: 'uppercase', padding: '10px 18px', cursor: 'pointer',
         ...style,
       }}
@@ -87,7 +87,7 @@ export function SecondaryActionButton({
       aria-pressed={active === undefined ? undefined : isActive}
       className={`${BASE} ${layout} ${className}`.trim()}
       style={{
-        fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.textSoft,
+        fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: HP.textSoft,
         background: isActive ? `${accent}2e` : 'rgba(255,255,255,0.06)',
         border: `1px solid ${isActive ? `${accent}66` : HP.border}`,
         cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.65 : 1,

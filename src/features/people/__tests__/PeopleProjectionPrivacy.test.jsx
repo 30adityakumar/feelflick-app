@@ -212,7 +212,7 @@ describe('F8.5 — dead social surfaces removed', () => {
     for (const dead of ['USER', 'TWINS', 'RISING', 'ACTIVITY', 'CREW_OVERLAP', 'SUGGESTED']) {
       expect(peopleData[dead]).toBeUndefined()
     }
-    expect(Object.keys(peopleData).sort()).toEqual(['HP', 'HP_GRAD'])
+    expect(Object.keys(peopleData).sort()).toEqual(['HP', 'ROSE'])
     // no fabricated names / reviews left behind as accidental future source material
     for (const fake of ['Marco Reyes', 'Priya Shah', 'Park Chan-wook', 'airport scene', 'Refn-coded']) {
       expect(peopleDataSource).not.toContain(fake)

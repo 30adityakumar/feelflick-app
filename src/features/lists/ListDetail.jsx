@@ -15,7 +15,7 @@ import MoodPill from '@/shared/components/MoodPill'
 import { ChipButton } from '@/shared/components/ActionButton'
 import './lists.css'
 
-import { HP, HP_GRAD } from '@/shared/lib/tokens'
+import { HP, ROSE } from '@/shared/lib/tokens'
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
 function capitalize(s) {
@@ -270,7 +270,7 @@ export default function ListDetail() {
           <button
             type="button"
             onClick={() => navigate('/lists')}
-            style={{ ...RESET_BTN, fontSize: 11, color: HP.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Outfit', marginBottom: 24 }}
+            style={{ ...RESET_BTN, fontSize: 11, color: HP.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif', marginBottom: 24 }}
           >
             ← Back to shelves
           </button>
@@ -281,20 +281,20 @@ export default function ListDetail() {
             {/* === LEFT: sticky meta + actions === */}
             <div className="ff-lists-detail-meta" style={{ position: 'sticky', top: 32 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple }}>Cinematic list</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE }}>Cinematic list</div>
                 {list.is_public ? (
-                  <div style={{ padding: '3px 8px', borderRadius: 3, background: 'rgba(52,211,153,0.18)', border: `1px solid ${HP.green}66`, fontSize: 9, fontWeight: 700, color: HP.green, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Public</div>
+                  <div style={{ padding: '3px 8px', borderRadius: 3, background: 'rgba(52,211,153,0.18)', border: `1px solid ${HP.green}66`, fontSize: 9, fontWeight: 700, color: HP.green, fontFamily: 'Inter, sans-serif', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Public</div>
                 ) : (
-                  <div style={{ padding: '3px 8px', borderRadius: 3, background: 'rgba(0,0,0,0.4)', border: `1px solid ${HP.border}`, fontSize: 9, fontWeight: 700, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Private</div>
+                  <div style={{ padding: '3px 8px', borderRadius: 3, background: 'rgba(0,0,0,0.4)', border: `1px solid ${HP.border}`, fontSize: 9, fontWeight: 700, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Private</div>
                 )}
               </div>
 
-              <h1 className="ff-lists-detail-h1" style={{ fontFamily: 'Outfit', fontSize: 56, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+              <h1 className="ff-lists-detail-h1" style={{ fontFamily: 'var(--font-editorial)', fontSize: 56, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
                 {list.title}
               </h1>
 
               {list.description && (
-                <p style={{ marginTop: 20, fontSize: 15, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.6, textWrap: 'pretty' }}>
+                <p style={{ marginTop: 20, fontSize: 15, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.6, textWrap: 'pretty' }}>
                   &ldquo;{list.description}&rdquo;
                 </p>
               )}
@@ -310,13 +310,13 @@ export default function ListDetail() {
                   {ownerAvatarUrl ? (
                     <img src={ownerAvatarUrl} alt="" referrerPolicy="no-referrer" style={{ width: 36, height: 36, borderRadius: 999, objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ width: 36, height: 36, borderRadius: 999, background: HP_GRAD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a0510', fontFamily: 'Outfit', fontWeight: 700, fontSize: 14 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 999, background: `${ROSE}33`, border: `1px solid ${ROSE}66`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 14 }}>
                       {ownerInitial}
                     </div>
                   )}
                   <div>
-                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text }}>{ownerDisplayName}</div>
-                    <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em', marginTop: 2 }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: HP.text }}>{ownerDisplayName}</div>
+                    <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em', marginTop: 2 }}>
                       {films.length} film{films.length === 1 ? '' : 's'} · updated {timeAgo(list.updated_at)}
                     </div>
                   </div>
@@ -336,10 +336,10 @@ export default function ListDetail() {
                     aria-label={isFollowing ? 'Unfollow this list' : 'Follow this list'}
                     style={{
                       padding: '10px 18px', borderRadius: 6,
-                      background: isFollowing ? 'transparent' : HP_GRAD,
+                      background: isFollowing ? 'transparent' : '#DD4E83',
                       border: isFollowing ? `1px solid ${HP.border}` : 'none',
                       color: isFollowing ? HP.textSoft : '#fff',
-                      fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
+                      fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
                       cursor: followBusy ? 'wait' : 'pointer',
                       opacity: followBusy ? 0.7 : 1,
                     }}
@@ -351,7 +351,7 @@ export default function ListDetail() {
                   <button
                     type="button"
                     onClick={handleShare}
-                    style={{ padding: '10px 16px', borderRadius: 6, background: linkCopied ? 'rgba(52,211,153,0.18)' : 'rgba(255,255,255,0.06)', border: `1px solid ${linkCopied ? HP.green + '66' : HP.border}`, color: linkCopied ? HP.green : HP.textSoft, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                    style={{ padding: '10px 16px', borderRadius: 6, background: linkCopied ? 'rgba(52,211,153,0.18)' : 'rgba(255,255,255,0.06)', border: `1px solid ${linkCopied ? HP.green + '66' : HP.border}`, color: linkCopied ? HP.green : HP.textSoft, fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                   >
                     {linkCopied ? 'Copied ✓' : 'Copy link'}
                   </button>
@@ -361,14 +361,14 @@ export default function ListDetail() {
                     <button
                       type="button"
                       onClick={() => setShowEdit(true)}
-                      style={{ padding: '10px 16px', borderRadius: 6, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                      style={{ padding: '10px 16px', borderRadius: 6, background: '#DD4E83', border: 'none', color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                     >
                       Edit details
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditMode(m => !m)}
-                      style={{ padding: '10px 16px', borderRadius: 6, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.border}`, color: HP.textSoft, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                      style={{ padding: '10px 16px', borderRadius: 6, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.border}`, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                     >
                       {editMode ? 'Done' : 'Reorder · remove'}
                     </button>
@@ -376,7 +376,7 @@ export default function ListDetail() {
                       type="button"
                       onClick={handleDelete}
                       disabled={deleting}
-                      style={{ padding: '10px 16px', borderRadius: 6, background: confirmDelete ? 'rgba(239,68,68,0.18)' : 'transparent', border: `1px solid ${confirmDelete ? HP.red + '66' : HP.border}`, color: confirmDelete ? HP.red : HP.textMuted, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: deleting ? 'wait' : 'pointer', opacity: deleting ? 0.6 : 1 }}
+                      style={{ padding: '10px 16px', borderRadius: 6, background: confirmDelete ? 'rgba(239,68,68,0.18)' : 'transparent', border: `1px solid ${confirmDelete ? HP.red + '66' : HP.border}`, color: confirmDelete ? HP.red : HP.textMuted, fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: deleting ? 'wait' : 'pointer', opacity: deleting ? 0.6 : 1 }}
                     >
                       {deleting ? 'Deleting…' : confirmDelete ? 'Confirm delete?' : 'Delete'}
                     </button>
@@ -391,15 +391,15 @@ export default function ListDetail() {
             <div style={{ borderTop: `1px solid ${HP.border}` }}>
               {films.length === 0 ? (
                 <div style={{ padding: '64px 0', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'Outfit', fontSize: 16, fontWeight: 500, color: HP.text, marginBottom: 8 }}>No films yet</div>
-                  <div style={{ fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', marginBottom: 24 }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: HP.text, marginBottom: 8 }}>No films yet</div>
+                  <div style={{ fontSize: 13, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginBottom: 24 }}>
                     {isOwner ? 'Open any film page and tap "Add to list" to drop something here.' : 'Nothing on this shelf yet.'}
                   </div>
                   {isOwner && (
                     <button
                       type="button"
                       onClick={() => navigate('/browse')}
-                      style={{ padding: '10px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: HP.text, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                      style={{ padding: '10px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: HP.text, fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                     >
                       Browse films →
                     </button>
@@ -411,7 +411,7 @@ export default function ListDetail() {
                     key={f.movieId}
                     style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr auto', gap: 24, alignItems: 'center', padding: '20px 0', borderBottom: `1px solid ${HP.border}` }}
                   >
-                    <div style={{ fontFamily: 'Outfit', fontSize: 24, fontWeight: 200, color: HP.textMuted, letterSpacing: '-0.04em', width: 36, textAlign: 'right' }}>{String(i + 1).padStart(2, '0')}</div>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 200, color: HP.textMuted, letterSpacing: '-0.04em', width: 36, textAlign: 'right' }}>{String(i + 1).padStart(2, '0')}</div>
                     {f.poster ? (
                       <img src={f.poster} alt="" style={{ width: 52, height: 78, objectFit: 'cover', borderRadius: 4 }} />
                     ) : (
@@ -423,12 +423,12 @@ export default function ListDetail() {
                       style={{ ...RESET_BTN, width: '100%' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                        <span style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</span>
-                        <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit' }}>{f.year}{f.year && f.dir && ' · '}{f.dir}</span>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</span>
+                        <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif' }}>{f.year}{f.year && f.dir && ' · '}{f.dir}</span>
                         {f.mood && <MoodPill label={f.mood} dot />}
                       </div>
                       {f.note && (
-                        <p style={{ margin: '6px 0 0 0', fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', textWrap: 'pretty' }}>
+                        <p style={{ margin: '6px 0 0 0', fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontStyle: 'italic', textWrap: 'pretty' }}>
                           &ldquo;{f.note}&rdquo;
                         </p>
                       )}
@@ -460,7 +460,7 @@ export default function ListDetail() {
                           onClick={() => handleRemoveFilm(f.movieId)}
                           aria-label={`Remove ${f.title}`}
                           title="Remove"
-                          style={{ ...RESET_BTN, padding: '6px 10px', borderRadius: 4, background: 'rgba(239,68,68,0.10)', border: `1px solid ${HP.red}33`, color: HP.red, fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginLeft: 4 }}
+                          style={{ ...RESET_BTN, padding: '6px 10px', borderRadius: 4, background: 'rgba(239,68,68,0.10)', border: `1px solid ${HP.red}33`, color: HP.red, fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginLeft: 4 }}
                         >
                           Remove
                         </button>
@@ -510,8 +510,8 @@ function NotFound({ onBack }) {
   return (
     <div style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 520 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 18 }}>List · 404</div>
-        <h1 style={{ fontFamily: 'Outfit', fontSize: 40, fontWeight: 500, color: HP.text, margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>This shelf isn&rsquo;t here.</h1>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE, marginBottom: 18 }}>List · 404</div>
+        <h1 style={{ fontFamily: 'var(--font-editorial)', fontSize: 40, fontWeight: 400, color: HP.text, margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>This shelf isn&rsquo;t here.</h1>
         <p style={{ margin: '0 0 24px 0', color: 'rgba(250,250,250,0.6)', fontSize: 14, lineHeight: 1.6 }}>It may have been deleted, made private, or it never existed.</p>
         <ChipButton onClick={onBack}>
           Back to shelves →

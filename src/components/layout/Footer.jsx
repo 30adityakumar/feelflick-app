@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom'
 // === CONSTANTS ===
 
 const LINK_CLS =
-  'text-sm text-white/40 hover:text-white/60 transition-colors duration-200 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black'
+  'text-sm text-white/40 hover:text-white/60 transition-colors duration-200 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DD4E83]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black'
 
 const PRODUCT_LINKS = [
   { label: 'Discover',  to: '/discover'  },
@@ -56,10 +56,9 @@ export default function Footer() {
   return (
     <footer ref={barRef} className="bg-black" role="contentinfo">
 
-      {/* Top border — same purple gradient as every section above */}
       <div
         className="h-px"
-        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(168,85,247,0.2) 50%, transparent 100%)' }}
+        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(221,78,131,0.18) 50%, transparent 100%)' }}
         aria-hidden="true"
       />
 
@@ -133,7 +132,7 @@ export default function Footer() {
 
           {/* Brand — display only, not a link in footer context */}
           <div>
-            <p className="text-lg font-black tracking-tight bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent select-none">
+            <p className="text-lg font-black tracking-tight select-none" style={{ color: '#DD4E83', letterSpacing: '-0.03em' }}>
               FEELFLICK
             </p>
             <p className="text-xs text-white/50">Films That Know You</p>

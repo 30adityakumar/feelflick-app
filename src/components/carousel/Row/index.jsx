@@ -171,7 +171,7 @@ export const CarouselRow = memo(function CarouselRow({
           className="mb-4 flex items-center gap-3"
           style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
         >
-          <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
+          <div className="w-[2px] h-5 bg-[#DD4E83] opacity-60" />
           <div className="skeleton h-4 w-44 rounded-full" />
         </div>
         <div
@@ -184,7 +184,7 @@ export const CarouselRow = memo(function CarouselRow({
           {[...Array(6)].map((_, index) => (
             <div
               key={index}
-              className="skeleton animate-pulse flex-none rounded-xl bg-purple-950/20"
+              className="skeleton animate-pulse flex-none rounded-xl bg-white/5"
               style={{ width: itemWidth, height: posterHeight, animationDelay: `${index * 60}ms` }}
             />
           ))}
@@ -206,11 +206,11 @@ export const CarouselRow = memo(function CarouselRow({
         className="mb-4 flex items-center gap-3"
         style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
       >
-        <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
+        <div className="w-[2px] h-5 bg-[#DD4E83] opacity-60" />
         <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
           {title}
         </h2>
-        <div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
+        <div className="h-px flex-1 bg-linear-to-r from-[rgba(221,78,131,0.15)] via-white/5 to-transparent" />
         {onShuffle && (
           <button
             type="button"

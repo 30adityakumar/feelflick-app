@@ -1,13 +1,12 @@
-/* preferences.css */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+/* preferences.css — fonts load globally via index.html */
 .ff-preferences-v2 { font-family:'Inter', system-ui, sans-serif; }
 .ff-preferences-v2 em { font-style: italic; }
 .ff-preferences-v2 button { font-family: inherit; transition: filter 0.18s ease; }
 .ff-preferences-v2 button:hover { filter: brightness(1.12); }
-.ff-preferences-v2 input[type=range] { accent-color: #A78BFA; }
-.ff-preferences-v2 ::selection { background: rgba(167,139,250,0.4); color:#fff; }
+.ff-preferences-v2 input[type=range] { accent-color: #DD4E83; }
+.ff-preferences-v2 ::selection { background: rgba(221,78,131,0.35); color:#fff; }
 .ff-preferences-v2 button:focus-visible,
-.ff-preferences-v2 [role=switch]:focus-visible { outline: 2px solid #A78BFA; outline-offset: 2px; }
+.ff-preferences-v2 [role=switch]:focus-visible { outline: 2px solid #DD4E83; outline-offset: 2px; }
 
 /* F9.3: phone-safe — the wide desktop section padding (88px) crushed the grids at <=430px.
    Pull it in so content has room; the inline grids use auto-fit/minmax to stack. */

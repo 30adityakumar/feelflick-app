@@ -15,7 +15,7 @@
 //    returned identity data is not altered or overwritten.
 
 import FilmFileDisclosure from './FilmFileDisclosure'
-import { HP, RADIUS } from '../data'
+import { HP, ROSE, RADIUS } from '../data'
 
 const starText = (rating10) => `${(rating10 / 2).toFixed(1)} out of 5 stars`
 
@@ -29,7 +29,7 @@ function FriendsSummary({ friends }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex' }}>
           {friends.slice(0, 5).map((f, i) => (
-            <div key={f.id} style={{ width: 36, height: 36, borderRadius: RADIUS.pill, background: f.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0A0510', fontSize: 14, border: '2px solid #06060a', marginLeft: i > 0 ? -10 : 0, overflow: 'hidden' }}>
+            <div key={f.id} style={{ width: 36, height: 36, borderRadius: RADIUS.pill, background: f.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#0A0510', fontSize: 14, border: '2px solid #06060a', marginLeft: i > 0 ? -10 : 0, overflow: 'hidden' }}>
               {f.avatarUrl
                 ? <img src={f.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : (f.name || '?').charAt(0).toUpperCase()}
@@ -37,10 +37,10 @@ function FriendsSummary({ friends }) {
           ))}
         </div>
         <div>
-          <div style={{ fontFamily: 'Outfit', fontSize: 16, fontWeight: 500, color: HP.text, letterSpacing: '-0.01em' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500, color: HP.text, letterSpacing: '-0.01em' }}>
             {friends.length} {friends.length === 1 ? 'person' : 'people'} you follow loved this
           </div>
-          <div style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 2 }}>
             {summaryNames} · avg <span style={{ color: HP.amber, fontWeight: 600 }}>{avgDisplay}★</span>
           </div>
         </div>
@@ -53,13 +53,13 @@ function FriendsSummary({ friends }) {
           {noted.map((f) => (
             <div key={f.id} style={{ padding: '14px 16px', borderRadius: RADIUS.sm, background: 'rgba(255,255,255,0.03)', border: `1px solid ${HP.border}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: RADIUS.pill, background: f.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0A0510', fontSize: 12, overflow: 'hidden' }}>
+                <div style={{ width: 28, height: 28, borderRadius: RADIUS.pill, background: f.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#0A0510', fontSize: 12, overflow: 'hidden' }}>
                   {f.avatarUrl ? <img src={f.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (f.name || '?').charAt(0).toUpperCase()}
                 </div>
-                <div style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, color: HP.text }}>{f.name}</div>
-                <div style={{ marginLeft: 'auto', fontSize: 11, color: HP.amber, fontFamily: 'Outfit', fontWeight: 700 }} aria-label={starText(f.rating)}>{(f.rating / 2).toFixed(1)}★</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: HP.text }}>{f.name}</div>
+                <div style={{ marginLeft: 'auto', fontSize: 11, color: HP.amber, fontFamily: 'Inter, sans-serif', fontWeight: 700 }} aria-label={starText(f.rating)}>{(f.rating / 2).toFixed(1)}★</div>
               </div>
-              <div style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>
+              <div style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'var(--font-editorial)', fontStyle: 'italic' }}>
                 {f.reviewText}
               </div>
             </div>
@@ -78,12 +78,12 @@ function TwinSpotlight({ twin }) {
   return (
     <div className="ff-movie-twin-anon" style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
       {/* generic, identity-free glyph */}
-      <div aria-hidden="true" style={{ flexShrink: 0, width: 44, height: 44, borderRadius: RADIUS.pill, background: 'rgba(167,139,250,0.12)', border: `1px solid ${HP.purple}33`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={HP.purple} strokeWidth="1.6"><circle cx="12" cy="8" r="4" /><path d="M4 21v-1a8 8 0 0 1 16 0v1" /></svg>
+      <div aria-hidden="true" style={{ flexShrink: 0, width: 44, height: 44, borderRadius: RADIUS.pill, background: 'rgba(221,78,131,0.10)', border: `1px solid ${ROSE}33`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ROSE} strokeWidth="1.6"><circle cx="12" cy="8" r="4" /><path d="M4 21v-1a8 8 0 0 1 16 0v1" /></svg>
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 600, color: HP.text }}>A taste twin rated this film</div>
-        <div style={{ fontSize: 11.5, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: HP.text }}>A taste twin rated this film</div>
+        <div style={{ fontSize: 11.5, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 2 }}>
           {twin.matchPct}% overall taste similarity · rated {twin.watchedDate}
         </div>
         <div style={{ marginTop: 10, display: 'inline-flex', gap: 3 }} aria-label={starText(twin.rating)}>
@@ -93,12 +93,12 @@ function TwinSpotlight({ twin }) {
         </div>
         {twin.note
           ? (
-            <p style={{ margin: '12px 0 0 0', fontFamily: 'Outfit, Inter, sans-serif', fontSize: 16, lineHeight: 1.5, color: HP.text, fontStyle: 'italic', letterSpacing: '-0.012em', textWrap: 'pretty' }}>
+            <p style={{ margin: '12px 0 0 0', fontFamily: 'var(--font-editorial)', fontSize: 16, lineHeight: 1.5, color: HP.text, fontStyle: 'italic', letterSpacing: '-0.012em', textWrap: 'pretty' }}>
               “{twin.note}”
             </p>
             )
           : (
-            <p style={{ margin: '12px 0 0 0', fontFamily: 'Outfit, Inter, sans-serif', fontSize: 14, lineHeight: 1.5, color: HP.textSoft, fontStyle: 'italic' }}>
+            <p style={{ margin: '12px 0 0 0', fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.5, color: HP.textSoft, fontStyle: 'italic' }}>
               No note yet — just the rating.
             </p>
             )}

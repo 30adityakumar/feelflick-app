@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronRight, SkipForward } from 'lucide-react'
-import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
+import { SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
@@ -12,9 +12,29 @@ import { recordRecommendationOutcome } from '@/shared/services/recommendationOut
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, MOOD_META } from './data'
 import { SmartImg } from './atoms'
-import WhyThisPick from './WhyThisPick'
+import WhyThisPick, { CaseRung, ROSE } from './WhyThisPick'
 import { todaySeed, buildBriefingQueue } from './homeDerive'
 import { useHomeData } from './useHomeData'
+
+// F1 — Midnight Film Journal palette, SCOPED to the Briefing surface (this is an
+// accepted-direction migration of /home's top section only; these values are not
+// yet promoted to shared tokens). Warm ivory ink + brand rose accent on the dark
+// canvas, replacing the briefing's purple/gradient dependence.
+const EDITORIAL = 'var(--font-editorial)'      // Newsreader — the curator voice
+const IVORY = '#F2ECE1'                          // warm display ink (titles)
+const IVORY_SOFT = 'rgba(242,236,225,0.82)'      // body / synopsis
+const IVORY_META = 'rgba(242,236,225,0.62)'      // metadata caps (AA on near-black)
+const IVORY_SEP = 'rgba(242,236,225,0.30)'       // meta separators
+const IVORY_LABEL = 'rgba(242,236,225,0.70)'     // quiet case label (reserve rose for the kicker + the "why")
+const HAIRLINE = 'rgba(242,236,225,0.12)'        // case + action rules
+const WARM_KEYLINE = 'rgba(242,236,225,0.20)'    // warm secondary-control + chip border
+const ROSE_MAT = 'rgba(221,78,131,0.30)'         // poster plate keyline
+
+// Warm retone for the shared <SecondaryActionButton> on this surface: a warm
+// ivory keyline + bone label instead of the cool-grey default, applied via the
+// component's `style` passthrough. Background is intentionally NOT overridden so
+// the rose active tint (accent={ROSE}) and loading/disabled states still work.
+const SECONDARY_STYLE = { borderColor: WARM_KEYLINE, color: IVORY_SOFT }
 
 // The Briefing presents ONE confident pick. Its eyebrow is a constant —
 // "Tonight's pick" — never a positional label. (The old 3-slot slider used
@@ -49,7 +69,7 @@ export function MoodReactor({ currentMood, setMood }) {
     <section className="px-5 pt-5 pb-2 sm:px-8 sm:pt-6 sm:pb-4 lg:px-[88px] lg:pt-[12px] lg:pb-5">
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
         <div className="flex flex-none items-baseline gap-2.5">
-          <span aria-hidden style={{ height: 1, width: 18, background: HP.purple, opacity: 0.6, alignSelf: 'center' }} />
+          <span aria-hidden style={{ height: 1, width: 18, background: ROSE, opacity: 0.6, alignSelf: 'center' }} />
           <Eyebrow color={HP.textMuted} size={10} style={{ whiteSpace: 'nowrap' }}>Adjust mood</Eyebrow>
         </div>
         <div
@@ -67,7 +87,7 @@ export function MoodReactor({ currentMood, setMood }) {
               data-mood-id={m.id}
               aria-pressed={active}
               onClick={() => setMood(m)}
-              className="ff-tap focus:outline-none focus-visible:ring-2 focus-visible:ring-white/55"
+              className="ff-tap focus-visible:ring-2 focus-visible:ring-white/55"
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 minHeight: 44, padding: '8px 14px', borderRadius: 999,
@@ -76,7 +96,7 @@ export function MoodReactor({ currentMood, setMood }) {
                 background: active ? `${m.hex}22` : 'transparent',
                 border: `1px solid ${active ? m.hex : HP.border}`,
                 color: active ? HP.text : HP.textSoft,
-                fontFamily: 'Outfit', fontSize: 12, fontWeight: 500,
+                fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500,
                 letterSpacing: '-0.005em', cursor: 'pointer', transition: 'all 0.25s ease',
                 flex: 'none',
               }}
@@ -93,18 +113,21 @@ export function MoodReactor({ currentMood, setMood }) {
 }
 
 // In-card action buttons are the canonical family in shared/components/ActionButton
-// (rounded-8, Outfit — shared with /movie so the briefing actions don't feel like a
+// (rounded-8, Inter — shared with /movie so the briefing actions don't feel like a
 // different system). The three below are thin wrappers that add the icon, label, and
-// active state on top of <SecondaryActionButton>; the gradient "Open Film File"
-// primary uses <ActionButton> directly. F4.6: a Home-local focus-visible ring is
-// passed via className (without touching the shared component), and the decorative
-// icons are aria-hidden (the text label is the accessible name).
-const FOCUS_RING = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-white/55 focus-visible:ring-offset-0'
+// active state on top of <SecondaryActionButton>, each passing accent={ROSE} so the
+// active tint matches this migrated surface. F4.6/F1-A: the ring classes below currently
+// render nothing (Tailwind v4.3 ring layers collapse at box-shadow substitution);
+// visible keyboard focus comes from the global :focus-visible outline in
+// src/styles/globals.css — do NOT add focus:outline-none here, it suppresses it.
+const FOCUS_RING = 'focus-visible:ring-2 focus-visible:ring-white/55 focus-visible:ring-offset-0'
 
 function WatchedButton({ isWatched, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
+      accent={ROSE}
+      style={SECONDARY_STYLE}
       className={FOCUS_RING}
       active={isWatched}
       loading={loading}
@@ -120,6 +143,8 @@ function SaveButton({ isInWatchlist, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
+      accent={ROSE}
+      style={SECONDARY_STYLE}
       className={FOCUS_RING}
       active={isInWatchlist}
       loading={loading}
@@ -137,6 +162,7 @@ function SkipButton({ onClick }) {
   return (
     <SecondaryActionButton
       collapse
+      style={SECONDARY_STYLE}
       className={FOCUS_RING}
       onClick={onClick}
       title="Not tonight"
@@ -185,8 +211,8 @@ function StreamingChip({ provider }) {
     : 'Buy on'
   return (
     <div
-      className="inline-flex items-center gap-2.5 rounded-lg border border-white/[0.07] bg-white/4 px-2.5 py-1.5"
-      style={{ maxWidth: '100%' }}
+      className="inline-flex items-center gap-2.5 rounded-md px-2.5 py-1.5"
+      style={{ maxWidth: '100%', background: 'transparent', border: `1px solid ${WARM_KEYLINE}` }}
     >
       <img
         src={`https://image.tmdb.org/t/p/w92${provider.logoPath}`}
@@ -195,8 +221,8 @@ function StreamingChip({ provider }) {
         loading="lazy"
       />
       <div className="min-w-0">
-        <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textFaint, lineHeight: 1, margin: 0 }}>{label}</p>
-        <p style={{ fontSize: 12, fontWeight: 600, color: HP.text, lineHeight: 1, marginTop: 4 }} className="truncate">{provider.name}</p>
+        <p style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: IVORY_META, lineHeight: 1, margin: 0 }}>{label}</p>
+        <p style={{ fontSize: 12, fontWeight: 600, color: IVORY, lineHeight: 1, marginTop: 4 }} className="truncate">{provider.name}</p>
       </div>
     </div>
   )
@@ -299,113 +325,150 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
 
   return (
     <div className="flex flex-col items-center gap-5 lg:flex-row lg:items-end lg:gap-14">
-      {/* Poster column — clickable. Mobile max-width is the tightest of the
-          three (180px, was 210px) so the single pick + its primary CTA clear
-          the ~844px mobile fold without scrolling; sm/lg posters unchanged. */}
+      {/* Poster column — clickable, treated as a "tipped-in plate" (F1): a warm
+          ivory mat with a thin rose keyline and a neutral cinematic shadow,
+          rather than a rounded thumbnail with a purple ring. Mobile max-width
+          stays tight (the mat adds ~20px) so the pick + primary CTA still clear
+          the mobile fold. */}
       <button
         type="button"
         onClick={handleOpen}
         aria-label={`Open Film File for ${film.title}`}
-        className={`relative block w-full max-w-[180px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none ${FOCUS_RING}`}
+        className={`relative block w-full max-w-[200px] flex-none sm:max-w-[280px] lg:w-[356px] lg:max-w-none ${FOCUS_RING}`}
         style={{
-          borderRadius: 10, overflow: 'hidden',
-          background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
-          boxShadow: '0 24px 60px -16px rgba(0,0,0,0.75), 0 0 0 1px rgba(167,139,250,0.18)',
+          borderRadius: 4,
+          background: 'rgba(242,236,225,0.045)',
+          border: `1px solid ${ROSE_MAT}`,
+          padding: 10, cursor: 'pointer',
+          boxShadow: '0 34px 76px -28px rgba(0,0,0,0.88)',
         }}
       >
-        <SmartImg film={film} big style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} />
+        <SmartImg film={film} big style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block', borderRadius: 2 }} />
       </button>
 
       {/* Content column */}
       <div className="flex w-full flex-col text-center lg:flex-1 lg:text-left lg:max-w-[680px]">
         {/* Eyebrow — constant "Tonight's pick" (single confident pick, never a
-            positional label). self-center on mobile so it centers like the
-            title/meta below it; self-start on desktop matches the left column. */}
-        <Eyebrow rule className="self-center lg:self-start" style={{ marginBottom: 12 }}>{TONIGHT_LABEL}</Eyebrow>
-        {/* Title — matches the /movie/:id hero typography: Outfit 600 with a
-            tight negative letter-spacing and lineHeight 0.94. Sized down
-            from 92px to fit this two-column row, then scaled responsively
-            so it lines up with the movie-page treatment at every width. */}
+            positional label), now in the rose brand ink. */}
+        <Eyebrow rule color={ROSE} className="self-center lg:self-start" style={{ marginBottom: 14 }}>{TONIGHT_LABEL}</Eyebrow>
+        {/* Title — the editorial voice (Newsreader): the film name set like a
+            journal entry's headline, not a UI label. */}
         <h2 style={{
-          fontFamily: 'Outfit, Inter, sans-serif',
-          fontSize: 'clamp(40px, 6vw, 84px)',
-          lineHeight: 0.94,
-          fontWeight: 600,
-          letterSpacing: '-0.05em',
-          color: HP.text,
-          margin: '0 0 14px 0',
+          fontFamily: EDITORIAL,
+          fontSize: 'clamp(42px, 6vw, 88px)',
+          lineHeight: 1.0,
+          fontWeight: 500,
+          letterSpacing: '-0.015em',
+          color: IVORY,
+          margin: '0 0 16px 0',
           textWrap: 'balance',
         }}>
           {film.title}
         </h2>
-        {/* Meta: year · runtime · director */}
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 lg:justify-start" style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>
+        {/* Identity line: year · runtime · director — engraved interface caps. */}
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 lg:justify-start" style={{ fontSize: 12, color: IVORY_META, fontFamily: 'Inter, sans-serif', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 4 }}>
           {film.year && <span>{film.year}</span>}
           {film.runtime && (
             <>
-              <span style={{ color: HP.textFaint }}>·</span>
+              <span style={{ color: IVORY_SEP }}>·</span>
               <span>{film.runtime} min</span>
             </>
           )}
           {film.director && film.director !== 'Unknown' && (
             <>
-              <span style={{ color: HP.textFaint }}>·</span>
+              <span style={{ color: IVORY_SEP }}>·</span>
               <span>{film.director}</span>
             </>
           )}
         </div>
-        {/* Why this pick — the engine's grounded reason ("Because you loved …").
-            The case-making layer (F5). Null-safe: renders nothing on cold-start
-            (no reason) rather than fabricating one. */}
-        <WhyThisPick reason={film.engineReason} className="self-stretch lg:max-w-[580px]" />
-        {/* Synopsis — TMDB overview. HIDDEN on mobile (a truncated fragment
-            adds little and pushes the primary CTA below the fold); shown at
-            sm+ clamped to 2 lines, 3 on desktop. The full overview is one tap
-            away on /movie/:id. Hidden when null (some films lack overview). */}
-        {film.synopsis && (
-          <p
-            className="hidden sm:line-clamp-2 lg:line-clamp-3"
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 'clamp(13px, 1vw, 15px)',
-              lineHeight: 1.55,
-              color: 'rgba(255,255,255,0.62)',
-              margin: '0 0 12px 0',
-              maxWidth: 580,
-            }}
-          >
-            {film.synopsis}
-          </p>
-        )}
-        {/* Provider availability — desktop only (mobile drops it to keep the
-            slide tight; where-to-watch is one tap away on /movie/:id). Honest
-            states: a chip when found; quiet, secondary text for not-found /
-            unavailable (SR-reachable, never a large alert, and neither message
-            implies the film is unavailable everywhere); nothing while loading
-            (no layout shift). */}
+        {/* The case for tonight — the editorial/emotional centre. A hairline-ruled
+            numbered case (Cinematic Concierge structure) built ONLY from real,
+            available signals — never fabricated:
+              • "Why this pick" — the engine's grounded reason (film.engineReason).
+                Null-safe: omitted entirely on cold-start (no reason) rather than
+                inventing one or claiming the user's mood.
+              • "What you're in for" — the film's own TMDB overview.
+            Roman numerals appear only when BOTH rungs are present and visible (sm+);
+            a lone rung is unnumbered. On mobile the synopsis rung is dropped when a
+            reason exists (fold), so the reason — the real "why" — leads. */}
+        {(() => {
+          const hasReason = Boolean(typeof film.engineReason === 'string' && film.engineReason.trim())
+          const hasSynopsis = Boolean(film.synopsis)
+          const numbered = hasReason && hasSynopsis
+          if (!hasReason && !hasSynopsis) return null
+          return (
+            <div className="mt-5 self-stretch lg:max-w-[600px]" style={{ paddingTop: 18, borderTop: `1px solid ${HAIRLINE}` }}>
+              {hasReason && (
+                <WhyThisPick reason={film.engineReason} numeral={numbered ? 'I' : undefined} />
+              )}
+              {hasSynopsis && (
+                <CaseRung
+                  numeral={numbered ? 'II' : undefined}
+                  label="What you’re in for"
+                  /* Quiet bone label — rose is reserved for the masthead kicker
+                     and the personalised "Why this pick", per the rose-restraint
+                     discipline (don't make every eyebrow the brand accent). */
+                  accent={IVORY_LABEL}
+                  className={hasReason ? 'hidden sm:block' : 'block'}
+                  style={hasReason ? { marginTop: 20, paddingTop: 20, borderTop: `1px solid ${HAIRLINE}` } : undefined}
+                >
+                  <p
+                    className="line-clamp-3"
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 'clamp(13px, 1vw, 15px)',
+                      lineHeight: 1.6,
+                      color: IVORY_SOFT,
+                      margin: 0,
+                    }}
+                  >
+                    {film.synopsis}
+                  </p>
+                </CaseRung>
+              )}
+            </div>
+          )
+        })()}
+        {/* Provider availability — desktop only. Honest states: a chip when found;
+            quiet secondary text for not-found / unavailable; nothing while loading. */}
         {providerStatus === 'found' && provider && (
-          <div className="hidden lg:mb-5 lg:flex lg:justify-start">
+          <div className="mt-5 hidden lg:flex lg:justify-start">
             <StreamingChip provider={provider} />
           </div>
         )}
         {(providerStatus === 'empty' || providerStatus === 'error') && (
-          <p
-            className="hidden lg:mb-5 lg:block"
-            style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.04em', margin: 0 }}
-          >
-            {providerStatus === 'empty' ? 'Availability not found' : 'Availability unavailable'}
-          </p>
+          // Honest status row (sits in the StreamingChip slot): a small leading
+          // marker + its own line so "we checked and found nothing" reads as a
+          // deliberate state, not a stray trailing sentence. Neither message implies
+          // the film is unavailable everywhere.
+          <div className="mt-5 hidden items-center gap-2.5 lg:flex">
+            <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: 999, background: ROSE_MAT, flex: 'none' }} />
+            <span style={{ fontSize: 12, color: IVORY_META, fontFamily: 'Inter, sans-serif', letterSpacing: '0.08em' }}>
+              {providerStatus === 'empty' ? 'Availability not found' : 'Availability unavailable'}
+            </span>
+          </div>
         )}
-        {/* Actions — gradient primary + secondary buttons.
-            • mobile: single row — gradient "Open Film File" grows (flex-1)
-              next to three compact 44×44 round icon buttons (label
-              hidden, icon only).
-            • lg+: wrap row of four labeled pills (movie-detail style). */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 lg:justify-start" style={{ borderTop: `1px solid ${HP.border}` }}>
-          <ActionButton className={`h-11 flex-1 lg:h-auto lg:flex-none ${FOCUS_RING}`} onClick={handleOpen}>
+        {/* Actions — the journal's bone-slab primary (NOT the brand gradient) +
+            quieter outline secondaries (rose active tint). "Not tonight" sits in
+            the same row, dignified, never styled as an error/discard.
+            • mobile: single row — the slab grows (flex-1) next to three compact
+              44×44 icon buttons (label hidden).
+            • lg+: a wrap row of labeled controls. */}
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 pt-5 lg:justify-start" style={{ borderTop: `1px solid ${HAIRLINE}` }}>
+          <button
+            type="button"
+            onClick={handleOpen}
+            className={`ff-brief-primary inline-flex h-11 flex-1 items-center justify-center gap-2 lg:h-auto lg:flex-none ${FOCUS_RING}`}
+            style={{
+              fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.01em',
+              padding: '14px 26px', borderRadius: 4, minHeight: 48, cursor: 'pointer',
+              border: `1px solid ${IVORY}`,
+              boxShadow: '0 12px 30px -16px rgba(0,0,0,0.7)',
+            }}
+          >
             <span>Open Film File</span>
             <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-          </ActionButton>
+          </button>
           <WatchedButton isWatched={isWatched} loading={watchedState === 'saving'} error={watchedState === 'error'} onClick={handleMarkWatched} />
           <SaveButton isInWatchlist={isInWatchlist} loading={saveState === 'saving'} error={saveState === 'error'} onClick={handleSave} />
           <SkipButton onClick={() => onSkip?.(film)} />
@@ -432,16 +495,16 @@ function BriefingSkeleton() {
   return (
     <div role="status" aria-label="Preparing tonight's briefing">
       <div aria-hidden="true" className="flex flex-col items-center gap-5 lg:flex-row lg:items-end lg:gap-14">
-        {/* Poster */}
-        <div className="w-full max-w-[210px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none">
-          <div className="aspect-2/3 w-full animate-pulse rounded-[10px] bg-white/[0.05]" />
+        {/* Poster — matches the tipped-in plate (mat + small radius). */}
+        <div className="w-full max-w-[200px] flex-none sm:max-w-[280px] lg:w-[356px] lg:max-w-none">
+          <div className="aspect-2/3 w-full animate-pulse rounded-[4px] bg-white/[0.05] p-2.5" />
         </div>
         {/* Content column */}
         <div className="flex w-full flex-col items-center gap-4 lg:flex-1 lg:items-start lg:max-w-[680px]">
-          <div className="h-3.5 w-32 animate-pulse rounded-full bg-purple-500/15" />
-          <div className="h-12 w-3/4 animate-pulse rounded-lg bg-white/[0.06] lg:h-16" />
+          <div className="h-3.5 w-32 animate-pulse rounded-full bg-[rgba(221,78,131,0.18)]" />
+          <div className="h-14 w-3/4 animate-pulse rounded-lg bg-white/[0.06] lg:h-20" />
           <div className="h-3 w-44 animate-pulse rounded-full bg-white/[0.04]" />
-          <div className="mt-1 h-14 w-full max-w-[520px] animate-pulse rounded-lg bg-purple-500/[0.06]" />
+          <div className="mt-1 h-14 w-full max-w-[520px] animate-pulse rounded-lg bg-[rgba(221,78,131,0.07)]" />
           <div className="h-3 w-full max-w-[480px] animate-pulse rounded-full bg-white/[0.04]" />
           <div className="h-3 w-2/3 max-w-[360px] animate-pulse rounded-full bg-white/[0.04]" />
           <div className="mt-3 flex w-full flex-wrap items-center justify-center gap-2.5 lg:justify-start">
@@ -595,11 +658,16 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
 
   return (
     <section aria-label="Tonight's briefing" className="relative px-5 pt-4 pb-10 sm:px-8 sm:pt-6 sm:pb-12 lg:px-[88px] lg:pt-6 lg:pb-6">
+      {/* F1 — a soft warm pool behind the pick (Midnight Film Journal canvas),
+          scoped to the Briefing section and fading to transparent so there is no
+          seam with the page's near-black background. */}
+      <div aria-hidden="true" className="ff-brief-warm" />
+      <div className="relative" style={{ zIndex: 1 }}>
       {/* Single polite live region for Briefing pick progression + action feedback. */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{statusMsg}</div>
       {isExhausted ? (
         <div className="flex flex-col items-center gap-5 py-12 text-center">
-          <p style={{ fontSize: 15, lineHeight: 1.6, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', margin: 0, maxWidth: 480 }}>
+          <p style={{ fontSize: 15, lineHeight: 1.6, color: HP.textSoft, fontFamily: 'Inter, sans-serif', margin: 0, maxWidth: 480 }}>
             You&rsquo;ve reviewed all of tonight&rsquo;s{' '}
             <em style={{ fontStyle: 'italic', color: currentMood.hex, fontWeight: 500 }}>{currentMood.label.toLowerCase()}</em>{' '}
             picks. Switch moods below, or
@@ -607,14 +675,14 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
           <button
             type="button"
             onClick={clearHidden}
-            className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-white/25 hover:bg-white/12 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-            style={{ fontFamily: 'Outfit', letterSpacing: '0.02em' }}
+            className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-white/25 hover:bg-white/12 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/40"
+            style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.02em' }}
           >
             Show all again
           </button>
         </div>
       ) : isNoFilms ? (
-        <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: 'Outfit, Inter, sans-serif', color: HP.textMuted, fontSize: 14, fontStyle: 'italic' }}>
+        <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: 'Inter, sans-serif', color: HP.textMuted, fontSize: 14, fontStyle: 'italic' }}>
           No <span style={{ color: currentMood.hex, fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood below.
         </div>
       ) : !pick ? (
@@ -644,6 +712,7 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
           </AnimatePresence>
         </div>
       )}
+      </div>
     </section>
   )
 }

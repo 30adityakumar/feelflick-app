@@ -1,21 +1,18 @@
 /* src/features/onboarding/onboarding.css
- * Scoped to .onboarding — the Outfit display family + a tidy custom scrollbar.
- * Outfit + Inter load globally via index.html (no per-page @import — it's
- * render-blocking + slower than the global <link>). Tailwind utilities still
- * apply; this file only adds what Tailwind can't express tersely.
+ * Scoped to .onboarding — Newsreader for display, Inter for UI.
+ * Fonts load globally via index.html.
+ * Tailwind utilities still apply; this file only adds what Tailwind can't express tersely.
  */
 
 .onboarding .ob-display {
-  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   letter-spacing: -0.02em;
 }
 
 /* Editorial step typography — onboarding-local, echoing the landing's
- * .ff-eyebrow / .ff-d2 register without importing landing files. The display
- * weight is kept at 300 (not the landing hero's 200) so headlines stay legible
- * at onboarding sizes on the dark base. */
+ * .ff-eyebrow / .ff-d2 register without importing landing files. */
 .onboarding .ob-eyebrow {
-  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.26em;
@@ -23,8 +20,8 @@
 }
 
 .onboarding .ob-headline {
-  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 300;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-weight: 400;
   font-size: clamp(30px, 4.8vw, 48px);
   letter-spacing: -0.035em;
   line-height: 1.04;

@@ -4,7 +4,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { formatMonthYear } from '@/shared/lib/format/date'
 import { setAnalyticsOptOut } from '@/shared/services/analytics'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, HP_GRAD, CONNECTIONS, FOUNDING_CUTOFF } from './data'
+import { HP, ROSE, ROSE_DEEP, CONNECTIONS, FOUNDING_CUTOFF } from './data'
 import { SectionHead, Toggle } from './sections-top'
 import { useAccountData } from './useAccountData'
 
@@ -39,8 +39,8 @@ function Privacy() {
         {rows.map(r => (
           <div key={r.k} style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:24, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
             <div>
-              <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.01em' }}>{r.label}</div>
-              <div style={{ marginTop:3, fontSize:12, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.01em' }}>{r.label}</div>
+              <div style={{ marginTop:3, fontSize:12, color:HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>
                 {r.desc}
               </div>
             </div>
@@ -79,22 +79,22 @@ function Connections() {
             : c.id === 'google' ? 'Sign in with Google to connect' : `${c.name} integration coming soon`;
           return (
             <div key={c.id} style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:18, alignItems:'center', padding:'20px 22px', borderRadius:6, background:'rgba(255,255,255,0.03)', border:`1px solid ${on ? c.tint+'44' : HP.border}` }}>
-              <div style={{ width:40, height:40, borderRadius:8, background:`linear-gradient(135deg, ${c.tint}33, ${c.tint}11)`, border:`1px solid ${c.tint}55`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, fontSize:16, color:c.tint }}>
+              <div style={{ width:40, height:40, borderRadius:8, background:`linear-gradient(135deg, ${c.tint}33, ${c.tint}11)`, border:`1px solid ${c.tint}55`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:16, color:c.tint }}>
                 {c.name.charAt(0)}
               </div>
               <div>
                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                  <span style={{ fontFamily:'Outfit', fontSize:15, fontWeight:500, color:HP.text }}>{c.name}</span>
-                  {c.primary && <span style={{ padding:'2px 6px', borderRadius:3, background:'rgba(52,211,153,0.12)', border:`1px solid ${HP.green}44`, fontSize:8, color:HP.green, fontFamily:'Outfit', letterSpacing:'0.1em', fontWeight:700, textTransform:'uppercase' }}>Primary</span>}
+                  <span style={{ fontFamily:'Inter, sans-serif', fontSize:15, fontWeight:500, color:HP.text }}>{c.name}</span>
+                  {c.primary && <span style={{ padding:'2px 6px', borderRadius:3, background:'rgba(52,211,153,0.12)', border:`1px solid ${HP.green}44`, fontSize:8, color:HP.green, fontFamily:'Inter, sans-serif', letterSpacing:'0.1em', fontWeight:700, textTransform:'uppercase' }}>Primary</span>}
                 </div>
-                <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', marginTop:2 }}>{c.detail}{c.since && ` · since ${c.since}`}</div>
+                <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Inter, sans-serif', marginTop:2 }}>{c.detail}{c.since && ` · since ${c.since}`}</div>
               </div>
               <button
                 type="button"
                 disabled={disabled}
                 aria-disabled={disabled}
                 title={title}
-                style={{ padding:'8px 14px', borderRadius:6, background: on ? 'transparent' : HP_GRAD, border: on ? `1px solid ${HP.border}` : 'none', color: on ? HP.textMuted : '#fff', fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.65 : 1 }}
+                style={{ padding:'8px 14px', borderRadius:6, background: on ? 'transparent' : ROSE_DEEP, border: on ? `1px solid ${HP.border}` : 'none', color: on ? HP.textMuted : '#fff', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.65 : 1 }}
               >
                 {on ? 'Manage' : 'Connect'}
               </button>
@@ -120,17 +120,17 @@ function PlanCard() {
   return (
     <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
       <SectionHead kicker="Plan" title="What you&rsquo;re on." />
-      <div className="ff-acct-plan-card" style={{ padding:'32px 36px', borderRadius:8, background:`linear-gradient(135deg, ${HP.purple}11, ${HP.pink}08)`, border:`1px solid ${HP.purple}33`, position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', top:'-30%', right:'-10%', width:'40%', aspectRatio:1, borderRadius:999, background:`radial-gradient(circle, ${HP.purple}33, transparent 70%)`, filter:'blur(40px)' }} />
+      <div className="ff-acct-plan-card" style={{ padding:'32px 36px', borderRadius:8, background:`linear-gradient(135deg, ${ROSE}11, ${HP.pink}08)`, border:`1px solid ${ROSE}33`, position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', top:'-30%', right:'-10%', width:'40%', aspectRatio:1, borderRadius:999, background:`radial-gradient(circle, ${ROSE}33, transparent 70%)`, filter:'blur(40px)' }} />
         <div style={{ position:'relative' }}>
           <Eyebrow spacing="0.22em" size={10} style={{ marginBottom:10 }}>Current plan</Eyebrow>
-          <div className="ff-acct-plan-headline" style={{ fontFamily:'Outfit', fontSize:32, fontWeight:300, color:HP.text, letterSpacing:'-0.03em', marginBottom:14 }}>
+          <div className="ff-acct-plan-headline" style={{ fontFamily:'Inter, sans-serif', fontSize:32, fontWeight:300, color:HP.text, letterSpacing:'-0.03em', marginBottom:14 }}>
             {tier}
             {isFounding && (
               <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft, marginLeft:10 }}>· Free, locked in</em>
             )}
           </div>
-          <div style={{ fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif' }}>
+          <div style={{ fontSize:13, color:HP.textMuted, fontFamily:'Inter, sans-serif' }}>
             Member since {memberSince}
           </div>
         </div>
@@ -194,12 +194,12 @@ function SessionsCard() {
           </div>
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <span style={{ fontFamily:'Outfit', fontSize:15, fontWeight:500, color:HP.text }}>{device}</span>
-              <span style={{ padding:'2px 6px', borderRadius:3, background:'rgba(52,211,153,0.12)', border:`1px solid ${HP.green}44`, fontSize:8, color:HP.green, fontFamily:'Outfit', letterSpacing:'0.1em', fontWeight:700, textTransform:'uppercase' }}>This device</span>
+              <span style={{ fontFamily:'Inter, sans-serif', fontSize:15, fontWeight:500, color:HP.text }}>{device}</span>
+              <span style={{ padding:'2px 6px', borderRadius:3, background:'rgba(52,211,153,0.12)', border:`1px solid ${HP.green}44`, fontSize:8, color:HP.green, fontFamily:'Inter, sans-serif', letterSpacing:'0.1em', fontWeight:700, textTransform:'uppercase' }}>This device</span>
             </div>
-            <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', marginTop:2 }}>{browser}{os ? ` · ${os}` : ''} · {provider}</div>
+            <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Inter, sans-serif', marginTop:2 }}>{browser}{os ? ` · ${os}` : ''} · {provider}</div>
           </div>
-          <div className="ff-acct-session__time" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>{lastSeen}</div>
+          <div className="ff-acct-session__time" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase' }}>{lastSeen}</div>
           <div className="ff-acct-session__spacer" style={{ width:80 }} />
         </div>
       </div>
@@ -207,7 +207,7 @@ function SessionsCard() {
         type="button"
         onClick={signOutEverywhere}
         disabled={busy}
-        style={{ marginTop:20, padding:'10px 16px', borderRadius:6, background:'transparent', border:`1px solid ${HP.red}66`, color:HP.red, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
+        style={{ marginTop:20, padding:'10px 16px', borderRadius:6, background:'transparent', border:`1px solid ${HP.red}66`, color:HP.red, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
       >{busy ? 'Signing out…' : 'Sign out all other devices'}</button>
     </section>
   );
@@ -311,15 +311,15 @@ function DangerZone() {
 function DangerPending({ scheduledLabel, onCancel, disabled }) {
   return (
     <div style={{ padding:'24px 26px', borderRadius:6, background:`${HP.red}08`, border:`1px solid ${HP.red}33` }}>
-      <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:6 }}>Deletion scheduled</div>
-      <p style={{ margin:'0 0 18px 0', fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55, fontStyle:'italic' }}>
+      <div style={{ fontFamily:'Inter, sans-serif', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:6 }}>Deletion scheduled</div>
+      <p style={{ margin:'0 0 18px 0', fontSize:13, color:HP.textMuted, fontFamily:'Inter, sans-serif', lineHeight:1.55, fontStyle:'italic' }}>
         Your account will be permanently deleted on <span style={{ color:HP.text, fontStyle:'normal', fontWeight:500 }}>{scheduledLabel}</span>. Cancel anytime before then.
       </p>
       <button
         type="button"
         onClick={onCancel}
         disabled={disabled}
-        style={{ padding:'10px 16px', borderRadius:6, background:'transparent', border:`1px solid ${HP.green}77`, color:HP.green, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.6 : 1 }}
+        style={{ padding:'10px 16px', borderRadius:6, background:'transparent', border:`1px solid ${HP.green}77`, color:HP.green, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.6 : 1 }}
       >Cancel deletion</button>
     </div>
   );
@@ -340,13 +340,13 @@ function DeleteConfirmModal({ email, onCancel, onConfirm, busy = false }) {
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="del-modal-title" style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:20 }}>
       <div style={{ maxWidth:520, width:'100%', padding:32, borderRadius:10, background:HP.bgDeep, border:`1px solid ${HP.red}55` }}>
-        <h2 id="del-modal-title" style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', margin:'0 0 12px' }}>
+        <h2 id="del-modal-title" style={{ fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', margin:'0 0 12px' }}>
           Delete your account?
         </h2>
-        <p style={{ margin:'0 0 18px 0', fontSize:14, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55 }}>
+        <p style={{ margin:'0 0 18px 0', fontSize:14, color:HP.textSoft, fontFamily:'Inter, sans-serif', lineHeight:1.55 }}>
           We&rsquo;ll permanently delete your profile, watches, ratings, lists, and DNA <strong style={{ color:HP.text, fontWeight:600 }}>after 7 days</strong>. You can cancel anytime before then by signing back in.
         </p>
-        <label htmlFor="del-confirm-email" style={{ display:'block', fontFamily:'Outfit', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:HP.textMuted, marginBottom:8 }}>
+        <label htmlFor="del-confirm-email" style={{ display:'block', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:HP.textMuted, marginBottom:8 }}>
           Type your email to confirm
         </label>
         <input
@@ -357,9 +357,9 @@ function DeleteConfirmModal({ email, onCancel, onConfirm, busy = false }) {
           onChange={(e) => setTyped(e.target.value)}
           placeholder={email || 'your@email.com'}
           autoComplete="off"
-          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, marginBottom:16 }}
+          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:14, marginBottom:16 }}
         />
-        <label htmlFor="del-reason" style={{ display:'block', fontFamily:'Outfit', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:HP.textMuted, marginBottom:8 }}>
+        <label htmlFor="del-reason" style={{ display:'block', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:HP.textMuted, marginBottom:8 }}>
           Reason (optional)
         </label>
         <textarea
@@ -368,19 +368,19 @@ function DeleteConfirmModal({ email, onCancel, onConfirm, busy = false }) {
           onChange={(e) => setReason(e.target.value)}
           rows={3}
           placeholder="What pushed you away?"
-          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:13, resize:'vertical', marginBottom:24 }}
+          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:13, resize:'vertical', marginBottom:24 }}
         />
         <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
           <button
             type="button"
             onClick={onCancel}
-            style={{ padding:'12px 22px', borderRadius:6, background:'transparent', border:`1px solid ${HP.borderStrong}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
+            style={{ padding:'12px 22px', borderRadius:6, background:'transparent', border:`1px solid ${HP.borderStrong}`, color:HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor:'pointer' }}
           >Keep my account</button>
           <button
             type="button"
             onClick={() => onConfirm(reason)}
             disabled={!enabled || busy}
-            style={{ padding:'12px 22px', borderRadius:6, background: (enabled && !busy) ? HP.red : 'rgba(255,255,255,0.06)', border:'none', color: (enabled && !busy) ? '#fff' : HP.textFaint, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: busy ? 'wait' : enabled ? 'pointer' : 'not-allowed' }}
+            style={{ padding:'12px 22px', borderRadius:6, background: (enabled && !busy) ? HP.red : 'rgba(255,255,255,0.06)', border:'none', color: (enabled && !busy) ? '#fff' : HP.textFaint, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor: busy ? 'wait' : enabled ? 'pointer' : 'not-allowed' }}
           >{busy ? 'Scheduling…' : 'Schedule deletion'}</button>
         </div>
       </div>
@@ -403,13 +403,13 @@ function Danger({ title, desc, cta, color, onClick, disabled, confirmFirst = fal
   };
   return (
     <div style={{ padding:'24px 26px', borderRadius:6, background:`${color}08`, border:`1px solid ${color}33` }}>
-      <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:6 }}>{title}</div>
-      <p style={{ margin:'0 0 18px 0', fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55, fontStyle:'italic', textWrap:'pretty' }}>{desc}</p>
+      <div style={{ fontFamily:'Inter, sans-serif', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:6 }}>{title}</div>
+      <p style={{ margin:'0 0 18px 0', fontSize:13, color:HP.textMuted, fontFamily:'Inter, sans-serif', lineHeight:1.55, fontStyle:'italic', textWrap:'pretty' }}>{desc}</p>
       <button
         type="button"
         onClick={handleClick}
         disabled={disabled}
-        style={{ padding:'10px 16px', borderRadius:6, background: confirming ? `${color}18` : 'transparent', border:`1px solid ${color}77`, color, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.6 : 1 }}
+        style={{ padding:'10px 16px', borderRadius:6, background: confirming ? `${color}18` : 'transparent', border:`1px solid ${color}77`, color, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.6 : 1 }}
       >{confirming ? `Confirm — ${cta}?` : cta}</button>
     </div>
   );
@@ -425,9 +425,9 @@ function AccountFooter() {
   const linkStyle = { fontSize:12, color:HP.textMuted, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
   const btnStyle = { ...linkStyle, background:'none', border:'none', padding:0, font:'inherit' };
   return (
-    <footer className="ff-acct-section ff-acct-foot" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit', flexWrap:'wrap', gap:20 }}>
+    <footer className="ff-acct-section ff-acct-foot" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:6, background:HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
+        <div style={{ width:28, height:28, borderRadius:6, background:ROSE_DEEP, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff', fontFamily:'Inter, sans-serif' }}>FF</div>
         <span style={{ fontSize:13, color:HP.textMuted }}>FeelFlick · Account</span>
       </div>
       <div className="ff-acct-foot__links" style={{ display:'flex', gap:24, alignItems:'center' }}>

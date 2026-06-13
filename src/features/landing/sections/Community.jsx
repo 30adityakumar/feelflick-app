@@ -1,4 +1,4 @@
-import { C } from '@/shared/lib/tokens'
+import { C, ROSE } from '@/shared/lib/tokens'
 import { Reveal, Eyebrow, SectionShell } from '../primitives'
 
 // ── Community / Taste twins ────────────────────────────────────
@@ -31,18 +31,18 @@ export default function Community(){
               <article style={{padding:'30px 28px',borderRadius:14,background:'rgba(255,255,255,0.022)',border:`1px solid ${C.hairline}`}}>
                 <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:24}}>
                   <div style={{position:'relative',width:48,height:48}}>
-                    <div style={{position:'absolute',inset:-3,borderRadius:999,background:`conic-gradient(${t.h},${C.pink},${t.h})`,opacity:0.7}}/>
+                    <div style={{position:'absolute',inset:-3,borderRadius:999,background:`conic-gradient(${t.h},${ROSE},${t.h})`,opacity:0.7}}/>
                     <div style={{position:'relative',width:48,height:48,borderRadius:999,background:C.bg,padding:2}}>
-                      <div style={{width:'100%',height:'100%',borderRadius:999,background:t.h,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Outfit',fontWeight:700,color:C.bg,fontSize:17}}>{t.n.charAt(0)}</div>
+                      <div style={{width:'100%',height:'100%',borderRadius:999,background:t.h,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Inter, sans-serif',fontWeight:700,color:C.bg,fontSize:17}}>{t.n.charAt(0)}</div>
                     </div>
                   </div>
                   <div style={{textAlign:'right'}}>
-                    <div style={{fontFamily:'Outfit',fontSize:32,fontWeight:200,color:C.text,letterSpacing:'-0.045em',lineHeight:1}}>{t.match}<span style={{fontSize:13,color:C.textLow}}>%</span></div>
+                    <div style={{fontFamily:'Inter, sans-serif',fontSize:32,fontWeight:200,color:C.text,letterSpacing:'-0.045em',lineHeight:1}}>{t.match}<span style={{fontSize:13,color:C.textLow}}>%</span></div>
                     <Eyebrow color={C.textFaint} style={{marginTop:3}}>Match</Eyebrow>
                   </div>
                 </div>
-                <div style={{fontFamily:'Outfit',fontSize:17,fontWeight:500,color:C.text}}>{t.n}</div>
-                <div className="ff-italic" style={{fontFamily:'Outfit',fontSize:12,color:C.textLow,fontStyle:'italic',marginTop:3}}>{t.mood}</div>
+                <div style={{fontFamily:'Inter, sans-serif',fontSize:17,fontWeight:500,color:C.text}}>{t.n}</div>
+                <div className="ff-italic" style={{fontFamily:'Inter, sans-serif',fontSize:12,color:C.textLow,fontStyle:'italic',marginTop:3}}>{t.mood}</div>
                 <div style={{marginTop:16,paddingTop:16,borderTop:`1px solid ${C.hairline}`,fontFamily:'Inter',fontSize:12,color:C.textLow,lineHeight:1.5}}>{t.recent}</div>
               </article>
             </Reveal>

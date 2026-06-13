@@ -1,5 +1,5 @@
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
-import { C } from '@/shared/lib/tokens'
+import { C, ROSE } from '@/shared/lib/tokens'
 import { Reveal, Stars, Eyebrow, AuthCTA, SectionShell } from '../primitives'
 
 // ── Final CTA ──────────────────────────────────────────────────
@@ -13,10 +13,10 @@ export default function FinalCTA(){
       overflow="hidden"
       tone="void"
       innerStyle={{position:'relative',maxWidth:880,textAlign:'center'}}
-      before={<Stars tint={C.purple} count={80}/>}
+      before={<Stars tint={ROSE} count={80}/>}
     >
         <Reveal>
-          <Eyebrow color={C.purple} style={{marginBottom:32}}>Stop scrolling. Start watching.</Eyebrow>
+          <Eyebrow color={ROSE} style={{marginBottom:32}}>Stop scrolling. Start watching.</Eyebrow>
         </Reveal>
         <Reveal delay={150}>
           <h2 className="ff-d1" style={{fontSize:'clamp(72px,11vw,160px)',color:C.text,margin:0}}>
@@ -30,7 +30,7 @@ export default function FinalCTA(){
           </p>
         </Reveal>
         <Reveal delay={450}>
-          <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Begin with Google" style={{display:'inline-flex',alignItems:'center',gap:10,marginTop:52,padding:'16px 32px',fontSize:14.5,boxShadow:'0 18px 40px -10px rgba(236,72,153,0.5)'}}>
+          <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Begin with Google" style={{display:'inline-flex',alignItems:'center',gap:10,marginTop:52,padding:'16px 32px',fontSize:14.5,boxShadow:'0 18px 40px -10px rgba(221,78,131,0.5)'}}>
             {l=><>{l?'Opening Google…':'Begin'} <span>→</span></>}
           </AuthCTA>
         </Reveal>

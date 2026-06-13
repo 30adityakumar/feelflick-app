@@ -12,7 +12,7 @@
 // page via onCancel / onConfirm, matching the F6.3 focus model.
 
 import { useEffect, useRef } from 'react'
-import { HP, HP_GRAD } from '../data'
+import { HP } from '../data'
 
 export default function RemoveDiaryEntryDialog({ title, onConfirm, onCancel }) {
   const keepRef = useRef(null)
@@ -48,10 +48,10 @@ export default function RemoveDiaryEntryDialog({ title, onConfirm, onCancel }) {
         className="ff-hist-dialog"
         style={{ width:'100%', maxWidth:440, background:HP.bgDeep, border:`1px solid ${HP.borderStrong}`, borderRadius:12, padding:'28px 26px', boxShadow:'0 28px 70px -20px rgba(0,0,0,0.75)' }}
       >
-        <h2 id={headingId} style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:22, fontWeight:600, color:HP.text, margin:'0 0 12px 0', letterSpacing:'-0.02em' }}>
+        <h2 id={headingId} style={{ fontFamily:'Inter, sans-serif', fontSize:22, fontWeight:600, color:HP.text, margin:'0 0 12px 0', letterSpacing:'-0.02em' }}>
           Remove from Diary?
         </h2>
-        <p id={bodyId} style={{ margin:'0 0 24px 0', fontSize:14, lineHeight:1.55, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif' }}>
+        <p id={bodyId} style={{ margin:'0 0 24px 0', fontSize:14, lineHeight:1.55, color:HP.textSoft, fontFamily:'Inter, sans-serif' }}>
           This removes the watched entry for &ldquo;{title}&rdquo;. Your rating and review will stay with the film.
         </p>
         <div style={{ display:'flex', gap:12, justifyContent:'flex-end', flexWrap:'wrap' }}>
@@ -60,14 +60,14 @@ export default function RemoveDiaryEntryDialog({ title, onConfirm, onCancel }) {
             type="button"
             onClick={onCancel}
             className="ff-hist-dialog-btn"
-            style={{ minHeight:44, padding:'11px 20px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
+            style={{ minHeight:44, padding:'11px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor:'pointer' }}
           >Keep entry</button>
           <button
             ref={removeRef}
             type="button"
             onClick={onConfirm}
             className="ff-hist-dialog-btn"
-            style={{ minHeight:44, padding:'11px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
+            style={{ minHeight:44, padding:'11px 20px', borderRadius:999, background:'#DD4E83', border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor:'pointer' }}
           >Remove from Diary</button>
         </div>
       </div>

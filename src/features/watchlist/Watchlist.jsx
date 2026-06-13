@@ -11,7 +11,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MoodPill from '@/shared/components/MoodPill'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, HP_GRAD } from './data'
+import { HP, ROSE } from './data'
 import { WatchlistDataProvider, useWatchlistData } from './useWatchlistData'
 import { sortItems } from './derive/watchlistDerive'
 import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncement'
@@ -24,17 +24,17 @@ function Masthead() {
   const { total } = useWatchlistData();
   return (
     <section className="ff-wl-section ff-wl-section--masthead" style={{ padding:'72px 88px 28px', position:'relative' }}>
-      <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 60% 35% at 10% 0%, rgba(167,139,250,0.12), transparent 60%)' }} />
+      <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 60% 35% at 10% 0%, rgba(221,78,131,0.10), transparent 60%)' }} />
       <div style={{ position:'relative' }}>
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24, flexWrap:'wrap' }}>
           <Eyebrow spacing="0.32em" size={10}>Your library</Eyebrow>
-          <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
+          <div style={{ height:1, width:38, background:ROSE, opacity:0.5 }} />
           <Eyebrow tone="meta" weight={500} size={10}>{total} film{total === 1 ? '' : 's'} saved</Eyebrow>
         </div>
-        <h1 className="ff-wl-hero" style={{ fontFamily:'Outfit', fontSize:72, lineHeight:0.96, fontWeight:300, letterSpacing:'-0.045em', color:HP.text, margin:0, textWrap:'balance' }}>
+        <h1 className="ff-wl-hero" style={{ fontFamily:'var(--font-editorial)', fontSize:72, lineHeight:0.96, fontWeight:400, letterSpacing:'-0.045em', color:HP.text, margin:0, textWrap:'balance' }}>
           Saved <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>for later.</em>
         </h1>
-        <p style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:17, color:HP.textSoft, maxWidth:640, lineHeight:1.55 }}>
+        <p style={{ marginTop:18, fontFamily:'Inter, sans-serif', fontSize:17, color:HP.textSoft, maxWidth:640, lineHeight:1.55 }}>
           Films you wanted to remember &mdash; ready whenever the moment feels right.
         </p>
       </div>
@@ -59,22 +59,22 @@ function Controls({ filter, setFilter, sort, setSort }) {
               className="ff-wl-filter-pill"
               style={{
                 minHeight:44, padding:'8px 16px', borderRadius:999,
-                background: on ? `${HP.purple}22` : 'rgba(255,255,255,0.04)',
-                border:`1px solid ${on ? HP.purple+'66' : HP.border}`,
+                        background: on ? `${ROSE}22` : 'rgba(255,255,255,0.04)',
+                border:`1px solid ${on ? ROSE+'66' : HP.border}`,
                 color: on ? HP.text : HP.textSoft,
-                fontFamily:'Outfit', fontSize:12, fontWeight:500, cursor:'pointer',
+                fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:500, cursor:'pointer',
               }}
             >{f.l}</button>
           );
         })}
       </div>
       <label style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'7px 12px', borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}` }}>
-        <span style={{ fontSize:10, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.12em', textTransform:'uppercase' }}>Sort</span>
+        <span style={{ fontSize:10, color:HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.12em', textTransform:'uppercase' }}>Sort</span>
         <select
           value={sort}
           onChange={e => setSort(e.target.value)}
           aria-label="Sort saved films"
-          style={{ background:'transparent', border:'none', color:HP.text, fontFamily:'Outfit', fontSize:12, fontWeight:600, cursor:'pointer', outline:'none' }}
+          style={{ background:'transparent', border:'none', color:HP.text, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, cursor:'pointer', outline:'none' }}
         >
           <option value="recent">Recently saved</option>
           <option value="oldest">Oldest saved</option>
@@ -94,8 +94,8 @@ function SavedCard({ f, onRemove }) {
   const busy = isRemoving(f.id);
   const poster = f.poster
     ? <img src={f.poster} alt="" style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} />
-    : <span style={{ width:'100%', aspectRatio:'2/3', background:`linear-gradient(155deg, ${f.hex}55, ${f.hex}11)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:14, padding:12, textAlign:'center' }}>{f.title}</span>;
-  const title = <h3 className="ff-wl-card__title" style={{ fontFamily:'Outfit', fontSize:15, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', margin:'12px 0 0 0', lineHeight:1.25 }}>{f.title}</h3>;
+    : <span style={{ width:'100%', aspectRatio:'2/3', background:`linear-gradient(155deg, ${f.hex}55, ${f.hex}11)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Inter, sans-serif', fontSize:14, padding:12, textAlign:'center' }}>{f.title}</span>;
+  const title = <h3 className="ff-wl-card__title" style={{ fontFamily:'Inter, sans-serif', fontSize:15, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', margin:'12px 0 0 0', lineHeight:1.25 }}>{f.title}</h3>;
   return (
     <article className="ff-wl-card" role="listitem">
       {f.tmdbId ? (
@@ -109,12 +109,12 @@ function SavedCard({ f, onRemove }) {
           {title}
         </div>
       )}
-      <div style={{ marginTop:4, fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.03em' }}>
+      <div style={{ marginTop:4, fontSize:11, color:HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.03em' }}>
         {f.year || '—'}{f.runtime ? ` · ${f.runtime}m` : ''}{f.dir && f.dir !== '—' ? ` · ${f.dir}` : ''}
       </div>
       <div style={{ marginTop:10, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
         {f.mood && f.mood !== 'Mixed' && <MoodPill label={f.mood} color={f.hex} dot role="img" aria-label={`Film mood: ${f.mood}`} />}
-        <span style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.02em' }}>{f.savedLabel}</span>
+        <span style={{ fontSize:11, color:HP.textFaint, fontFamily:'Inter, sans-serif', letterSpacing:'0.02em' }}>{f.savedLabel}</span>
       </div>
       <div style={{ marginTop:14 }}>
         <button
@@ -128,7 +128,7 @@ function SavedCard({ f, onRemove }) {
           title="Remove from Watchlist"
           onClick={(e) => onRemove(f, e.currentTarget)}
           className="ff-wl-card__remove"
-          style={{ width:'100%', minHeight:44, padding:'8px 14px', borderRadius:6, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em', cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
+          style={{ width:'100%', minHeight:44, padding:'8px 14px', borderRadius:6, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.04em', cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
         >{busy ? 'Removing…' : 'Remove'}</button>
       </div>
     </article>
@@ -141,13 +141,13 @@ function EmptyState() {
   return (
     <section className="ff-wl-section" style={{ padding:'56px 88px 96px', textAlign:'center' }}>
       <Eyebrow size={10} style={{ marginBottom:18 }}>Watchlist</Eyebrow>
-      <h2 style={{ fontFamily:'Outfit', fontSize:34, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 14px 0' }}>Your Watchlist is open.</h2>
-      <p style={{ margin:'0 auto 28px', maxWidth:460, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.6 }}>
+      <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:34, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 14px 0' }}>Your Watchlist is open.</h2>
+      <p style={{ margin:'0 auto 28px', maxWidth:460, fontSize:14, color:HP.textMuted, fontFamily:'Inter, sans-serif', lineHeight:1.6 }}>
         Save a film when you want to remember it for another time.
       </p>
       <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-        <button type="button" onClick={() => navigate('/discover')} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}>Open Discover →</button>
-        <button type="button" onClick={() => navigate('/browse')} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}>Browse films</button>
+        <button type="button" onClick={() => navigate('/discover')} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'#DD4E83', border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor:'pointer' }}>Open Discover →</button>
+        <button type="button" onClick={() => navigate('/browse')} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor:'pointer' }}>Browse films</button>
       </div>
     </section>
   );
@@ -158,9 +158,9 @@ function FilteredEmpty({ onShowAll }) {
   // changed the filter learns the list is empty without losing their place on the filter.
   return (
     <section className="ff-wl-section ff-wl-collection" style={{ padding:'56px 88px 96px', textAlign:'center' }} role="status">
-      <h2 style={{ fontFamily:'Outfit', fontSize:26, lineHeight:1.1, fontWeight:500, letterSpacing:'-0.02em', color:HP.text, margin:'0 0 12px 0' }}>No saved films match this mood.</h2>
-      <p style={{ margin:'0 auto 24px', maxWidth:440, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.6 }}>Choose another film mood or show everything.</p>
-      <button type="button" onClick={onShowAll} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}>Show all</button>
+      <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:26, lineHeight:1.1, fontWeight:500, letterSpacing:'-0.02em', color:HP.text, margin:'0 0 12px 0' }}>No saved films match this mood.</h2>
+      <p style={{ margin:'0 auto 24px', maxWidth:440, fontSize:14, color:HP.textMuted, fontFamily:'Inter, sans-serif', lineHeight:1.6 }}>Choose another film mood or show everything.</p>
+      <button type="button" onClick={onShowAll} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor:'pointer' }}>Show all</button>
     </section>
   );
 }
@@ -252,7 +252,7 @@ function PageSkeleton() {
     <div role="status" aria-busy="true" style={{ padding:'80px 88px' }}>
       <span className="sr-only">Loading your watchlist…</span>
       <div aria-hidden="true" className="animate-pulse" style={{ ...pulse, height:14, width:240, borderRadius:999, marginBottom:28 }} />
-      <div aria-hidden="true" className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:72, width:'40%', borderRadius:8, marginBottom:48 }} />
+      <div aria-hidden="true" className="animate-pulse" style={{ background:'rgba(255,255,255,0.05)', height:72, width:'40%', borderRadius:8, marginBottom:48 }} />
       <div aria-hidden="true" className="ff-wl-grid">
         {[0,1,2,3,4].map(i => <div key={i} className="animate-pulse" style={{ ...pulse, aspectRatio:'2/3', borderRadius:6 }} />)}
       </div>
@@ -266,11 +266,11 @@ function PageError({ onRetry, onHome }) {
     <div style={{ minHeight:'60vh', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
       <div role="alert" style={{ textAlign:'center', maxWidth:520 }}>
         <Eyebrow size={10} style={{ marginBottom:18 }}>Watchlist</Eyebrow>
-        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Watchlist.</h1>
+        <h1 style={{ fontFamily:'Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Watchlist.</h1>
         <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>Your saved films are still safe. Try again in a moment.</p>
         <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-          <button type="button" onClick={onRetry} className="ff-wl-error-btn" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:HP_GRAD, color:'#fff', border:'none', cursor:'pointer', fontFamily:'Outfit', fontSize:14, fontWeight:600 }}>Try again</button>
-          <button type="button" onClick={onHome} className="ff-wl-error-btn" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'transparent', color:'rgba(250,250,250,0.85)', border:`1px solid ${HP.border}`, cursor:'pointer', fontFamily:'Outfit', fontSize:14, fontWeight:600 }}>Go to Home</button>
+          <button type="button" onClick={onRetry} className="ff-wl-error-btn" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'#DD4E83', color:'#fff', border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600 }}>Try again</button>
+          <button type="button" onClick={onHome} className="ff-wl-error-btn" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'transparent', color:'rgba(250,250,250,0.85)', border:`1px solid ${HP.border}`, cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600 }}>Go to Home</button>
         </div>
       </div>
     </div>

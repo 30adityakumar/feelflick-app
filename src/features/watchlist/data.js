@@ -3,7 +3,7 @@
 // USER + ITEMS are now derived live in useWatchlistData.jsx from
 // user_watchlist (joined with movies) + the user's taste_fingerprint.
 
-export { HP, HP_GRAD } from '@/shared/lib/tokens'
+export { HP, ROSE } from '@/shared/lib/tokens'
 
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 export const tmdbImg = (path, size = 'w500') =>

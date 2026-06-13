@@ -148,6 +148,32 @@ describe('Home Briefing — pick-first hierarchy (F4.4)', () => {
     expect(screen.getByText('A quiet, tender story about memory.')).toBeTruthy()
   })
 
+  it('composes a numbered case (I/II) when both the engine reason AND synopsis exist (F1)', () => {
+    h.moods = [{ id: MOOD_ID, films: [film(1, {
+      engineReason: 'Because you loved Past Lives',
+      synopsis: 'A quiet, tender story about memory.',
+    })] }]
+    renderHome()
+    // Both rungs render their real content under their labels…
+    expect(screen.getByText(/Because you loved Past Lives/)).toBeTruthy()
+    expect(screen.getByText('A quiet, tender story about memory.')).toBeTruthy()
+    expect(screen.getByText(/why this pick/i)).toBeTruthy()
+    expect(screen.getByText(/what you.re in for/i)).toBeTruthy()
+    // …marked with roman numerals (the Cinematic Concierge case structure).
+    expect(screen.getByText('I ·')).toBeTruthy()
+    expect(screen.getByText('II ·')).toBeTruthy()
+  })
+
+  it('does NOT number a lone rung (synopsis only — no fabricated "why")', () => {
+    h.moods = [{ id: MOOD_ID, films: [film(1, { engineReason: null, synopsis: 'A lone synopsis with no engine reason.' })] }]
+    renderHome()
+    expect(screen.getByText('A lone synopsis with no engine reason.')).toBeTruthy()
+    expect(screen.queryByText('I ·')).toBeNull()
+    expect(screen.queryByText('II ·')).toBeNull()
+    // and never a fabricated mood/why sentence
+    expect(screen.queryByText(/for your .* night/i)).toBeNull()
+  })
+
   it('keeps supporting sections after the Briefing + mood controls', () => {
     renderHome()
     const pick = screen.getByRole('heading', { level: 2 })

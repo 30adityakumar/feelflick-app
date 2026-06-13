@@ -1,10 +1,10 @@
 import { forwardRef, useState, useMemo } from 'react'
 import CanonicalEyebrow from '@/shared/ui/Eyebrow'
-import { HP_GRAD as GRAD, C } from '@/shared/lib/tokens'
+import { ROSE, ROSE_DEEP, C } from '@/shared/lib/tokens'
 import { useInView } from '@/shared/hooks/useInView'
 
 // Landing-flavored eyebrow — the canonical `shared/ui/Eyebrow` primitive at the
-// landing's deliberately lighter Outfit 600 (every other surface uses the
+// landing's deliberately lighter Inter 600 (every other surface uses the
 // primitive's default 700). Baking the 600 here keeps that one intentional
 // deviation in a single place instead of scattered across ~35 call-sites, while
 // still delegating all styling (size, spacing, uppercase, optional rule) to the
@@ -13,9 +13,9 @@ export function Eyebrow(props){
   return <CanonicalEyebrow weight={600} {...props}/>;
 }
 
-// Brand-gradient sign-in pill — the landing's single CTA shape, shared by Header,
+// Brand sign-in pill — the landing's single CTA shape, shared by Header,
 // Hero, Pricing, and FinalCTA. ONE source for the invariant bits (radius-999
-// gradient, white Inter 600, borderless, and the disabled/loading treatment) +
+// rose fill, white Inter 600, borderless, and the disabled/loading treatment) +
 // the button wiring. Deliberately PRESENTATIONAL: callers pass the shared
 // `loading` (isAuthenticating) and `onClick` (signInWithGoogle) from a single
 // useGoogleAuth() per section, so a section with several auth buttons (Header)
@@ -25,7 +25,7 @@ export function Eyebrow(props){
 // `style` merges the per-instance layout (padding/size/shadow/width); `children`
 // is a node or a (loading)=>node render-fn so each call-site keeps its exact
 // label and loading swap.
-const CTA_PILL = { borderRadius:999, background:GRAD, color:'#fff', fontFamily:'Inter', fontWeight:600, border:'none' }
+const CTA_PILL = { borderRadius:999, background:ROSE_DEEP, color:'#fff', fontFamily:'Inter', fontWeight:600, border:'none' }
 export function AuthCTA({ onClick, loading=false, style, ariaLabel, children }){
   return (
     <button
@@ -39,18 +39,17 @@ export function AuthCTA({ onClick, loading=false, style, ariaLabel, children }){
   );
 }
 
-// Brand wordmark — the gradient FEELFLICK lockup shared by Header + Footer (and a
+// Brand wordmark — the FEELFLICK lockup shared by Header + Footer (and a
 // candidate to promote to shared/ui if the authed TopNav adopts it). One source
-// for the brand lettering: Outfit 600 (the brand DISPLAY face — a logo is
-// display-tier, per CLAUDE.md) with POSITIVE 0.04em tracking — all-caps lockups
-// need air between glyphs (Stripe/Vercel/editorial standard); the hero's
-// negative tracking is for big mixed-case display, not a small caps logo. Brand-
-// gradient text clip. `size` sets the cap height (Header 21 / Footer 20); `style`
-// merges for layout (e.g. flexShrink). Renders a <span> so callers wrap it in
-// their own <a>/<div> for linking + positioning.
+// for the brand lettering: Inter 600 with POSITIVE 0.04em tracking — all-caps
+// lockups need air between glyphs (Stripe/Vercel/editorial standard); the hero's
+// negative tracking is for big mixed-case display, not a small caps logo. Solid
+// rose ink (the retired purple→pink gradient clip is gone). `size` sets the cap
+// height (Header 21 / Footer 20); `style` merges for layout (e.g. flexShrink).
+// Renders a <span> so callers wrap it in their own <a>/<div> for linking + positioning.
 export function Wordmark({ size=21, style }){
   return (
-    <span style={{ fontFamily:'Outfit', fontSize:size, fontWeight:600, letterSpacing:'0.04em', background:GRAD, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', ...style }}>FEELFLICK</span>
+    <span style={{ fontFamily:'Inter, sans-serif', fontSize:size, fontWeight:600, letterSpacing:'0.04em', color:ROSE, ...style }}>FEELFLICK</span>
   );
 }
 
@@ -60,14 +59,14 @@ export function Reveal({children,delay=0}){
 }
 
 // Universal poster with mood-gradient fallback if TMDB image misses
-export function Poster({src,title,accent='#A78BFA',style}){
+export function Poster({src,title,accent=ROSE,style}){
   const [failed,setFailed]=useState(false);
   if(failed){
     return(
       <div style={{...style,display:'flex',alignItems:'flex-end',padding:'14px 16px',background:`linear-gradient(160deg, ${accent}cc 0%, ${accent}77 45%, ${accent}22 100%)`,overflow:'hidden'}}>
         <div style={{position:'relative',zIndex:1}}>
           <div className="ff-eyebrow" style={{color:'rgba(255,255,255,0.6)',marginBottom:6}}>FeelFlick</div>
-          <div style={{fontFamily:'Outfit',fontWeight:500,fontSize:16,color:'#fff',letterSpacing:'-0.018em',lineHeight:1.1,textShadow:'0 2px 8px rgba(0,0,0,0.5)'}}>{title}</div>
+          <div style={{fontFamily:'Inter, sans-serif',fontWeight:500,fontSize:16,color:'#fff',letterSpacing:'-0.018em',lineHeight:1.1,textShadow:'0 2px 8px rgba(0,0,0,0.5)'}}>{title}</div>
         </div>
       </div>
     );
@@ -152,7 +151,7 @@ export const SectionShell = forwardRef(function SectionShell(
 // accents. The few values the four sites vary are props with the common defaults.
 export function SectionHeading({
   eyebrow,
-  eyebrowColor=C.purple,
+  eyebrowColor=ROSE,
   eyebrowMarginBottom=26,
   marginBottom=80,
   headingMaxWidth=880,

@@ -7,8 +7,9 @@ import { HP } from '@/shared/lib/tokens'
  * hand-rolled ~210× inline across every surface (plus the landing's `.ff-eyebrow`),
  * including the 22px brand-rule "section kicker" that 9 surfaces each re-implemented.
  *
- * Codifies CLAUDE.md's documented Kicker pattern: Outfit 700, ~11px, uppercase,
- * with an optional leading 22px rule.
+ * Codifies CLAUDE.md's documented Kicker pattern: Inter 700, ~11px, uppercase,
+ * with an optional leading 22px rule. (Accent color default stays HP.purple pending
+ * the global brand-color/focus-ring token pass; migrated surfaces pass ROSE explicitly.)
  *
  * `tone` encodes the two roles (so call-sites read by intent, not raw values):
  *   • 'section' (default) — the purple section kicker, 0.28em tracking.
@@ -42,7 +43,7 @@ export default function Eyebrow({ children, tone = 'section', color, rule = fals
       className={className}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 10,
-        fontFamily: 'Outfit', fontSize: size, fontWeight: weight,
+        fontFamily: 'Inter, sans-serif', fontSize: size, fontWeight: weight,
         letterSpacing: ls, textTransform: 'uppercase', color: accent,
         ...style,
       }}

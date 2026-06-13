@@ -1,7 +1,7 @@
 // /account v2 — data layer
 //
 // What's here vs derived:
-//   - Brand tokens (HP, HP_GRAD) — always static
+//   - Brand tokens (HP, ROSE) — always static
 //   - SETTINGS — *default values* for notifications + privacy. The page
 //     merges these with the user's row from `user_settings.settings` (JSONB)
 //     when they sign in. Each toggle queues a debounced upsert via
@@ -14,7 +14,7 @@
 // USER + stats are now live. They're fetched via useAccountData() against
 // auth.getUser() + the users table + user_history/user_ratings counts.
 
-export { HP, HP_GRAD } from '@/shared/lib/tokens'
+export { HP, ROSE, ROSE_DEEP } from '@/shared/lib/tokens'
 
 export const SETTINGS = {
   notifications: [

@@ -1,6 +1,6 @@
 /* src/features/movie/movie.css
  * Scoped keyframes for the Movie Detail page.
- * Outfit display font, Inter for body.
+ * Fonts load globally via index.html.
  * All animations are prefixed `mv-` to avoid colliding with your existing styles.
  */
 
@@ -9,7 +9,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.ff-movie ::selection { background: rgba(167,139,250,0.4); color: #fff; }
+.ff-movie ::selection { background: rgba(221,78,131,0.35); color: #fff; }
 .ff-movie em { font-style: italic; }
 .ff-movie button { font-family: inherit; transition: filter 0.18s ease; }
 .ff-movie button:hover:not(:disabled) { filter: brightness(1.12); }
@@ -195,7 +195,7 @@
     font-size: 17px !important;
   }
   /* TheTake reads as a friend message on phones — 20-22px feels personal,
-     italic Outfit at 26px felt poster-loud. */
+     italic editorial at 26px felt poster-loud. */
   .ff-movie-take-text {
     font-size: clamp(18px, 4.6vw, 22px) !important;
     line-height: 1.45 !important;
@@ -334,15 +334,15 @@
   min-width: 0;
 }
 .ff-disclosure__eyebrow {
-  font-family: Outfit, sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #a78bfa;
+  color: #DD4E83;
 }
 .ff-disclosure__heading {
-  font-family: Outfit, Inter, sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 22px;
   line-height: 1.1;
   font-weight: 500;
@@ -351,7 +351,7 @@
   text-wrap: balance;
 }
 .ff-disclosure__copy {
-  font-family: Outfit, Inter, sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   line-height: 1.5;
   color: rgba(250, 250, 250, 0.55);
@@ -429,7 +429,7 @@
   padding: 12px 20px;
   background: #a78bfa;
   color: #0a0510;
-  font-family: Outfit, Inter, sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;

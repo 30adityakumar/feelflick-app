@@ -154,9 +154,9 @@ For architecture, file placement, imports, dependencies, configuration, and refa
 
 The current design system is a baseline, not a permanent constraint.
 
-The preferred direction under validation is warm cinematic neutrals, controlled rose, muted plum, contextual mood or poster-derived color, Inter for interface, Newsreader for editorial voice, poster-first composition, deliberate motion, and reduced decorative chrome.
+The approved direction (validated by F0 Design Lab prototypes + adversarial critique, migrated to `/home` in F1–F2, 2026-06-12) is: warm cinematic dark neutrals, ivory/bone text, hairline rules, restrained rose (`#DD4E83`) as red-ink accent, Newsreader for editorial voice, Inter for interface, poster as cinematic object, numbered I/II recommendation case where truthful data supports it, reduced decorative chrome. The purple→pink gradient CTA is retired on migrated surfaces.
 
-Do not treat this direction as fully adopted until rendered comparisons demonstrate that it improves the product.
+This direction is confirmed for `/home`. Migration order: Movie Detail → Discover → Landing → profile/library. For anti-patterns, recommendation case rules, and what not to touch yet, read `docs/ui/design-authority-f3.md`.
 
 For brand, typography, color, layout, motion, composition, and design migration, read `.claude/rules/design-system.md`.
 

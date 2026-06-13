@@ -17,7 +17,7 @@ export default function App() {
         // to users — plus a branded reload affordance.
         <div className="min-h-screen bg-[#06060a] flex items-center justify-center text-white text-center p-8">
           <div className="max-w-sm">
-            <h1 className="text-2xl font-semibold mb-2" style={{ fontFamily: 'Outfit, Inter, sans-serif' }}>
+            <h1 className="text-2xl font-semibold mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
               Something went wrong
             </h1>
             <p className="text-white/60 text-sm mb-6">
@@ -26,7 +26,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="rounded-md bg-linear-to-r from-purple-600 to-pink-500 px-4 py-2 text-sm font-medium hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
+              className="rounded-md px-4 py-2 text-sm font-medium border border-white/20 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DD4E83]/60"
             >
               Reload
             </button>

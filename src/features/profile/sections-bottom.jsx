@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toPng } from 'html-to-image'
-import { HP, HP_GRAD, RADIUS, USER as USER_DEFAULT } from './data'
+import { HP, ROSE, ROSE_DEEP, RADIUS, USER as USER_DEFAULT } from './data'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useProfileData } from './useProfileData'
 import { INK_LABEL } from './derive/profilePresentation'
@@ -26,10 +26,10 @@ function SignatureDirectors() {
     <section aria-labelledby="ff-dir-title" className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:40 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span aria-hidden="true" style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Signature directors
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span aria-hidden="true" style={{ height:1, width:22, background:ROSE, opacity:0.6 }} />Signature directors
           </div>
-          <h2 id="ff-dir-title" className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>
+          <h2 id="ff-dir-title" className="ff-profile-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>
             The voices you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>trust.</em>
           </h2>
         </div>
@@ -42,20 +42,20 @@ function SignatureDirectors() {
               <div style={{ display:'flex', alignItems:'baseline', gap:6, marginBottom:14 }}>
                 {d.avg != null ? (
                   <>
-                    <span style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.avg}</span>
-                    <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit' }}>★ avg</span>
+                    <span style={{ fontFamily:'Inter, sans-serif', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.avg}</span>
+                    <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif' }}>★ avg</span>
                   </>
                 ) : d.firstWatchedYear ? (
                   <>
-                    <span style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.firstWatchedYear}</span>
-                    <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.04em' }}>since</span>
+                    <span style={{ fontFamily:'Inter, sans-serif', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.firstWatchedYear}</span>
+                    <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif', letterSpacing:'0.04em' }}>since</span>
                   </>
                 ) : (
-                  <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>unrated</span>
+                  <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase' }}>unrated</span>
                 )}
               </div>
-              <div style={{ fontFamily:'Outfit', fontSize:17, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:4 }}>{d.name}</div>
-              <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:17, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:4 }}>{d.name}</div>
+              <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase' }}>
                 {d.films} film{d.films === 1 ? '' : 's'} watched
               </div>
             </div>
@@ -74,15 +74,15 @@ function MotifCloud() {
     <section aria-labelledby="ff-motif-title" className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-motifs-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:80, alignItems:'flex-start' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:18 }}>Recurring motifs</div>
-          <h2 id="ff-motif-title" className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>What you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>keep finding.</em></h2>
-          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Tonal qualities that show up across what you&rsquo;ve watched &mdash; not how films feel, but how they&rsquo;re made, in order of how strongly they recur.</p>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:18 }}>Recurring motifs</div>
+          <h2 id="ff-motif-title" className="ff-profile-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:44, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>What you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>keep finding.</em></h2>
+          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Tonal qualities that show up across what you&rsquo;ve watched &mdash; not how films feel, but how they&rsquo;re made, in order of how strongly they recur.</p>
         </div>
         <div style={{ display:'flex', flexWrap:'wrap', gap:'14px 18px', alignItems:'baseline' }}>
           {motifs.map(m => {
             const size = 14 + m.w * 22;
             return (
-              <span key={m.tag} style={{ fontFamily:'Outfit', fontSize:size, fontWeight: m.w > 0.7 ? 500 : 400, color: m.w > 0.7 ? HP.text : HP.textSoft, letterSpacing:'-0.015em', opacity: 0.5 + m.w*0.5 }}>
+              <span key={m.tag} style={{ fontFamily:'Inter, sans-serif', fontSize:size, fontWeight: m.w > 0.7 ? 500 : 400, color: m.w > 0.7 ? HP.text : HP.textSoft, letterSpacing:'-0.015em', opacity: 0.5 + m.w*0.5 }}>
                 {m.tag}
               </span>
             );
@@ -114,10 +114,10 @@ function Trajectory() {
     <section aria-labelledby="ff-traj-title" className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:44 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span aria-hidden="true" style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Taste trajectory
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span aria-hidden="true" style={{ height:1, width:22, background:ROSE, opacity:0.6 }} />Taste trajectory
           </div>
-          <h2 id="ff-traj-title" className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>{heading}</h2>
+          <h2 id="ff-traj-title" className="ff-profile-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>{heading}</h2>
         </div>
         {/* Only render the toggle when "All time" is actually informative
             (≥2 distinct years). Otherwise hide it so users don't tap into
@@ -135,7 +135,7 @@ function Trajectory() {
                   className="ff-tap"
                   aria-pressed={active}
                   onClick={() => setRange(p)}
-                  style={{ padding:'7px 14px', borderRadius:RADIUS.pill, background:active?HP_GRAD:'transparent', color:active?'#fff':INK_LABEL, border:'none', cursor:'pointer', fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em' }}
+                  style={{ padding:'7px 14px', borderRadius:RADIUS.pill, background:active?ROSE_DEEP:'transparent', color:active?'#fff':INK_LABEL, border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.04em' }}
                 >{p}</button>
               );
             })}
@@ -151,8 +151,8 @@ function Trajectory() {
               <div aria-hidden="true" style={{ width:'100%', display:'flex', alignItems:'flex-end', justifyContent:'center', height:200 }}>
                 <div style={{ width:'100%', maxWidth:48, height:`${h}%`, background:`linear-gradient(180deg, ${t.hex}, ${t.hex}77)`, borderRadius:'4px 4px 0 0', boxShadow:`0 0 16px ${t.hex}33`, transition:'height 1s cubic-bezier(0.2,0.8,0.2,1)' }} />
               </div>
-              <div className="ff-profile-trajectory-label" style={{ fontFamily:'Outfit', fontSize:11, color:INK_LABEL, letterSpacing:'0.08em', textTransform:'uppercase' }}>{t.label}</div>
-              <div className="ff-profile-trajectory-count" style={{ fontFamily:'Outfit', fontSize:11, color:HP.text, fontWeight:600 }}>{t.count}</div>
+              <div className="ff-profile-trajectory-label" style={{ fontFamily:'Inter, sans-serif', fontSize:11, color:INK_LABEL, letterSpacing:'0.08em', textTransform:'uppercase' }}>{t.label}</div>
+              <div className="ff-profile-trajectory-count" style={{ fontFamily:'Inter, sans-serif', fontSize:11, color:HP.text, fontWeight:600 }}>{t.count}</div>
             </div>
           );
         })}
@@ -185,16 +185,16 @@ function PatternPanel() {
         {/* Decades */}
         {decades && decades.length > 0 && (
           <div>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Decade lean</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:ROSE, marginBottom:14 }}>Decade lean</div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {decades.map(d => (
                 <div key={d.d}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
-                    <span style={{ fontFamily:'Outfit', fontSize:14, color:HP.text, fontWeight:500 }}>{d.d}</span>
-                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:INK_LABEL }}>{d.pct}%</span>}
+                    <span style={{ fontFamily:'Inter, sans-serif', fontSize:14, color:HP.text, fontWeight:500 }}>{d.d}</span>
+                    {showShares && <span style={{ fontFamily:'Inter, sans-serif', fontSize:12, color:INK_LABEL }}>{d.pct}%</span>}
                   </div>
                   <div aria-hidden="true" style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
-                    <div style={{ width:`${d.pct}%`, height:'100%', background:HP.purple, opacity:0.7 }} />
+                    <div style={{ width:`${d.pct}%`, height:'100%', background:ROSE, opacity:0.7 }} />
                   </div>
                 </div>
               ))}
@@ -205,10 +205,10 @@ function PatternPanel() {
         {/* Runtime */}
         {runtime && (
           <div>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Runtime sweet spot</div>
-            <div style={{ fontFamily:'Outfit', fontSize:72, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{runtime.median}<span style={{ fontSize:18, color:INK_LABEL, marginLeft:4 }}>min</span></div>
-            <div style={{ marginTop:8, fontSize:12, color:HP.textSoft, fontFamily:'Outfit', fontStyle:'italic' }}>median · {runtime.band} band{showShares ? ` · ${Math.round(runtime.share*100)}% of films` : ''}</div>
-            <div style={{ marginTop:20, paddingTop:18, borderTop:`1px solid ${HP.border}`, fontSize:12, color:INK_LABEL, fontFamily:'Outfit', display:'flex', flexDirection:'column', gap:6 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:ROSE, marginBottom:14 }}>Runtime sweet spot</div>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:72, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{runtime.median}<span style={{ fontSize:18, color:INK_LABEL, marginLeft:4 }}>min</span></div>
+            <div style={{ marginTop:8, fontSize:12, color:HP.textSoft, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>median · {runtime.band} band{showShares ? ` · ${Math.round(runtime.share*100)}% of films` : ''}</div>
+            <div style={{ marginTop:20, paddingTop:18, borderTop:`1px solid ${HP.border}`, fontSize:12, color:INK_LABEL, fontFamily:'Inter, sans-serif', display:'flex', flexDirection:'column', gap:6 }}>
               <div>Shortest: <span style={{ color:HP.textSoft }}>{runtime.shortest.title} · {runtime.shortest.value}m</span></div>
               <div>Longest: <span style={{ color:HP.textSoft }}>{runtime.longest.title} · {runtime.longest.value}m</span></div>
             </div>
@@ -218,13 +218,13 @@ function PatternPanel() {
         {/* Daypart */}
         {daypart && daypart.length > 0 && (
           <div>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>When you watch</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:ROSE, marginBottom:14 }}>When you watch</div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {daypart.map(d => (
                 <div key={d.label}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
-                    <span style={{ fontFamily:'Outfit', fontSize:14, color:HP.text }}>{d.label}</span>
-                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:INK_LABEL }}>{d.pct}%</span>}
+                    <span style={{ fontFamily:'Inter, sans-serif', fontSize:14, color:HP.text }}>{d.label}</span>
+                    {showShares && <span style={{ fontFamily:'Inter, sans-serif', fontSize:12, color:INK_LABEL }}>{d.pct}%</span>}
                   </div>
                   <div aria-hidden="true" style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
                     <div style={{ width:`${d.pct}%`, height:'100%', background:HP.pink, opacity:0.7 }} />
@@ -233,7 +233,7 @@ function PatternPanel() {
               ))}
             </div>
             {dayTone && (
-              <div style={{ marginTop:16, fontSize:11, color:INK_LABEL, fontFamily:'Outfit', fontStyle:'italic' }}>
+              <div style={{ marginTop:16, fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>
                 {dayTone}
               </div>
             )}
@@ -252,10 +252,10 @@ function Mixtape() {
   return (
     <section className="ff-profile-section" style={{ padding:'88px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ marginBottom:36 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-          <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Your mixtape
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+          <span style={{ height:1, width:22, background:ROSE, opacity:0.6 }} />Your mixtape
         </div>
-        <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:52, lineHeight:1, fontWeight:500, letterSpacing:'-0.04em', color:HP.text, margin:0, textWrap:'balance' }}>
+        <h2 className="ff-profile-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:52, lineHeight:1, fontWeight:500, letterSpacing:'-0.04em', color:HP.text, margin:0, textWrap:'balance' }}>
           {mixtape.length === 1 ? (
             <>One film <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>so far.</em></>
           ) : (
@@ -263,7 +263,7 @@ function Mixtape() {
           )}
         </h2>
         {mixtape.length < 5 && (
-          <p style={{ marginTop:14, fontSize:13, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>
+          <p style={{ marginTop:14, fontSize:13, color:INK_LABEL, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>
             Rate {5 - mixtape.length} more film{(5 - mixtape.length) === 1 ? '' : 's'} 4.5★+ to fill your mixtape.
           </p>
         )}
@@ -282,17 +282,17 @@ function Mixtape() {
               {f.poster ? (
                 <img src={f.poster} alt={f.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} />
               ) : (
-                <div style={{ width:'100%', aspectRatio:'2/3', background:'rgba(255,255,255,0.04)', display:'flex', alignItems:'center', justifyContent:'center', color:INK_LABEL, fontFamily:'Outfit', fontSize:18, padding:14, textAlign:'center' }}>{f.title}</div>
+                <div style={{ width:'100%', aspectRatio:'2/3', background:'rgba(255,255,255,0.04)', display:'flex', alignItems:'center', justifyContent:'center', color:INK_LABEL, fontFamily:'Inter, sans-serif', fontSize:18, padding:14, textAlign:'center' }}>{f.title}</div>
               )}
-              <div style={{ position:'absolute', top:10, left:10, padding:'4px 8px', borderRadius:3, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(8px)', border:`1px solid ${HP.amber}55`, fontSize:9, fontWeight:700, color:HP.amber, fontFamily:'Outfit', letterSpacing:'0.06em' }}>{f.rating}★</div>
-              <div style={{ position:'absolute', top:10, right:10, fontFamily:'Outfit', fontSize:24, fontWeight:300, color:'#fff', letterSpacing:'-0.04em', textShadow:'0 2px 12px rgba(0,0,0,0.5)' }}>0{i+1}</div>
+              <div style={{ position:'absolute', top:10, left:10, padding:'4px 8px', borderRadius:3, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(8px)', border:`1px solid ${HP.amber}55`, fontSize:9, fontWeight:700, color:HP.amber, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em' }}>{f.rating}★</div>
+              <div style={{ position:'absolute', top:10, right:10, fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:300, color:'#fff', letterSpacing:'-0.04em', textShadow:'0 2px 12px rgba(0,0,0,0.5)' }}>0{i+1}</div>
             </div>
-            <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>{f.title}</div>
-            <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>{f.title}</div>
+            <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
               {f.year}{f.dir && f.dir !== '—' ? ` · ${f.dir}` : ''}
             </div>
             {f.why && (
-              <span style={{ display:'block', margin:0, fontSize:12, lineHeight:1.55, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>&ldquo;{f.why}&rdquo;</span>
+              <span style={{ display:'block', margin:0, fontSize:12, lineHeight:1.55, color:HP.textSoft, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>&ldquo;{f.why}&rdquo;</span>
             )}
           </button>
         ))}
@@ -301,7 +301,7 @@ function Mixtape() {
           <div
             key={`empty-${idx}`}
             aria-hidden
-            style={{ borderRadius:RADIUS.sm, border:`1px dashed ${HP.border}`, aspectRatio:'2/3', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontSize:11, color:INK_LABEL, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', padding:14 }}
+            style={{ borderRadius:RADIUS.sm, border:`1px dashed ${HP.border}`, aspectRatio:'2/3', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontSize:11, color:INK_LABEL, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', padding:14 }}
           >
             Rate 4.5★+<br/>to fill
           </div>
@@ -325,13 +325,13 @@ function Skew() {
     <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-skew-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:80, alignItems:'flex-start' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Vs everyone else</div>
-          <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>How you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>skew.</em></h2>
-          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Versus the median FeelFlick user. Refreshed nightly.</p>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:14 }}>Vs everyone else</div>
+          <h2 className="ff-profile-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:44, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>How you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>skew.</em></h2>
+          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Versus the median FeelFlick user. Refreshed nightly.</p>
           {communityMood?.tag && (
             <div style={{ marginTop:24, paddingTop:18, borderTop:`1px solid ${HP.border}`, maxWidth:340 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:INK_LABEL, fontFamily:'Outfit', marginBottom:6 }}>This week the room is into</div>
-              <div style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em' }}>{communityMood.tag}<span style={{ fontSize:14, color:INK_LABEL, fontStyle:'italic', marginLeft:8 }}>films.</span></div>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:INK_LABEL, fontFamily:'Inter, sans-serif', marginBottom:6 }}>This week the room is into</div>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em' }}>{communityMood.tag}<span style={{ fontSize:14, color:INK_LABEL, fontStyle:'italic', marginLeft:8 }}>films.</span></div>
             </div>
           )}
         </div>
@@ -340,23 +340,23 @@ function Skew() {
             <>
               {rows.map(s => (
                 <div key={s.label} style={{ display:'grid', gridTemplateColumns:'150px 1fr auto', gap:20, alignItems:'center' }}>
-                  <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>{s.label}</div>
+                  <div style={{ fontFamily:'Inter, sans-serif', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>{s.label}</div>
                   <div style={{ position:'relative', height:6, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill }}>
-                    <div style={{ position:'absolute', left:0, top:0, bottom:0, width:`${s.you}%`, background:HP_GRAD, borderRadius:RADIUS.pill }} />
+                    <div style={{ position:'absolute', left:0, top:0, bottom:0, width:`${s.you}%`, background:ROSE, borderRadius:RADIUS.pill }} />
                     <div style={{ position:'absolute', left:`${s.them}%`, top:-4, bottom:-4, width:2, background:HP.textFaint }} title="FF median" />
                   </div>
-                  <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:600, color: s.delta >= 0 ? HP.pink : HP.textMuted, letterSpacing:'0.04em' }}>{s.delta >= 0 ? `+${s.delta}` : s.delta}</div>
+                  <div style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color: s.delta >= 0 ? HP.pink : HP.textMuted, letterSpacing:'0.04em' }}>{s.delta >= 0 ? `+${s.delta}` : s.delta}</div>
                 </div>
               ))}
-              <div style={{ marginTop:14, paddingTop:18, borderTop:`1px solid ${HP.border}`, display:'inline-flex', alignItems:'center', gap:10, fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.08em' }}>
+              <div style={{ marginTop:14, paddingTop:18, borderTop:`1px solid ${HP.border}`, display:'inline-flex', alignItems:'center', gap:10, fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif', letterSpacing:'0.08em' }}>
                 <span style={{ width:14, height:2, background:HP.textFaint }} />
                 <span style={{ textTransform:'uppercase' }}>FF median</span>
-                <span style={{ marginLeft:14, width:14, height:2, background:HP_GRAD, borderRadius:RADIUS.pill }} />
+                <span style={{ marginLeft:14, width:14, height:2, background:ROSE, borderRadius:RADIUS.pill }} />
                 <span style={{ textTransform:'uppercase' }}>You</span>
               </div>
             </>
           ) : (
-            <p style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontStyle:'italic', color:INK_LABEL, lineHeight:1.6, maxWidth:420 }}>
+            <p style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontStyle:'italic', color:INK_LABEL, lineHeight:1.6, maxWidth:420 }}>
               Watch and rate a few more films, and your comparison to the room lands here.
             </p>
           )}
@@ -378,10 +378,10 @@ function FriendsRanked() {
   return (
     <section className="ff-profile-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ marginBottom:32 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-          <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Taste twins
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+          <span style={{ height:1, width:22, background:ROSE, opacity:0.6 }} />Taste twins
         </div>
-        <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:0 }}>People who <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>get it.</em></h2>
+        <h2 className="ff-profile-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color:HP.text, margin:0 }}>People who <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>get it.</em></h2>
       </div>
       {hasFriends ? (
         <div className="ff-profile-friends-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:18 }}>
@@ -395,26 +395,26 @@ function FriendsRanked() {
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = HP.border; e.currentTarget.style.background = 'rgba(255,255,255,0.025)' }}
             >
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
-                <div style={{ width:44, height:44, borderRadius:RADIUS.pill, background:f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0a0510', fontSize:18 }}>{f.initial}</div>
+                <div style={{ width:44, height:44, borderRadius:RADIUS.pill, background:f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, color:'#0a0510', fontSize:18 }}>{f.initial}</div>
                 <div style={{ textAlign:'right' }}>
-                  <div style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{f.match}<span style={{ fontSize:13, color:INK_LABEL, marginLeft:1 }}>%</span></div>
-                  <div style={{ fontSize:9, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>match</div>
+                  <div style={{ fontFamily:'Inter, sans-serif', fontSize:30, fontWeight:200, color:HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{f.match}<span style={{ fontSize:13, color:INK_LABEL, marginLeft:1 }}>%</span></div>
+                  <div style={{ fontSize:9, color:INK_LABEL, fontFamily:'Inter, sans-serif', letterSpacing:'0.14em', textTransform:'uppercase' }}>match</div>
                 </div>
               </div>
-              <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.01em' }}>{f.name}</div>
-              <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', marginTop:3 }}>{f.films} film{f.films === 1 ? '' : 's'} logged</div>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.01em' }}>{f.name}</div>
+              <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Inter, sans-serif', marginTop:3 }}>{f.films} film{f.films === 1 ? '' : 's'} logged</div>
             </button>
           ))}
         </div>
       ) : (
         <div style={{ padding:'40px 36px', borderRadius:RADIUS.md, background:'rgba(255,255,255,0.025)', border:`1px dashed ${HP.borderStrong}`, display:'flex', flexDirection:'column', alignItems:'flex-start', gap:18 }}>
-          <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:16, fontStyle:'italic', color:HP.textSoft, maxWidth:520, lineHeight:1.55 }}>
+          <p style={{ margin:0, fontFamily:'Inter, sans-serif', fontSize:16, fontStyle:'italic', color:HP.textSoft, maxWidth:520, lineHeight:1.55 }}>
             Twins surface here once your taste overlaps with someone else&rsquo;s &mdash; keep logging films and they&rsquo;ll come.
           </p>
           <button
             type="button"
             onClick={() => navigate('/people')}
-            style={{ padding:'10px 18px', borderRadius:RADIUS.sm, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(167,139,250,0.45)' }}
+            style={{ padding:'10px 18px', borderRadius:RADIUS.sm, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(221,78,131,0.35)' }}
           >Find people on FeelFlick →</button>
         </div>
       )}
@@ -475,11 +475,11 @@ function ShareCard() {
     <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-share-grid" style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:64, alignItems:'center' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Share your DNA</div>
-          <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:14 }}>Share your DNA</div>
+          <h2 className="ff-profile-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>
             Card for <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>the feed.</em>
           </h2>
-          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:380 }}>
+          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Inter, sans-serif', lineHeight:1.65, maxWidth:380 }}>
             A 1080×1920 image you can drop straight into Instagram, X, or wherever. Updates every time your DNA shifts.
           </p>
           <div style={{ marginTop:24, display:'flex', gap:10 }}>
@@ -500,27 +500,27 @@ function ShareCard() {
             (refs the wrapping div). Rendering at 4.5× pixelRatio gives
             a ~1080×1920 export suitable for IG story / X / etc. */}
         <div ref={previewRef} className="ff-profile-share-preview" style={{ width:240, aspectRatio:'9/16', borderRadius:14, padding:'32px 26px', background:'linear-gradient(160deg, #1a0d3a 0%, #06060a 50%, #3a0d1f 100%)', position:'relative', overflow:'hidden', boxShadow:'0 32px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-          <div style={{ position:'absolute', top:'-20%', right:'-30%', width:'80%', aspectRatio:1, borderRadius:RADIUS.pill, background:`radial-gradient(circle, ${HP.purple}66, transparent 65%)`, filter:'blur(20px)' }} />
+          <div style={{ position:'absolute', top:'-20%', right:'-30%', width:'80%', aspectRatio:1, borderRadius:RADIUS.pill, background:`radial-gradient(circle, ${ROSE}66, transparent 65%)`, filter:'blur(20px)' }} />
           <div style={{ position:'absolute', bottom:'-20%', left:'-30%', width:'80%', aspectRatio:1, borderRadius:RADIUS.pill, background:`radial-gradient(circle, ${HP.pink}55, transparent 65%)`, filter:'blur(20px)' }} />
           <div style={{ position:'relative' }}>
-            <div style={{ fontSize:7, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:8 }}>FeelFlick · Cinematic DNA</div>
-            <div style={{ fontFamily:'Outfit', fontWeight:300, fontSize:28, color:HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{firstName}{lastName && <><br/><em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>{lastName}.</em></>}</div>
+            <div style={{ fontSize:7, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:ROSE, marginBottom:8 }}>FeelFlick · Cinematic DNA</div>
+            <div style={{ fontFamily:'Inter, sans-serif', fontWeight:300, fontSize:28, color:HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{firstName}{lastName && <><br/><em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>{lastName}.</em></>}</div>
           </div>
           <div style={{ position:'relative' }}>
-            <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:400, color:HP.text, fontStyle:'italic', letterSpacing:'-0.01em', lineHeight:1.35, marginBottom: hasGenerated ? 6 : 14 }}>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:400, color:HP.text, fontStyle:'italic', letterSpacing:'-0.01em', lineHeight:1.35, marginBottom: hasGenerated ? 6 : 14 }}>
               &ldquo;{signature}&rdquo;
             </div>
             {hasGenerated && (
-              <div style={{ fontSize:6, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>FeelFlick reflection</div>
+              <div style={{ fontSize:6, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:ROSE, marginBottom:14 }}>FeelFlick reflection</div>
             )}
             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
               {archetype.map(a => (
-                <span key={a} style={{ padding:'3px 7px', borderRadius:3, background:'rgba(167,139,250,0.18)', border:`1px solid ${HP.purple}55`, fontSize:8, color:HP.text, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>{a}</span>
+                <span key={a} style={{ padding:'3px 7px', borderRadius:3, background:'rgba(221,78,131,0.12)', border:`1px solid ${ROSE}55`, fontSize:8, color:HP.text, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase' }}>{a}</span>
               ))}
             </div>
             <div style={{ marginTop:14, display:'flex', alignItems:'baseline', gap:6 }}>
-              <span style={{ fontFamily:'Outfit', fontSize:28, fontWeight:200, color:HP.text, letterSpacing:'-0.04em' }}>{filmsLogged}</span>
-              <span style={{ fontSize:8, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>films logged · {hoursWatched}h</span>
+              <span style={{ fontFamily:'Inter, sans-serif', fontSize:28, fontWeight:200, color:HP.text, letterSpacing:'-0.04em' }}>{filmsLogged}</span>
+              <span style={{ fontSize:8, color:INK_LABEL, fontFamily:'Inter, sans-serif', letterSpacing:'0.14em', textTransform:'uppercase' }}>films logged · {hoursWatched}h</span>
             </div>
           </div>
         </div>
@@ -548,13 +548,13 @@ function YIRBanner() {
     return null;
   }
   return (
-    <section className="ff-profile-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:`linear-gradient(135deg, ${HP.purple}11, ${HP.pink}08)` }}>
+    <section className="ff-profile-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:`linear-gradient(135deg, ${ROSE}11, ${HP.pink}08)` }}>
       <div className="ff-profile-yir-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:32, alignItems:'center' }}>
-        <div style={{ fontFamily:'Outfit', fontSize:64, fontWeight:200, color:HP.text, letterSpacing:'-0.05em', lineHeight:1, background:HP_GRAD, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{new Date().getFullYear()}</div>
+        <div style={{ fontFamily:'Inter, sans-serif', fontSize:64, fontWeight:200, color:HP.text, letterSpacing:'-0.05em', lineHeight:1, background:ROSE, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{new Date().getFullYear()}</div>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:6 }}>Year so far</div>
-          <div style={{ fontFamily:'Outfit', fontSize:22, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', marginBottom:6 }}>{banner.headline}</div>
-          <div style={{ fontSize:13, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{banner.sub}</div>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:ROSE, marginBottom:6 }}>Year so far</div>
+          <div style={{ fontFamily:'Inter, sans-serif', fontSize:22, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', marginBottom:6 }}>{banner.headline}</div>
+          <div style={{ fontSize:13, color:HP.textSoft, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>{banner.sub}</div>
         </div>
       </div>
     </section>
@@ -564,9 +564,9 @@ function YIRBanner() {
 function ProfileFooter() {
   const linkStyle = { fontSize:12, color:INK_LABEL, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
   return (
-    <footer className="ff-profile-section" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit', flexWrap:'wrap', gap:20 }}>
+    <footer className="ff-profile-section" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background:HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
+        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background:ROSE_DEEP, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
         <span style={{ fontSize:13, color:INK_LABEL, letterSpacing:'0.04em' }}>FeelFlick · Cinematic DNA</span>
       </div>
       <div style={{ display:'flex', gap:24 }}>

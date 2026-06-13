@@ -1,5 +1,5 @@
 import MatchBadge from '@/shared/components/MatchBadge'
-import { C } from '@/shared/lib/tokens'
+import { C, ROSE } from '@/shared/lib/tokens'
 import { Reveal, Poster, Eyebrow, SectionShell } from '../primitives'
 import { PICKS } from '../data'
 
@@ -10,7 +10,7 @@ export default function Briefing(){
         <Reveal>
           <div className="ff-grid-2" style={{marginBottom:72}}>
             <div>
-              <Eyebrow color={C.purple} style={{marginBottom:24}}>The Briefing</Eyebrow>
+              <Eyebrow color={ROSE} style={{marginBottom:24}}>The Briefing</Eyebrow>
               <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:0,textWrap:'balance'}}>
                 Or get it <em className="ff-italic" style={{color:C.textMid}}>served.</em>
               </h2>
@@ -22,10 +22,10 @@ export default function Briefing(){
         </Reveal>
         <Reveal delay={150}>
           <div className="ff-briefing-card" style={{borderRadius:14,background:'rgba(255,255,255,0.022)',border:`1px solid ${C.hairline}`,padding:'40px 48px',position:'relative',overflow:'hidden'}}>
-            <div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 50% 30% at 20% 0%,${C.purple}14,transparent 60%)`,pointerEvents:'none'}}/>
+            <div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 50% 30% at 20% 0%,${ROSE}14,transparent 60%)`,pointerEvents:'none'}}/>
             <div style={{position:'relative',display:'flex',alignItems:'center',gap:14,paddingBottom:24,borderBottom:`1px solid ${C.hairline}`}}>
-              <Eyebrow color={C.purple}>FeelFlick · The Briefing</Eyebrow>
-              <div style={{height:1,width:28,background:C.purple,opacity:0.5}}/>
+              <Eyebrow color={ROSE}>FeelFlick · The Briefing</Eyebrow>
+              <div style={{height:1,width:28,background:ROSE,opacity:0.5}}/>
               <Eyebrow color={C.textLow}>An example issue</Eyebrow>
               <div style={{flex:1}}/>
               <div className="ff-italic" style={{fontSize:13,color:C.textLow,fontStyle:'italic'}}>What yours might look like</div>
@@ -40,7 +40,7 @@ export default function Briefing(){
                   <MatchBadge variant="pill" pct={94} accent={PICKS[1].moodHex} />
                 </div>
                 <div>
-                  <Eyebrow color={C.purple} style={{marginBottom:10}}>Tonight’s pick</Eyebrow>
+                  <Eyebrow color={ROSE} style={{marginBottom:10}}>Tonight’s pick</Eyebrow>
                   <h3 className="ff-d2" style={{fontSize:'clamp(28px,3vw,40px)',color:C.text,margin:0}}>{PICKS[1].title}</h3>
                   <div style={{marginTop:8,fontFamily:'Inter',fontSize:12.5,color:C.textLow}}>{PICKS[1].year} · {PICKS[1].dir}</div>
                   <p className="ff-body" style={{marginTop:16,fontSize:14.5,fontWeight:400,color:C.textMid,lineHeight:1.65,maxWidth:440}}>{PICKS[1].why}</p>
@@ -56,7 +56,7 @@ export default function Briefing(){
                         <Poster src={p.poster} title={p.title} accent={p.moodHex} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
                       </div>
                       <div style={{minWidth:0}}>
-                        <div style={{fontFamily:'Outfit',fontSize:15,fontWeight:400,color:C.text,letterSpacing:'-0.01em'}}>{p.title}</div>
+                        <div style={{fontFamily:'Inter, sans-serif',fontSize:15,fontWeight:400,color:C.text,letterSpacing:'-0.01em'}}>{p.title}</div>
                         <div style={{fontFamily:'Inter',fontSize:11.5,color:C.textLow,marginTop:2,lineHeight:1.4}}>{p.why.split('. ')[0]}.</div>
                       </div>
                     </div>

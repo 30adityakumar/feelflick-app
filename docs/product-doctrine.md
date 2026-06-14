@@ -80,9 +80,10 @@ A “Not tonight” / skip yields **one sequential replacement** — the next si
 not a shelf of visible backup cards. Visible backups are not the default Tonight
 behavior.
 
-The loop compounds: every watch, rating, and skip sharpens the next night's pick.
-A 5-watch user gets a decent pick; a 50-watch user gets one that feels made for
-them.
+The loop should compound: as reliable watches, ratings, skips, saves, and
+corrections accumulate, recommendations and explanations should become more
+specific and personally credible. Exact signal thresholds and expected quality
+gains remain product hypotheses, not doctrine.
 
 ---
 

@@ -80,13 +80,13 @@ Read every statement in this rule as one of four states:
 
 ### Current production baseline (transitional)
 
-The shipped app currently uses the F3/F4 direction:
+The shipped app is **mixed and transitional**:
 
-* `/home` is migrated: warm dark neutrals, ivory/bone text, hairline rules, Newsreader editorial voice, rose (`#DD4E83`) accent, numbered I/II recommendation case, neutral bone/ivory primary
-* remaining surfaces still use Outfit display + Inter, dark surfaces, and the legacy purple/pink brand gradient
-* shared tokens and UI primitives
+* The F3/F4 direction was introduced on `/home` (F1–F2): warm dark neutrals, ivory/bone text, hairline rules, Newsreader editorial voice, rose (`#DD4E83`) accent, numbered I/II recommendation case, and a neutral `/home` primary.
+* F4 then expanded the Newsreader/Inter/rose typography and palette treatment across **many feature surfaces**.
+* Residual **global, shared, and legacy** areas still contain Outfit, purple/pink styling, gradient treatments, and other pre-target styling.
 
-This is a **transitional baseline**, valid for maintenance work. It is **not** the target. Do not claim the new direction is implemented, and do not remove the shipped F3/F4 work outside a deliberate, gated re-migration.
+Neither F3/F4 nor the Thoughtful Seatmate direction is uniformly implemented everywhere. This is a **transitional baseline**, valid for maintenance work. It is **not** the target. Do not claim either direction is fully implemented, and do not remove the shipped F3/F4 work outside a deliberate, gated re-migration.
 
 ### Accepted target direction (principle level)
 
@@ -767,22 +767,26 @@ Perform at least one critique and refinement pass.
 
 ## Migration gates
 
-The Thoughtful Seatmate direction is **accepted at the principle level**, not yet implemented. Migration proceeds only through these gates — do not skip ahead:
+The Thoughtful Seatmate direction is **accepted at the principle level**, not yet implemented. Migration proceeds through these gates, in order — do not skip ahead:
 
 1. **Doctrine accepted** — the active authority is [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). ✅
-2. **Prototypes resolve the open questions** — the Instrument-Sans-vs-Inter, warm-neutral/ivory value, warm-cue-hue, contextual-color-threshold, gradient-survival, and serif-exception questions are answered with rendered desktop + mobile evidence and a decision record. *Open.*
-3. **Token / component changes** — promote validated values to shared tokens and components **only after at least two production surfaces validate the specific values**.
-4. **Surface migration** — apply the accepted direction surface-by-surface, re-baselining visual regression deliberately at each step.
+2. **Isolated prototypes resolve the open questions** — Instrument-Sans-vs-Inter, warm-neutral/ivory values, warm-cue hue, contextual-color thresholds, gradient survival, and the serif exception — answered with rendered desktop + mobile evidence. *Open.*
+3. **A decision record approves** the chosen prototype direction.
+4. **Pilot** the accepted direction on **two representative production surfaces** using **scoped/local values** rather than prematurely globalizing tokens. Tonight (`/home`) and Film File (`/movie/:id`) are the recommended pilots unless a later decision record chooses equivalent surfaces.
+5. **After both pilot surfaces validate** the values and the interaction pattern, **promote** the values into shared tokens and primitives.
+6. **Migrate the remaining surfaces** systematically, with deliberate visual-regression re-baselining.
 
-**Current production baseline (transitional, do not remove in unrelated work):**
-* `/home` ships the F3/F4 direction (Newsreader, rose, numbered I/II case, neutral `/home` primary)
-* remaining surfaces still use Outfit + the legacy purple/pink gradient
+Pilot production work is allowed once gates 2–3 are complete; it uses scoped/local values. Shared tokens and broad shared-component changes must not precede pilot validation (gate 5) — they depend on the pilots, not the reverse, and never block pilot production work.
+
+**Current production baseline (mixed and transitional, do not remove in unrelated work):**
+* `/home` carries the original F3/F4 migration (F1–F2); F4 then expanded Newsreader/Inter/rose typography and palette across **many feature surfaces**
+* residual **global, shared, and legacy** areas still contain Outfit, purple/pink styling, and gradient treatments
+* neither F3/F4 nor the Thoughtful Seatmate direction is uniformly implemented everywhere
 
 **Do not change as part of a design pass:**
 * recommendation engine, scoring, or data contracts
-* shared components until at least two production surfaces confirm the *target* pattern
-* global CSS token values until two migrated surfaces validate the constants
-* the shipped F3/F4 implementation, except as a deliberate, gated re-migration
+* shared tokens or broad shared-component changes before the two pilot surfaces validate the values (gate 5)
+* the shipped F3/F4 implementation, except as a deliberate, gated pilot or re-migration
 * Design Lab directions (`src/features/design-lab/`) — keep isolated; they are prototype comparisons, not production
 * AppShell header (gradient wordmark, "Tonight" tab, avatar ring) and the global `:focus-visible` ring — these need dedicated global passes
 

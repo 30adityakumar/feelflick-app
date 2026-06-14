@@ -45,8 +45,9 @@ Every statement in FeelFlick design guidance should be readable as one of:
 [`design-authority-f3.md`](design-authority-f3.md) is now a **historical
 decision** record. It documents the F3/F4 "Design Authority Lock" — the Midnight
 Film Journal + Cinematic Concierge direction (Newsreader editorial voice, rose
-`#DD4E83` accent, numbered I/II recommendation case) that was migrated to `/home`
-in F1–F2.
+`#DD4E83` accent, numbered I/II recommendation case). It was introduced on `/home`
+in F1–F2, and F4 then expanded the Newsreader/Inter/rose typography and palette
+across many feature surfaces.
 
 That implementation is a **current production baseline** — a *transitional* state,
 not the target. It remains in production and **must not be removed or rewritten in
@@ -240,9 +241,11 @@ into the first glance.
 - **Restraint, not a locked scale:** keep type restrained and legible across
   narrow screens, long titles, localization, and zoom. Do not lock one exact scale,
   weight, or tracking value across every future surface.
-- **Current production baseline:** Newsreader (editorial) + Inter (interface) +
-  Outfit (retained wordmark/labels) are loaded and shipped on migrated surfaces.
-  This is transitional; do not extend it to new surfaces as the target.
+- **Current production baseline (mixed):** Newsreader (editorial) + Inter
+  (interface) + Outfit are all loaded; F4 shipped the Newsreader/Inter typography
+  across many feature surfaces, while residual global, shared, and legacy areas
+  still use Outfit. This is transitional; do not extend the serif split to new
+  surfaces as the target.
 
 ---
 
@@ -261,8 +264,10 @@ into the first glance.
   brand, and must not be folded into the brand palette. See
   [`design-system-hardening-f3.md`](../design-system-hardening-f3.md) for the
   semantic-accent rationale.
-- **Current production baseline:** rose `#DD4E83` (with `ROSE_DEEP`) on migrated
-  surfaces and the legacy purple/pink tokens on the rest. Transitional.
+- **Current production baseline (mixed):** F4 shipped the rose `#DD4E83` (with
+  `ROSE_DEEP`) palette treatment across many feature surfaces, while residual
+  global, shared, and legacy areas still contain purple/pink tokens and gradient
+  treatments. Transitional.
 
 ---
 
@@ -418,23 +423,33 @@ comparisons. Keep it isolated; it is not production UI.
 
 ## 21. Migration gates
 
-Migration proceeds only through these gates:
+Migration proceeds through these gates, in order:
 
 1. **Doctrine accepted** — this document (principle level). ✅ done.
-2. **Prototypes resolve the provisional questions** — §19 questions answered with
-   rendered evidence and a decision record. *Open.*
-3. **Token / component changes** — promote validated warm-neutral / one-sans /
-   neutral-primary values to shared tokens and components **only after at least two
-   production surfaces validate the specific values**.
-4. **Surface migration** — apply the accepted direction surface-by-surface,
-   re-baselining visual regression deliberately at each step.
+2. **Isolated prototypes resolve the provisional questions** (§19) with rendered
+   desktop/mobile evidence. *Open.*
+3. **A decision record approves** the chosen prototype direction.
+4. **Pilot** the accepted direction on **two representative production surfaces**
+   using **scoped/local values** rather than prematurely globalizing tokens.
+   Tonight (`/home`) and Film File (`/movie/:id`) are the recommended pilots unless
+   a later decision record chooses equivalent surfaces.
+5. **After both pilot surfaces validate** the values and the interaction pattern,
+   **promote** the values into shared tokens and primitives.
+6. **Migrate the remaining surfaces** systematically, with deliberate
+   visual-regression re-baselining.
 
 Constraints across all gates:
 
-- Do **not** migrate a new surface to the Thoughtful Seatmate direction until the
-  relevant prototype question (gate 2) is closed.
-- Do **not** remove the shipped F3/F4 baseline on a surface until that surface is
-  deliberately re-migrated.
+- **Pilot production work is allowed** once the relevant prototype question (gate 2)
+  and the decision record (gate 3) are complete; it uses scoped/local values, not
+  globalized tokens.
+- **Shared tokens and broad shared-component changes must not precede pilot
+  validation** (gate 5) — they depend on the pilots, never the reverse, so they
+  cannot block pilot production work in gate 4.
+- Do **not** migrate a surface to the Thoughtful Seatmate direction before its
+  prototype question is resolved; pilots come first, then systematic migration.
+- The current F3/F4 implementation stays **untouched** until a surface enters its
+  deliberate pilot or migration scope.
 - Do **not** change the recommendation engine, scoring, or data contracts as part
   of a visual migration.
 - Honor the deferred scope already noted in F3/F4 (AppShell header, global

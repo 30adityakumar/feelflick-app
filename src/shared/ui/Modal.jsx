@@ -86,7 +86,7 @@ export default function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className={`relative z-10 w-full ${sizeClass} bg-black border border-white/10 sm:rounded-2xl shadow-2xl overflow-hidden focus:outline-none ${className}`}
+            className={`relative z-10 w-full ${sizeClass} bg-black border border-white/10 sm:rounded-2xl shadow-2xl overflow-hidden ${className}`}
             onClick={(e) => e.stopPropagation()}
           >
             {children}

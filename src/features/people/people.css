@@ -1,11 +1,11 @@
 /* people.css */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+/* people.css — fonts load globally via index.html */
 .ff-people-v2, body:has(> div > div.ff-people-v2) { font-family:'Inter', system-ui, sans-serif; }
 .ff-people-v2 em { font-style: italic; }
 .ff-people-v2 button { font-family: inherit; transition: filter 0.18s ease; }
 .ff-people-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
 .ff-people-v2 input { font-family: inherit; }
-.ff-people-v2 ::selection { background: rgba(167,139,250,0.4); color:#fff; }
+.ff-people-v2 ::selection { background: rgba(221,78,131,0.35); color:#fff; }
 
 /* === Responsive overrides ==================================================
    Mirrors the pattern used in account-v2.css + watchlist-v2.css + history-v2.css:

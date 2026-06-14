@@ -60,7 +60,7 @@ function PageSkeleton() {
     <div className="ff-account-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
       <div className="ff-acct-section" style={{ maxWidth:1280, margin:'0 auto', padding:'80px 88px' }}>
         <div className="animate-pulse" style={{ ...pulse, height:14, width:280, borderRadius:999, marginBottom:30 }} />
-        <div className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:80, width:'40%', borderRadius:8, marginBottom:48 }} />
+        <div className="animate-pulse" style={{ background:'rgba(255,255,255,0.08)', height:80, width:'40%', borderRadius:8, marginBottom:48 }} />
         <div style={{ display:'flex', gap:48, alignItems:'center', flexWrap:'wrap' }}>
           <div className="animate-pulse" style={{ ...pulse, width:96, height:96, borderRadius:999 }} />
           <div style={{ flex:1, display:'flex', flexDirection:'column', gap:14, minWidth:200 }}>
@@ -78,7 +78,7 @@ function SignedOut() {
     <div className="ff-account-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
       <div style={{ textAlign:'center', maxWidth:480 }}>
         <Eyebrow size={10} style={{ marginBottom:18 }}>Account</Eyebrow>
-        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:42, fontWeight:500, color: HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Sign in to manage your settings.</h1>
+        <h1 style={{ fontFamily:'var(--font-editorial)', fontSize:42, fontWeight:400, color: HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Sign in to manage your settings.</h1>
         <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>The settings drawer needs an account to attach to.</p>
       </div>
     </div>
@@ -90,7 +90,7 @@ function PageError({ error }) {
     <div className="ff-account-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
       <div style={{ textAlign:'center', maxWidth:520 }}>
         <Eyebrow size={10} style={{ marginBottom:18 }}>Account · error</Eyebrow>
-        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Couldn&rsquo;t load your settings.</h1>
+        <h1 style={{ fontFamily:'var(--font-editorial)', fontSize:36, fontWeight:400, color:HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Couldn&rsquo;t load your settings.</h1>
         <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>{error}</p>
       </div>
     </div>

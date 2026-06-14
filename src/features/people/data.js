@@ -4,4 +4,4 @@
 // the narrow identity/fingerprint RPCs); it never imported these mocks, so nothing rendered them.
 // Only the design tokens below are used by People.jsx.
 
-export { HP, HP_GRAD } from '@/shared/lib/tokens'
+export { HP, ROSE, ROSE_DEEP } from '@/shared/lib/tokens'

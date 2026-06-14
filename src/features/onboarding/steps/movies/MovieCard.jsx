@@ -14,7 +14,7 @@ export default function MovieCard({ movie, isSelected, onClick }) {
       onClick={onClick}
       aria-pressed={isSelected}
       aria-label={`${isSelected ? 'Remove' : 'Select'} ${movie.title}`}
-      className="w-full flex flex-col gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
+      className="w-full flex flex-col gap-1.5 text-left focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
     >
       <div className={`relative aspect-2/3 w-full rounded-lg overflow-hidden transition-shadow duration-200 ${
         isSelected

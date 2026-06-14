@@ -10,7 +10,7 @@
 // + director arrays + their ordering are unchanged (presentation only).
 
 import FilmFileDisclosure from './FilmFileDisclosure'
-import { HP, RADIUS } from '../data'
+import { HP, ROSE, RADIUS } from '../data'
 
 const MAX = 4
 
@@ -26,15 +26,15 @@ function PosterButton({ title, year, dir, why, yourRating, poster, tmdbId, onOpe
         {/* poster is decorative — the title is adjacent + the button is named */}
         <img src={poster} alt="" style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
         {Number.isFinite(yourRating) && yourRating > 0 && (
-          <div aria-label={`Your rating: ${yourRating} out of 5`} style={{ position: 'absolute', top: 8, right: 8, padding: '3px 7px', borderRadius: 3, background: 'rgba(0,0,0,0.85)', border: `1px solid ${HP.amber}55`, fontSize: 9, fontWeight: 700, color: HP.amber, fontFamily: 'Outfit', letterSpacing: '0.06em' }}>{yourRating}★ YOU</div>
+          <div aria-label={`Your rating: ${yourRating} out of 5`} style={{ position: 'absolute', top: 8, right: 8, padding: '3px 7px', borderRadius: 3, background: 'rgba(0,0,0,0.85)', border: `1px solid ${HP.amber}55`, fontSize: 9, fontWeight: 700, color: HP.amber, fontFamily: 'Inter, sans-serif', letterSpacing: '0.06em' }}>{yourRating}★ YOU</div>
         )}
       </div>
-      <div style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{title}</div>
-      <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em', marginTop: 3 }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{title}</div>
+      <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em', marginTop: 3 }}>
         {year}{dir ? ` · ${dir}` : ''}
       </div>
       {why && (
-        <span style={{ display: 'block', marginTop: 8, fontSize: 12, lineHeight: 1.5, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>{why}</span>
+        <span style={{ display: 'block', marginTop: 8, fontSize: 12, lineHeight: 1.5, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>{why}</span>
       )}
     </button>
   )
@@ -43,7 +43,7 @@ function PosterButton({ title, year, dir, why, yourRating, poster, tmdbId, onOpe
 function Subsection({ kicker, children }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: HP.purple, margin: '0 0 16px 0' }}>{kicker}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: ROSE, margin: '0 0 16px 0' }}>{kicker}</div>
       <div className="ff-movie-explore-grid">{children}</div>
     </div>
   )
@@ -98,7 +98,7 @@ export default function ExplorationTail({ similar = [], directorFilms = [], dire
           href={`https://www.themoviedb.org/person/${directorId}`}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ display: 'inline-flex', marginTop: 8, padding: '9px 16px', borderRadius: RADIUS.pill, background: 'transparent', border: `1px solid ${HP.border}`, color: HP.textSoft, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none' }}
+          style={{ display: 'inline-flex', marginTop: 8, padding: '9px 16px', borderRadius: RADIUS.pill, background: 'transparent', border: `1px solid ${HP.border}`, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none' }}
         >
           Full filmography <span aria-hidden="true"> ↗</span><span className="sr-only"> (opens in a new tab)</span>
         </a>

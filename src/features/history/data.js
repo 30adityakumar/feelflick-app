@@ -3,7 +3,7 @@
 // USER + ENTRIES + HEATMAP + TIMELINE + MOOD_SHARE are now derived live in
 // useHistoryData.jsx from user_history × movies × user_ratings.
 
-export { HP, HP_GRAD } from '@/shared/lib/tokens'
+export { HP, ROSE } from '@/shared/lib/tokens'
 
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 export const tmdbImg = (path, size = 'w500') =>

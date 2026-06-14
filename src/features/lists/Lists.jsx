@@ -14,7 +14,7 @@ import MoodPill from '@/shared/components/MoodPill'
 import './lists.css'
 import { ListsDataProvider, useListsData } from './useListsData'
 
-import { HP, HP_GRAD } from '@/shared/lib/tokens'
+import { HP, ROSE } from '@/shared/lib/tokens'
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
 // === Masthead ============================================================
@@ -23,17 +23,17 @@ function Masthead({ onNewList }) {
   const { user } = useListsData()
   return (
     <section className="ff-lists-section ff-lists-masthead" style={{ padding: '72px 88px 32px', position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(167,139,250,0.12), transparent 60%)' }} />
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(221,78,131,0.10), transparent 60%)' }} />
       <div style={{ position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase', color: HP.purple }}>Lists</div>
-          <div style={{ height: 1, width: 38, background: HP.purple, opacity: 0.5 }} />
-          <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit' }}>{user.mineCount} yours · {user.followedCount} followed</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase', color: ROSE }}>Lists</div>
+          <div style={{ height: 1, width: 38, background: ROSE, opacity: 0.5 }} />
+          <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Inter, sans-serif' }}>{user.mineCount} yours · {user.followedCount} followed</div>
         </div>
-        <h1 className="ff-lists-hero" style={{ fontFamily: 'Outfit', fontSize: 88, lineHeight: 0.92, fontWeight: 300, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+        <h1 className="ff-lists-hero" style={{ fontFamily: 'var(--font-editorial)', fontSize: 88, lineHeight: 0.92, fontWeight: 400, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
           The <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>shelves.</em>
         </h1>
-        <p style={{ marginTop: 18, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 17, color: HP.textSoft, fontStyle: 'italic', maxWidth: 680, lineHeight: 1.55 }}>
+        <p style={{ marginTop: 18, fontFamily: 'Inter, sans-serif', fontSize: 17, color: HP.textSoft, fontStyle: 'italic', maxWidth: 680, lineHeight: 1.55 }}>
           Curated collections. Hand-built, not algorithmic. Yours, your taste twins&rsquo;, and the FeelFlick editors&rsquo;.
         </p>
         <div style={{ marginTop: 24, display: 'flex', gap: 10 }}>
@@ -65,10 +65,10 @@ function Tabs({ tab, setTab }) {
               onClick={() => setTab(t.v)}
               style={{
                 padding: '9px 18px', borderRadius: 999,
-                background: on ? HP_GRAD : 'transparent',
+                background: on ? ROSE : 'transparent',
                 color: on ? '#fff' : HP.textMuted,
                 border: 'none', cursor: 'pointer',
-                fontFamily: 'Outfit', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em',
+                fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em',
                 display: 'inline-flex', alignItems: 'center', gap: 8,
               }}
             >
@@ -127,30 +127,30 @@ function ListCard({ list, kind, onOpen }) {
             : `linear-gradient(180deg, transparent 30%, ${c2}cc 75%, ${c2})`
           }} />
           <div style={{ position: 'absolute', top: 16, left: 16, right: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <div style={{ padding: '4px 9px', borderRadius: 3, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', fontSize: 9, fontWeight: 700, color: '#fff', fontFamily: 'Outfit', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+            <div style={{ padding: '4px 9px', borderRadius: 3, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', fontSize: 9, fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
               {list.count} film{list.count === 1 ? '' : 's'}
             </div>
             {kind === 'mine' && (
-              <div style={{ padding: '4px 9px', borderRadius: 3, background: list.public ? 'rgba(52,211,153,0.20)' : 'rgba(0,0,0,0.7)', border: `1px solid ${list.public ? HP.green + '66' : HP.border}`, fontSize: 9, fontWeight: 700, color: list.public ? HP.green : HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+              <div style={{ padding: '4px 9px', borderRadius: 3, background: list.public ? 'rgba(52,211,153,0.20)' : 'rgba(0,0,0,0.7)', border: `1px solid ${list.public ? HP.green + '66' : HP.border}`, fontSize: 9, fontWeight: 700, color: list.public ? HP.green : HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 {list.public ? 'Public' : 'Private'}
               </div>
             )}
             {kind === 'followed' && list.by && (
-              <div style={{ width: 30, height: 30, borderRadius: 999, background: list.byBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0a0510', fontSize: 13, border: `2px solid ${HP.bgDeep}` }}>
+              <div style={{ width: 30, height: 30, borderRadius: 999, background: list.byBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#0a0510', fontSize: 13, border: `2px solid ${HP.bgDeep}` }}>
                 {list.by.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
           <div style={{ position: 'absolute', bottom: 18, left: 18, right: 18 }}>
-            <h3 style={{ fontFamily: 'Outfit', fontSize: 24, lineHeight: 1.05, fontWeight: 500, color: '#fff', letterSpacing: '-0.02em', margin: 0, textWrap: 'balance' }}>{list.title}</h3>
-            {list.blurb && <p style={{ margin: '8px 0 0 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.85)', fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{list.blurb}</p>}
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, lineHeight: 1.05, fontWeight: 500, color: '#fff', letterSpacing: '-0.02em', margin: 0, textWrap: 'balance' }}>{list.title}</h3>
+            {list.blurb && <p style={{ margin: '8px 0 0 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.85)', fontFamily: 'Inter, sans-serif', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{list.blurb}</p>}
           </div>
         </div>
       </button>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em' }}>
         {kind === 'mine' && <span>Updated {list.updated}</span>}
         {kind === 'followed' && <span>{list.by} · {list.updated}</span>}
-        {kind === 'editorial' && <span style={{ color: HP.purple, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>FeelFlick · Curated</span>}
+        {kind === 'editorial' && <span style={{ color: ROSE, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>FeelFlick · Curated</span>}
         <span style={{ color: HP.textFaint }}>→</span>
       </div>
     </article>
@@ -168,13 +168,13 @@ function ListsGrid({ items, kind, onOpen }) {
 function EmptyTab({ label, body, ctaLabel, onCta }) {
   return (
     <div style={{ border: `1px dashed ${HP.border}`, borderRadius: 12, padding: '48px 32px', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
-      <div style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, marginBottom: 8 }}>{label}</div>
-      <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, color: HP.textMuted, maxWidth: 480, margin: '0 auto 18px', lineHeight: 1.6 }}>{body}</div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: HP.text, marginBottom: 8 }}>{label}</div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: HP.textMuted, maxWidth: 480, margin: '0 auto 18px', lineHeight: 1.6 }}>{body}</div>
       {ctaLabel && onCta && (
         <button
           type="button"
           onClick={onCta}
-          style={{ padding: '10px 18px', borderRadius: 999, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+          style={{ padding: '10px 18px', borderRadius: 999, background: '#DD4E83', border: 'none', color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
         >{ctaLabel}</button>
       )}
     </div>
@@ -205,15 +205,15 @@ function Body({ tab, onNewList }) {
       <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
         <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />Your shelves
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ height: 1, width: 22, background: ROSE, opacity: 0.6 }} />Your shelves
             </div>
-            <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>you.</em></h2>
+            <h2 className="ff-lists-h2" style={{ fontFamily: 'var(--font-editorial)', fontSize: 36, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>you.</em></h2>
           </div>
           <button
             type="button"
             onClick={onNewList}
-            style={{ padding: '10px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: HP.text, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+            style={{ padding: '10px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: HP.text, fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
           >+ New list</button>
         </div>
         {mine.length === 0 ? (
@@ -238,17 +238,17 @@ function Body({ tab, onNewList }) {
     return (
       <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ height: 1, width: 22, background: ROSE, opacity: 0.6 }} />
             {showPopularFallback ? 'Popular on FeelFlick' : 'From your circle'}
           </div>
-          <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
+          <h2 className="ff-lists-h2" style={{ fontFamily: 'var(--font-editorial)', fontSize: 36, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
             {showPopularFallback
               ? <>Public lists, <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>worth a look.</em></>
               : <>Lists from your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>taste twins.</em></>}
           </h2>
           {showPopularFallback && (
-            <p style={{ marginTop: 12, fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', maxWidth: 540 }}>
+            <p style={{ marginTop: 12, fontSize: 13, color: HP.textMuted, fontFamily: 'Inter, sans-serif', fontStyle: 'italic', maxWidth: 540 }}>
               Follow someone whose taste lines up and this rail switches to their shelves. Until then, here&rsquo;s what the community is building.
             </p>
           )}
@@ -272,10 +272,10 @@ function Body({ tab, onNewList }) {
   return (
     <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />FeelFlick editorial
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ height: 1, width: 22, background: ROSE, opacity: 0.6 }} />FeelFlick editorial
         </div>
-        <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>the editors.</em></h2>
+        <h2 className="ff-lists-h2" style={{ fontFamily: 'var(--font-editorial)', fontSize: 36, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>the editors.</em></h2>
       </div>
       <ListsGrid items={editorial} kind="editorial" onOpen={openEditorial} />
     </section>
@@ -293,16 +293,16 @@ function FeaturedOpen() {
     <section className="ff-lists-section ff-lists-featured" style={{ padding: '72px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
       <div className="ff-lists-featured-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 64, alignItems: 'flex-start' }}>
         <div className="ff-lists-featured-meta" style={{ position: 'sticky', top: 32 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14 }}>Featured shelf</div>
-          <h2 className="ff-lists-h2-lg" style={{ fontFamily: 'Outfit', fontSize: 44, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: ROSE, marginBottom: 14 }}>Featured shelf</div>
+          <h2 className="ff-lists-h2-lg" style={{ fontFamily: 'var(--font-editorial)', fontSize: 44, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
             {featured.title}
           </h2>
           {featured.blurb && (
-            <p style={{ marginTop: 18, fontSize: 14, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.6, textWrap: 'pretty' }}>
+            <p style={{ marginTop: 18, fontSize: 14, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.6, textWrap: 'pretty' }}>
               &ldquo;{featured.blurb}&rdquo;
             </p>
           )}
-          <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.06em' }}>
+          <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.06em' }}>
             <span>{featured.films.length} film{featured.films.length === 1 ? '' : 's'} · {user.name} · updated {featured.updated}</span>
           </div>
           <div style={{ marginTop: 20, display: 'flex', gap: 8 }}>
@@ -317,7 +317,7 @@ function FeaturedOpen() {
               onClick={() => f.tmdbId && navigate(`/movie/${f.tmdbId}`)}
               style={{ ...RESET_BTN, display: 'grid', gridTemplateColumns: 'auto auto 1fr', gap: 24, alignItems: 'center', padding: '20px 0', borderBottom: `1px solid ${HP.border}`, width: '100%' }}
             >
-              <div style={{ fontFamily: 'Outfit', fontSize: 24, fontWeight: 200, color: HP.textMuted, letterSpacing: '-0.04em', width: 36, textAlign: 'right' }}>{String(i + 1).padStart(2, '0')}</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 200, color: HP.textMuted, letterSpacing: '-0.04em', width: 36, textAlign: 'right' }}>{String(i + 1).padStart(2, '0')}</div>
               {f.poster ? (
                 <img src={f.poster} alt="" style={{ width: 52, height: 78, objectFit: 'cover', borderRadius: 4 }} />
               ) : (
@@ -325,12 +325,12 @@ function FeaturedOpen() {
               )}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</span>
-                  <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit' }}>{f.year}{f.year && ' · '}{f.dir}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</span>
+                  <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif' }}>{f.year}{f.year && ' · '}{f.dir}</span>
                   {f.mood && f.mood !== 'Mixed' && <MoodPill label={f.mood} dot />}
                 </div>
                 {f.note && (
-                  <p style={{ margin: '6px 0 0 0', fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', textWrap: 'pretty' }}>&ldquo;{f.note}&rdquo;</p>
+                  <p style={{ margin: '6px 0 0 0', fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Inter, sans-serif', fontStyle: 'italic', textWrap: 'pretty' }}>&ldquo;{f.note}&rdquo;</p>
                 )}
               </div>
             </button>

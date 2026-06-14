@@ -68,7 +68,7 @@ function MatchRing({
         </defs>
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span className={classes.num} style={{ fontFamily: 'Outfit', fontSize: Math.round(size * 0.31), fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1 }}>
+        <span className={classes.num} style={{ fontFamily: 'Inter, sans-serif', fontSize: Math.round(size * 0.31), fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1 }}>
           {v}<span className={classes.pct} style={{ fontSize: Math.round(size * 0.16), color: HP.textMuted, marginLeft: 1 }}>%</span>
         </span>
         <span className={classes.label} style={{ fontSize: Math.round(size * 0.095), fontWeight: 700, color: accent, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 2 }}>Match</span>
@@ -85,7 +85,7 @@ function MatchPill({ pct, accent = HP.purple, style }) {
         padding: '4px 8px', borderRadius: 3,
         background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(8px)',
         border: `1px solid ${accent}44`,
-        fontFamily: 'Outfit', fontSize: 9.5, fontWeight: 700,
+        fontFamily: 'Inter, sans-serif', fontSize: 9.5, fontWeight: 700,
         color: accent, letterSpacing: '0.06em',
         ...style,
       }}

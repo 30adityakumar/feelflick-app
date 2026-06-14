@@ -11,6 +11,7 @@ import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
 import { isEnabled } from '@/shared/config/betaFlags'
 import { MOODS, ONBOARDING_TO_DISCOVER, diversifyTop3, predictDiscoverDefaults } from './derive'
 import { HP, TIME_OPTIONS } from './constants'
+import { ROSE } from '@/shared/lib/tokens'
 import StageMood from './sections/StageMood'
 import StageNightContext from './sections/StageNightContext'
 import StageResolve from './sections/StageResolve'
@@ -330,8 +331,8 @@ function DiscoverBody() {
   };
 
   const blendHex = useMemo(() => {
-    if (selected.length === 0) return HP.purple;
-    return MOODS.find(m => m.id === selected[0])?.hex || HP.purple;
+    if (selected.length === 0) return ROSE;
+    return MOODS.find(m => m.id === selected[0])?.hex || ROSE;
   }, [selected]);
 
   // B1.4b kill-switch: when Discover recommendations are disabled for beta, compute NO picks
@@ -514,6 +515,9 @@ export default function Discover() {
   )
   return (
     <DiscoverDataProvider>
+      {/* a11y: each stage owns exactly one visible <h1> (the mood question, the
+          night-context checkpoint, then the pick title) — a distinct screen per
+          step. No separate sr-only page h1 (that produced two h1s on the result). */}
       <DiscoverBody />
       {handoffOverlayVisible && (
         <motion.div
@@ -521,8 +525,8 @@ export default function Discover() {
           className="pointer-events-none fixed inset-0 z-9998"
           style={{
             background: `
-              radial-gradient(ellipse 70% 50% at 50% 45%, rgba(167,139,250,0.08) 0%, transparent 65%),
-              radial-gradient(ellipse 60% 45% at 50% 55%, rgba(236,72,153,0.05) 0%, transparent 60%),
+              radial-gradient(ellipse 70% 50% at 50% 45%, rgba(221,78,131,0.06) 0%, transparent 65%),
+              radial-gradient(ellipse 60% 45% at 50% 55%, rgba(221,78,131,0.05) 0%, transparent 60%),
               #000000
             `,
           }}

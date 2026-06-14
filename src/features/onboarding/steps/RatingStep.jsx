@@ -149,7 +149,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70 sm:mb-4 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          className="mb-3 flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70 sm:mb-4 rounded focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           <ChevronLeft className="h-4 w-4" />
           Back
@@ -199,7 +199,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         <div className="mx-auto flex h-full w-full max-w-md items-center justify-center">
           <div
             {...stageProps}
-            className="relative h-full max-h-full aspect-2/3 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="relative h-full max-h-full aspect-2/3 rounded-2xl focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
             <AnimatePresence mode="wait" initial={false}>
               {allRated ? (
@@ -246,7 +246,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
             <button
               type="button"
               onClick={handleSkip}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-full px-4 text-sm font-medium text-white/50 transition-colors hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full px-4 text-sm font-medium text-white/50 transition-colors hover:text-white/80 focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               Skip for now
             </button>
@@ -390,7 +390,7 @@ function SentimentRow({ active, dragHint, onRate, reduced }) {
             whileTap={reduced ? undefined : { scale: 0.97 }}
             animate={dragHint === s.key ? { scale: 1.03 } : { scale: 1 }}
             transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className={`min-h-[48px] rounded-xl px-2 text-center text-sm tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+            className={`min-h-[48px] rounded-xl px-2 text-center text-sm tracking-tight transition-colors focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
               apex ? 'font-semibold text-white' : `font-medium ${on ? 'text-white' : 'text-white/75'}`
             }`}
             style={{

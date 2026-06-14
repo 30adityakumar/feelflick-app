@@ -4,19 +4,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronRight } from 'lucide-react'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, HP_GRAD } from './data'
+import { HP, ROSE_DEEP } from './data'
 import { SmartImg } from './atoms'
+import { ROSE } from './WhyThisPick'
 import { useHomeData } from './useHomeData'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
 
-const Heading = ({ kicker, title, sub }) => (
+// F2 — mirrors the F1 briefing palette (scoped to /home; not promoted to shared
+// tokens yet) so the bottom sections speak the same Midnight Film Journal language
+// as the briefing. ROSE is imported (single source); the warm neutrals mirror
+// sections-top's local consts.
+const EDITORIAL = 'var(--font-editorial)'
+const IVORY = '#F2ECE1'
+const IVORY_META = 'rgba(242,236,225,0.62)'
+const WARM_KEYLINE = 'rgba(242,236,225,0.18)'
+
+// `accent` colours the kicker eyebrow + its rule. Defaults to undefined → the
+// Eyebrow's own default (the rendered /home sections pass rose; the not-yet-
+// rendered sections keep their default until their own migration).
+const Heading = ({ kicker, title, sub, accent }) => (
   <header style={{ marginBottom: 36 }}>
-    <Eyebrow rule size={10} spacing="0.24em" style={{ marginBottom: 14 }}>{kicker}</Eyebrow>
-    <h2 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>{title}</h2>
-    {sub && <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Outfit, Inter, sans-serif', textWrap: 'pretty' }}>{sub}</p>}
+    <Eyebrow rule color={accent} size={10} spacing="0.24em" style={{ marginBottom: 14 }}>{kicker}</Eyebrow>
+    <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 400, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>{title}</h2>
+    {sub && <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Inter, sans-serif', textWrap: 'pretty' }}>{sub}</p>}
   </header>
 )
 
@@ -33,7 +46,7 @@ export function ContinueWatching({ onResume }) {
       <button
         type="button"
         onClick={() => onResume?.(f)}
-        onMouseEnter={(e) => e.currentTarget.style.borderColor = HP.purple + '66'}
+        onMouseEnter={(e) => e.currentTarget.style.borderColor = ROSE + '66'}
         onMouseLeave={(e) => e.currentTarget.style.borderColor = HP.border}
         style={{
           display: 'flex', gap: 24, padding: 20, border: `1px solid ${HP.border}`, borderRadius: 6,
@@ -44,17 +57,17 @@ export function ContinueWatching({ onResume }) {
         <SmartImg film={f} sizes="84px" style={{ width: 84, height: 126, objectFit: 'cover', borderRadius: 4, flex: 'none' }} />
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, minWidth: 0 }}>
           <div>
-            <div style={{ fontFamily: 'Outfit', fontSize: 19, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</div>
-            <div style={{ fontSize: 12, color: HP.textMuted, marginTop: 4, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{continueItem.timeLeft} · last watched {continueItem.lastWatched}</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 19, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</div>
+            <div style={{ fontSize: 12, color: HP.textMuted, marginTop: 4, fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em' }}>{continueItem.timeLeft} · last watched {continueItem.lastWatched}</div>
           </div>
           <div>
             <div style={{ height: 2, background: HP.border, borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
-              <div style={{ height: '100%', width: `${continueItem.progress * 100}%`, background: HP.purple, borderRadius: 999 }} />
+              <div style={{ height: '100%', width: `${continueItem.progress * 100}%`, background: ROSE, borderRadius: 999 }} />
             </div>
-            <div style={{ fontSize: 10, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{Math.round(continueItem.progress * 100)}% watched</div>
+            <div style={{ fontSize: 10, color: HP.textFaint, fontFamily: 'Inter, sans-serif', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{Math.round(continueItem.progress * 100)}% watched</div>
           </div>
         </div>
-        <span style={{ alignSelf: 'center', padding: '10px 18px', borderRadius: 4, background: HP.purple, color: '#0A0510', fontFamily: 'Outfit', fontWeight: 600, fontSize: 12, letterSpacing: '0.04em' }}>Resume &rarr;</span>
+        <span style={{ alignSelf: 'center', padding: '10px 18px', borderRadius: 4, background: ROSE_DEEP, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 12, letterSpacing: '0.04em' }}>Resume &rarr;</span>
       </button>
     </section>
   )
@@ -72,8 +85,8 @@ export function ContinueWatching({ onResume }) {
 // (< 5 logged films).
 function DNAKicker({ children }) {
   return (
-    <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-      <span aria-hidden style={{ height: 1, width: 18, background: HP.purple, opacity: 0.6 }} />
+    <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+      <span aria-hidden style={{ height: 1, width: 18, background: ROSE, opacity: 0.6 }} />
       {children}
     </div>
   )
@@ -84,15 +97,15 @@ function MoodWeightRow({ label, weight }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-        <span style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, letterSpacing: '-0.005em' }}>{label}</span>
-        <span style={{ fontFamily: 'Outfit', fontSize: 12, color: HP.textMuted, letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: HP.text, letterSpacing: '-0.005em' }}>{label}</span>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: HP.textMuted, letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
       </div>
       <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
         <div
           style={{
             height: '100%',
             width: `${pct}%`,
-            background: `linear-gradient(90deg, ${HP.purple}, ${HP.pink})`,
+            background: `linear-gradient(90deg, ${ROSE}, ${HP.pink})`,
             borderRadius: 999,
             transition: 'width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1)',
           }}
@@ -105,8 +118,8 @@ function MoodWeightRow({ label, weight }) {
 function DNAStat({ value, label }) {
   return (
     <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
-      <span style={{ fontFamily: 'Outfit', fontSize: 22, fontWeight: 200, color: HP.text, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
-      <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{label}</span>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 200, color: HP.text, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+      <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{label}</span>
     </div>
   )
 }
@@ -144,10 +157,10 @@ export function CinematicDNA() {
                 <span
                   key={m}
                   style={{
-                    fontFamily: 'Outfit, Inter, sans-serif',
+                    fontFamily: 'var(--font-editorial)',
                     fontSize: 'clamp(36px, 5vw, 56px)',
                     lineHeight: 1.02,
-                    fontWeight: 200,
+                    fontWeight: 400,
                     fontStyle: 'italic',
                     letterSpacing: '-0.035em',
                     color: i === 0 ? HP.text : 'rgba(255,255,255,0.78)',
@@ -159,7 +172,7 @@ export function CinematicDNA() {
               ))}
             </div>
           ) : (
-            <p style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 15, lineHeight: 1.5, color: HP.textMuted, fontStyle: 'italic', margin: 0, maxWidth: 380 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, lineHeight: 1.5, color: HP.textMuted, fontStyle: 'italic', margin: 0, maxWidth: 380 }}>
               Rate a few more films and tone patterns will start to surface here.
             </p>
           )}
@@ -175,7 +188,7 @@ export function CinematicDNA() {
               ))}
             </div>
           ) : (
-            <p style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 15, lineHeight: 1.5, color: HP.textMuted, fontStyle: 'italic', margin: 0, maxWidth: 380 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, lineHeight: 1.5, color: HP.textMuted, fontStyle: 'italic', margin: 0, maxWidth: 380 }}>
               Log a few more films and your mood signature comes into focus.
             </p>
           )}
@@ -218,16 +231,16 @@ export function TasteMatch({ onOpenFriend }) {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 999, background: fr.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0510', fontFamily: 'Outfit', fontWeight: 700, fontSize: 16 }}>{fr.name.charAt(0).toUpperCase()}</div>
+              <div style={{ width: 44, height: 44, borderRadius: 999, background: fr.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0510', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 16 }}>{fr.name.charAt(0).toUpperCase()}</div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: 'Outfit', fontSize: 38, fontWeight: 200, color: HP.text, lineHeight: 1, letterSpacing: '-0.04em' }}>{fr.match}<span style={{ fontSize: 14, color: HP.textMuted, marginLeft: 2 }}>%</span></div>
-                <div style={{ fontSize: 9, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 2 }}>match</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 38, fontWeight: 200, color: HP.text, lineHeight: 1, letterSpacing: '-0.04em' }}>{fr.match}<span style={{ fontSize: 14, color: HP.textMuted, marginLeft: 2 }}>%</span></div>
+                <div style={{ fontSize: 9, color: HP.textMuted, fontFamily: 'Inter, sans-serif', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 2 }}>match</div>
               </div>
             </div>
-            <div style={{ fontFamily: 'Outfit', fontSize: 17, fontWeight: 500, color: HP.text, marginBottom: 4 }}>{fr.name}</div>
-            <p style={{ fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', margin: 0, textWrap: 'pretty' }}>&ldquo;{fr.overlap}.&rdquo;</p>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, fontWeight: 500, color: HP.text, marginBottom: 4 }}>{fr.name}</div>
+            <p style={{ fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'var(--font-editorial)', fontStyle: 'italic', margin: 0, textWrap: 'pretty' }}>&ldquo;{fr.overlap}.&rdquo;</p>
             {fr.last && fr.last !== '—' && (
-              <div style={{ marginTop: 14, fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit' }}>
+              <div style={{ marginTop: 14, fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Inter, sans-serif' }}>
                 Last · <span style={{ color: HP.textSoft, textTransform: 'none', letterSpacing: '0.02em', fontStyle: 'italic', fontWeight: 400 }}>{fr.last}</span>
                 {fr.lastWhen && <span style={{ color: HP.textFaint }}> · {fr.lastWhen}</span>}
               </div>
@@ -308,9 +321,9 @@ function ListCard({ list, onClick }) {
             on hover the same way the /lists card hint does. */}
         <div style={{ position: 'absolute', bottom: 18, left: 18, right: 18, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, zIndex: 5 }}>
           <div style={{ flex: 1, transform: hover ? 'translateY(-2px)' : 'translateY(0)', transition: 'transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
-            <h3 style={{ fontFamily: 'Outfit', fontSize: 22, lineHeight: 1.1, fontWeight: 500, color: '#fff', letterSpacing: '-0.02em', margin: 0, textWrap: 'balance', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>{list.title}</h3>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, lineHeight: 1.1, fontWeight: 500, color: '#fff', letterSpacing: '-0.02em', margin: 0, textWrap: 'balance', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>{list.title}</h3>
             {list.blurb && (
-              <p style={{ margin: '8px 0 0 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.88)', fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{list.blurb}</p>
+              <p style={{ margin: '8px 0 0 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.88)', fontFamily: 'Inter, sans-serif', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{list.blurb}</p>
             )}
           </div>
           <ChevronRight
@@ -393,14 +406,14 @@ export function TasteTwinPulse({ onWatch }) {
                   position: 'absolute', top: 8, right: 8,
                   padding: '4px 8px', borderRadius: 999,
                   background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)',
-                  fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, color: HP.text,
+                  fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: HP.text,
                   letterSpacing: '0.06em',
                 }}>
                   {film.twinCount} watched
                 </div>
               </div>
-              <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
-              <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3, letterSpacing: '0.06em' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
+              <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 3, letterSpacing: '0.06em' }}>
                 {film.release_year || ''}{film.primary_genre ? ` · ${film.primary_genre}` : ''}
               </div>
             </button>
@@ -447,10 +460,10 @@ export function CuratedLists({ onOpenList }) {
       >
         <div>
           <Eyebrow rule size={10} spacing="0.24em" style={{ marginBottom: 14 }}>{isCurated ? 'Lists' : 'For you'}</Eyebrow>
-          <h2 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+          <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 400, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
             {isCurated ? 'Curated edits.' : 'Lists, hand-cut for you.'}
           </h2>
-          <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Outfit, Inter, sans-serif', textWrap: 'pretty' }}>
+          <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Inter, sans-serif', textWrap: 'pretty' }}>
             {isCurated
               ? 'Hand-built collections, not algorithmic dumps.'
               : 'Pulled from your watch history. Click any list to dig in.'}
@@ -459,8 +472,8 @@ export function CuratedLists({ onOpenList }) {
         <button
           type="button"
           onClick={() => onOpenList?.()}
-          className="group inline-flex items-center gap-1.5 self-start rounded-full border border-white/10 bg-white/4 px-4 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/25 hover:bg-white/8 hover:text-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 lg:self-end"
-          style={{ fontFamily: 'Outfit', letterSpacing: '0.04em' }}
+          className="group inline-flex items-center gap-1.5 self-start rounded-full border border-white/10 bg-white/4 px-4 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/25 hover:bg-white/8 hover:text-white active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/40 lg:self-end"
+          style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em' }}
         >
           View all
           <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
@@ -494,7 +507,7 @@ export function CuratedLists({ onOpenList }) {
               height: 6,
               width: i === activeIdx ? 20 : 6,
               borderRadius: 999,
-              background: i === activeIdx ? HP.purple : 'rgba(255,255,255,0.18)',
+              background: i === activeIdx ? ROSE : 'rgba(255,255,255,0.18)',
               transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
             }}
           />
@@ -533,7 +546,7 @@ function SeenTile({ film, onConfirm }) {
       aria-pressed={state === 'saved'}
       onClick={handleClick}
       disabled={state === 'saving' || state === 'saved'}
-      className="rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      className="rounded-lg focus-visible:ring-2 focus-visible:ring-white/40"
       style={{
         background: 'transparent', border: 'none', padding: 0, cursor: state === 'idle' ? 'pointer' : 'default',
         textAlign: 'left', fontFamily: 'inherit', color: 'inherit', width: '100%',
@@ -578,15 +591,15 @@ function SeenTile({ film, onConfirm }) {
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0,
             padding: '6px 8px', background: 'rgba(239,68,68,0.85)',
-            color: '#fff', fontSize: 10, fontFamily: 'Outfit', fontWeight: 600, textAlign: 'center',
+            color: '#fff', fontSize: 10, fontFamily: 'Inter, sans-serif', fontWeight: 600, textAlign: 'center',
             letterSpacing: '0.04em', textTransform: 'uppercase',
           }}>
             Try again
           </div>
         )}
       </div>
-      <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
-      <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3, letterSpacing: '0.06em' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
+      <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 3, letterSpacing: '0.06em' }}>
         {film.release_year || ''}{film.primary_genre ? ` · ${film.primary_genre}` : ''}
       </div>
     </button>
@@ -673,6 +686,7 @@ export function QuickLog({ onLog }) {
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{statusMsg}</div>
       <Heading
         kicker="Feed the engine"
+        accent={ROSE}
         title={allConfirmed ? 'Nice — your taste profile just got sharper.' : 'Have you seen any of these?'}
         sub={allConfirmed
           ? 'These were our best guesses. Want to log something else?'
@@ -708,14 +722,14 @@ export function QuickLog({ onLog }) {
           mood path; this pill offers the catalog path — two distinct
           exits, not redundant. */}
       <div style={{ marginTop: allConfirmed ? 8 : 32, paddingTop: allConfirmed ? 0 : 24, borderTop: allConfirmed ? 'none' : `1px solid ${HP.border}` }}>
-        <p style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 10, letterSpacing: '0.04em' }}>
+        <p style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginBottom: 10, letterSpacing: '0.04em' }}>
           {allConfirmed ? 'Browse the catalog:' : 'Don’t see what you watched? Browse the catalog:'}
         </p>
         <button
           type="button"
           onClick={() => onLog?.()}
-          className="group inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/4 px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/8 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: HP.textSoft, letterSpacing: '0.02em' }}
+          className="group inline-flex min-h-[44px] items-center gap-2 rounded-full bg-transparent px-5 py-2.5 transition-all duration-200 hover:bg-white/[0.04] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/40"
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.textSoft, letterSpacing: '0.02em', border: `1px solid ${WARM_KEYLINE}` }}
         >
           Open Browse
           <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
@@ -725,14 +739,15 @@ export function QuickLog({ onLog }) {
   )
 }
 
-// PageEndCard — quiet, role-clear close for /home (F4.5). Home has ALREADY given
-// tonight's pick above; this is just the optional door to Discover for when the
-// user would rather shape a pick deliberately by mood + context. Deliberately
-// calmer than a second hero — and it never implies Discover picks "better" than
-// Home or that tonight's pick is disposable. Mood-tinted so the closer carries the
-// user's current glow.
+// PageEndCard — quiet, role-clear close for /home (F4.5; F2-aligned). Home has
+// ALREADY given tonight's pick above; this is just the optional door to Discover
+// for when the user would rather shape a pick deliberately by mood + context.
+// Deliberately calmer than a second hero and SUBORDINATE to the briefing's
+// bone-slab primary — the gradient pill + glowing card were retired (F2) for a
+// warm hairline panel, an editorial heading, and a rose-ghost CTA. A whisper of
+// the current mood remains as faint atmosphere (consistent with the page ambient).
 export function PageEndCard({ currentMood, onDiscover }) {
-  const tint = currentMood?.hex || HP.purple
+  const tint = currentMood?.hex || ROSE
   return (
     <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[64px] lg:pb-[80px]" style={{ borderColor: HP.border }}>
       <div
@@ -742,41 +757,43 @@ export function PageEndCard({ currentMood, onDiscover }) {
           overflow: 'hidden',
           padding: '40px 28px',
           background: `
-            radial-gradient(ellipse 60% 80% at 20% 100%, ${tint}1a, transparent 62%),
-            linear-gradient(135deg, rgba(8,6,14,0.9) 0%, rgba(8,6,14,0.74) 100%)
+            radial-gradient(ellipse 60% 80% at 18% 110%, ${tint}10, transparent 60%),
+            linear-gradient(180deg, rgba(242,236,225,0.022), transparent 55%)
           `,
-          border: `1px solid ${HP.border}`,
+          border: `1px solid ${WARM_KEYLINE}`,
           textAlign: 'center',
         }}
         className="sm:px-10"
       >
         <div style={{
           fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase',
-          color: HP.textMuted, marginBottom: 14, display: 'inline-flex', alignItems: 'center', gap: 12,
+          color: IVORY_META, marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 12,
         }}>
-          <span aria-hidden style={{ height: 1, width: 24, background: HP.textMuted, opacity: 0.5 }} />
+          <span aria-hidden style={{ height: 1, width: 24, background: IVORY_META, opacity: 0.6 }} />
           Or shape your own
-          <span aria-hidden style={{ height: 1, width: 24, background: HP.textMuted, opacity: 0.5 }} />
+          <span aria-hidden style={{ height: 1, width: 24, background: IVORY_META, opacity: 0.6 }} />
         </div>
+        {/* Editorial closer voice (Newsreader) — the curator inviting the
+            deliberate path; emphasis in restrained rose, not the old mood-purple. */}
         <h2 style={{
-          fontFamily: 'Outfit, Inter, sans-serif',
-          fontSize: 'clamp(24px, 3vw, 38px)',
-          lineHeight: 1.05,
-          fontWeight: 300,
-          letterSpacing: '-0.035em',
-          color: HP.text,
-          margin: '0 auto 12px auto',
+          fontFamily: EDITORIAL,
+          fontSize: 'clamp(26px, 3vw, 40px)',
+          lineHeight: 1.08,
+          fontWeight: 500,
+          letterSpacing: '-0.01em',
+          color: IVORY,
+          margin: '0 auto 14px auto',
           maxWidth: 620,
           textWrap: 'balance',
         }}>
-          Want to pick by <em style={{ fontStyle: 'italic', color: tint, fontWeight: 400 }}>mood and moment?</em>
+          Want to pick by <em style={{ fontStyle: 'italic', color: ROSE, fontWeight: 500 }}>mood and moment?</em>
         </h2>
         <p style={{
-          fontFamily: 'Outfit, Inter, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           fontSize: 'clamp(13px, 1vw, 15px)',
-          lineHeight: 1.55,
-          color: HP.textMuted,
-          margin: '0 auto 26px auto',
+          lineHeight: 1.6,
+          color: IVORY_META,
+          margin: '0 auto 28px auto',
           maxWidth: 520,
           textWrap: 'pretty',
         }}>
@@ -788,13 +805,12 @@ export function PageEndCard({ currentMood, onDiscover }) {
             onClick={() => onDiscover?.()}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              minHeight: 44, padding: '12px 22px', borderRadius: 8,
-              background: HP_GRAD, border: 'none', color: '#fff',
-              fontFamily: 'Outfit', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
+              minHeight: 44, padding: '12px 24px', borderRadius: 4,
+              border: `1px solid ${ROSE}`, color: IVORY,
+              fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
               cursor: 'pointer',
-              boxShadow: '0 10px 24px -12px rgba(236,72,153,0.42)',
             }}
-            className="transition-transform duration-200 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            className="ff-discover-cta transition-transform duration-200 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/70"
           >
             Open Discover
             <ChevronRight className="h-4 w-4" aria-hidden />

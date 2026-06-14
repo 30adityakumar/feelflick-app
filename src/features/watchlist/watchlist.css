@@ -1,11 +1,10 @@
-/* watchlist.css — F6.4 calm saved-intent layout */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+/* watchlist.css — F6.4 calm saved-intent layout; fonts load globally via index.html */
 .ff-watchlist-v2 { font-family:'Inter', system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
 .ff-watchlist-v2 em { font-style: italic; }
 .ff-watchlist-v2 button { font-family: inherit; transition: filter 0.18s ease; }
 .ff-watchlist-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
 .ff-watchlist-v2 select { font-family: inherit; }
-.ff-watchlist-v2 ::selection { background: rgba(167,139,250,0.4); color:#fff; }
+.ff-watchlist-v2 ::selection { background: rgba(221,78,131,0.35); color:#fff; }
 
 /* One responsive saved-film grid (no fixed 5-col assumption; auto-fills, never wraps a
    card's controls awkwardly). The card is a simple vertical stack. */

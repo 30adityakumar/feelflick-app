@@ -17,8 +17,8 @@ export default function StreamingChip({ provider, status }) {
           loading="lazy"
         />
         <div style={{ minWidth:0 }}>
-          <div style={{ fontSize:9, fontWeight:600, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textFaint, fontFamily:'Outfit', lineHeight:1 }}>{label}</div>
-          <div style={{ fontSize:12, fontWeight:600, color:HP.text, fontFamily:'Outfit', lineHeight:1.2, marginTop:3 }}>{provider.name}</div>
+          <div style={{ fontSize:9, fontWeight:600, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textFaint, fontFamily:'Inter, sans-serif', lineHeight:1 }}>{label}</div>
+          <div style={{ fontSize:12, fontWeight:600, color:HP.text, fontFamily:'Inter, sans-serif', lineHeight:1.2, marginTop:3 }}>{provider.name}</div>
         </div>
       </div>
     );

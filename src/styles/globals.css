@@ -42,12 +42,12 @@ body {
 /* === Selection & focus === */
 
 ::selection {
-  background: linear-gradient(135deg, var(--purple-500), var(--pink-500));
-  color: white;
+  background: rgba(221, 78, 131, 0.35);
+  color: #fff;
 }
 
 :focus-visible {
-  outline: 2px solid var(--purple-500);
+  outline: 2px solid var(--brand-rose, #DD4E83);
   outline-offset: 3px;
   border-radius: 0.5rem;
 }

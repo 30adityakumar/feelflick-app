@@ -190,7 +190,7 @@ export default function MoviesStep({
             onKeyDown={handleSearchKeyDown}
             placeholder="Search any film…"
             aria-label="Search for a film to add"
-            className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-400/50 focus:border-purple-400/30 transition-all"
+            className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:ring-1 focus:ring-purple-400/50 focus:border-purple-400/30 transition-all"
           />
           {query && (
             <button

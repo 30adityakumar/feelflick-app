@@ -28,9 +28,9 @@ const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transi
  * the disabled (opacity) state, and the in-button micro-spinner (`loading`) — the one
  * sanctioned spinner per CLAUDE.md.
  *
- * KNOWN follow-up (deferred — would change the `/about` visual baseline): the base
- * font is currently inherited (Inter); the editorial language calls for Outfit on
- * buttons. Align it in a later F11B wave WITH a deliberate visual re-baseline.
+ * Font: the base font is inherited Inter, which is correct under the F4 direction —
+ * buttons are interface controls (Inter), not editorial voice (Newsreader). The old
+ * "buttons should be Outfit" follow-up is retired with the rest of the Outfit system.
  *
  * @param {object} props
  * @param {'primary'|'secondary'|'ghost'|'icon'|'destructive'} [props.variant='secondary']

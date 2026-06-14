@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import MoodPill from '@/shared/components/MoodPill'
-import { HP, HP_GRAD, MOODS, SORT_OPTIONS, DECADE_OPTIONS, LANG_OPTIONS, GENRE_OPTIONS, RUNTIME_OPTIONS, PACING_OPTIONS, INTENSITY_OPTIONS, DEPTH_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
+import { HP, ROSE, ROSE_DEEP, MOODS, SORT_OPTIONS, DECADE_OPTIONS, LANG_OPTIONS, GENRE_OPTIONS, RUNTIME_OPTIONS, PACING_OPTIONS, INTENSITY_OPTIONS, DEPTH_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
 
 // FeelFlick — Browse v3 components.
 // /browse v5 — components & helpers.
@@ -51,12 +51,12 @@ function Nav() {
   return (
     <header style={{ padding:'14px 56px', borderBottom:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(6,6,10,0.7)', backdropFilter:'blur(18px) saturate(140%)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-        <div style={{ width:26, height:26, borderRadius:6, background:HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, fontSize:12, color:'#fff' }}>FF</div>
-        <span style={{ fontFamily:'Outfit', fontWeight:600, fontSize:14, color:HP.text, letterSpacing:'-0.005em' }}>FeelFlick</span>
+        <div style={{ width:26, height:26, borderRadius:6, background:ROSE_DEEP, display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:12, color:'#fff' }}>FF</div>
+        <span style={{ fontFamily:'Inter, sans-serif', fontWeight:600, fontSize:14, color:HP.text, letterSpacing:'-0.005em' }}>FeelFlick</span>
       </div>
       <nav style={{ display:'flex', gap:24 }}>
         <span style={{ fontSize:13, color:HP.textMid, fontFamily:'Inter', fontWeight:500 }}>Home</span>
-        <span style={{ fontSize:13, color:HP.text, fontFamily:'Inter', fontWeight:600, position:'relative' }}>Browse<span style={{ position:'absolute', left:0, right:0, bottom:-18, height:2, background:HP.purple, borderRadius:2 }}/></span>
+        <span style={{ fontSize:13, color:HP.text, fontFamily:'Inter', fontWeight:600, position:'relative' }}>Browse<span style={{ position:'absolute', left:0, right:0, bottom:-18, height:2, background:ROSE, borderRadius:2 }}/></span>
         <span style={{ fontSize:13, color:HP.textMid, fontFamily:'Inter', fontWeight:500 }}>Diary</span>
         <span style={{ fontSize:13, color:HP.textMid, fontFamily:'Inter', fontWeight:500 }}>DNA</span>
       </nav>
@@ -74,7 +74,7 @@ function EditorialHeader({ mood }) {
     <section style={{ padding:'40px 56px 18px', position:'relative' }}>
       <div aria-hidden style={{ position:'absolute', inset:0, pointerEvents:'none', background:`radial-gradient(ellipse 60% 50% at 22% 0%, ${tint}22, transparent 60%), radial-gradient(ellipse 50% 40% at 90% 0%, ${tint}11, transparent 60%)`, transition:'background 0.6s ease' }} />
       <div style={{ position:'relative', display:'flex', alignItems:'center', gap:14 }}>
-        <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.28em', textTransform:'uppercase', color:tint }}>Browse</span>
+        <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.28em', textTransform:'uppercase', color:tint }}>Browse</span>
         <span style={{ height:1, flex:1, maxWidth:56, background:tint, opacity:0.5 }} />
       </div>
     </section>
@@ -87,7 +87,7 @@ function EditorialHeader({ mood }) {
 function MoodRow({ mood, setMood, sortBy, setSortBy, view, setView }) {
   return (
     <section className="ff-browse-mood-row" style={{ padding:'22px 56px 6px', display:'flex', alignItems:'center', gap:18, flexWrap:'wrap' }}>
-      <span style={{ fontFamily:'Outfit', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textLow }}>Mood</span>
+      <span style={{ fontFamily:'Inter, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textLow }}>Mood</span>
       <div className="ff-browse-mood-pills" style={{ display:'flex', flexWrap:'wrap', gap:7, flex:1 }}>
         {MOODS.map(p => {
           const on = mood === p.id;
@@ -113,7 +113,7 @@ function MoodRow({ mood, setMood, sortBy, setSortBy, view, setView }) {
           {[{v:'grid',I:IcGrid},{v:'list',I:IcList}].map(({v,I}) => {
             const on = view === v;
             return (
-              <button key={v} onClick={()=>setView(v)} aria-label={`${v} view`} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:32, borderRadius:999, background: on ? HP_GRAD : 'transparent', color: on ? '#fff' : HP.textLow, border:'none', cursor:'pointer', transition:'all 0.2s ease' }}>
+              <button key={v} onClick={()=>setView(v)} aria-label={`${v} view`} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:32, borderRadius:999, background: on ? ROSE_DEEP : 'transparent', color: on ? '#fff' : HP.textLow, border:'none', cursor:'pointer', transition:'all 0.2s ease' }}>
                 <I s={14} />
               </button>
             );
@@ -142,9 +142,9 @@ function FilterPill({ label, value, options, defaultValue='', onChange }) {
   const activeLabel = active ? (options.find(o => o.value === value)?.label ?? label) : label;
   return (
     <div ref={ref} className="ff-browse-filter-pill" style={{ position:'relative' }}>
-      <button className="ff-tap" onClick={()=>setOpen(v=>!v)} aria-haspopup="listbox" aria-expanded={open} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${active ? HP.purple+'66' : HP.border}`, background: active ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: active ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
+      <button className="ff-tap" onClick={()=>setOpen(v=>!v)} aria-haspopup="listbox" aria-expanded={open} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${active ? ROSE+'66' : HP.border}`, background: active ? `${ROSE}1a` : 'rgba(255,255,255,0.04)', color: active ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
         <span>{activeLabel}</span>
-        <IcChevD s={12} style={{ color: active ? HP.purple : HP.textLow, opacity:0.85, transform: open ? 'rotate(180deg)' : 'none', transition:'transform 0.18s ease' }} />
+        <IcChevD s={12} style={{ color: active ? ROSE : HP.textLow, opacity:0.85, transform: open ? 'rotate(180deg)' : 'none', transition:'transform 0.18s ease' }} />
       </button>
       {/* Native <select> overlay for touch devices. CSS hides it on
           `pointer: fine` (desktop); on `pointer: coarse` (phones/tablets)
@@ -169,12 +169,12 @@ function FilterPill({ label, value, options, defaultValue='', onChange }) {
           {options.map(o => {
             const on = value === o.value;
             return (
-              <button key={o.value} onClick={()=>{ onChange(o.value); setOpen(false); }} role="option" aria-selected={on} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'9px 12px', borderRadius:8, background: on ? `${HP.purple}1a` : 'transparent', border:'none', color: on ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:13, fontWeight:500, cursor:'pointer', textAlign:'left', transition:'background 0.12s ease' }}
+              <button key={o.value} onClick={()=>{ onChange(o.value); setOpen(false); }} role="option" aria-selected={on} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'9px 12px', borderRadius:8, background: on ? `${ROSE}1a` : 'transparent', border:'none', color: on ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:13, fontWeight:500, cursor:'pointer', textAlign:'left', transition:'background 0.12s ease' }}
                 onMouseEnter={e => { if (!on) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
                 onMouseLeave={e => { if (!on) e.currentTarget.style.background = 'transparent'; }}
               >
                 <span style={{ flex:1 }}>{o.label}</span>
-                {on && <span style={{ color:HP.purple }}><IcCheck s={13}/></span>}
+                {on && <span style={{ color:ROSE }}><IcCheck s={13}/></span>}
               </button>
             );
           })}
@@ -208,9 +208,9 @@ function PresetsDropdown({ preset, applyPreset }) {
   };
   return (
     <div ref={ref} className="ff-browse-filter-pill" style={{ position:'relative' }}>
-      <button onClick={()=>setOpen(v=>!v)} aria-haspopup="listbox" aria-expanded={open} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${preset ? HP.purple+'66' : HP.border}`, background: preset ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: preset ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
-        {activePreset ? (() => { const I = PRESET_ICONS[activePreset.icon] || IcSpark; return <><span style={{ color:HP.purple, display:'inline-flex' }}><I s={13}/></span>{activePreset.label}</>; })() : <><IcSpark s={13} style={{ color:HP.textLow }}/>Presets</>}
-        <IcChevD s={12} style={{ color: preset ? HP.purple : HP.textLow, opacity:0.85 }}/>
+      <button onClick={()=>setOpen(v=>!v)} aria-haspopup="listbox" aria-expanded={open} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${preset ? ROSE+'66' : HP.border}`, background: preset ? `${ROSE}1a` : 'rgba(255,255,255,0.04)', color: preset ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
+        {activePreset ? (() => { const I = PRESET_ICONS[activePreset.icon] || IcSpark; return <><span style={{ color:ROSE, display:'inline-flex' }}><I s={13}/></span>{activePreset.label}</>; })() : <><IcSpark s={13} style={{ color:HP.textLow }}/>Presets</>}
+        <IcChevD s={12} style={{ color: preset ? ROSE : HP.textLow, opacity:0.85 }}/>
       </button>
       <select className="ff-browse-filter-pill-native" value={preset || ''} onChange={handleNativeSelect} aria-label="Presets">
         <option value="">No preset</option>
@@ -225,13 +225,13 @@ function PresetsDropdown({ preset, applyPreset }) {
             const PIcon = PRESET_ICONS[p.icon] || IcSpark;
             const on = preset === p.id;
             return (
-              <button key={p.id} onClick={()=>{ applyPreset(p); setOpen(false); }} role="option" aria-selected={on} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'9px 12px', borderRadius:8, background: on ? `${HP.purple}1a` : 'transparent', border:'none', color: on ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:13, fontWeight:500, cursor:'pointer', textAlign:'left', transition:'background 0.12s ease' }}
+              <button key={p.id} onClick={()=>{ applyPreset(p); setOpen(false); }} role="option" aria-selected={on} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'9px 12px', borderRadius:8, background: on ? `${ROSE}1a` : 'transparent', border:'none', color: on ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:13, fontWeight:500, cursor:'pointer', textAlign:'left', transition:'background 0.12s ease' }}
                 onMouseEnter={e => { if (!on) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
                 onMouseLeave={e => { if (!on) e.currentTarget.style.background = 'transparent'; }}
               >
-                <span style={{ display:'inline-flex', color: on ? HP.purple : HP.textLow }}><PIcon s={14}/></span>
+                <span style={{ display:'inline-flex', color: on ? ROSE : HP.textLow }}><PIcon s={14}/></span>
                 {p.label}
-                {on && <span style={{ marginLeft:'auto', color:HP.purple }}><IcCheck s={13}/></span>}
+                {on && <span style={{ marginLeft:'auto', color:ROSE }}><IcCheck s={13}/></span>}
               </button>
             );
           })}
@@ -252,15 +252,15 @@ function ToggleSwitch({ on, onClick, label, disabled = false, title }) {
       disabled={disabled}
       style={{
         display:'inline-flex', alignItems:'center', gap:9, height:34, padding:'0 14px',
-        borderRadius:999, border:`1px solid ${on ? HP.purple+'66' : HP.border}`,
-        background: on ? `${HP.purple}10` : 'rgba(255,255,255,0.04)',
+        borderRadius:999, border:`1px solid ${on ? ROSE+'66' : HP.border}`,
+        background: on ? `${ROSE}10` : 'rgba(255,255,255,0.04)',
         color: on ? HP.text : HP.textMid,
         fontFamily:'Inter', fontSize:12.5, fontWeight:500,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.45 : 1,
         transition:'all 0.15s ease',
       }}>
-      <span style={{ position:'relative', width:26, height:14, borderRadius:999, background: on ? HP.purple : 'rgba(255,255,255,0.14)', transition:'background 0.2s ease', flex:'none' }}>
+      <span style={{ position:'relative', width:26, height:14, borderRadius:999, background: on ? ROSE : 'rgba(255,255,255,0.14)', transition:'background 0.2s ease', flex:'none' }}>
         <span aria-hidden style={{ position:'absolute', top:2, left: on ? 14 : 2, width:10, height:10, borderRadius:999, background:'#fff', transition:'left 0.2s cubic-bezier(.2,.7,.2,1)', boxShadow:'0 1px 3px rgba(0,0,0,0.4)' }} />
       </span>
       {label}
@@ -271,13 +271,13 @@ function ToggleSwitch({ on, onClick, label, disabled = false, title }) {
 function SegGroup({ label, value, options, onChange }) {
   return (
     <div>
-      <div style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>{label}</div>
+      <div style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>{label}</div>
       <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
         {options.map(o => {
           if (!o.value) return null;
           const active = value === o.value;
           return (
-            <button key={o.value} onClick={()=>onChange(active ? '' : o.value)} style={{ height:32, padding:'0 13px', borderRadius:999, border:`1px solid ${active ? HP.purple+'66' : HP.border}`, background: active ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: active ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>{o.label}</button>
+            <button key={o.value} onClick={()=>onChange(active ? '' : o.value)} style={{ height:32, padding:'0 13px', borderRadius:999, border:`1px solid ${active ? ROSE+'66' : HP.border}`, background: active ? `${ROSE}1a` : 'rgba(255,255,255,0.04)', color: active ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>{o.label}</button>
           );
         })}
       </div>
@@ -290,10 +290,10 @@ function RatingSlider({ label, value, onChange }) {
   return (
     <div>
       <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:10 }}>
-        <div style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow }}>{label}</div>
-        {numValue > 0 && <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color:HP.purple, letterSpacing:'-0.01em' }}>≥ {numValue}</div>}
+        <div style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow }}>{label}</div>
+        {numValue > 0 && <div style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:500, color:ROSE, letterSpacing:'-0.01em' }}>≥ {numValue}</div>}
       </div>
-      <input type="range" min={0} max={95} step={5} value={numValue} onChange={e => onChange(e.target.value === '0' ? '' : e.target.value)} style={{ width:'100%', accentColor:HP.purpleDeep }} />
+      <input type="range" min={0} max={95} step={5} value={numValue} onChange={e => onChange(e.target.value === '0' ? '' : e.target.value)} style={{ width:'100%', accentColor:ROSE }} />
       <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontFamily:'Inter', fontSize:10, color:HP.textFaint }}>
         <span>Off</span><span>95</span>
       </div>
@@ -320,11 +320,11 @@ function Toolbar(props) {
       <form className="ff-browse-toolbar-form" onSubmit={e=>{e.preventDefault(); setQuery(draftQuery);}} style={{ display:'flex', gap:10, alignItems:'center' }}>
         <div style={{ position:'relative', flex:1 }}>
           <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:HP.textLow }}><IcSearch s={15} /></div>
-          <input ref={searchRef} className="ff-tap" value={draftQuery} onChange={e=>setDraftQuery(e.target.value)} placeholder="Search by title or director…" style={{ width:'100%', height:42, padding:'0 38px 0 42px', borderRadius:999, border:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.04)', color:HP.text, fontFamily:'Inter', fontSize:14, outline:'none', transition:'border-color 0.18s ease' }} onFocus={e=>e.target.style.borderColor=HP.purple+'66'} onBlur={e=>e.target.style.borderColor=HP.border} />
+          <input ref={searchRef} className="ff-tap" value={draftQuery} onChange={e=>setDraftQuery(e.target.value)} placeholder="Search by title or director…" style={{ width:'100%', height:42, padding:'0 38px 0 42px', borderRadius:999, border:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.04)', color:HP.text, fontFamily:'Inter', fontSize:14, outline:'none', transition:'border-color 0.18s ease' }} onFocus={e=>e.target.style.borderColor=ROSE+'66'} onBlur={e=>e.target.style.borderColor=HP.border} />
           {draftQuery && <button type="button" onClick={()=>{setDraftQuery(''); setQuery('');}} style={{ position:'absolute', right:42, top:'50%', transform:'translateY(-50%)', background:'transparent', border:'none', color:HP.textLow, cursor:'pointer', padding:4 }}><IcX s={14}/></button>}
           <span style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', padding:'3px 7px', borderRadius:4, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textLow, fontFamily:'Inter', fontSize:11, letterSpacing:'0.04em' }}>/</span>
         </div>
-        <button type="submit" aria-label="Search" className="ff-browse-search-btn ff-tap" style={{ height:42, padding:'0 22px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', boxShadow:'0 8px 18px -6px rgba(236,72,153,0.4)', display:'inline-flex', alignItems:'center', gap:7 }}>
+        <button type="submit" aria-label="Search" className="ff-browse-search-btn ff-tap" style={{ height:42, padding:'0 22px', borderRadius:999, background:ROSE_DEEP, border:'none', color:'#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', boxShadow:'0 8px 18px -6px rgba(221,78,131,0.4)', display:'inline-flex', alignItems:'center', gap:7 }}>
           <span className="ff-browse-search-btn-icon" aria-hidden style={{ display:'none' }}><IcSearch s={16}/></span>
           <span className="ff-browse-search-btn-label">Search</span>
         </button>
@@ -346,9 +346,9 @@ function Toolbar(props) {
           <div style={{ width:1, height:20, background:HP.border, margin:'0 3px' }} />
         </div>
 
-        <button className="ff-browse-refine-btn ff-tap" onClick={()=>setPanel(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${panelOpen||advancedCount>0 ? HP.purple+'66' : HP.border}`, background: panelOpen||advancedCount>0 ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: panelOpen||advancedCount>0 ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
+        <button className="ff-browse-refine-btn ff-tap" onClick={()=>setPanel(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${panelOpen||advancedCount>0 ? ROSE+'66' : HP.border}`, background: panelOpen||advancedCount>0 ? `${ROSE}1a` : 'rgba(255,255,255,0.04)', color: panelOpen||advancedCount>0 ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
           {panelOpen ? <IcChevU s={13}/> : <IcSlide s={13}/>}<span>Filters</span>
-          {advancedCount > 0 && <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:18, height:18, borderRadius:999, background:HP_GRAD, fontSize:10, fontWeight:700, color:'#fff' }}>{advancedCount}</span>}
+          {advancedCount > 0 && <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:18, height:18, borderRadius:999, background:ROSE_DEEP, fontSize:10, fontWeight:700, color:'#fff' }}>{advancedCount}</span>}
         </button>
 
         <div className="ff-browse-quick-toggles" style={{ display:'inline-flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
@@ -364,7 +364,7 @@ function Toolbar(props) {
       {props.activeFilters.length > 0 && (
         <div style={{ marginTop:9, display:'flex', flexWrap:'wrap', gap:6 }}>
           {props.activeFilters.map(f => (
-            <button key={f.k} onClick={f.c} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:999, background:`${HP.purple}1a`, border:`1px solid ${HP.purple}44`, color:HP.purple, fontFamily:'Inter', fontSize:11.5, fontWeight:500, cursor:'pointer' }}>{f.l}<IcX s={11}/></button>
+            <button key={f.k} onClick={f.c} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:999, background:`${ROSE}1a`, border:`1px solid ${ROSE}44`, color:ROSE, fontFamily:'Inter', fontSize:11.5, fontWeight:500, cursor:'pointer' }}>{f.l}<IcX s={11}/></button>
           ))}
         </div>
       )}
@@ -418,8 +418,8 @@ function RefinePanel(props) {
         <style>{`@keyframes refineIn { from { opacity:0; transform:translateY(16px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }`}</style>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 26px', borderBottom:`1px solid ${HP.border}`, flex:'none' }}>
           <div>
-            <div style={{ fontFamily:'Outfit', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:4 }}>Filters</div>
-            <div style={{ fontFamily:'Outfit', fontSize:22, fontWeight:400, color:HP.text, letterSpacing:'-0.015em' }}>Tune the catalogue.</div>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:ROSE, marginBottom:4 }}>Filters</div>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:22, fontWeight:400, color:HP.text, letterSpacing:'-0.015em' }}>Tune the catalogue.</div>
           </div>
           <button onClick={props.onClose} aria-label="Close" style={{ width:36, height:36, borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.textMid, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}><IcX s={15}/></button>
         </div>
@@ -460,7 +460,7 @@ function RefinePanel(props) {
             )}
           </div>
           <div style={{ height:1, background:HP.border, marginBottom:20 }} />
-          <div style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:14 }}>Advanced</div>
+          <div style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:14 }}>Advanced</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'24px 28px' }}>
             {/* Quality cluster used to ship 5 visible buttons (6.0–8.5) which
                 wrapped to 4+1 on phones. Dropped the 7.5+ tier (least-used
@@ -475,21 +475,21 @@ function RefinePanel(props) {
             <RatingSlider label="Critics love it"   value={props.minCritic}   onChange={props.setMinCritic} />
             <RatingSlider label="Audiences love it" value={props.minAudience} onChange={props.setMinAudience} />
             <div>
-              <div style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>Genre excellence</div>
-              <button onClick={()=>props.setGenreTop(!props.genreTop)} style={{ display:'inline-flex', alignItems:'center', gap:7, height:32, padding:'0 13px', borderRadius:999, border:`1px solid ${props.genreTop ? HP.purple+'66' : HP.border}`, background: props.genreTop ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: props.genreTop ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12, fontWeight:500, cursor:'pointer' }}>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>Genre excellence</div>
+              <button onClick={()=>props.setGenreTop(!props.genreTop)} style={{ display:'inline-flex', alignItems:'center', gap:7, height:32, padding:'0 13px', borderRadius:999, border:`1px solid ${props.genreTop ? ROSE+'66' : HP.border}`, background: props.genreTop ? `${ROSE}1a` : 'rgba(255,255,255,0.04)', color: props.genreTop ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12, fontWeight:500, cursor:'pointer' }}>
                 <IcAward s={13}/>Exceptional for genre
               </button>
             </div>
             <div>
-              <div style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>Director</div>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>Director</div>
               <input value={draftDirector} onChange={e=>setDraftDir(e.target.value)} onBlur={()=>setDirector(draftDirector)} onKeyDown={e=>e.key==='Enter'&&setDirector(draftDirector)} placeholder="e.g. Bong Joon-ho" style={{ width:'100%', height:34, borderRadius:8, border:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.04)', color:HP.text, padding:'0 12px', fontFamily:'Inter', fontSize:13, outline:'none' }} />
             </div>
             <div style={{ gridColumn:'span 2' }}>
-              <div style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>Vibe</div>
+              <div style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:HP.textLow, marginBottom:10 }}>Vibe</div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                 {VIBE_OPTIONS.map(v => {
                   const on = vibe.includes(v.value);
-                  return <button key={v.value} onClick={()=>setVibe(on ? vibe.filter(x=>x!==v.value) : [...vibe, v.value])} style={{ display:'inline-flex', alignItems:'center', gap:6, height:32, padding:'0 12px', borderRadius:999, border:`1px solid ${on ? HP.purple+'66' : HP.border}`, background: on ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: on ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12, fontWeight:500, cursor:'pointer' }}><span style={{ color: on ? HP.purple : HP.textLow }}>{v.symbol}</span>{v.label}</button>;
+                  return <button key={v.value} onClick={()=>setVibe(on ? vibe.filter(x=>x!==v.value) : [...vibe, v.value])} style={{ display:'inline-flex', alignItems:'center', gap:6, height:32, padding:'0 12px', borderRadius:999, border:`1px solid ${on ? ROSE+'66' : HP.border}`, background: on ? `${ROSE}1a` : 'rgba(255,255,255,0.04)', color: on ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12, fontWeight:500, cursor:'pointer' }}><span style={{ color: on ? ROSE : HP.textLow }}>{v.symbol}</span>{v.label}</button>;
                 })}
               </div>
             </div>
@@ -510,7 +510,7 @@ function RefinePanel(props) {
           >
             Reset all
           </button>
-          <button onClick={props.onClose} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 22px', borderRadius:999, background:HP_GRAD, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', boxShadow:'0 8px 18px -6px rgba(236,72,153,0.4)' }}>
+          <button onClick={props.onClose} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 22px', borderRadius:999, background:ROSE_DEEP, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', boxShadow:'0 8px 18px -6px rgba(221,78,131,0.4)' }}>
             {typeof totalResults === 'number' ? (
               <>Show <span style={{ fontVariantNumeric:'tabular-nums' }}>{totalResults.toLocaleString()}</span> {totalResults === 1 ? 'film' : 'films'}</>
             ) : 'Done'}
@@ -556,11 +556,11 @@ function GridCard({ f, mood, watched, inWatchlist, onTW, onTWL }) {
           {f.poster ? (
             <img src={f.poster} alt={f.title} loading="lazy" style={{ width:'100%', height:'100%', objectFit:'cover', transform: h ? 'scale(1.04)' : 'none', transition:'transform 0.3s ease' }} />
           ) : (
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', color:HP.textFaint, fontFamily:'Outfit', fontSize:14, padding:14, textAlign:'center' }}>{f.title}</div>
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', color:HP.textFaint, fontFamily:'Inter, sans-serif', fontSize:14, padding:14, textAlign:'center' }}>{f.title}</div>
           )}
 
           {/* Match badge — top right */}
-          <div style={{ position:'absolute', top:8, right:8, padding:'3px 7px', borderRadius:4, background:'rgba(0,0,0,0.78)', backdropFilter:'blur(6px)', border:`1px solid ${HP.purple}44`, fontFamily:'Outfit', fontSize:10, fontWeight:700, color:HP.purple, letterSpacing:'0.03em' }}>{matchScore}%</div>
+          <div style={{ position:'absolute', top:8, right:8, padding:'3px 7px', borderRadius:4, background:'rgba(0,0,0,0.78)', backdropFilter:'blur(6px)', border:`1px solid ${ROSE}44`, fontFamily:'Inter, sans-serif', fontSize:10, fontWeight:700, color:ROSE, letterSpacing:'0.03em' }}>{matchScore}%</div>
 
           {/* Mood tag — top left (when not hovering) */}
           {moodTag && !h && (
@@ -570,9 +570,9 @@ function GridCard({ f, mood, watched, inWatchlist, onTW, onTWL }) {
           {/* Hover overlay */}
           <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', justifyContent:'flex-end', opacity: h ? 1 : 0, transition:'opacity 0.2s ease', background:'linear-gradient(to top, rgba(9,6,14,0.98) 0%, rgba(15,10,24,0.78) 40%, transparent 78%)' }}>
             <div style={{ padding:12 }}>
-              <h3 style={{ margin:0, fontFamily:'Outfit', fontSize:14, fontWeight:600, color:'#fff', lineHeight:1.25, letterSpacing:'-0.005em', ...titleClamp }}>{f.title}</h3>
+              <h3 style={{ margin:0, fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color:'#fff', lineHeight:1.25, letterSpacing:'-0.005em', ...titleClamp }}>{f.title}</h3>
               <div style={{ marginTop:3, fontFamily:'Inter', fontSize:11, color:'rgba(248,250,252,0.55)' }}>{f.year}{f.genre && ` · ${f.genre}`}</div>
-              <div style={{ marginTop:8, paddingTop:7, paddingBottom:7, borderTop:'1px solid rgba(255,255,255,0.1)', borderBottom:'1px solid rgba(255,255,255,0.1)', fontFamily:'Inter', fontSize:11, color:HP.purple, lineHeight:1.4 }}>{why}</div>
+              <div style={{ marginTop:8, paddingTop:7, paddingBottom:7, borderTop:'1px solid rgba(255,255,255,0.1)', borderBottom:'1px solid rgba(255,255,255,0.1)', fontFamily:'Inter', fontSize:11, color:ROSE, lineHeight:1.4 }}>{why}</div>
               <div style={{ marginTop:9, display:'flex', alignItems:'center', gap:5 }}>
                 <ActionBtn active={inWatchlist} onClick={e=>{e.stopPropagation(); onTWL();}} activeBg="rgba(168,85,247,0.85)" activeBorder="rgba(216,180,254,0.5)" title={inWatchlist?'In watchlist':'Add to watchlist'}>{inWatchlist ? <IcCheck s={12}/> : <IcPlus s={12}/>}</ActionBtn>
                 <ActionBtn active={watched}     onClick={e=>{e.stopPropagation(); onTW();}}  activeBg="rgba(16,185,129,0.85)" activeBorder="rgba(110,231,183,0.5)" title={watched?'Mark unwatched':'Mark watched'}>{watched ? <IcEye s={12}/> : <IcEyeOff s={12}/>}</ActionBtn>
@@ -599,7 +599,7 @@ function ListRow({ f, mood, watched, inWatchlist, onTW, onTWL }) {
   const matchScore = mood==='all' ? f.ff : Math.round(0.6*(f.fit[mood]*100) + 0.25*f.ff + 0.15*(100 - Math.abs(115 - f.runtime)));
   const why = mood==='all' ? null : f.rationale[mood];
   return (
-    <article className="ff-browse-list-row" onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{ display:'grid', gridTemplateColumns:'auto minmax(0, 1fr) auto auto auto', gap:18, alignItems:'center', padding:'14px 16px', borderBottom:`1px solid ${HP.border}`, background: h ? 'rgba(167,139,250,0.04)' : 'transparent', transition:'background 0.18s ease', cursor:'pointer' }}>
+    <article className="ff-browse-list-row" onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{ display:'grid', gridTemplateColumns:'auto minmax(0, 1fr) auto auto auto', gap:18, alignItems:'center', padding:'14px 16px', borderBottom:`1px solid ${HP.border}`, background: h ? 'rgba(221,78,131,0.04)' : 'transparent', transition:'background 0.18s ease', cursor:'pointer' }}>
       {f.poster ? (
         <img src={f.poster} alt="" loading="lazy" style={{ width:54, height:81, objectFit:'cover', borderRadius:4, flex:'none' }} />
       ) : (
@@ -607,17 +607,17 @@ function ListRow({ f, mood, watched, inWatchlist, onTW, onTWL }) {
       )}
       <div style={{ minWidth:0 }}>
         <div style={{ display:'flex', alignItems:'baseline', gap:10, flexWrap:'wrap' }}>
-          <span style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', overflow:'hidden', textOverflow:'ellipsis' }}>{f.title}</span>
+          <span style={{ fontFamily:'Inter, sans-serif', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', overflow:'hidden', textOverflow:'ellipsis' }}>{f.title}</span>
           <span style={{ fontFamily:'Inter', fontSize:12.5, color:HP.textLow }}>{f.year}</span>
           {moodTag && <MoodPill label={moodTag.label} color={moodTag.color} />}
         </div>
         <div style={{ marginTop:4, fontFamily:'Inter', fontSize:13, color:HP.textMid, lineHeight:1.5, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {[f.dir, f.genre, f.runtime ? `${f.runtime}m` : null].filter(Boolean).join(' · ')}
         </div>
-        {why && <div style={{ marginTop:6, fontFamily:'Inter', fontSize:12, color:HP.purple, lineHeight:1.45 }}>{why}</div>}
+        {why && <div style={{ marginTop:6, fontFamily:'Inter', fontSize:12, color:ROSE, lineHeight:1.45 }}>{why}</div>}
       </div>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
-        <div style={{ fontFamily:'Outfit', fontSize:20, fontWeight:300, color:HP.text, letterSpacing:'-0.025em', lineHeight:1 }}>{matchScore}<span style={{ fontSize:11, color:HP.textLow, marginLeft:1 }}>%</span></div>
+        <div style={{ fontFamily:'Inter, sans-serif', fontSize:20, fontWeight:300, color:HP.text, letterSpacing:'-0.025em', lineHeight:1 }}>{matchScore}<span style={{ fontSize:11, color:HP.textLow, marginLeft:1 }}>%</span></div>
         <div style={{ fontFamily:'Inter', fontSize:10, color:HP.textFaint, letterSpacing:'0.05em' }}>FF · {f.ff}</div>
       </div>
       <div className="ff-browse-list-extras" style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3, fontFamily:'Inter', fontSize:11 }}>

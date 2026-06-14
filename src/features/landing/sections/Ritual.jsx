@@ -1,4 +1,4 @@
-import { C } from '@/shared/lib/tokens'
+import { C, ROSE } from '@/shared/lib/tokens'
 import { Reveal, Poster, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { PICKS } from '../data'
 
@@ -25,7 +25,7 @@ export default function Ritual(){
           {steps.map((s,i)=>(
             <Reveal key={s.n} delay={i*150}>
               <div style={{position:'relative',padding:'32px 28px',borderRadius:14,background:'rgba(255,255,255,0.022)',border:`1px solid ${C.hairline}`,height:'100%',display:'flex',flexDirection:'column'}}>
-                <Eyebrow color={C.purple} style={{marginBottom:18}}>{s.k} · {s.n}</Eyebrow>
+                <Eyebrow color={ROSE} style={{marginBottom:18}}>{s.k} · {s.n}</Eyebrow>
                 <div style={{flex:'none',marginBottom:24}}>
                   {s.visual==='mood'&&<MoodVisual/>}
                   {s.visual==='night'&&<NightVisual/>}
@@ -70,7 +70,7 @@ function PickMiniVisual(){
       </div>
       <div style={{minWidth:0}}>
         <Eyebrow color={C.textLow} style={{marginBottom:6}}>Edition Nº 142</Eyebrow>
-        <h4 style={{fontFamily:'Outfit',fontSize:17,fontWeight:300,color:C.text,margin:0,letterSpacing:'-0.022em',lineHeight:1.1}}>{p.title}</h4>
+        <h4 style={{fontFamily:'Inter, sans-serif',fontSize:17,fontWeight:300,color:C.text,margin:0,letterSpacing:'-0.022em',lineHeight:1.1}}>{p.title}</h4>
         <div style={{fontFamily:'Inter',fontSize:10,color:C.textLow,marginTop:3}}>{p.dir} · {p.year}</div>
         <p className="ff-italic" style={{fontSize:11,color:C.textMid,marginTop:10,fontStyle:'italic',lineHeight:1.4,paddingLeft:8,borderLeft:`1.5px solid ${p.moodHex}55`}}>A slow ache that lives in glances.</p>
       </div>

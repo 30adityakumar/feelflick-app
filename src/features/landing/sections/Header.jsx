@@ -90,10 +90,10 @@ export default function Header(){
     };
   },[open]);
   const navLinkStyle={fontFamily:'Inter',fontSize:13,fontWeight:500,color:C.textMid,display:'inline-flex',alignItems:'center',height:44,padding:'0 4px',textDecoration:'none'};
-  // Per-instance layout for the shared AuthCTA pill; the gradient/radius/weight
+  // Per-instance layout for the shared AuthCTA pill; the rose-fill/radius/weight
   // invariants + loading treatment live in AuthCTA. Desktop and mobile differ
   // only in horizontal padding.
-  const ctaPillStyle={display:'inline-flex',alignItems:'center',gap:6,fontSize:13,padding:'0 20px',height:44,whiteSpace:'nowrap',boxShadow:'0 8px 20px -10px rgba(236,72,153,0.5)'};
+  const ctaPillStyle={display:'inline-flex',alignItems:'center',gap:6,fontSize:13,padding:'0 20px',height:44,whiteSpace:'nowrap',boxShadow:'0 8px 20px -10px rgba(221,78,131,0.5)'};
   // Ghost/outline pill — secondary CTA paired with the filled AuthCTA. Same
   // height/radius as the primary so they read as a set; hover (bg + border +
   // text) lives in `.ff-ghost`. Distinguishes auth from the nav anchors.

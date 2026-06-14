@@ -25,7 +25,11 @@ Core promise:
 
 Mood makes the experience approachable. Taste makes it personal. Context makes it useful. Explanation makes it trustworthy.
 
-A focused recommendation is the clearest expression of the product, but “one pick” is a strong default—not a rule that every route, state, or experiment must display exactly one film.
+FeelFlick is a **Compounding Decision Companion**: it gives one trusted recommendation for the moment, explains why it fits, and becomes meaningfully better through watches, skips, saves, ratings, and corrections. Taste memory is the long-term moat beneath the immediate decision.
+
+Surface roles: **Tonight** (`/home`) is the immediate value; **Film File** (`/movie/:id`) is evidence and trust; **History / Diary** is taste memory; **Cinematic DNA** makes learning visible; **Discover** is intentional exploration; **Search** is known-intent retrieval; **Watchlist** is deferred intent.
+
+A focused recommendation is the clearest expression of the product. Tonight defaults to **one visible recommendation**, and a rejection normally produces one sequential replacement rather than visible backup cards. “One pick” is a strong default—not a rule; bounded choice may serve explicit exploration or a future couple/group negotiation mode.
 
 For product strategy or experiments, read `.claude/rules/product.md`.
 
@@ -154,9 +158,13 @@ For architecture, file placement, imports, dependencies, configuration, and refa
 
 The current design system is a baseline, not a permanent constraint.
 
-The approved direction (validated by F0 Design Lab prototypes + adversarial critique, migrated to `/home` in F1–F2, 2026-06-12) is: warm cinematic dark neutrals, ivory/bone text, hairline rules, restrained rose (`#DD4E83`) as red-ink accent, Newsreader for editorial voice, Inter for interface, poster as cinematic object, numbered I/II recommendation case where truthful data supports it, reduced decorative chrome. The purple→pink gradient CTA is retired on migrated surfaces.
+The design character is the **Thoughtful Seatmate**: serious taste without arrogance, evidence without dryness, calm at first glance and intelligent on closer inspection. Design for someone **smart but tired**.
 
-This direction is confirmed for `/home`. Migration order: Movie Detail → Discover → Landing → profile/library. For anti-patterns, recommendation case rules, and what not to touch yet, read `docs/ui/design-authority-f3.md`.
+Accepted target principles: a warm graphite / warm-neutral foundation; projection-ivory text; **one coherent human sans-serif voice**; normalized contextual film color; a **neutral, high-contrast primary action** with one rare warm signal for meaningful selection; progressive recommendation depth; brief, purposeful motion; and the legacy purple–pink gradient kept out of default actions, selected states, chrome, and atmosphere (any rare reveal/memory/celebration role stays unvalidated). No default visible backups on Tonight; no permanent serif-versus-system split; no permanent rose/plum core identity; no required numbered case.
+
+The shipped F3/F4 design (Newsreader, rose, numbered I/II case, warm dark neutrals, bone/ivory `/home` primary) is a **transitional production baseline** — do not claim the Thoughtful Seatmate direction is already implemented, and do not remove the shipped work outside a deliberate, gated re-migration. The exact sans-serif (Instrument Sans vs Inter), token values, warm-cue hue, gradient survival, and any long-form serif exception remain **provisional prototype questions**.
+
+Current design authority: `docs/ui/design-authority-thoughtful-seatmate.md`. The prior `docs/ui/design-authority-f3.md` is historical — it records the shipped baseline, not the target.
 
 For brand, typography, color, layout, motion, composition, and design migration, read `.claude/rules/design-system.md`.
 

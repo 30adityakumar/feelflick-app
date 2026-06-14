@@ -1,6 +1,29 @@
-# F3 Design Authority Lock — Approved Visual Direction
+# F3 Design Authority Lock — Historical Record (Superseded)
 
-**Status:** Approved and actively migrating  
+> ## ⚠️ SUPERSEDED — historical record only
+>
+> **This document no longer governs FeelFlick design.** The active design
+> authority is
+> [`design-authority-thoughtful-seatmate.md`](design-authority-thoughtful-seatmate.md).
+>
+> This file is kept as a **historical decision record**. It documents the **F3/F4
+> direction that is currently shipped** (Midnight Film Journal identity, Newsreader
+> editorial voice, rose `#DD4E83` accent, numbered I/II recommendation case) — a
+> **transitional production baseline**, not the target.
+>
+> - The **migration order below is no longer active.** Do not migrate new surfaces
+>   to Newsreader / rose / numbered-case.
+> - **Do not use this document as the target for new design work.** Build toward the
+>   Thoughtful Seatmate direction instead.
+> - The "locked … follow without re-debating" language below reflects the F3/F4
+>   decision *at the time*; it no longer constrains new work. The shipped
+>   implementation it describes must not be removed or rewritten except as a
+>   deliberate, gated re-migration.
+>
+> Everything below this banner is preserved verbatim as the original F3/F4 record.
+
+**Status:** Historical — superseded by the Thoughtful Seatmate direction; records the shipped F3/F4 transitional baseline
+
 **Date:** 2026-06-12  
 **Phase:** F3-DesignAuthorityLock  
 **Evidence:** F0 Design Lab (3 directions, 6-judge adversarial critique) + F1-BriefingMigration + F2-HomeShellAlignment

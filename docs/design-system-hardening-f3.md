@@ -1,5 +1,20 @@
 # FeelFlick — Design System Hardening (F3 Decision Note)
 
+> ## ⚠️ Historical record — superseded
+>
+> This records an **earlier design-system hardening phase** (2026-06-03). Two
+> supersessions to keep in mind while reading it:
+>
+> - Its purple/pink-only brand, "no rose for brand" conclusion was **superseded by the
+>   later F4 implementation**, which introduced rose (`#DD4E83`) as the migrated-surface
+>   accent.
+> - That F4 target is **itself now superseded as active authority** by the Thoughtful
+>   Seatmate direction — [`ui/design-authority-thoughtful-seatmate.md`](ui/design-authority-thoughtful-seatmate.md).
+>
+> Its **semantic-color rationale** (amber/red/green are load-bearing, not drift) and
+> its implementation-hardening notes **remain useful and accurate**. The current
+> design authority is the Thoughtful Seatmate document linked above.
+
 > Phase F3 of the rebuild. Records the **judgments** behind the design-system
 > hardening — especially what was *retained* and why, since the headline change
 > set is intentionally small. Read alongside `CLAUDE.md` (the editorial language),

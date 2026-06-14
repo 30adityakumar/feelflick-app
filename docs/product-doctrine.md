@@ -1,8 +1,12 @@
 # FeelFlick — Product Doctrine
 
-> The single source of truth for *what FeelFlick is for*. Read this before any
+> The canonical concise doctrine for *what FeelFlick is for*. Read this before any
 > product, design, IA, or recommendation work. When a decision is ambiguous, this
 > document — not feature momentum — settles it.
+>
+> [`.claude/rules/product.md`](../.claude/rules/product.md) operationalizes this
+> doctrine for day-to-day product work; update both together when the durable
+> strategy changes.
 >
 > Companion docs: [CLAUDE.md](../CLAUDE.md) (how to work in the repo),
 > [feelflick-foundation-readiness-audit.md](feelflick-foundation-readiness-audit.md)
@@ -19,6 +23,10 @@ why it's the one.** A recommendation you can trust, not a feed to scroll.
 Success is not engagement-time. Success is: *the user opens FeelFlick, feels
 understood, gets one pick they believe in, and watches it.* The best session is
 short.
+
+FeelFlick is a **Compounding Decision Companion**: immediate decision value tonight,
+compounding into taste memory that makes every future pick better. The long-term
+moat is that taste memory — not any single surface.
 
 ---
 
@@ -68,6 +76,10 @@ The loop we are optimizing (everything else is in service of it):
 5. **Watch**, then optionally **log/rate** — which deepens the taste model for
    tomorrow's pick.
 
+A “Not tonight” / skip yields **one sequential replacement** — the next single pick —
+not a shelf of visible backup cards. Visible backups are not the default Tonight
+behavior.
+
 The loop compounds: every watch, rating, and skip sharpens the next night's pick.
 A 5-watch user gets a decent pick; a 50-watch user gets one that feels made for
 them.
@@ -100,18 +112,18 @@ service of it. (This is the central question F2 resolves.)
 
 ### Core — *the wedge itself*
 - **Home / The Briefing** (`/home`, surfaced as **"Tonight"** in nav) — tonight's single justified pick.
-- **Film File** (`/movie/:id`) — the case-making layer; the moat.
+- **Film File** (`/movie/:id`) — the case-making and trust layer (evidence and deeper trust).
 - **Onboarding** (`/onboarding`) — seeds the first night's pick.
 
 ### Supporting — *make the pick land faster / fit better / earn more trust*
 - **Discover** (`/discover`) — mood-driven discovery. Must stay *complementary*
   to the Briefing, never a competing second recommender.
-- **Cinematic DNA / Profile** (`/profile`) — taste made visible; trust-builder.
+- **Cinematic DNA / Profile** (`/profile`) — the visible payoff of accumulated learning; taste made visible; trust-builder.
 - **Preferences** (`/preferences`) — engine dials; control without curation work.
 
 ### Utility — *low-friction substrate; never the primary destination*
 - **Watchlist / The Queue** (`/watchlist`) — defer a pick.
-- **History / The Diary** (`/history`) — logging that feeds the model.
+- **History / The Diary** (`/history`) — the strategic taste-memory substrate; logging that feeds the model and compounds into better picks.
 - **Browse / mood-tone-fit pages / collections** — catalog access for intent-driven
   spelunking, deliberately secondary.
 - **Lists** (`/lists`) — editorial seasoning, not a Letterboxd-style home base.
@@ -120,6 +132,7 @@ service of it. (This is the central question F2 resolves.)
 - **People / taste twins** (`/people`) — a real future moat, but it compounds only
   *after* there are users. Keep minimal pre-scale.
 - **Feed, Challenges** — built but unrouted; redirect to `/home` until they earn a slot.
+- **Couple / group decision mode** — a future bounded shortlist or negotiation flow for shared decisions; mechanics remain **provisional**.
 
 > Rule of thumb: if a "utility" or "supporting" surface starts competing with the
 > Briefing for the user's primary "what do I watch tonight" intent, that's drift —

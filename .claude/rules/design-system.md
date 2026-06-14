@@ -25,7 +25,9 @@ It should not prevent intentional evolution.
 
 FeelFlick should feel like:
 
-> A contemporary film journal with the precision of a great product and the sensitivity of a trusted curator.
+> A thoughtful seatmate with serious film taste — calm at first glance, intelligent on closer inspection, deep only when invited.
+
+Design for someone **smart but tired**: do the reasoning, hand over one decision worth trusting, and let depth arrive only when asked. The product is a **Compounding Decision Companion**; the full direction, surface roles, and rationale live in [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md).
 
 The visual experience should support:
 
@@ -69,29 +71,53 @@ Choose principles that serve the specific user problem and surface.
 
 ## System status
 
-Non-migrated surfaces currently use:
+Read every statement in this rule as one of four states:
 
-* Outfit for much of their display typography (retained for wordmark and specific brand labels; not a permanent third family)
-* Inter for body and interface text
-* dark surfaces with purple and pink brand colors
+* **accepted principle** — settled; build toward it
+* **current production baseline** — what ships today (may be transitional, not the target)
+* **active prototype question** — unresolved; validate with rendered prototypes before it becomes doctrine
+* **historical decision** — superseded record, kept for context
+
+### Current production baseline (transitional)
+
+The shipped app currently uses the F3/F4 direction:
+
+* `/home` is migrated: warm dark neutrals, ivory/bone text, hairline rules, Newsreader editorial voice, rose (`#DD4E83`) accent, numbered I/II recommendation case, neutral bone/ivory primary
+* remaining surfaces still use Outfit display + Inter, dark surfaces, and the legacy purple/pink brand gradient
 * shared tokens and UI primitives
 
-This is the remaining baseline on unmigrated surfaces, valid for maintenance work.
+This is a **transitional baseline**, valid for maintenance work. It is **not** the target. Do not claim the new direction is implemented, and do not remove the shipped F3/F4 work outside a deliberate, gated re-migration.
 
-The approved direction (F0 Design Lab + adversarial critique + `/home` production migration, 2026-06-12) is:
+### Accepted target direction (principle level)
 
-* warm cinematic dark neutrals — near-black canvas, ivory/bone text (`#F2ECE1`), hairline separators over generic cards
-* rose (`#DD4E83`) as the restrained brand signature — a red-ink accent, not a saturated gradient
-* muted plum as a supporting atmospheric hue (secondary use only, not beside rose in every expression)
-* contextual color derived from mood or film imagery
-* Inter as the interface voice
-* Newsreader as the editorial and curator voice — recommendation titles, Film File headings, case explanations
-* poster as a cinematic/editorial object — tipped-in, framed, given physical weight — not a flat grid thumbnail
-* deliberate, content-supporting motion
-* reduced decorative chrome — hairline rules and restrained surface separation over ambient glow and rounded glass
-* clearer separation between interface and editorial storytelling
+The target is the **Thoughtful Seatmate** direction — design for someone smart but tired:
 
-The direction has been validated by rendered prototypes, a six-judge adversarial critique, and full production migration of `/home`. It is the target for all remaining surfaces. See `docs/ui/design-authority-f3.md` for the full decision record, anti-patterns, migration order, and scope boundaries.
+* warm graphite / warm-neutral foundation — frames film artwork rather than competing with it
+* projection-ivory (or equivalent high-contrast warm neutral) text
+* **one coherent human sans-serif voice** across the core product (no permanent serif-versus-system split)
+* normalized contextual film color for emotional specificity
+* a **neutral, high-contrast primary action**, with **one rare warm signal** for meaningful selection or commitment
+* progressive recommendation depth; explanation present and truthful; no required numbered case
+* poster as a cinematic/editorial object, not a flat grid thumbnail
+* brief, purposeful, nonblocking motion; reduced decorative chrome (hairline rules over glow/glass)
+* the legacy purple–pink gradient barred from default actions, selected states, chrome, AI/premium signaling, and permanent atmosphere (any narrow reveal/memory/celebration role remains an unresolved prototype question)
+* no default visible backup recommendations on Tonight
+
+These foundation principles are **accepted**. The replacement *specifics* are **active prototype questions** (below). The full direction, surface roles, and rationale live in the active authority document: [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). The prior [`docs/ui/design-authority-f3.md`](../../docs/ui/design-authority-f3.md) is **historical** — it records the shipped F3/F4 baseline, not the target.
+
+### Accepted principles versus prototype questions
+
+Do **not** finalize any of these — they remain prototype questions until validated by rendered prototypes and a decision record:
+
+* Instrument Sans versus Inter for the single core voice
+* exact warm-neutral / graphite token values, and the exact ivory value
+* the exact warm decision-signal hue
+* ivory-only versus ivory-plus-warm-cue selected states
+* contextual-film-color strength and normalization thresholds
+* whether the legacy gradient ultimately survives
+* whether a serif has any role in genuinely long-form Film File reading
+* exact bottom-navigation structure
+* exact couple-mode interaction
 
 ## Design modes
 
@@ -139,13 +165,15 @@ Do not mix exploration and migration without clearly stating which decisions hav
 
 ## Typography
 
-### Role distinction
+### One coherent sans-serif voice
 
-Typography should distinguish the functional product interface from the editorial recommendation voice.
+The accepted target is **one coherent human sans-serif voice** across the core product. Hierarchy comes from size, weight, measure, tracking, style, and placement — not from a separate serif "editorial" personality. There is **no permanent serif-versus-system split**.
 
-The preferred role model is:
+**Active prototype question — Instrument Sans versus Inter.** The single core voice has not been chosen. Decide it with a controlled prototype on real surfaces (Tonight, Film File, a dense authenticated view, mobile), not from a specimen page. Until then, Inter is the working interface voice.
 
-> Inter is the system. Newsreader is the curator.
+**Current production baseline (transitional):** `/home` ships Newsreader (editorial) + Inter (interface) + Outfit (wordmark/labels). The "Inter is the system; Newsreader is the curator" split is the prior F3/F4 model and is **retired as the target** — do not extend it to new surfaces.
+
+**Possible long-form exception (prototype question, not a default):** whether a serif earns any role in genuinely long-form Film File reading is open to test. It must not reinstate a system-versus-editorial personality split.
 
 ### Interface typography
 
@@ -173,20 +201,11 @@ Interface typography should prioritize:
 * good rendering at small sizes
 * predictable control dimensions
 
-### Editorial typography
+### Editorial emphasis
 
-Use Newsreader for:
+Recommendation titles, Film File headings, the "why this pick" reason, and reflective or emotionally important language carry **editorial weight** — but in the target direction that weight comes from the single sans-serif voice (size, weight, measure, italic, spacing), not from a separate serif family.
 
-* landing-page statements
-* primary recommendation titles
-* Film File headings
-* curator explanations
-* recommendation rationale
-* editorial introductions
-* meaningful quotations
-* reflective or emotionally important language
-
-Editorial typography should feel:
+Editorial moments should feel:
 
 * considered
 * human
@@ -195,9 +214,7 @@ Editorial typography should feel:
 * contemporary rather than antique
 * expressive without becoming theatrical
 
-Do not use Newsreader for every label, button, card title, or metadata value.
-
-Its role should remain distinct enough to signal when the product is speaking editorially rather than functionally.
+**Current production baseline (transitional):** these moments currently render in Newsreader on `/home`. Treat that as the shipped baseline, not the target; do not extend Newsreader to new surfaces. Whether a serif earns a narrow long-form Film File role is an open prototype question (see "One coherent sans-serif voice").
 
 ### Existing Outfit usage
 
@@ -303,49 +320,24 @@ Illustrative exploration values may include:
 
 These are starting points for evaluation, not final locked values.
 
-### Brand signature
+### Primary action and decision signal
 
-Rose is the preferred stable brand signature to test.
+The target identity is carried by the **warm-neutral foundation and ivory text**, not by a brand hue.
 
-Use it selectively for:
+* On dark core surfaces the **default primary commitment action uses a solid light-neutral fill with dark warm text** — calm and legible. It must not depend on contextual film color, the legacy gradient, or a permanent rose accent. Exact ivory and graphite token values remain provisional; alternate polarity is permitted only when the surrounding surface or accessibility requirements justify it.
+* **One rare warm signal** may mark a meaningful selection or commitment. It is sparing emphasis — never the dominant surface color and never on every control.
 
-* primary selection
-* meaningful active states
-* focus treatment
-* progress or confidence
-* primary calls to action
-* brand recognition
-* selected editorial emphasis
+**Active prototype question:** the exact warm decision-signal **hue**, and whether selected states are **ivory-only** or **ivory-plus-a-warm-cue**. Do not lock a hex here.
 
-Illustrative exploration values may include:
+**Current production baseline (transitional):** migrated surfaces ship rose (`#DD4E83`) as the accent, with the legacy purple/pink tokens on the rest. Rose as a *permanent* brand signature or default primary-CTA color is **retired as the target** — it is a transitional accent, not the core identity. Do not extend rose as the brand signature to new surfaces, and do not make every button, heading, icon, border, and glow rose.
 
-```css
---brand-rose: #dd4e83;
---brand-rose-soft: #f08aaa;
---brand-rose-deep: #9f2f5d;
-```
+Semantic colors are separate and load-bearing (see "Semantic colors"); never fold amber/red/green into the brand palette.
 
-Do not make every button, heading, icon, border, and glow rose.
+### Supporting atmosphere
 
-Brand recognition should come from consistent choices, not maximum repetition.
+The target foundation is warm-neutral; **plum is not the standard supporting atmosphere**. Muted plum (and the legacy purple) appear only on unmigrated surfaces as part of the transitional baseline, and a plum-beside-rose system is **retired as the target**. Supporting depth in the new direction comes from warm-neutral surface separation and normalized contextual film color, not from a fixed secondary brand hue.
 
-### Supporting brand color
-
-Muted plum may support the rose system through:
-
-* dark atmospheric depth
-* subdued surface tinting
-* secondary illustration or data accents
-* restrained transition states
-
-Purple should not automatically appear beside rose in every expression.
-
-Illustrative exploration values may include:
-
-```css
---brand-plum: #6c4a78;
---brand-plum-deep: #2b1d30;
-```
+Do not introduce plum or purple as a new supporting atmosphere on surfaces adopting the target direction.
 
 ### Contextual color
 
@@ -398,7 +390,7 @@ Semantic meaning should not rely on color alone.
 
 ## Gradients
 
-The purple-to-pink gradient CTA is explicitly retired on migrated surfaces. On `/home` it has been replaced with the bone-slab primary button. Do not reintroduce this gradient as a primary action on surfaces that have adopted the approved direction. It may be reassessed for atmospheric or wordmark moments during dedicated brand-identity work — but it must not simultaneously carry brand identity, premium signal, AI identity, and primary CTA weight.
+The legacy purple-to-pink gradient is **retired as a primary action and as default atmosphere**. On `/home` it has been replaced with the neutral primary (a solid light-neutral fill with dark warm text). **Accepted restriction:** it must not function as the default primary action, a routine selected state, application chrome, a generic AI/premium signal, or permanent atmosphere. **Active prototype question:** whether it retains any narrow role — a rare reveal, memory, campaign, sharing, or celebration moment — or survives at all is unresolved; do not create new production uses until that role is validated, and do not treat a possible future use as an approved production treatment.
 
 Gradients are appropriate when they communicate:
 
@@ -595,6 +587,8 @@ Do not forbid them without testing if a future redesign identifies a clear user 
 
 ## Motion
 
+Motion philosophy: **house lights down** — brief, purposeful, and nonblocking; it sets attention, it does not perform.
+
 Motion should communicate:
 
 * response
@@ -662,22 +656,21 @@ Copy may evolve during explicit positioning, conversion, onboarding, or product-
 
 Preserve the underlying promise unless that promise itself is under review.
 
-## Recommendation case presentation
+## Recommendation explanation
 
-The explanation is the emotional center of a recommendation, not a small tinted panel.
+The explanation is the emotional center of a recommendation, not a small tinted panel. It should read as **natural progressive depth** — a true, plain-language reason at the glance, with fuller evidence available in the Film File when invited.
 
-The approved numbered case structure:
+**A numbered roman-numeral case is not a universal requirement.** Numbering is at most one legitimate presentation when multiple truthful rungs genuinely exist; it is not the identity of the recommendation and must not be forced onto every surface.
 
-* `I · Why this pick` — the engine reason, Newsreader italic at editorial scale
-* `II · What you're in for` — synopsis or curatorial context, Inter at body scale
+Rules (these hold regardless of presentation):
 
-Rules:
-
-* Use roman numerals only when both rungs exist. A lone rung is presented unnumbered.
-* Never fabricate a reason. If `engineReason` is null, the case is absent — not replaced with generic copy.
-* Never claim the user's current mood as a visible assertion ("For your tender night"). The auto-selected baseline mood is a ranking signal only, never a visible claim about the user's current state.
+* Never fabricate user-specific recommendation evidence. When the user-specific engine reason is unavailable, do not invent one — but the recommendation may still use a clearly non-personal rationale grounded in the film's qualities, an explicit session constraint, a documented quality signal, or honest cold-start language. Do not present broad or editorial reasoning as though it came from user history, and do not let the pick read as unexplained certainty just because mature personalization evidence is unavailable.
+* Do not infer or claim the user's current mood unless they explicitly selected or described it this session ("For your tender night" is fabrication when the mood was auto-selected). An auto-selected baseline mood is an internal ranking signal and must not be presented as a fact about the user. When the user explicitly provided a mood or viewing intent, the interface may reflect it accurately, concisely, and non-clinically.
 * "Not tonight" and skip actions should feel dignified, not destructive.
-* The Emotional Mood Instrument direction (from F0) is reserved for Discover and mood-specific surfaces, not the primary briefing.
+* Tonight shows one visible recommendation; a rejection produces one sequential replacement, not visible backup cards.
+* The Emotional Mood Instrument exploration (from F0) is appropriate for Discover and mood-specific surfaces, not the primary briefing.
+
+**Current production baseline (transitional):** `/home` ships a numbered `I · Why this pick` / `II · What you're in for` case in Newsreader italic + Inter, with tests asserting the `I ·`/`II ·` markers. That is the shipped baseline; reversing it toward unnumbered natural explanation is later, gated code work — do not change the shipped tests or components in a documentation pass.
 
 ## Accessibility
 
@@ -737,11 +730,11 @@ Prototype representative surfaces:
 4. dense authenticated interface
 5. mobile recommendation flow
 
-For the proposed typography and color direction, compare:
+For the target typography and color direction, compare:
 
-* current Outfit + purple/pink system
-* Newsreader + Inter with warm neutrals and rose
-* contextual color behavior with representative posters and moods
+* the shipped F3/F4 baseline (Newsreader + Inter + rose on warm dark neutrals)
+* the target: one coherent sans-serif voice (Instrument Sans vs Inter) on a warm-graphite / projection-ivory foundation, with a neutral high-contrast primary and one rare warm signal
+* contextual film color behavior, strength, and normalization with representative posters and moods
 
 Evaluate:
 
@@ -772,31 +765,28 @@ Capture desktop and mobile comparisons.
 
 Perform at least one critique and refinement pass.
 
-## Migration status
+## Migration gates
 
-The direction is approved. Migration is in progress surface-by-surface.
+The Thoughtful Seatmate direction is **accepted at the principle level**, not yet implemented. Migration proceeds only through these gates — do not skip ahead:
 
-**Completed:**
-* `/home` Tonight’s Pick briefing and shell — F1–F2, 2026-06-12. Purple→pink gradient CTA, glow card, gradient-accent hierarchy removed.
+1. **Doctrine accepted** — the active authority is [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). ✅
+2. **Prototypes resolve the open questions** — the Instrument-Sans-vs-Inter, warm-neutral/ivory value, warm-cue-hue, contextual-color-threshold, gradient-survival, and serif-exception questions are answered with rendered desktop + mobile evidence and a decision record. *Open.*
+3. **Token / component changes** — promote validated values to shared tokens and components **only after at least two production surfaces validate the specific values**.
+4. **Surface migration** — apply the accepted direction surface-by-surface, re-baselining visual regression deliberately at each step.
 
-**Recommended migration order:**
-1. Movie Detail / Film File (`/movie/:id`)
-2. Discover mood ritual
-3. Landing page
-4. Onboarding, profile, and library surfaces
+**Current production baseline (transitional, do not remove in unrelated work):**
+* `/home` ships the F3/F4 direction (Newsreader, rose, numbered I/II case, neutral `/home` primary)
+* remaining surfaces still use Outfit + the legacy purple/pink gradient
 
-**Not yet migrated — do not force the direction onto these during unrelated work:**
-* AppShell header (gradient wordmark, "Tonight" tab, avatar ring)
-* Global `:focus-visible` ring (still purple — needs a global token pass)
-* Unrendered `/home` modules (ContinueWatching, CinematicDNA, CuratedLists, TasteMatch) — migrate when those routes surface
+**Do not change as part of a design pass:**
+* recommendation engine, scoring, or data contracts
+* shared components until at least two production surfaces confirm the *target* pattern
+* global CSS token values until two migrated surfaces validate the constants
+* the shipped F3/F4 implementation, except as a deliberate, gated re-migration
+* Design Lab directions (`src/features/design-lab/`) — keep isolated; they are prototype comparisons, not production
+* AppShell header (gradient wordmark, "Tonight" tab, avatar ring) and the global `:focus-visible` ring — these need dedicated global passes
 
-**Do not change yet:**
-* Recommendation engine, scoring, data contracts
-* Shared components until at least two production surfaces confirm the pattern
-* Global CSS token values until two migrated surfaces validate the constants
-* Design Lab directions (`src/features/design-lab/`) — keep isolated
-
-For the full rationale, evidence, and anti-pattern catalogue, read `docs/ui/design-authority-f3.md`.
+For the prior decision record and the shipped baseline it describes, see the historical [`docs/ui/design-authority-f3.md`](../../docs/ui/design-authority-f3.md).
 
 ## Updating this rule
 
@@ -812,3 +802,5 @@ Clearly distinguish:
 Remove superseded prohibitions and stale implementation details.
 
 Keep historical rationale in design decision records or research documentation rather than leaving conflicting directions active here.
+
+The active design authority is [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md); update both together when the direction changes.

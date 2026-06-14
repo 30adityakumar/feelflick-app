@@ -198,7 +198,7 @@ export const MovieCard = memo(function MovieCard({
               aria-label={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
               onClick={(e) => { e.stopPropagation(); handleToggleWatchlist() }}
               disabled={actionLoading.watchlist}
-              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white/50"
             >
               {actionLoading.watchlist ? (
                 <span className="skeleton h-4 w-4 rounded-full" aria-hidden="true" />
@@ -213,7 +213,7 @@ export const MovieCard = memo(function MovieCard({
               aria-label={isWatched ? 'Mark unwatched' : 'Mark watched'}
               onClick={(e) => { e.stopPropagation(); toggleWatched() }}
               disabled={actionLoading.watched}
-              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white/50"
             >
               {actionLoading.watched ? (
                 <span className="skeleton h-4 w-4 rounded-full" aria-hidden="true" />

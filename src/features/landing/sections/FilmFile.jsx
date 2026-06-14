@@ -1,4 +1,4 @@
-import { C } from '@/shared/lib/tokens'
+import { C, ROSE } from '@/shared/lib/tokens'
 import { Reveal, Poster, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { PICKS } from '../data'
 
@@ -12,7 +12,7 @@ export default function FilmFile(){
       position="relative"
       tone="panel"
       innerStyle={{position:'relative'}}
-      before={<div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 80% 50% at 70% 30%,${C.purple}12,transparent 60%)`,pointerEvents:'none'}}/>}
+      before={<div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 80% 50% at 70% 30%,${ROSE}12,transparent 60%)`,pointerEvents:'none'}}/>}
     >
       <Reveal>
         <SectionHeading
@@ -20,7 +20,7 @@ export default function FilmFile(){
           marginBottom={84}
           headingMaxWidth={780}
           ledeMaxWidth={560}
-          lede="Not just a poster. A short essay, a critic’s line, the mood arc, what to drink, and one film we’d skip tonight — and why."
+          lede="Not just a poster. A short essay, a critic's line, the mood arc, what to drink, and one film we'd skip tonight — and why."
         >
           Every pick comes with <em className="ff-italic" style={{color:C.textMid}}>its case.</em>
         </SectionHeading>
@@ -42,27 +42,32 @@ export default function FilmFile(){
               </div>
               {/* The verdict — the "why this is the one" thesis, scannable at a glance before the full case. */}
               <div style={{marginTop:22}}>
-                <Eyebrow color={C.purple} style={{marginBottom:9}}>Why this is the one</Eyebrow>
-                <p className="ff-italic" style={{fontFamily:'Outfit',fontSize:'clamp(17px,1.7vw,21px)',fontWeight:300,fontStyle:'italic',color:C.textHi,lineHeight:1.4,letterSpacing:'-0.01em',margin:0,maxWidth:520}}>
-                  You’ve leaned slow-burn and a little lonely all week. <em style={{fontStyle:'italic',color:C.text}}>Her</em> meets you exactly there.
+                <Eyebrow color={ROSE} style={{marginBottom:9}}>Why this is the one</Eyebrow>
+                <p className="ff-italic" style={{fontSize:'clamp(17px,1.7vw,21px)',color:C.textHi,lineHeight:1.4,letterSpacing:'-0.01em',margin:0,maxWidth:520}}>
+                  You&rsquo;ve leaned slow-burn and a little lonely all week. <em style={{fontStyle:'italic',color:C.text}}>Her</em> meets you exactly there.
                 </p>
               </div>
+              {/* F2-B: the visual drop cap splits the sentence into "N" + "ear-future…"
+                  for assistive tech. Screen readers get the intact sentence via the
+                  sr-only span; the split visual fragments are aria-hidden. Pixels
+                  unchanged — the float/typography styles are untouched. */}
               <p className="ff-body" style={{marginTop:24,fontSize:16,color:C.textHi,lineHeight:1.65,maxWidth:520}}>
-                <span className="ff-italic" style={{float:'left',fontSize:64,lineHeight:0.85,color:C.purple,marginRight:10,marginTop:6,marginBottom:-4,letterSpacing:'-0.06em',fontWeight:300}}>{PICKS[2].why.charAt(0)}</span>
-                {PICKS[2].why.slice(1)}
+                <span className="sr-only">{PICKS[2].why}</span>
+                <span aria-hidden="true" className="ff-italic" style={{float:'left',fontSize:64,lineHeight:0.85,color:ROSE,marginRight:10,marginTop:6,marginBottom:-4,letterSpacing:'-0.04em'}}>{PICKS[2].why.charAt(0)}</span>
+                <span aria-hidden="true">{PICKS[2].why.slice(1)}</span>
               </p>
-              <blockquote style={{margin:'28px 0 0 0',padding:'14px 0 14px 20px',borderLeft:`2px solid ${C.purple}77`}}>
-                <p style={{margin:0,fontFamily:'Outfit',fontSize:18,fontWeight:300,fontStyle:'italic',color:C.text,lineHeight:1.4,letterSpacing:'-0.012em'}}>“Tender enough to break your composure.”</p>
+              <blockquote style={{margin:'28px 0 0 0',padding:'14px 0 14px 20px',borderLeft:`2px solid ${ROSE}77`}}>
+                <p className="ff-italic" style={{margin:0,fontSize:18,color:C.text,lineHeight:1.4,letterSpacing:'-0.01em'}}>&ldquo;Tender enough to break your composure.&rdquo;</p>
                 <Eyebrow color={C.textLow} style={{marginTop:8}}>— FeelFlick Editors</Eyebrow>
               </blockquote>
               <div style={{marginTop:28,display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
                 <div style={{padding:'14px 16px',borderRadius:8,background:'rgba(255,255,255,0.022)',border:`1px solid ${C.hairline}`}}>
-                  <Eyebrow color={C.purple} style={{marginBottom:8}}>Pairs with</Eyebrow>
+                  <Eyebrow color={ROSE} style={{marginBottom:8}}>Pairs with</Eyebrow>
                   <div style={{fontFamily:'Inter',fontSize:12.5,color:C.textMid,fontStyle:'italic',lineHeight:1.55}}>A glass of red. Ninety minutes of nothing else.</div>
                 </div>
                 <div style={{padding:'14px 16px',borderRadius:8,background:'rgba(255,255,255,0.022)',border:`1px solid ${C.hairline}`}}>
-                  <Eyebrow color={C.purple} style={{marginBottom:8}}>Why for you</Eyebrow>
-                  <div style={{display:'flex',flexWrap:'wrap',gap:6}}>{motifs.map(t=><span key={t} style={{padding:'3px 9px',borderRadius:999,background:`${C.purple}10`,border:`1px solid ${C.purple}33`,fontFamily:'Inter',fontSize:11,color:C.textMid}}>{t}</span>)}</div>
+                  <Eyebrow color={ROSE} style={{marginBottom:8}}>Why for you</Eyebrow>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:6}}>{motifs.map(t=><span key={t} style={{padding:'3px 9px',borderRadius:999,background:`${ROSE}10`,border:`1px solid ${ROSE}33`,fontFamily:'Inter',fontSize:11,color:C.textMid}}>{t}</span>)}</div>
                 </div>
               </div>
               {/* Emotional arc + skip tonight — now below right content */}
@@ -71,14 +76,14 @@ export default function FilmFile(){
                   <Eyebrow color={C.textLow} style={{marginBottom:14}}>Emotional arc · 126 min</Eyebrow>
                   <svg viewBox="0 0 280 56" width="100%" height="56">
                     <defs>
-                      <linearGradient id="arc-g" x1="0" x2="1"><stop offset="0%" stopColor={C.purple} stopOpacity="0.6"/><stop offset="100%" stopColor={C.pink} stopOpacity="0.95"/></linearGradient>
-                      <linearGradient id="arc-f" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={C.purple} stopOpacity="0.22"/><stop offset="100%" stopColor={C.purple} stopOpacity="0"/></linearGradient>
+                      <linearGradient id="arc-g" x1="0" x2="1"><stop offset="0%" stopColor={ROSE} stopOpacity="0.6"/><stop offset="100%" stopColor={ROSE} stopOpacity="0.95"/></linearGradient>
+                      <linearGradient id="arc-f" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={ROSE} stopOpacity="0.22"/><stop offset="100%" stopColor={ROSE} stopOpacity="0"/></linearGradient>
                     </defs>
                     <path d="M4,42 L34,38 L62,32 L92,26 L120,22 L150,18 L178,14 L210,12 L240,18 L276,22 L276,52 L4,52 Z" fill="url(#arc-f)"/>
                     <path d="M4,42 L34,38 L62,32 L92,26 L120,22 L150,18 L178,14 L210,12 L240,18 L276,22" fill="none" stroke="url(#arc-g)" strokeWidth="1.8" strokeLinecap="round"/>
-                    <circle cx="210" cy="12" r="2.6" fill={C.pink}/>
+                    <circle cx="210" cy="12" r="2.6" fill={ROSE}/>
                   </svg>
-                  <div style={{display:'flex',justifyContent:'space-between',marginTop:6,fontSize:9.5,color:C.textFaint,fontFamily:'Outfit',letterSpacing:'0.08em',textTransform:'uppercase'}}><span>Quiet</span><span style={{color:C.pink}}>Peak</span><span>Bittersweet</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between',marginTop:6,fontSize:9.5,color:C.textFaint,fontFamily:'Inter, sans-serif',letterSpacing:'0.08em',textTransform:'uppercase'}}><span>Quiet</span><span style={{color:ROSE}}>Peak</span><span>Bittersweet</span></div>
                 </div>
                 <div style={{padding:'14px 18px',borderRadius:10,background:`${C.amber}0a`,border:`1px solid ${C.amber}33`,display:'flex',flexDirection:'column',justifyContent:'center'}}>
                   <Eyebrow color={C.amber} style={{marginBottom:6}}>Skip tonight</Eyebrow>

@@ -407,12 +407,12 @@ function PageSkeleton() {
         <div style={{ position:'relative', minHeight: 760, padding:'140px 88px 64px', display:'grid', gridTemplateColumns:'auto 1fr', gap:64, alignItems:'flex-end' }}>
           <div className="animate-pulse" style={{ ...pulse, width:300, aspectRatio:'2/3', borderRadius:8 }} />
           <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
-            <div className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:14, width:180, borderRadius:999 }} />
+            <div className="animate-pulse" style={{ background:'rgba(255,255,255,0.08)', height:14, width:180, borderRadius:999 }} />
             <div className="animate-pulse" style={{ ...pulse, height:80, width:'70%', borderRadius:8 }} />
             <div className="animate-pulse" style={{ ...pulse, height:16, width:'40%', borderRadius:999 }} />
             <div className="animate-pulse" style={{ ...pulse, height:14, width:'55%', borderRadius:999 }} />
             <div style={{ display:'flex', gap:12, marginTop:16 }}>
-              <div className="animate-pulse" style={{ background:'rgba(167,139,250,0.18)', height:48, width:160, borderRadius:8 }} />
+              <div className="animate-pulse" style={{ background:'rgba(255,255,255,0.10)', height:48, width:160, borderRadius:8 }} />
               <div className="animate-pulse" style={{ ...pulse, height:48, width:160, borderRadius:8 }} />
               <div className="animate-pulse" style={{ ...pulse, height:48, width:120, borderRadius:8 }} />
             </div>
@@ -434,10 +434,10 @@ function PageError({ routeState, onBack, onHome }) {
       fontFamily: 'Inter, sans-serif',
     }}>
       <div role="alert" style={{ textAlign: 'center', maxWidth: 520 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#A78BFA', marginBottom: 18 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#DD4E83', marginBottom: 18 }}>
           {eyebrow}
         </div>
-        <h1 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(30px, 6vw, 48px)', fontWeight: 500, color: '#FAFAFA', margin: '0 0 18px 0', letterSpacing: '-0.025em', textWrap: 'balance' }}>
+        <h1 style={{ fontFamily: 'var(--font-editorial)', fontSize: 'clamp(30px, 6vw, 48px)', fontWeight: 400, color: '#FAFAFA', margin: '0 0 18px 0', letterSpacing: '-0.025em', textWrap: 'balance' }}>
           {title}
         </h1>
         <p style={{ margin: '0 0 28px 0', color: 'rgba(250,250,250,0.6)', fontSize: 15, lineHeight: 1.6 }}>
@@ -448,7 +448,7 @@ function PageError({ routeState, onBack, onHome }) {
             type="button"
             onClick={onBack}
             className="ff-movie-error-btn"
-            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Outfit', fontSize: 14, fontWeight: 600 }}
+            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: '#DD4E83', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600 }}
           >
             Go back
           </button>
@@ -456,7 +456,7 @@ function PageError({ routeState, onBack, onHome }) {
             type="button"
             onClick={onHome}
             className="ff-movie-error-btn"
-            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: 'transparent', color: 'rgba(250,250,250,0.85)', border: '1px solid rgba(250,250,250,0.2)', cursor: 'pointer', fontFamily: 'Outfit', fontSize: 14, fontWeight: 600 }}
+            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: 'transparent', color: 'rgba(250,250,250,0.85)', border: '1px solid rgba(250,250,250,0.2)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600 }}
           >
             Go to Home
           </button>

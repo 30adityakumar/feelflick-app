@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import MoodPill from '@/shared/components/MoodPill'
-import { HP, HP_GRAD, MOODS, LANG_OPTIONS } from './data'
+import { HP, ROSE, MOODS, LANG_OPTIONS } from './data'
 import { getMoodTag } from './components'
 
 // FeelFlick — Browse v3 immersive: MoodBackdrop + QuickLook slide-over.
@@ -75,7 +75,7 @@ function QuickLook({ film, mood, watched, inWatchlist, onTW, onTWL, onClose }) {
             <img src={film.poster} alt="" style={{ width:110, aspectRatio:'2/3', objectFit:'cover', borderRadius:5, boxShadow:'0 22px 44px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06)' }} />
             <div style={{ flex:1, minWidth:0 }}>
               {moodTag && <MoodPill label={moodTag.label} color={moodTag.color} style={{ marginBottom:8 }} />}
-              <h2 style={{ fontFamily:'Outfit', fontSize:28, fontWeight:500, color:'#fff', margin:0, letterSpacing:'-0.022em', lineHeight:1.1 }}>{film.title}</h2>
+              <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:28, fontWeight:500, color:'#fff', margin:0, letterSpacing:'-0.022em', lineHeight:1.1 }}>{film.title}</h2>
               <div style={{ marginTop:6, fontFamily:'Inter', fontSize:13, color:'rgba(255,255,255,0.72)' }}>{film.year} · {film.dir} · {film.runtime}m</div>
             </div>
           </div>
@@ -86,13 +86,13 @@ function QuickLook({ film, mood, watched, inWatchlist, onTW, onTWL, onClose }) {
           {/* Stats row */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:10, padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
             {[
-              { label:'Fit', value: fitLabel(matchScore), tint:HP.purple },
+              { label:'Fit', value: fitLabel(matchScore), tint:ROSE },
               { label:'FF', value: film.ff,    tint:HP.text },
               { label:'Critics', value: film.critic,  tint:HP.textHi },
               { label:'Audience', value: film.audience, tint:HP.textHi },
             ].map(s => (
               <div key={s.label} style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'Outfit', fontSize: typeof s.value === 'string' ? 14 : 22, fontWeight: typeof s.value === 'string' ? 500 : 300, color:s.tint, letterSpacing:'-0.02em', lineHeight:1.1 }}>{s.value}</div>
+                <div style={{ fontFamily:'Inter, sans-serif', fontSize: typeof s.value === 'string' ? 14 : 22, fontWeight: typeof s.value === 'string' ? 500 : 300, color:s.tint, letterSpacing:'-0.02em', lineHeight:1.1 }}>{s.value}</div>
                 <div style={{ marginTop:4, fontFamily:'Inter', fontSize:10, color:HP.textFaint, letterSpacing:'0.08em', textTransform:'uppercase' }}>{s.label}</div>
               </div>
             ))}
@@ -100,13 +100,13 @@ function QuickLook({ film, mood, watched, inWatchlist, onTW, onTWL, onClose }) {
 
           {/* Why this rank */}
           <div style={{ padding:'20px 0', borderBottom:`1px solid ${HP.border}` }}>
-            <div style={{ fontFamily:'Outfit', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:10 }}>Why this rank</div>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:ROSE, marginBottom:10 }}>Why this rank</div>
             <div style={{ fontFamily:'Inter', fontSize:14, color:HP.textHi, lineHeight:1.55 }}>{mood==='all' ? `Strong FeelFlick rating (${film.ff}), available on your streamers, and one ${film.dir} works in.` : film.rationale[mood]}</div>
           </div>
 
           {/* Mood fit */}
           <div style={{ padding:'20px 0', borderBottom:`1px solid ${HP.border}` }}>
-            <div style={{ fontFamily:'Outfit', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textLow, marginBottom:14 }}>Mood fit</div>
+            <div style={{ fontFamily:'Inter, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textLow, marginBottom:14 }}>Mood fit</div>
             <div style={{ display:'flex', flexDirection:'column', gap:9 }}>
               {Object.entries(film.fit).map(([k, v]) => {
                 const moodObj = MOODS.find(m=>m.id===k);
@@ -136,10 +136,10 @@ function QuickLook({ film, mood, watched, inWatchlist, onTW, onTWL, onClose }) {
 
           {/* Actions */}
           <div style={{ paddingTop:20, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-            <button onClick={()=>onTW(film.id)} style={{ height:44, borderRadius:999, background: watched ? 'rgba(16,185,129,0.18)' : HP_GRAD, border: watched ? `1px solid ${HP.green}55` : 'none', color: watched ? HP.green : '#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            <button onClick={()=>onTW(film.id)} style={{ height:44, borderRadius:999, background: watched ? 'rgba(16,185,129,0.18)' : ROSE, border: watched ? `1px solid ${HP.green}55` : 'none', color: watched ? HP.green : '#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
               {watched ? <><IcEye s={14}/>Watched</> : <><IcEye s={14}/>Mark watched</>}
             </button>
-            <button onClick={()=>onTWL(film.id)} style={{ height:44, borderRadius:999, background: inWatchlist ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.05)', border: inWatchlist ? `1px solid ${HP.purple}66` : `1px solid ${HP.borderStrong}`, color: inWatchlist ? HP.purple : HP.textHi, fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            <button onClick={()=>onTWL(film.id)} style={{ height:44, borderRadius:999, background: inWatchlist ? 'rgba(221,78,131,0.18)' : 'rgba(255,255,255,0.05)', border: inWatchlist ? `1px solid ${ROSE}66` : `1px solid ${HP.borderStrong}`, color: inWatchlist ? ROSE : HP.textHi, fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8 }}>
               {inWatchlist ? <><IcCheck s={14}/>In watchlist</> : <><IcPlus s={14}/>Add to watchlist</>}
             </button>
           </div>

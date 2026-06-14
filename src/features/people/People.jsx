@@ -9,7 +9,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, HP_GRAD } from './data'
+import { HP, ROSE, ROSE_DEEP } from './data'
 import { PeopleDataProvider, usePeopleData } from './usePeopleData'
 import { trackEvent, EVENTS, queryLengthBucket } from '@/shared/services/betaEvents'
 import { isEnabled } from '@/shared/config/betaFlags'
@@ -31,7 +31,7 @@ function Avatar({ url, initial, bg, size = 48, onClick, alt }) {
   const dim = { width: size, height: size }
   const ring = { ...dim, borderRadius: 999, overflow: 'hidden', flex: 'none' }
   const fallback = (
-    <div style={{ ...ring, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0a0510', fontSize: Math.round(size * 0.42) }}>
+    <div style={{ ...ring, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#0a0510', fontSize: Math.round(size * 0.42) }}>
       {initial}
     </div>
   )
@@ -91,17 +91,17 @@ function Masthead({ onSearch, query, setQuery }) {
 
   return (
     <section className="ff-people-section ff-people-masthead" style={{ padding: '72px 88px 32px', position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(236,72,153,0.10), transparent 60%)' }} />
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(221,78,131,0.10), transparent 60%)' }} />
       <div style={{ position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, flexWrap: 'wrap' }}>
           <Eyebrow spacing="0.32em" size={10}>People</Eyebrow>
-          <div style={{ height: 1, width: 38, background: HP.purple, opacity: 0.5 }} />
+          <div style={{ height: 1, width: 38, background: ROSE, opacity: 0.5 }} />
           <Eyebrow tone="meta" weight={500} size={10}>{user.following} following · {user.followers} followers</Eyebrow>
         </div>
-        <h1 className="ff-people-hero" style={{ fontFamily: 'Outfit', fontSize: 88, lineHeight: 0.92, fontWeight: 300, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+        <h1 className="ff-people-hero" style={{ fontFamily: 'var(--font-editorial)', fontSize: 88, lineHeight: 0.92, fontWeight: 400, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
           Your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>taste matches.</em>
         </h1>
-        <p style={{ marginTop: 18, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 17, color: HP.textSoft, fontStyle: 'italic', maxWidth: 680, lineHeight: 1.55 }}>
+        <p style={{ marginTop: 18, fontFamily: 'Inter, sans-serif', fontSize: 17, color: HP.textSoft, fontStyle: 'italic', maxWidth: 680, lineHeight: 1.55 }}>
           People whose film taste overlaps with yours — an estimate from your film activity, not a relationship.
         </p>
         <form
@@ -115,19 +115,19 @@ function Masthead({ onSearch, query, setQuery }) {
             placeholder="Search by name…"
             aria-label="Search for users by name"
             className="ff-people-search-input"
-            style={{ flex: 1, minWidth: 200, maxWidth: 480, minHeight: 44, padding: '12px 18px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}`, color: HP.text, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 14 }}
+            style={{ flex: 1, minWidth: 200, maxWidth: 480, minHeight: 44, padding: '12px 18px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}`, color: HP.text, fontFamily: 'Inter, sans-serif', fontSize: 14 }}
           />
           <button
             type="button"
             onClick={handleInvite}
             aria-label="Invite a friend to FeelFlick"
             className="ff-people-invite-btn"
-            style={{ minHeight: 44, padding: '0 20px', borderRadius: 8, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', cursor: 'pointer' }}
+            style={{ minHeight: 44, padding: '0 20px', borderRadius: 8, background: ROSE_DEEP, border: 'none', color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', cursor: 'pointer' }}
           >
             Invite a friend
           </button>
           {inviteToast && (
-            <span aria-live="polite" style={{ fontSize: 11, color: HP.green, fontFamily: 'Outfit', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+            <span aria-live="polite" style={{ fontSize: 11, color: HP.green, fontFamily: 'Inter, sans-serif', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
               ✓ {inviteToast}
             </span>
           )}
@@ -163,10 +163,10 @@ function FollowBtn({ id, following, pending, errored, name, onFollow, onUnfollow
         minWidth: 44,
         padding: '0 16px',
         borderRadius: 999,
-        background: following ? 'transparent' : HP_GRAD,
+        background: following ? 'transparent' : ROSE_DEEP,
         border: following ? `1px solid ${HP.border}` : 'none',
         color: following ? HP.textSoft : '#fff',
-        fontFamily: 'Outfit',
+        fontFamily: 'Inter, sans-serif',
         fontSize: 10,
         fontWeight: 600,
         letterSpacing: '0.08em',
@@ -190,7 +190,7 @@ function HideBtn({ onHide, name }) {
       onClick={onHide}
       aria-label={`Hide ${name || 'this person'} from your suggestions`}
       className="ff-people-hidebtn"
-      style={{ minHeight: 44, minWidth: 44, padding: '0 10px', background: 'transparent', border: 'none', color: INK, fontFamily: 'Outfit', fontSize: 10, letterSpacing: '0.04em', cursor: 'pointer' }}
+      style={{ minHeight: 44, minWidth: 44, padding: '0 10px', background: 'transparent', border: 'none', color: INK, fontFamily: 'Inter, sans-serif', fontSize: 10, letterSpacing: '0.04em', cursor: 'pointer' }}
     >
       Hide
     </button>
@@ -228,7 +228,7 @@ function TwinsRail() {
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
         <div>
           <Eyebrow rule size={10} style={{ marginBottom: 12 }}>Strongest matches</Eyebrow>
-          <h2 id="ff-people-twins-h" className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
+          <h2 id="ff-people-twins-h" className="ff-people-h2" style={{ fontFamily: 'Inter, sans-serif', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
             People who <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>get it.</em>
           </h2>
         </div>
@@ -252,14 +252,14 @@ function TwinsRail() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
                   <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} alt="" />
                   <div style={{ textAlign: 'right', maxWidth: 150 }}>
-                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: p.matchPresentation.qualified ? HP.text : INK, letterSpacing: '-0.01em', lineHeight: 1.25 }}>{p.matchPresentation.band || p.matchPresentation.caption}</div>
-                    {p.matchPresentation.evidence && <div style={{ fontSize: 10, color: INK, fontFamily: 'Outfit', marginTop: 3 }}>{p.matchPresentation.evidence}</div>}
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: p.matchPresentation.qualified ? HP.text : INK, letterSpacing: '-0.01em', lineHeight: 1.25 }}>{p.matchPresentation.band || p.matchPresentation.caption}</div>
+                    {p.matchPresentation.evidence && <div style={{ fontSize: 10, color: INK, fontFamily: 'Inter, sans-serif', marginTop: 3 }}>{p.matchPresentation.evidence}</div>}
                   </div>
                 </div>
                 {p.matchPresentation.qualified && <div aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
-                <div style={{ marginTop: 16, fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2 }}>{p.handle}</div>
-                {p.bio && <p style={{ margin: '12px 0 0 0', fontSize: 12, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.5 }}>{p.bio}</p>}
+                <div style={{ marginTop: 16, fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{p.name}</div>
+                <div style={{ fontSize: 11, color: INK, fontFamily: 'Inter, sans-serif', marginTop: 2 }}>{p.handle}</div>
+                {p.bio && <p style={{ margin: '12px 0 0 0', fontSize: 12, color: HP.textSoft, fontFamily: 'Inter, sans-serif', lineHeight: 1.5 }}>{p.bio}</p>}
                 <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                   {!p.following && <HideBtn onHide={() => onHide(p.id)} name={p.name} />}
                   <FollowBtn id={p.id} following={p.following} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} style={{ marginLeft: 'auto' }} />
@@ -294,7 +294,7 @@ function Rising() {
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <Eyebrow rule size={10} style={{ marginBottom: 12 }}>More matches</Eyebrow>
-          <h2 id="ff-people-rising-h" className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>More people to <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>discover.</em></h2>
+          <h2 id="ff-people-rising-h" className="ff-people-h2-sm" style={{ fontFamily: 'var(--font-editorial)', fontSize: 30, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>More people to <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>discover.</em></h2>
         </div>
       </div>
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
@@ -302,10 +302,10 @@ function Rising() {
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
             <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} alt="" />
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text }}>{p.name}</div>
-              <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: HP.text }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: INK, fontFamily: 'Inter, sans-serif', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
               {p.matchPresentation.qualified && <div style={{ marginTop: 8 }} aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
-              <div style={{ marginTop: 6, fontSize: 10, color: INK, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{p.matchPresentation.evidence || p.matchPresentation.band || p.matchPresentation.caption}</div>
+              <div style={{ marginTop: 6, fontSize: 10, color: INK, fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em' }}>{p.matchPresentation.evidence || p.matchPresentation.band || p.matchPresentation.caption}</div>
             </div>
             <FollowBtn id={p.id} following={p.following} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} />
           </div>
@@ -325,15 +325,15 @@ function Suggested() {
     <section className="ff-people-section ff-people-suggested" aria-labelledby="ff-people-suggested-h" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
       <div style={{ marginBottom: 24 }}>
         <Eyebrow size={10} style={{ marginBottom: 12 }}>Suggested</Eyebrow>
-        <h2 id="ff-people-suggested-h" className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>People you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>might know.</em></h2>
+        <h2 id="ff-people-suggested-h" className="ff-people-h2-sm" style={{ fontFamily: 'var(--font-editorial)', fontSize: 30, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>People you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>might know.</em></h2>
       </div>
       <div ref={containerRef} tabIndex={-1} className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, outline: 'none' }}>
         {visibleSuggested.map(p => (
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
             <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} alt="" />
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text }}>{p.name}</div>
-              <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2 }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: HP.text }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: INK, fontFamily: 'Inter, sans-serif', marginTop: 2 }}>
                 {p.viaFriend
                   ? <>via <span style={{ color: HP.text }}>{p.viaFriend}</span>{p.matchPresentation?.band ? <> · {p.matchPresentation.band}</> : null}</>
                   : <>{p.matchPresentation?.evidence || p.matchPresentation?.band || p.matchPresentation?.caption || 'Suggested for you'}</>}
@@ -357,22 +357,22 @@ function SearchResults({ results, loading, onClear }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, gap: 12 }}>
         <div>
           <Eyebrow size={10} style={{ marginBottom: 12 }}>Search results</Eyebrow>
-          <h2 id="ff-people-search-h" className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>{results.length} match{results.length === 1 ? '' : 'es'}</h2>
+          <h2 id="ff-people-search-h" className="ff-people-h2-sm" style={{ fontFamily: 'Inter, sans-serif', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>{results.length} match{results.length === 1 ? '' : 'es'}</h2>
         </div>
-        <button type="button" onClick={onClear} aria-label="Clear search results" className="ff-people-clear-btn" style={{ ...RESET_BTN, minHeight: 44, minWidth: 44, padding: '0 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: INK, fontFamily: 'Outfit', letterSpacing: '0.08em', textTransform: 'uppercase', flex: 'none' }}>Clear ×</button>
+        <button type="button" onClick={onClear} aria-label="Clear search results" className="ff-people-clear-btn" style={{ ...RESET_BTN, minHeight: 44, minWidth: 44, padding: '0 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: INK, fontFamily: 'Inter, sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase', flex: 'none' }}>Clear ×</button>
       </div>
       {loading ? (
-        <div style={{ fontSize: 13, color: INK, fontFamily: 'Outfit, Inter, sans-serif' }}>Searching…</div>
+        <div style={{ fontSize: 13, color: INK, fontFamily: 'Inter, sans-serif' }}>Searching…</div>
       ) : results.length === 0 ? (
-        <div style={{ fontSize: 14, color: INK, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>No people found. Try a different name.</div>
+        <div style={{ fontSize: 14, color: INK, fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>No people found. Try a different name.</div>
       ) : (
         <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
           {results.map(u => (
             <div key={u.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center' }}>
               <Avatar url={u.avatarUrl} initial={u.initial} bg={u.avatarBg} size={42} alt="" />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text }}>{u.name}</div>
-                <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2 }}>{u.handle}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: HP.text }}>{u.name}</div>
+                <div style={{ fontSize: 11, color: INK, fontFamily: 'Inter, sans-serif', marginTop: 2 }}>{u.handle}</div>
               </div>
               <FollowBtn id={u.id} following={followingIds.has(u.id)} pending={isPending(u.id)} errored={isErrored(u.id)} name={u.name} onFollow={() => follow(u.id, u.name)} onUnfollow={() => unfollow(u.id, u.name)} />
             </div>
@@ -386,8 +386,8 @@ function SearchResults({ results, loading, onClear }) {
 function EmptyState({ label, body }) {
   return (
     <div style={{ border: `1px dashed ${HP.border}`, borderRadius: 12, padding: '32px 24px', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
-      <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text, marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, color: INK, maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>{body}</div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: HP.text, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: INK, maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>{body}</div>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 /* FeelFlick — Home scoped styles.
-   Inter for body; Outfit display + Inter both load globally via index.html, so
-   no per-page font @import here (an @import is render-blocking + slower than the
+   Inter for interface; Newsreader (editorial) + Inter load globally via index.html,
+   so no per-page font @import here (an @import is render-blocking + slower than the
    global <link>). Scoped to .ff-home so it doesn't touch the rest of the app. */
 
 .ff-home {
@@ -8,4 +8,46 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.ff-home ::selection { background: rgba(167,139,250,0.35); color: #fff; }
+.ff-home ::selection { background: rgba(221,78,131,0.35); color: #fff; }
+
+/* === F1 Briefing — Midnight Film Journal direction (scoped to /home) ======== */
+
+/* Warm pool behind tonight's pick — low-alpha radials that fade to transparent
+   so there's no hard seam against the page's near-black canvas. */
+.ff-home .ff-brief-warm {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(85% 70% at 12% -8%, rgba(221, 78, 131, 0.07), transparent 56%),
+    radial-gradient(70% 80% at 102% 118%, rgba(150, 74, 52, 0.06), transparent 60%);
+}
+
+/* Primary "Open Film File" — the journal bone-slab CTA (replaces the brand
+   gradient). Background/colour live here so :hover/:active can shift them
+   (inline styles would win and block the hover); layout/size stay inline. */
+.ff-home .ff-brief-primary {
+  background: #f2ece1;
+  color: #15100c;
+  transition:
+    background var(--motion-base, 180ms) ease,
+    box-shadow var(--motion-base, 180ms) ease,
+    transform var(--motion-fast, 120ms) ease;
+}
+.ff-home .ff-brief-primary:hover {
+  background: #ffffff;
+  box-shadow: 0 16px 38px -16px rgba(221, 78, 131, 0.55);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ff-home .ff-brief-primary:active { transform: translateY(1px); }
+}
+
+/* F2 — lower Discover hand-off CTA: a quiet rose-ghost, deliberately subordinate
+   to the briefing's bone-slab primary (no gradient, no glow). Background lives
+   here so :hover can tint it (inline border/colour stay at the call site). */
+.ff-home .ff-discover-cta {
+  background: transparent;
+  transition: background var(--motion-base, 180ms) ease;
+}
+.ff-home .ff-discover-cta:hover { background: rgba(221, 78, 131, 0.12); }

@@ -162,8 +162,7 @@ export default function TopNav({ hideAuthCta = false }) {
               className="transition-opacity hover:opacity-80 active:scale-95 touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:rounded-md"
               aria-label="FeelFlick home"
             >
-              {/* TODO: move gradient to design tokens — from-purple-500 to-pink-500 */}
-              <span className="text-2xl sm:text-3xl font-black tracking-tight bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <span className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: '#DD4E83', letterSpacing: '-0.03em' }}>
                 FEELFLICK
               </span>
             </Link>
@@ -180,7 +179,7 @@ export default function TopNav({ hideAuthCta = false }) {
               >
                 {NAV_ANCHOR.label}
                 <span
-                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-linear-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
+                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#DD4E83] transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
                   aria-hidden="true"
                 />
               </a>
@@ -190,7 +189,7 @@ export default function TopNav({ hideAuthCta = false }) {
               >
                 Privacy
                 <span
-                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-linear-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
+                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#DD4E83] transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
                   aria-hidden="true"
                 />
               </Link>
@@ -204,7 +203,7 @@ export default function TopNav({ hideAuthCta = false }) {
                 <button
                   onClick={handleSignIn}
                   disabled={isAuthenticating}
-                  className="hidden md:inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-full border border-white/20 text-white/70 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="hidden md:inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-full border border-white/20 text-white/70 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-white/40"
                   aria-label={isAuthenticating ? 'Signing in' : 'Sign in to FeelFlick'}
                 >
                   {isAuthenticating ? (
@@ -304,7 +303,7 @@ export default function TopNav({ hideAuthCta = false }) {
               <button
                 onClick={handleSignIn}
                 disabled={isAuthenticating}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/30 transition-all duration-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-[#DD4E83] text-white font-bold shadow-lg shadow-[rgba(221,78,131,0.3)] transition-all duration-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed touch-target focus-visible:ring-2 focus-visible:ring-white/40"
                 aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
               >
                 {isAuthenticating ? (

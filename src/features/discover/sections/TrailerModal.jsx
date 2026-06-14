@@ -168,7 +168,7 @@ export default function TrailerModal({ open, youtubeKey, title, onClose }) {
          decoration once dismissed; sub-100ms CPU cost. */}
       <div
         aria-hidden="true"
-        style={{ position:'absolute', bottom:24, left:'50%', transform:'translateX(-50%)', zIndex:2, fontSize:11, fontFamily:'Outfit', fontWeight:500, color:'rgba(255,255,255,0.6)', letterSpacing:'0.06em', opacity:0, animation:'ff-titlecard 3.6s ease forwards', pointerEvents:'none', whiteSpace:'nowrap' }}
+        style={{ position:'absolute', bottom:24, left:'50%', transform:'translateX(-50%)', zIndex:2, fontSize:11, fontFamily:'Inter, sans-serif', fontWeight:500, color:'rgba(255,255,255,0.6)', letterSpacing:'0.06em', opacity:0, animation:'ff-titlecard 3.6s ease forwards', pointerEvents:'none', whiteSpace:'nowrap' }}
       >
         Press <span style={{ padding:'1px 6px', borderRadius:4, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.22)', fontFamily:'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize:10, marginLeft:4, marginRight:4, color:'#fff' }}>Esc</span> to close
       </div>

@@ -43,21 +43,21 @@ export default function Hero(){
             The right film. Right now. Tuned to your mood, your taste, and everything you’ve ever loved on screen.
           </p>
           <div style={{marginTop:48,display:'flex',alignItems:'center',gap:18}}>
-            <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Start free with Google" style={{display:'inline-flex',alignItems:'center',gap:8,padding:'15px 28px',fontSize:14,boxShadow:'0 14px 32px -10px rgba(236,72,153,0.45)'}}>{l=>l?'Opening Google…':'Start free →'}</AuthCTA>
+            <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Start free with Google" style={{display:'inline-flex',alignItems:'center',gap:8,padding:'15px 28px',fontSize:14,boxShadow:'0 14px 32px -10px rgba(221,78,131,0.45)'}}>{l=>l?'Opening Google…':'Start free →'}</AuthCTA>
             <a href="#ritual" className="ff-link" style={{fontFamily:'Inter',fontSize:14,fontWeight:500,color:C.textMid,letterSpacing:'0.01em',display:'inline-flex',alignItems:'center',minHeight:44,padding:'0 4px'}}>See how it works</a>
           </div>
         </div>
         <div key={p.title} className="ff-fade-swap ff-hero-pickwrap" style={{position:'relative'}}>
           {/* Mood cue — restrained accent: a muted "Tonight's selection" label + a chip
               in the pick's mood hex. Accent ONLY; the brand identity stays dark base +
-              the purple/pink gradient. inline-flex so it follows text-align (centers on mobile). */}
+              restrained rose. inline-flex so it follows text-align (centers on mobile). */}
           <div style={{marginBottom:24}}>
             <span style={{display:'inline-flex',alignItems:'center',gap:10}}>
               <Eyebrow color={C.textLow}>Tonight’s selection</Eyebrow>
               <span aria-hidden style={{width:3,height:3,borderRadius:999,background:C.textFaint}}/>
               <span style={{display:'inline-flex',alignItems:'center',gap:7,padding:'5px 11px',borderRadius:999,background:`${p.moodHex}1a`,border:`1px solid ${p.moodHex}40`,transition:'background 0.6s,border-color 0.6s'}}>
                 <span aria-hidden style={{width:6,height:6,borderRadius:999,background:p.moodHex,transition:'background 0.6s'}}/>
-                <span style={{fontFamily:'Outfit',fontSize:11,fontWeight:600,letterSpacing:'0.16em',textTransform:'uppercase',color:C.textHi}}>{p.mood}</span>
+                <span style={{fontFamily:'Inter, sans-serif',fontSize:11,fontWeight:600,letterSpacing:'0.16em',textTransform:'uppercase',color:C.textHi}}>{p.mood}</span>
               </span>
             </span>
           </div>

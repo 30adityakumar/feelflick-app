@@ -1,4 +1,4 @@
-import { C } from '@/shared/lib/tokens'
+import { C, ROSE } from '@/shared/lib/tokens'
 import { Reveal, Poster, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { PICKS } from '../data'
 
@@ -15,7 +15,7 @@ export default function TheProblem(){
           ledeLineHeight={1.6}
           lede="Streaming taught us to scroll. Three rivals, twelve rows, four trailers, no decision. Most evenings end without a film — and the few that do, end with a film no-one quite wanted."
         >
-          You spent <em className="ff-italic" style={{color:'#EF4444'}}>23 minutes</em> picking.{' '}<br/>You watched <em className="ff-italic" style={{color:C.purple}}>thirty.</em>
+          You spent <em className="ff-italic" style={{color:'#EF4444'}}>23 minutes</em> picking.{' '}<br/>You watched <em className="ff-italic" style={{color:ROSE}}>thirty.</em>
         </SectionHeading>
       </Reveal>
         <Reveal delay={150}>
@@ -45,22 +45,22 @@ export default function TheProblem(){
               </div>
             </div>
             {/* Right: clarity */}
-            <div style={{position:'relative',borderRadius:14,overflow:'hidden',background:`linear-gradient(160deg,${C.purple}10,transparent 80%)`,border:`1px solid ${C.purple}44`,padding:'32px 32px 36px',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
+            <div style={{position:'relative',borderRadius:14,overflow:'hidden',background:`linear-gradient(160deg,${ROSE}10,transparent 80%)`,border:`1px solid ${ROSE}44`,padding:'32px 32px 36px',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <Eyebrow color={C.purple}>FeelFlick · Tonight</Eyebrow>
+                <Eyebrow color={ROSE}>FeelFlick · Tonight</Eyebrow>
                 <div style={{fontFamily:'Inter',fontSize:11,color:C.textFaint}}>deciding · 47 sec</div>
               </div>
               <div style={{margin:'auto',display:'flex',gap:24,alignItems:'flex-end',maxWidth:380}}>
-                <div style={{position:'relative',width:140,aspectRatio:'2/3',borderRadius:4,boxShadow:`0 20px 40px -14px rgba(0,0,0,0.7),0 0 0 1px ${C.purple}33`,overflow:'hidden'}}>
+                <div style={{position:'relative',width:140,aspectRatio:'2/3',borderRadius:4,boxShadow:`0 20px 40px -14px rgba(0,0,0,0.7),0 0 0 1px ${ROSE}33`,overflow:'hidden'}}>
                 <Poster src={PICKS[3].poster} title={PICKS[3].title} accent={PICKS[3].moodHex} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
               </div>
                 <div style={{paddingBottom:6}}>
-                  <h3 style={{fontFamily:'Outfit',fontSize:22,fontWeight:400,color:C.text,margin:0,letterSpacing:'-0.02em'}}>{PICKS[3].title}</h3>
+                  <h3 style={{fontFamily:'Inter, sans-serif',fontSize:22,fontWeight:400,color:C.text,margin:0,letterSpacing:'-0.02em'}}>{PICKS[3].title}</h3>
                   <div style={{fontFamily:'Inter',fontSize:11,color:C.textLow,marginTop:4}}>{PICKS[3].dir} · {PICKS[3].year}</div>
-                  <Eyebrow color={C.purple} style={{marginTop:14}}>94% match</Eyebrow>
+                  <Eyebrow color={ROSE} style={{marginTop:14}}>94% match</Eyebrow>
                 </div>
               </div>
-              <div className="ff-italic" style={{fontFamily:'Outfit',fontSize:13,color:C.textMid,fontStyle:'italic',lineHeight:1.5}}>
+              <div className="ff-italic" style={{fontFamily:'Inter, sans-serif',fontSize:13,color:C.textMid,fontStyle:'italic',lineHeight:1.5}}>
                 “Forty-seven seconds. The right film. The rest of the night, yours.”
               </div>
             </div>

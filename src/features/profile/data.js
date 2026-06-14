@@ -6,7 +6,7 @@
 //     USER_DEFAULT.* only renders pre-load or for a brand-new user with no
 //     history. These are HONEST "still forming" fallbacks (F7) — they must NEVER
 //     fabricate a specific taste for a user who hasn't earned one.
-//   - Brand tokens (HP, HP_GRAD).
+//   - Brand tokens (HP, ROSE).
 //
 // FRIENDS is gone: the Taste Twins section renders a real empty state when
 // user_similarity has no rows. The old SKEWS / YIR fabricated cold-start samples
@@ -32,4 +32,4 @@ export const USER = {
 };
 
 // Brand tokens
-export { HP, HP_GRAD, RADIUS, SPACE } from '@/shared/lib/tokens'
+export { HP, ROSE, ROSE_DEEP, RADIUS, SPACE } from '@/shared/lib/tokens'

@@ -30,8 +30,8 @@ export default function StageResolve({ blendHex, onDone }) {
         <div className="ff-resolve__halo" style={{ position:'absolute', inset:0, borderRadius:'50%', background:`radial-gradient(circle at center, ${blendHex}55, ${blendHex}14 45%, transparent 70%)` }} />
         <div style={{ position:'absolute', inset:'32%', borderRadius:'50%', border:`1px solid ${blendHex}`, opacity:0.7 }} />
       </div>
-      <div className="ff-resolve__eyebrow" style={{ fontSize:11, fontWeight:600, letterSpacing:'0.32em', textTransform:'uppercase', color:blendHex, fontFamily:'Outfit', marginBottom:12 }}>One film for tonight</div>
-      <div className="ff-resolve__message" style={{ fontFamily:'Outfit', fontSize:22, fontWeight:300, color:HP.textSoft, fontStyle:'italic', letterSpacing:'-0.015em' }}>Bringing tonight into focus.</div>
+      <div className="ff-resolve__eyebrow" style={{ fontSize:11, fontWeight:600, letterSpacing:'0.32em', textTransform:'uppercase', color:blendHex, fontFamily:'Inter, sans-serif', marginBottom:12 }}>One film for tonight</div>
+      <div className="ff-resolve__message" style={{ fontFamily:'Inter, sans-serif', fontSize:22, fontWeight:300, color:HP.textSoft, fontStyle:'italic', letterSpacing:'-0.015em' }}>Bringing tonight into focus.</div>
     </section>
   )
 }

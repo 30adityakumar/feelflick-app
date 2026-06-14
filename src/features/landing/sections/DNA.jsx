@@ -1,4 +1,4 @@
-import { C } from '@/shared/lib/tokens'
+import { C, ROSE } from '@/shared/lib/tokens'
 import { Reveal, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { useInView } from '@/shared/hooks/useInView'
 
@@ -20,14 +20,14 @@ export default function DNA(){
           <div className="ff-grid-2" style={{padding:'48px 48px',borderRadius:16,background:'rgba(255,255,255,0.018)',border:`1px solid ${C.hairline}`}}>
             <div>
               <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:28}}>
-                <Eyebrow color={C.purple}>An example DNA</Eyebrow>
+                <Eyebrow color={ROSE}>An example DNA</Eyebrow>
                 <div className="ff-italic" style={{fontSize:11,color:C.textFaint,fontStyle:'italic'}}>Sharper with every watch</div>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:16}}>
                 {weights.map((w,i)=>
                   <div key={w.n}>
                     <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                      <span style={{fontFamily:'Outfit',fontSize:14,fontWeight:400,color:C.text}}>{w.n}</span>
+                      <span style={{fontFamily:'Inter, sans-serif',fontSize:14,fontWeight:400,color:C.text}}>{w.n}</span>
                       <span style={{fontFamily:'Inter',fontSize:12,color:C.textLow}}>{Math.round(w.v*100)}</span>
                     </div>
                     <div style={{height:2,background:'rgba(255,255,255,0.05)',borderRadius:999,overflow:'hidden'}}>
@@ -42,7 +42,7 @@ export default function DNA(){
                 <Eyebrow color={C.textLow} style={{marginBottom:14}}>Signature directors</Eyebrow>
                 <div style={{display:'flex',flexWrap:'wrap',gap:10}}>
                   {['Bong Joon-ho','Wong Kar-wai','Denis Villeneuve','Park Chan-wook'].map(d=>
-                    <span key={d} style={{padding:'7px 13px',borderRadius:999,background:`${C.purple}10`,border:`1px solid ${C.purple}33`,fontFamily:'Inter',fontSize:12.5,color:C.textMid}}>{d}</span>
+                    <span key={d} style={{padding:'7px 13px',borderRadius:999,background:`${ROSE}10`,border:`1px solid ${ROSE}33`,fontFamily:'Inter',fontSize:12.5,color:C.textMid}}>{d}</span>
                   )}
                 </div>
               </div>

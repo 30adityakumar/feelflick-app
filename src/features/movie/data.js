@@ -1,7 +1,7 @@
 // FeelFlick — Movie page v2 static defaults.
 //
 // What's here:
-//   - Visual brand tokens (HP, HP_GRAD) — used directly by every section
+//   - Visual brand tokens (HP, ROSE) — used directly by every section
 //   - Default film palette (FILM_PALETTE) — accent colors for the Mood Radar
 //     filled-shape, confetti, etc., when no per-film palette is curated. Once
 //     the overlay row has `film_palette`, it overrides this.
@@ -53,5 +53,5 @@ const PARASITE_DNA_DELTA_SAMPLE = [
 ]
 
 // === Brand tokens ===
-export { HP, HP_GRAD, RADIUS, SPACE } from '@/shared/lib/tokens'
+export { HP, ROSE, RADIUS, SPACE } from '@/shared/lib/tokens'
 export { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE }

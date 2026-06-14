@@ -57,11 +57,13 @@
     <!-- crossorigin="anonymous" is mandatory: woff2 fetches are CORS and must reuse this connection -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <!-- Google Fonts — loaded via <link> (faster than CSS @import).
-         Inter = body/UI; Outfit = the editorial display face (--font-display).
-         One request, both families. Outfit has no italic axis on Google Fonts,
-         so italic accent fragments render as synthesized oblique by design. -->
+         Inter = body/UI; Outfit = the existing display face (--font-display);
+         Newsreader = the editorial "curator" voice (real italics + optical sizes),
+         introduced for the /home Briefing (F1) per design-system.md. One request,
+         all three families. Newsreader is scoped to editorial moments (Briefing
+         title + the case) via --font-editorial — it is NOT a global default. -->
     <link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@200;300;400;500;600;700&display=swap" />
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Outfit:wght@200;300;400;500;600;700&display=swap" />
 
     <!-- Structured Data (JSON-LD) for SEO -->
     <script type="application/ld+json">

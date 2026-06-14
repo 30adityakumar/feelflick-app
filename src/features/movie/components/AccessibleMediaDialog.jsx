@@ -108,8 +108,8 @@ export default function AccessibleMediaDialog({ open, onClose, youtubeKey, title
       />
       {/* Decorative curtains — hidden from assistive tech; CSS entrance is neutralised
           under reduced motion by the global reset. */}
-      <div aria-hidden="true" className="ff-media-dialog__curtain-l" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '50%', background: 'linear-gradient(90deg, rgba(167,139,250,0.25) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-l 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
-      <div aria-hidden="true" className="ff-media-dialog__curtain-r" style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '50%', background: 'linear-gradient(-90deg, rgba(167,139,250,0.25) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-r 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
+      <div aria-hidden="true" className="ff-media-dialog__curtain-l" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '50%', background: 'linear-gradient(90deg, rgba(221,78,131,0.18) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-l 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
+      <div aria-hidden="true" className="ff-media-dialog__curtain-r" style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '50%', background: 'linear-gradient(-90deg, rgba(221,78,131,0.18) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-r 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
 
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
         <button
@@ -140,8 +140,8 @@ export default function AccessibleMediaDialog({ open, onClose, youtubeKey, title
         </div>
 
         <div id={CAPTION_ID} style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', textAlign: 'center', pointerEvents: 'none' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#A78BFA', marginBottom: 6 }}>Now Playing</div>
-          <div style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: '#FAFAFA', letterSpacing: '-0.015em' }}>{caption}</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#DD4E83', marginBottom: 6 }}>Now Playing</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: '#FAFAFA', letterSpacing: '-0.015em' }}>{caption}</div>
         </div>
       </div>
     </div>,

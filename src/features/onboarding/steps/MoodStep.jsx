@@ -77,7 +77,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
                 whileTap={reduced ? undefined : { scale: 0.97 }}
                 aria-pressed={on}
                 aria-disabled={dimmed || undefined}
-                className={`relative text-left p-4 sm:p-5 rounded-2xl overflow-hidden transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${dimmed ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                className={`relative text-left p-4 sm:p-5 rounded-2xl overflow-hidden transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${dimmed ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 style={{
                   background: on ? `rgba(${m.rgb}, 0.16)` : 'rgba(255,255,255,0.03)',
                   border: `1px solid ${on ? `rgba(${m.rgb}, 0.6)` : 'rgba(255,255,255,0.1)'}`,

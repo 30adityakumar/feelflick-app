@@ -11,7 +11,7 @@
 import { useParams } from 'react-router-dom'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import { HP } from './data'
+import { HP, ROSE } from './data'
 import { Masthead, QuickStats, MoodRadar } from './sections-top'
 import DnaConfidence from './DnaConfidence'
 import {
@@ -82,14 +82,14 @@ function PrivateProfile() {
   return (
     <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
       <div style={{ textAlign:'center', maxWidth:520 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Cinematic DNA</div>
-        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>This profile is private.</h1>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18 }}>Cinematic DNA</div>
+        <h1 style={{ fontFamily:'Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>This profile is private.</h1>
         <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>
           Cinematic DNA — your watch history, ratings, and taste portrait — is visible only to you. Public taste profiles aren&rsquo;t available yet.
         </p>
         <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-          <a href="/profile" style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontWeight:600, color:'#0A0510', background:HP.text, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>Your Cinematic DNA</a>
-          <a href="/people" style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontWeight:600, color:HP.text, background:'transparent', border:`1px solid ${HP.border}`, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>People</a>
+          <a href="/profile" style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color:'#0A0510', background:HP.text, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>Your Cinematic DNA</a>
+          <a href="/people" style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color:HP.text, background:'transparent', border:`1px solid ${HP.border}`, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>People</a>
         </div>
       </div>
     </div>
@@ -110,7 +110,7 @@ function PageSkeleton() {
         <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:48, alignItems:'flex-end' }}>
           <div className="animate-pulse" style={{ ...pulse, width:120, height:120, borderRadius:999 }} />
           <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
-            <div className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:80, width:'70%', borderRadius:8 }} />
+            <div className="animate-pulse" style={{ background:'rgba(255,255,255,0.08)', height:80, width:'70%', borderRadius:8 }} />
             <div className="animate-pulse" style={{ ...pulse, height:16, width:'55%', borderRadius:999 }} />
           </div>
           <div className="animate-pulse" style={{ ...pulse, width:240, height:120, borderRadius:6 }} />
@@ -123,12 +123,12 @@ function PageSkeleton() {
 // F7.3: fixed, safe error copy off the stable `load_error` classification — the raw backend
 // message is never rendered. One h1, role="alert", a real in-SPA retry, and a safe exit.
 function PageError({ onRetry }) {
-  const btn = { fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontWeight:600, minHeight:44, padding:'11px 20px', borderRadius:8, cursor:'pointer' }
+  const btn = { fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, minHeight:44, padding:'11px 20px', borderRadius:8, cursor:'pointer' }
   return (
     <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
       <div role="alert" style={{ textAlign:'center', maxWidth:520 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Cinematic DNA</div>
-        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Cinematic DNA.</h1>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18 }}>Cinematic DNA</div>
+        <h1 style={{ fontFamily:'Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Cinematic DNA.</h1>
         <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>Try refreshing in a moment.</p>
         <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
           {typeof onRetry === 'function' && (

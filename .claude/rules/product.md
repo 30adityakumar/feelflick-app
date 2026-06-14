@@ -13,6 +13,10 @@ paths:
 
 This file defines FeelFlick’s durable product intent.
 
+> This rule operationalizes [`docs/product-doctrine.md`](../../docs/product-doctrine.md) — the canonical concise doctrine. Update both together when the durable product strategy changes.
+
+FeelFlick is a **Compounding Decision Companion**: it delivers immediate decision value — one trusted recommendation for the moment, with the reason it fits — supported by compounding taste memory that improves future decisions.
+
 It should guide product strategy, feature design, information architecture, recommendation presentation, onboarding, retention work, and significant UX decisions.
 
 It is not a fixed roadmap or permanent feature hierarchy. Current routes, labels, and implementations may evolve.
@@ -99,18 +103,17 @@ The recommendation should feel selected, not merely ranked.
 
 Its presentation should communicate confidence without pretending certainty.
 
-“One pick” is a powerful default and an important differentiator. It is not a universal requirement that every route, state, or experiment display exactly one film.
+The primary Tonight experience **defaults to one visible recommendation**. When the user rejects it (“Not tonight”), the normal behavior is **one sequential replacement** — the next single pick — not a stack of visible backup cards. Visible backups are not the default recovery model.
 
-Alternative structures are allowed when evidence suggests they improve the decision.
+“One pick” is a powerful default and an important differentiator. It is not a universal requirement that every route, state, or experiment display exactly one film. Alternative structures are allowed when evidence suggests they improve the decision — but the default solo recovery remains sequential replacement.
 
-Examples may include:
+Bounded choice is appropriate for explicit jobs, including:
 
-* one primary pick with carefully limited alternatives
-* progressive disclosure of backups
-* a comparison between meaningfully different directions
-* a bounded shortlist for group decisions
-* browse modes for users with strong pre-existing intent
+* a bounded shortlist or negotiation flow for an explicit couple/group decision (mechanics provisional)
+* intentional exploration in Discover or browse for users with strong pre-existing intent
+* a comparison between meaningfully different directions, where evidence shows it improves the decision
 * editorial collections that teach or inspire rather than merely add volume
+* controlled experiments that measure whether limited alternatives help or harm confidence
 
 ## Choice and anti-scroll
 
@@ -146,8 +149,8 @@ Examples:
 * **Search** helps someone act on known intent.
 * **Browse** supports exploration when the user wants more control.
 * **Watchlist** preserves intent for another moment.
-* **History and ratings** help users remember and refine their taste.
-* **Taste profiles** make personalization visible and understandable.
+* **History and Diary** are strategic learning infrastructure — taste memory that sharpens future recommendations, not merely recordkeeping.
+* **Cinematic DNA / taste profiles** make the accumulated learning visible and understandable.
 * **Lists and editorial collections** create context and trusted discovery.
 * **Social features** can introduce recommendations through meaningful taste relationships.
 * **Preferences** give control over stable boundaries and recurring needs.

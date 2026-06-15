@@ -24,6 +24,7 @@
 | 012 | Hybrid recommendation scoring — multi-signal, not single algorithm | ✅ Accepted | Inline below |
 | 013 | Single palette source: purple/pink only | ⛔ Superseded | `docs/decisions/013-single-palette-source.md` |
 | 014 | Thoughtful Seatmate P1 — Inter as the single core Latin sans-serif voice | ✅ Accepted | `docs/decisions/014-thoughtful-seatmate-p1-core-voice.md` |
+| 015 | Thoughtful Seatmate P2A — P1-control warm graphite foundation (prototype/pilot-scoped) | ✅ Accepted | `docs/decisions/015-thoughtful-seatmate-p2a-foundation.md` |
 
 ---
 

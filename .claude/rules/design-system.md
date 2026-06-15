@@ -109,7 +109,6 @@ These foundation principles are **accepted**. The replacement *specifics* are **
 
 Do **not** finalize any of these — they remain prototype questions until validated by rendered prototypes and a decision record:
 
-* exact warm-neutral / graphite token values, and the exact ivory value
 * the exact warm decision-signal hue
 * ivory-only versus ivory-plus-warm-cue selected states
 * contextual-film-color strength and normalization thresholds
@@ -117,6 +116,11 @@ Do **not** finalize any of these — they remain prototype questions until valid
 * whether a serif has any role in genuinely long-form Film File reading
 * exact bottom-navigation structure
 * exact couple-mode interaction
+
+**Resolved (moved to accepted):**
+
+* the single core sans-serif voice is **Inter** ([ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md))
+* the exact **warm graphite foundation values** and **projection-ivory hierarchy** — the twelve foundation roles ([ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)) — accepted as prototype / pilot-scoped values (see "Foundation neutrals"), **not** yet global production tokens
 
 ## Design modes
 
@@ -303,27 +307,41 @@ Preferred qualities:
 * clear contrast
 * sufficient distinction between layered panels
 
-Illustrative exploration values may include:
+**Accepted (P2A — Foundation Neutrals, 2026-06-14):** the warm graphite foundation
+and projection-ivory hierarchy below are the **accepted** values, per
+[ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md). The
+P1-control warm graphite system won a controlled blind comparison against a warmer
+and a more neutral graphite. These are **accepted prototype / pilot-scoped values**:
+they are fixed and used **unchanged** in P2B and as scoped/local values in the
+Tonight and Film File pilots. They are **not** global production tokens yet —
+shared-token promotion remains gated by pilot validation (see "Migration gates").
 
 ```css
---canvas: #09090b;
---canvas-warm: #0e0c0d;
---surface-1: #151315;
---surface-2: #1c191c;
+--canvas: #15120f;
+--surface-1: #1d1814;
+--surface-2: #241e19;
+--surface-raised: #2d2621;
 
---text-primary: #f4f0ea;
---text-secondary: #c9c1ba;
---text-muted: #8f8883;
---border-subtle: rgba(244, 240, 234, 0.10);
+--text-primary: #f3ecdf;        /* projection ivory */
+--text-secondary: #beb8ad;
+--text-muted: #8d887f;
+
+--border-subtle: #302c28;
+--border-strong: #46423d;
+
+--neutral-action-fill: #efe7d7;
+--neutral-action-text: #221b13;
+--neutral-focus: #f3ecdf;
 ```
 
-These are starting points for evaluation, not final locked values.
+Do not edit production CSS to match these yet — they are the accepted prototype/pilot
+foundation, not a production-token migration.
 
 ### Primary action and decision signal
 
 The target identity is carried by the **warm-neutral foundation and ivory text**, not by a brand hue.
 
-* On dark core surfaces the **default primary commitment action uses a solid light-neutral fill with dark warm text** — calm and legible. It must not depend on contextual film color, the legacy gradient, or a permanent rose accent. Exact ivory and graphite token values remain provisional; alternate polarity is permitted only when the surrounding surface or accessibility requirements justify it.
+* On dark core surfaces the **default primary commitment action uses a solid light-neutral fill with dark warm text** — calm and legible. It must not depend on contextual film color, the legacy gradient, or a permanent rose accent. The exact ivory and graphite foundation token values are now **accepted** (warm graphite / projection-ivory, [ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md), prototype / pilot-scoped — see "Foundation neutrals"); alternate polarity is permitted only when the surrounding surface or accessibility requirements justify it.
 * **One rare warm signal** may mark a meaningful selection or commitment. It is sparing emphasis — never the dominant surface color and never on every control.
 
 **Active prototype question:** the exact warm decision-signal **hue**, and whether selected states are **ivory-only** or **ivory-plus-a-warm-cue**. Do not lock a hex here.
@@ -769,7 +787,7 @@ Perform at least one critique and refinement pass.
 The Thoughtful Seatmate direction is **accepted at the principle level**, not yet implemented. Migration proceeds through these gates, in order — do not skip ahead:
 
 1. **Doctrine accepted** — the active authority is [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). ✅
-2. **Isolated prototypes resolve the open questions** — Instrument-Sans-vs-Inter, warm-neutral/ivory values, warm-cue hue, contextual-color thresholds, gradient survival, and the serif exception — answered with rendered desktop + mobile evidence. *Open.*
+2. **Isolated prototypes resolve the open questions** — warm-cue hue, contextual-color thresholds, gradient survival, and the serif exception — answered with rendered desktop + mobile evidence. (The core voice (Inter, [ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md)) and the warm graphite / projection-ivory foundation values (prototype/pilot-scoped, [ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)) are now resolved.) *Remaining questions open.*
 3. **A decision record approves** the chosen prototype direction.
 4. **Pilot** the accepted direction on **two representative production surfaces** using **scoped/local values** rather than prematurely globalizing tokens. Tonight (`/home`) and Film File (`/movie/:id`) are the recommended pilots unless a later decision record chooses equivalent surfaces.
 5. **After both pilot surfaces validate** the values and the interaction pattern, **promote** the values into shared tokens and primitives.

@@ -109,7 +109,6 @@ These foundation principles are **accepted**. The replacement *specifics* are **
 
 Do **not** finalize any of these — they remain prototype questions until validated by rendered prototypes and a decision record:
 
-* Instrument Sans versus Inter for the single core voice
 * exact warm-neutral / graphite token values, and the exact ivory value
 * the exact warm decision-signal hue
 * ivory-only versus ivory-plus-warm-cue selected states
@@ -167,13 +166,13 @@ Do not mix exploration and migration without clearly stating which decisions hav
 
 ### One coherent sans-serif voice
 
-The accepted target is **one coherent human sans-serif voice** across the core product. Hierarchy comes from size, weight, measure, tracking, style, and placement — not from a separate serif "editorial" personality. There is **no permanent serif-versus-system split**.
+The accepted target is **one coherent human sans-serif voice** across the core product, and that voice is **Inter** — the single core Latin sans-serif. Hierarchy comes from scale, weight, measure, tracking, style, and placement — not from a separate serif "editorial" personality. There is **no permanent serif-versus-system split**.
 
-**Active prototype question — Instrument Sans versus Inter.** The single core voice has not been chosen. Decide it with a controlled prototype on real surfaces (Tonight, Film File, a dense authenticated view, mobile), not from a specimen page. Until then, Inter is the working interface voice.
+**Accepted (P1 — Core Voice, 2026-06-14):** Inter was retained after a controlled blind comparison against Instrument Sans, which did not show sufficient whole-system benefit to justify migration (a near-tie favours the already-integrated font). See [ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md) and the [evidence packet](../../docs/ui/thoughtful-seatmate-p1-core-voice-evaluation.md). "Latin" is intentional — non-Latin fallback coverage was not tested.
 
-**Current production baseline (transitional):** `/home` ships Newsreader (editorial) + Inter (interface) + Outfit (wordmark/labels). The "Inter is the system; Newsreader is the curator" split is the prior F3/F4 model and is **retired as the target** — do not extend it to new surfaces.
+**Current production baseline (transitional):** Newsreader, Inter, and Outfit are all loaded across surfaces (F4 rolled Newsreader/Inter broadly; residual global/shared/legacy areas still use Outfit). The "Inter is the system; Newsreader is the curator" split is the prior F3/F4 model and is **retired as the target** — do not extend it to new surfaces. Inter-only consolidation happens only through the migration gates.
 
-**Possible long-form exception (prototype question, not a default):** whether a serif earns any role in genuinely long-form Film File reading is open to test. It must not reinstate a system-versus-editorial personality split.
+**Possible long-form exception (still an open prototype question, not a default):** whether a serif earns a narrowly-bounded role in genuinely long-form Film File reading is open to test. It must not reinstate a system-versus-editorial personality split.
 
 ### Interface typography
 
@@ -733,7 +732,7 @@ Prototype representative surfaces:
 For the target typography and color direction, compare:
 
 * the shipped F3/F4 baseline (Newsreader + Inter + rose on warm dark neutrals)
-* the target: one coherent sans-serif voice (Instrument Sans vs Inter) on a warm-graphite / projection-ivory foundation, with a neutral high-contrast primary and one rare warm signal
+* the target: **Inter** as the single core Latin sans-serif (ADR 014) on a warm-graphite / projection-ivory foundation, with a neutral high-contrast primary and one rare warm signal
 * contextual film color behavior, strength, and normalization with representative posters and moods
 
 Evaluate:

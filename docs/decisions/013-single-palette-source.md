@@ -1,7 +1,23 @@
 # ADR 013 — Single palette source: purple/pink only
 
-**Status:** Accepted  
+**Status:** Superseded
+
 **Date:** 2026-04-22
+
+**Superseded by:** [ADR 014](014-thoughtful-seatmate-p1-core-voice.md) + the active [Thoughtful Seatmate design authority](../ui/design-authority-thoughtful-seatmate.md) (2026-06-14)
+
+> **SUPERSEDED — historical record only.**
+>
+> This ADR records the April 2026 purple/pink palette-consolidation decision. Its
+> instruction that future surfaces must use purple/pink is no longer active. The
+> Thoughtful Seatmate authority now governs visual direction: a warm-neutral
+> identity, normalized contextual film color, a neutral primary action, and a rare
+> warm decision signal whose exact value remains provisional. See
+> [`../ui/design-authority-thoughtful-seatmate.md`](../ui/design-authority-thoughtful-seatmate.md)
+> and [`../../.claude/rules/design-system.md`](../../.claude/rules/design-system.md).
+>
+> The implementation history below is preserved for context; do not use it as the
+> target for new design or migration work.
 
 ## Context
 

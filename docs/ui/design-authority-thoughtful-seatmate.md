@@ -23,16 +23,20 @@ surface. The core voice (Inter, [ADR 014](../decisions/014-thoughtful-seatmate-p
 and the exact foundation token values (warm graphite / projection-ivory,
 [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md)) are now accepted —
 the foundation values as prototype / pilot-scoped, **not yet** global production
-tokens. Navigation structure, couple-mode mechanics, contextual-color thresholds,
-gradient survival, and the long-form serif exception remain prototype questions (§19).
+tokens. The contextual-color **normalization envelope** is now accepted (strict,
+[ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md));
+navigation structure, couple-mode mechanics, contextual-color **opacity/strength** and
+the **extraction** method, gradient survival, and the long-form serif exception remain
+prototype questions (§19).
 
 This document deliberately does **not** use "approved and fully migrating"
 language. The foundation principles below are accepted, and the core voice (ADR 014)
 and the foundation token values (ADR 015) are fixed for prototypes and scoped pilots,
-and the decision signal is ivory-only (ADR 016, no warm-cue token);
-contextual-color thresholds, gradient survival, and the serif exception
-remain open and must be validated before they become doctrine or global production
-tokens.
+and the decision signal is ivory-only (ADR 016, no warm-cue token), and the
+contextual-color **normalization envelope** is accepted (strict, ADR 017);
+contextual-color **opacity/strength** and **extraction**, gradient survival, and the
+serif exception remain open and must be validated before they become doctrine or global
+production tokens.
 
 ### Status legend
 
@@ -318,9 +322,36 @@ into the first glance.
   maximum chroma, surface role, light/dark compatibility, fallback). Never inject a
   raw extracted poster color into UI text or controls. Limit the number of
   simultaneously active contextual colors.
-- **Active prototype question:** contextual-film-color **strength** and the exact
-  **normalization thresholds**. These are unresolved and must be tuned with
-  representative posters and moods.
+- **Accepted (P2C-A — Contextual-Color Envelope, 2026-06-15):** the **normalization
+  envelope** is fixed, per
+  [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md).
+  The accepted envelope, validated by a controlled blind comparison of an off control
+  against three increasing chroma caps (off → 0.04 → 0.07 → 0.10), is the **strict**
+  envelope — the lowest tested non-zero cap:
+  - one deterministic source hue; **preserve source hue** (never rotate);
+  - **output lightness L = 0.62**;
+  - **retained chroma cap C = 0.04**;
+  - **suppress** missing/invalid source;
+  - **suppress** effectively achromatic source where **source C < 0.04**;
+  - **semantic danger distance < 0.05** → **reduce chroma only, never rotate hue**;
+  - **suppress** if the safety reduction falls below the low-saturation threshold;
+  - **deterministic gamut mapping** by chroma reduction;
+  - **single focal-film scope** (Tonight hero, Film File hero, their mobile
+    equivalents, the active replacement film after "Not tonight");
+  - **no color on controls, text, marker, focus, semantics, or chrome.**
+
+  The balanced envelope (0.07) was what independently cleared the pre-registered
+  ≥5-point bar over the off control; the pre-registered lower-envelope tie-break then
+  carried the accepted cap down to strict (the two were within one point and the higher
+  carried a hierarchy/restraint penalty). This is not a blend. **P2C-A does not
+  authorize a production aura** — it authorizes only the normalization **envelope** for
+  P2C-B and scoped pilot evaluation.
+- **Active prototype question (still open):** contextual-film-color **opacity/strength**
+  (the compositing alpha was a fixed control at 0.14 in P2C-A and is **not** accepted —
+  it is the subject of P2C-B), and the **extraction algorithm and seed-generation
+  method** (P2C-A used manually assigned deterministic seeds only to isolate
+  normalization; no extraction method is accepted). Both must be validated with
+  representative posters and moods before any production aura.
 
 ---
 
@@ -460,8 +491,10 @@ table's left column is what ships today.
 
 These are **active prototype questions**. None is finalized here:
 
-- contextual-film-color strength
-- contextual-color normalization thresholds
+- contextual-film-color **opacity/strength** (the compositing alpha; P2C-B — the
+  normalization *envelope* is resolved by [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md), but strength is not)
+- the contextual-color **extraction algorithm and seed-generation method** (P2C-A used
+  manually assigned deterministic seeds only to isolate normalization)
 - whether the legacy gradient ultimately survives
 - whether a serif has any role in genuinely long-form Film File reading
 - exact bottom-navigation structure
@@ -481,7 +514,14 @@ These are **active prototype questions**. None is finalized here:
   **no separate warm decision-signal hue and no new color token**, per
   [ADR 016](../decisions/016-thoughtful-seatmate-p2b-decision-signal.md) (P2B —
   Decision Signal). This resolves both the *exact warm decision-signal hue* and the
-  *ivory-only vs ivory-plus-warm-cue* questions (see §13 / §13a).
+  *ivory-only vs ivory-plus-warm-cue* questions (see §13 / §13a);
+- the contextual-color **normalization envelope**: the **strict** envelope — preserve
+  source hue, output lightness **L = 0.62**, retained chroma cap **C = 0.04**, under the
+  fixed low-saturation, semantic-safety, and gamut rules, single focal-film scope — per
+  [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)
+  (P2C-A — Contextual-Color Envelope). This resolves the *normalization thresholds*
+  question only (see §12); contextual-color **opacity/strength** and **extraction**
+  remain open above, and **no production aura is authorized**.
 
 The long-form Film File serif exception above remains open.
 

@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-14
-**Decided by:** Aditya Kumar, on a completed blind reviewer comparison (P1 — Core Voice)
+**Decided by:** Aditya Kumar, informed by one completed AI-assisted blind review of the anonymized P1 evidence bundle.
 
 > Decision statement:
 >
@@ -80,12 +80,18 @@ rendered-dimension measurements, and font-loading + blocked-font fallback testin
 ## 7. Blind-review methodology
 
 The two fonts were randomly assigned to anonymized **Variant X** and **Variant Y**.
-Reviewers scored a weighted rubric (cinematic decision surfaces 30%, dense/utility
-25%, mobile/robustness 20%, product character 15%, accessibility & implementation
+**One AI-assisted blind reviewer** scored the anonymized variants against the
+weighted rubric (cinematic decision surfaces 30%, dense/utility 25%,
+mobile/robustness 20%, product character 15%, accessibility & implementation
 confidence 10%) on a 1–5 scale, using counterbalanced left/right (Set X = X|Y;
-Set Y = Y|X), grayscale, 100% crops, and text-only sheets. The font↔variant
-mapping was sealed and **revealed only after scoring was complete**. (The private
-key is not stored in this repository.)
+Set Y = Y|X), grayscale, 100% crops, and text-only sheets. The font↔variant mapping
+was sealed during scoring and **revealed only after the scorecard was locked**;
+Aditya Kumar then accepted the final product decision. (The private key is not
+stored in this repository.)
+
+These scores are **structured decision evidence — not aggregated user research,
+population-preference data, or a statistical study**. The two-decimal values
+reflect rubric calculation, not statistical precision.
 
 ## 8. Revealed mapping
 
@@ -96,9 +102,16 @@ key is not stored in this repository.)
 
 - Both fonts rendered reliably; the experiment was genuinely controlled (only
   `font-family` differed).
-- Line-box and rendered-dimension measurements showed no material wrapping or
-  layout differences on the sampled content; Instrument Sans was marginally more
-  compact on dense/mobile layouts.
+- Titles, controls, and overflow remained stable, and neither font caused a
+  structural failure (controls differed only by negligible width). The
+  measurements were **not** equivalent, though: Instrument Sans repeatedly rendered
+  recommendation reasons in **one fewer line**, making the sampled Film File surface
+  ≈25px shorter, the sampled normal/cold/mature mobile recommendation surfaces
+  ≈26px shorter, and the sampled long-explanation mobile Film File surface ≈72px
+  shorter. This is a **meaningful density / vertical-efficiency advantage** for
+  Instrument Sans — but **not** a sufficient whole-product advantage to justify
+  migration, because Inter led on cinematic decision surfaces and product character
+  and the overall result remained an effective tie.
 - Font-loading evidence: low measured CLS; no title line-count change during the
   sampled swap; a deliberately delayed Instrument Sans caused a small
   control-position shift; a **blocked** Instrument Sans degraded safely to the
@@ -206,6 +219,7 @@ Instrument Sans did not meet this threshold.
   resolve remaining provisional questions → decision record → scoped pilots
   (Tonight, Film File) with local values → promote to shared tokens/components →
   surface-by-surface migration with deliberate visual-regression re-baselining.
-- A production font-loading decision (self-host vs CDN) and non-Latin coverage
-  validation are prerequisites to any Inter-only consolidation that removes
-  Outfit/Newsreader.
+- Before Inter-only consolidation, **audit and confirm the existing production
+  Inter loading path**, define non-Latin fallback coverage, and validate both on
+  the pilot surfaces. Change the loading strategy only if that audit identifies a
+  measurable need.

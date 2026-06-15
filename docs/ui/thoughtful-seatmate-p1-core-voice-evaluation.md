@@ -48,15 +48,25 @@ plus grayscale and text-only isolation, at full resolution and 100% crops.
 ## Objective findings
 
 - Both fonts loaded and rendered reliably; the comparison was genuinely controlled.
-- Line-box (`Range`-based) and rendered-dimension measurements showed no material
-  wrapping/layout difference on the sampled content; Instrument Sans was marginally
-  more compact on dense/mobile layouts.
+- Titles, controls, and overflow remained stable; neither font caused a structural
+  failure (controls differed only by negligible width). The measurements were not
+  equivalent, though: Instrument Sans repeatedly rendered recommendation reasons in
+  one fewer line — sampled Film File ≈25px shorter, normal/cold/mature mobile
+  recommendation surfaces ≈26px shorter, long-explanation mobile Film File ≈72px
+  shorter. A **meaningful density advantage**, but not a sufficient whole-product
+  advantage to justify migration.
 - Font-loading: low CLS; no title line-count change on the sampled swap; a
   deliberately delayed Instrument Sans produced a small control-position shift; a
   **blocked** Instrument Sans degraded safely to the system fallback with the
   surface intact (no broken layout, no hidden content).
 
 ## Subjective findings (weighted blind scores)
+
+> Scored by **one AI-assisted blind reviewer** against the weighted rubric while the
+> X/Y mapping was sealed — **structured decision evidence, not user research,
+> population-preference data, or a statistical study**. Two-decimal values reflect
+> rubric calculation, not statistical precision. Aditya Kumar accepted the final
+> decision after the scorecard was locked and the mapping revealed.
 
 | Area | Weight | Inter (X) | Instrument Sans (Y) |
 |---|---:|---:|---:|

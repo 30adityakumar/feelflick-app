@@ -23,14 +23,14 @@ surface. The core voice (Inter, [ADR 014](../decisions/014-thoughtful-seatmate-p
 and the exact foundation token values (warm graphite / projection-ivory,
 [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md)) are now accepted —
 the foundation values as prototype / pilot-scoped, **not yet** global production
-tokens. Navigation structure, couple-mode mechanics, the warm decision-signal hue,
-contextual-color thresholds, gradient survival, and the long-form serif exception
-remain prototype questions (§19).
+tokens. Navigation structure, couple-mode mechanics, contextual-color thresholds,
+gradient survival, and the long-form serif exception remain prototype questions (§19).
 
 This document deliberately does **not** use "approved and fully migrating"
 language. The foundation principles below are accepted, and the core voice (ADR 014)
-and the foundation token values (ADR 015) are fixed for prototypes and scoped pilots;
-the warm-cue hue, contextual-color thresholds, gradient survival, and serif exception
+and the foundation token values (ADR 015) are fixed for prototypes and scoped pilots,
+and the decision signal is ivory-only (ADR 016, no warm-cue token);
+contextual-color thresholds, gradient survival, and the serif exception
 remain open and must be validated before they become doctrine or global production
 tokens.
 
@@ -173,7 +173,8 @@ Tonight recovery model.
 - projection-ivory or equivalent high-contrast neutral text
 - one coherent human sans-serif voice across the core product
 - film imagery and normalized contextual film color supplying emotional specificity
-- one rare warm signal for meaningful selection or commitment
+- ivory-only confirmation for meaningful selection or commitment — a supplementary
+  projection-ivory marker with redundant non-color signals; no separate warm cue (ADR 016)
 - a neutral, high-contrast primary action
 - progressive recommendation depth
 - brief, purposeful, nonblocking motion
@@ -333,12 +334,47 @@ into the first glance.
   [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md), prototype /
   pilot-scoped — see §11). Alternate polarity is permitted only when the surrounding
   surface or accessibility requirements justify it.
-- **Accepted principle:** **one rare warm signal** may mark a meaningful selection
-  or commitment. It is an accent of emphasis, used sparingly — not the dominant
-  surface color and not on every control.
-- **Active prototype question:** the exact **warm decision-signal hue**, and
-  whether selected states are **ivory-only** or **ivory-plus-a-warm-cue**.
-- **Retired as target:** rose as the default primary CTA color.
+- **Accepted (P2B — Decision Signal, 2026-06-15):** meaningful **selected and
+  committed states remain ivory-only**. The decision signal is a small supplementary
+  confirmation marker in **projection ivory `#f3ecdf`** (the existing ADR 015 value),
+  restricted to meaningful selection/commitment and always paired with redundant
+  **non-color** signals (semantic state such as `aria-pressed`/`role=status`, a changed
+  label, a check/bookmark icon, a neutral selected fill or border, status text, stable
+  position). **No separate permanent warm decision-signal hue and no new color token**
+  are introduced; the marker is never the sole state indicator. It is **not** a CTA
+  color, brand accent, focus, navigation, semantic, or aura color. See
+  [ADR 016](../decisions/016-thoughtful-seatmate-p2b-decision-signal.md). Cue scope and
+  the marker architecture are in §13a below.
+- **Retired as target:** rose as the default primary CTA color; and a separate warm
+  decision-signal hue — P2B rejected every warm candidate (each trailed the ivory
+  control by ≥15 weighted points and sat perceptually near red/amber).
+
+### 13a. Decision-signal marker and cue scope (accepted, P2B)
+
+**Marker architecture (accepted prototype/pilot pattern):** a 7px circular marker in
+a permanently reserved 14px slot; no glow, blur, gradient, shadow, pulse, or ambient
+animation; zero layout shift; reduced-motion safe; colour = projection ivory
+`#f3ecdf`. The marker is supplementary and **never the sole state indicator** — every
+selected/committed state also uses redundant non-color communication.
+
+**Permitted cue scope** (meaningful selection/commitment only): (1) an explicitly
+selected session intent; (2) a recommendation explicitly chosen for tonight; (3) a
+confirmed watchlist save; (4) one current/present-tense active pick reflected in
+memory. Normal composition shows no more than one marker in the primary decision
+area; two may appear only when two legitimate commitments coexist (chosen + saved) —
+a density boundary, not a decorative pattern.
+
+**Forbidden cue scope:** default primary CTA, hover, focus, general navigation, tabs,
+routine filters, every chip, loading, disabled, errors, destructive actions, ratings,
+caution, success/watched semantics, availability, confidence, recommendation
+headings, wordmark/logo, AI signalling, premium signalling, page atmosphere, poster
+aura, decorative separators. The marker is not a general brand accent.
+
+**Token discipline:** do not create a new global `--decision-signal` color token that
+merely aliases `#f3ecdf`. Scoped pilots may use a **local semantic alias** that
+references the ADR 015 projection-ivory role; the source of colour truth remains
+ADR 015. Pilot implementation stays scoped/local — no global token migration is
+authorized.
 
 ---
 
@@ -408,8 +444,9 @@ Prefer CSS and native browser capability over heavy libraries for small effects.
 |---|---|---|---|
 | Foundation | warm near-black canvas + ivory/bone text | ADR 015 warm graphite / projection-ivory system (exact values) | accepted for prototype and scoped pilots; production migration gated |
 | Type voice | Newsreader + Inter + Outfit, mixed across surfaces | **Inter** — single core Latin sans-serif (one coherent voice) | accepted (ADR 014); Newsreader/Outfit consolidation is later, gated surface work |
-| Brand color | rose `#DD4E83` accent + legacy purple/pink tokens | warm-neutral identity; one rare warm signal | warm-signal hue is an active prototype question |
+| Brand color | rose `#DD4E83` accent + legacy purple/pink tokens | warm-neutral identity; no separate warm cue | accepted (ADR 016): ivory-only decision signal, no warm-cue token |
 | Primary action | neutral solid fill on `/home`; gradient/rose elsewhere | solid light-neutral fill + dark warm text on dark surfaces | accepted principle; not yet migrated |
+| Decision signal (selected/committed) | ivory-only selected states on `/home`; no distinct marker | restrained projection-ivory marker (`#f3ecdf`) + redundant non-color signals; no separate warm cue | accepted for prototype and scoped pilots (ADR 016); production migration gated |
 | Recommendation case | numbered I/II case shipped on `/home` | natural progressive explanation; no required numbering | accepted principle; reversal is later code work |
 | Gradient | retired as CTA on `/home`; legacy elsewhere | barred from default action/selected-state/chrome/atmosphere; any narrow role unresolved | active prototype question |
 | Identity framing | "Midnight Film Journal / trusted curator" | Compounding Decision Companion / Thoughtful Seatmate | accepted |
@@ -423,8 +460,6 @@ table's left column is what ships today.
 
 These are **active prototype questions**. None is finalized here:
 
-- exact warm decision-signal hue
-- ivory-only versus ivory-plus-warm-cue selected states
 - contextual-film-color strength
 - contextual-color normalization thresholds
 - whether the legacy gradient ultimately survives
@@ -440,7 +475,13 @@ These are **active prototype questions**. None is finalized here:
   hierarchy** (the twelve foundation roles), per
   [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md) (P2A — Foundation
   Neutrals) — accepted as prototype / pilot-scoped values (see §11), not yet global
-  production tokens.
+  production tokens;
+- the **decision signal**: meaningful selected/committed states are **ivory-only**
+  (projection ivory `#f3ecdf`, supplementary marker + redundant non-color signals);
+  **no separate warm decision-signal hue and no new color token**, per
+  [ADR 016](../decisions/016-thoughtful-seatmate-p2b-decision-signal.md) (P2B —
+  Decision Signal). This resolves both the *exact warm decision-signal hue* and the
+  *ivory-only vs ivory-plus-warm-cue* questions (see §13 / §13a).
 
 The long-form Film File serif exception above remains open.
 
@@ -455,9 +496,10 @@ Before any provisional decision (§19) becomes an accepted principle:
 1. Prototype it on **representative surfaces**: landing hero, primary
    recommendation (Tonight), Film File explanation, a dense authenticated
    interface, and the mobile recommendation flow.
-2. **Compare alternatives directly** (e.g. warm-neutral value candidates;
-   ivory-only vs ivory-plus-warm-cue; a narrowly-bounded long-form Film File serif
-   test). The core sans-serif voice was decided this way in P1 (see ADR 014).
+2. **Compare alternatives directly** (e.g. contextual-color strength candidates; a
+   narrowly-bounded long-form Film File serif test). The core sans-serif voice was
+   decided this way in P1 (ADR 014); the foundation in P2A (ADR 015); and the
+   decision signal in P2B (ADR 016 — ivory-only vs three warm hues, ivory won).
 3. Use **realistic fixtures**: short and long titles, missing/bright/dark posters,
    multiple languages, long explanations, sparse and mature histories, and
    loading/error states.

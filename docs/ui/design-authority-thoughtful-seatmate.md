@@ -359,11 +359,17 @@ into the first glance.
   source hue, output **L = 0.62**, retained chroma cap **C = 0.04**, **compositing alpha
   0.14**, single focal-film scope, under the fixed suppression/semantic-safety/gamut
   rules. **No production aura is authorized**; no global contextual-color token is created.
-- **Active prototype question (still open):** the **extraction algorithm and
-  seed-generation method** (P2C-A and P2C-B both used manually assigned deterministic
-  seeds only to isolate the variable under test; **no extraction method is accepted**, and
-  manual deterministic seeds are **not** an accepted production extraction method). This
-  must be resolved with representative posters before any production aura.
+- **Active prototype question (still open) — extraction failed its first holdout:** the
+  **extraction algorithm and seed-generation method** remain **unresolved**. P2C-A and P2C-B
+  used manually assigned deterministic seeds only to isolate the variable under test (manual
+  seeds are **not** a production extraction method). A candidate selector — **edge-context** —
+  was chosen in the *synthetic* P2C-C comparison, but it **failed the genuine real-poster
+  holdout (P2C-D)** on transformation stability, alternate-rendition stability, incidental-color
+  rate, product value over off, and harmful suppression. **No extraction method is accepted;
+  edge-context must not be implemented as the production extraction method.** Extraction must
+  be resolved with representative posters before any production aura. See the closure record:
+  [`thoughtful-seatmate-p2c-d-validation-closure.md`](thoughtful-seatmate-p2c-d-validation-closure.md)
+  and the [evidence packet](thoughtful-seatmate-p2c-d-real-poster-holdout-evaluation.md).
 
 ---
 
@@ -503,10 +509,13 @@ table's left column is what ships today.
 
 These are **active prototype questions**. None is finalized here:
 
-- the contextual-color **extraction algorithm and seed-generation method** (P2C-A and
-  P2C-B both used manually assigned deterministic seeds only to isolate the variable
-  under test; manual deterministic seeds are **not** an accepted production extraction
-  method)
+- the contextual-color **extraction algorithm and seed-generation method** — still
+  **unresolved**; P2C-A and P2C-B used manually assigned deterministic seeds only to isolate
+  the variable under test (manual deterministic seeds are **not** an accepted production
+  extraction method), and the **edge-context** candidate selected in the synthetic P2C-C
+  comparison **failed the genuine real-poster holdout (P2C-D)** — no extraction method is
+  accepted and edge-context must not be implemented in production (see
+  [`thoughtful-seatmate-p2c-d-validation-closure.md`](thoughtful-seatmate-p2c-d-validation-closure.md))
 - whether the legacy gradient ultimately survives
 - whether a serif has any role in genuinely long-form Film File reading
 - exact bottom-navigation structure

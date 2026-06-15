@@ -109,7 +109,7 @@ These foundation principles are **accepted**. The replacement *specifics* are **
 
 Do **not** finalize any of these — they remain prototype questions until validated by rendered prototypes and a decision record:
 
-* the contextual-color **extraction algorithm / seed-generation method** — the normalization envelope (ADR 017) and the aura strength (alpha 0.14, ADR 018) are resolved, but extraction is not (manual deterministic seeds are **not** an accepted production extraction method)
+* the contextual-color **extraction algorithm / seed-generation method** — the normalization envelope (ADR 017) and the aura strength (alpha 0.14, ADR 018) are resolved, but extraction is **unresolved and not accepted**: edge-context was selected in the synthetic P2C-C comparison but **failed the genuine real-poster holdout** (P2C-D) on transformation stability, alternate-rendition stability, incidental-color rate, product value over off, and harmful suppression — **do not implement edge-context as the production extraction method**; no automatic extraction method is accepted and manual deterministic seeds are **not** a production extraction method (closure: [`docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md`](../../docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md))
 * whether the legacy gradient ultimately survives
 * whether a serif has any role in genuinely long-form Film File reading
 * exact bottom-navigation structure
@@ -382,7 +382,8 @@ Mood- or poster-derived color may be used to make recommendation and Film File s
 * **no multi-color gradient**;
 * **no legacy purple→pink gradient**;
 * **no global contextual-color token migration** — scoped pilots use local values referencing the accepted treatment;
-* the **extraction algorithm and seed-generation method remain provisional** (P2C-A and P2C-B used manually assigned deterministic seeds only to isolate the variable under test; do **not** treat manual seed assignment as the accepted extraction method);
+* the **extraction algorithm and seed-generation method remain provisional and unresolved** (P2C-A and P2C-B used manually assigned deterministic seeds only to isolate the variable under test; do **not** treat manual seed assignment as the accepted extraction method);
+* **edge-context is NOT an accepted extraction method.** It was selected in the synthetic P2C-C comparison but **failed the genuine real-poster holdout (P2C-D)** on transformation stability, alternate-rendition stability, incidental-color rate, product value over off, and harmful suppression. **Do not implement edge-context as the production extraction method.** No automatic extraction method is accepted (closure: [`docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md`](../../docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md));
 * **production implementation remains gated** — ADR 017/018 authorize the envelope + strength for scoped pilot evaluation, **not** a production aura.
 
 Contextual color can influence:

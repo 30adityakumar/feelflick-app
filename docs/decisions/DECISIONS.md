@@ -27,6 +27,7 @@
 | 015 | Thoughtful Seatmate P2A — P1-control warm graphite foundation (prototype/pilot-scoped) | ✅ Accepted | `docs/decisions/015-thoughtful-seatmate-p2a-foundation.md` |
 | 016 | Thoughtful Seatmate P2B — ivory-only decision signal; no warm-cue token | ✅ Accepted | `docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md` |
 | 017 | Thoughtful Seatmate P2C-A — strict contextual-film-color normalization envelope | ✅ Accepted | `docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md` |
+| 018 | Thoughtful Seatmate P2C-B — contextual-film-color aura strength (alpha 0.14) | ✅ Accepted | `docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md` |
 
 ---
 

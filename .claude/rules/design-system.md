@@ -109,7 +109,7 @@ These foundation principles are **accepted**. The replacement *specifics* are **
 
 Do **not** finalize any of these — they remain prototype questions until validated by rendered prototypes and a decision record:
 
-* contextual-film-color **opacity/strength** (the compositing alpha; P2C-B) and the **extraction algorithm / seed-generation method** — the normalization **envelope** is resolved (ADR 017), but strength and extraction are not
+* the contextual-color **extraction algorithm / seed-generation method** — the normalization envelope (ADR 017) and the aura strength (alpha 0.14, ADR 018) are resolved, but extraction is not (manual deterministic seeds are **not** an accepted production extraction method)
 * whether the legacy gradient ultimately survives
 * whether a serif has any role in genuinely long-form Film File reading
 * exact bottom-navigation structure
@@ -120,7 +120,8 @@ Do **not** finalize any of these — they remain prototype questions until valid
 * the single core sans-serif voice is **Inter** ([ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md))
 * the exact **warm graphite foundation values** and **projection-ivory hierarchy** — the twelve foundation roles ([ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)) — accepted as prototype / pilot-scoped values (see "Foundation neutrals"), **not** yet global production tokens
 * the **decision signal**: meaningful selected/committed states are **ivory-only** (projection ivory `#f3ecdf` supplementary marker + redundant non-color signals); **no separate warm decision-signal hue and no new color token** ([ADR 016](../../docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md)). This resolves the warm-cue-hue and ivory-only-vs-ivory-plus-warm-cue questions (see "Primary action and decision signal")
-* the contextual-color **normalization envelope**: the **strict** envelope — preserve source hue, output lightness **L = 0.62**, retained chroma cap **C = 0.04**, under the fixed low-saturation, semantic-safety, and gamut rules, single focal-film scope ([ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)). This resolves the normalization-thresholds question only (see "Contextual color"); **opacity/strength and extraction remain provisional**, and **no production aura is authorized**
+* the contextual-color **normalization envelope**: the **strict** envelope — preserve source hue, output lightness **L = 0.62**, retained chroma cap **C = 0.04**, under the fixed low-saturation, semantic-safety, and gamut rules, single focal-film scope ([ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md))
+* the contextual-color **aura strength**: **compositing alpha 0.14**, applied only to the strict envelope on a single focal-film surface ([ADR 018](../../docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md)) — the reference strength independently cleared the ≥5-point bar over off, while 0.07 did not and 0.21 scored below off; no tie-break, no blending. The **complete accepted contextual-color treatment** is now hue preserved, L = 0.62, C = 0.04, alpha 0.14, focal-film scope; **extraction remains provisional**, and **no production aura is authorized**
 
 ## Design modes
 
@@ -362,26 +363,27 @@ Do not introduce plum or purple as a new supporting atmosphere on surfaces adopt
 
 Mood- or poster-derived color may be used to make recommendation and Film File surfaces emotionally specific.
 
-**Accepted normalization envelope (P2C-A / [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)).** A controlled blind comparison of an off control against three increasing chroma caps (off → 0.04 → 0.07 → 0.10) fixed the **normalization envelope** at the **strict** level — the lowest tested non-zero cap. The accepted envelope and its hard constraints:
+**Accepted contextual-color treatment (P2C-A / [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md) + P2C-B / [ADR 018](../../docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md)).** Two controlled blind comparisons fixed the normalization **envelope** at the **strict** level (off vs increasing chroma caps off → 0.04 → 0.07 → 0.10) and then, with the envelope held fixed, the aura **compositing strength** at **alpha 0.14** (off vs increasing strengths 0 → 0.07 → 0.14 → 0.21). The complete accepted treatment and its hard constraints:
 
 * contextual film color is **environmental, not semantic** — it never carries meaning or state;
 * **one focal film only** (Tonight hero, Film File hero, their mobile equivalents, the active replacement film after "Not tonight");
 * **preserve source hue** — never rotate hue;
 * **output lightness L = 0.62**;
 * **retained chroma cap C = 0.04**;
+* **aura compositing alpha = 0.14** (the accepted strength; 0.07 was too subtle to clear the bar, 0.21 weakened hierarchy and scored below off);
 * **low-saturation suppression** at **source C < 0.04** (near-black/near-white/grey → no aura);
 * **semantic-safety threshold < 0.05** distance to amber/red/green/info;
 * within that distance, **reduce chroma, never rotate hue** (and never modify the semantics);
 * **deterministic gamut mapping** by chroma reduction;
+* **one single-hue radial field, fixed geometry**, one fixed transition (≤180ms; instant under reduced motion);
 * **missing/invalid input → no aura** (no invented default color);
 * **no color in controls, text, icons, borders, the marker, focus, or semantics**;
 * **no full-page wash**;
 * **no multi-color gradient**;
 * **no legacy purple→pink gradient**;
-* **no global contextual-color token migration** — scoped pilots use local values referencing the accepted envelope;
-* **opacity/strength remains provisional** (the compositing alpha was a fixed control at 0.14 in P2C-A and is **not** accepted — P2C-B);
-* the **extraction algorithm and seed-generation method remain provisional** (P2C-A used manually assigned deterministic seeds only to isolate normalization; do **not** treat manual seed assignment as the accepted extraction method);
-* **production implementation remains gated** — P2C-A authorizes only the normalization envelope for P2C-B and scoped pilot evaluation, **not** a production aura.
+* **no global contextual-color token migration** — scoped pilots use local values referencing the accepted treatment;
+* the **extraction algorithm and seed-generation method remain provisional** (P2C-A and P2C-B used manually assigned deterministic seeds only to isolate the variable under test; do **not** treat manual seed assignment as the accepted extraction method);
+* **production implementation remains gated** — ADR 017/018 authorize the envelope + strength for scoped pilot evaluation, **not** a production aura.
 
 Contextual color can influence:
 
@@ -774,7 +776,7 @@ For the target typography and color direction, compare:
 
 * the shipped F3/F4 baseline (Newsreader + Inter + rose on warm dark neutrals)
 * the target: **Inter** as the single core Latin sans-serif (ADR 014) on a warm-graphite / projection-ivory foundation (ADR 015), with a neutral high-contrast primary and an ivory-only decision-signal marker (ADR 016; no separate warm cue)
-* contextual film color behavior with representative posters and moods — the normalization **envelope** is resolved (strict, [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)); **opacity/strength** (P2C-B) and the **extraction** method remain to be compared
+* contextual film color behavior with representative posters and moods — the normalization **envelope** (strict, [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)) and the aura **strength** (alpha 0.14, [ADR 018](../../docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md)) are resolved; the **extraction** method remains to be compared
 
 Evaluate:
 
@@ -810,7 +812,7 @@ Perform at least one critique and refinement pass.
 The Thoughtful Seatmate direction is **accepted at the principle level**, not yet implemented. Migration proceeds through these gates, in order — do not skip ahead:
 
 1. **Doctrine accepted** — the active authority is [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). ✅
-2. **Isolated prototypes resolve the open questions** — contextual-color opacity/strength and extraction, gradient survival, and the serif exception — answered with rendered desktop + mobile evidence. (The core voice (Inter, [ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md)), the warm graphite / projection-ivory foundation values (prototype/pilot-scoped, [ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)), the ivory-only decision signal (no warm-cue token, [ADR 016](../../docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md)), and the contextual-color normalization envelope (strict, [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)) are now resolved.) *Remaining questions open.*
+2. **Isolated prototypes resolve the open questions** — contextual-color extraction, gradient survival, and the serif exception — answered with rendered desktop + mobile evidence. (The core voice (Inter, [ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md)), the warm graphite / projection-ivory foundation values (prototype/pilot-scoped, [ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)), the ivory-only decision signal (no warm-cue token, [ADR 016](../../docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md)), the contextual-color normalization envelope (strict, [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)), and the aura strength (alpha 0.14, [ADR 018](../../docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md)) are now resolved.) *Remaining questions open.*
 3. **A decision record approves** the chosen prototype direction.
 4. **Pilot** the accepted direction on **two representative production surfaces** using **scoped/local values** rather than prematurely globalizing tokens. Tonight (`/home`) and Film File (`/movie/:id`) are the recommended pilots unless a later decision record chooses equivalent surfaces.
 5. **After both pilot surfaces validate** the values and the interaction pattern, **promote** the values into shared tokens and primitives.

@@ -247,9 +247,16 @@ the interface; it scopes only the selection/commitment confirmation role. It doe
 
 **No production typography, font loading, CSS, tokens, components, routes, tests, or
 visual baselines change as a result of this ADR.** The shipped product remains mixed
-and transitional. The accepted treatment becomes a global production token only later,
-through the authority's migration gates: scoped pilots (Tonight, Film File) with local
-values first, then — after both pilots validate — promotion, then systematic
+and transitional. Three concepts stay distinct. (1) **Color source:** the underlying
+projection-ivory foundation value `#f3ecdf` belongs to ADR 015 and may later be
+promoted through ADR 015's migration gates, after both pilots validate it. (2)
+**Decision-signal role:** the ivory-only confirmation role and marker architecture may
+later be implemented through shared interaction guidance or a shared
+component/primitive, but the decision-signal colour must continue to reference the
+ADR 015 projection-ivory source. (3) **Token discipline:** **no independent global
+decision-signal color token is created** — it must not merely alias projection ivory.
+The migration sequence stands: scoped Tonight and Film File pilots first; pilot
+validation; shared primitives or interaction guidance where justified; then systematic
 migration with deliberate visual-regression re-baselining.
 
 ## 21. Evidence limitations
@@ -269,6 +276,9 @@ dev-server DOM, not a production benchmark.
 - Keep the remaining authority prototype questions open: contextual-color strength
   and normalization thresholds, gradient survival, long-form Film File serif, bottom
   navigation, couple mode.
-- When decision-signal migration is scheduled, follow the migration gates: scoped
-  pilots → promote after both validate → surface-by-surface migration with deliberate
-  re-baselining. Do not globalize a decision-signal token before pilot validation.
+- When the decision-signal role migrates, follow the migration gates: scoped pilots →
+  after both validate, promote the **ADR 015 projection-ivory foundation value**
+  and/or the decision-signal role (as shared interaction guidance or a shared
+  primitive) → surface-by-surface migration with deliberate re-baselining. The
+  decision-signal colour keeps referencing the ADR 015 projection-ivory source; **do
+  not create an independent global decision-signal color token**.

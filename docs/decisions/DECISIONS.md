@@ -22,6 +22,7 @@
 | 010 | Dual deployment: Cloudflare Pages + Vercel | ✅ Accepted | Inline below |
 | 011 | OpenAI `text-embedding-3-small` for movie embeddings | ✅ Accepted | Inline below |
 | 012 | Hybrid recommendation scoring — multi-signal, not single algorithm | ✅ Accepted | Inline below |
+| 014 | Thoughtful Seatmate P1 — Inter as the single core Latin sans-serif voice | ✅ Accepted | `docs/decisions/014-thoughtful-seatmate-p1-core-voice.md` |
 
 ---
 

@@ -227,25 +227,30 @@ into the first glance.
 ## 10. Typography direction
 
 - **Accepted principle:** one coherent **human sans-serif** voice across the core
-  product. Interface and editorial text share a family; hierarchy comes from size,
-  weight, measure, and spacing — not from a separate serif personality.
+  product, and that voice is **Inter** — FeelFlick's single core Latin sans-serif.
+  Interface and editorial text share this family; hierarchy comes from scale,
+  weight, measure, spacing, and composition — not from a separate serif personality.
+- **Accepted (P1 — Core Voice, 2026-06-14):** Inter was retained after a controlled
+  blind comparison against Instrument Sans. Instrument Sans did not show sufficient
+  whole-system benefit to justify migration, and a near-tie favours the
+  already-integrated font. See
+  [ADR 014](../decisions/014-thoughtful-seatmate-p1-core-voice.md) and the
+  [evidence packet](thoughtful-seatmate-p1-core-voice-evaluation.md). ("Latin" is
+  intentional — non-Latin fallback coverage was not tested.)
 - **Retired as target:** the permanent "Inter is the system; Newsreader is the
   curator" serif-versus-system split, and Newsreader as the default
   recommendation-title and rationale voice.
-- **Active prototype question:** **Instrument Sans versus Inter** for the single
-  core voice — to be decided by a controlled prototype on real surfaces, not from a
-  specimen page.
-- **Active prototype question:** whether a serif has **any** role in genuinely
-  long-form Film File reading. This is an exception to test, not a default; it does
-  not reinstate a system/editorial split.
+- **Active prototype question (still open):** whether a serif has **any** role in
+  genuinely **long-form Film File reading**. This is a narrowly-bounded exception to
+  test, not a default; it must not reinstate a system/editorial split.
 - **Restraint, not a locked scale:** keep type restrained and legible across
   narrow screens, long titles, localization, and zoom. Do not lock one exact scale,
   weight, or tracking value across every future surface.
-- **Current production baseline (mixed):** Newsreader (editorial) + Inter
-  (interface) + Outfit are all loaded; F4 shipped the Newsreader/Inter typography
-  across many feature surfaces, while residual global, shared, and legacy areas
-  still use Outfit. This is transitional; do not extend the serif split to new
-  surfaces as the target.
+- **Current production baseline (mixed):** Newsreader, Inter, and Outfit are all
+  loaded; F4 shipped Newsreader/Inter typography across many feature surfaces, while
+  residual global, shared, and legacy areas still use Outfit. This is transitional —
+  Inter-only consolidation is later, gated surface work; do not extend the serif
+  split to new surfaces.
 
 ---
 
@@ -367,7 +372,7 @@ Prefer CSS and native browser capability over heavy libraries for small effects.
 | Dimension | Current production baseline (F3/F4, transitional) | Accepted target direction | Status of the gap |
 |---|---|---|---|
 | Foundation | warm near-black canvas + ivory/bone text | warm graphite / warm-neutral + projection-ivory | exact values are an active prototype question |
-| Type voice | Newsreader (editorial) + Inter (interface) + Outfit (wordmark) | one coherent human sans-serif voice | Instrument Sans vs Inter is an active prototype question |
+| Type voice | Newsreader + Inter + Outfit, mixed across surfaces | **Inter** — single core Latin sans-serif (one coherent voice) | accepted (ADR 014); Newsreader/Outfit consolidation is later, gated surface work |
 | Brand color | rose `#DD4E83` accent + legacy purple/pink tokens | warm-neutral identity; one rare warm signal | warm-signal hue is an active prototype question |
 | Primary action | neutral solid fill on `/home`; gradient/rose elsewhere | solid light-neutral fill + dark warm text on dark surfaces | accepted principle; not yet migrated |
 | Recommendation case | numbered I/II case shipped on `/home` | natural progressive explanation; no required numbering | accepted principle; reversal is later code work |
@@ -383,7 +388,6 @@ table's left column is what ships today.
 
 These are **active prototype questions**. None is finalized here:
 
-- Instrument Sans versus Inter
 - exact warm-neutral or graphite token values
 - exact ivory value
 - exact warm decision-signal hue
@@ -394,6 +398,10 @@ These are **active prototype questions**. None is finalized here:
 - whether a serif has any role in genuinely long-form Film File reading
 - exact bottom-navigation structure
 - exact couple-mode interaction
+
+**Resolved (moved to accepted):** the single core sans-serif voice is **Inter**,
+per [ADR 014](../decisions/014-thoughtful-seatmate-p1-core-voice.md) (P1 — Core
+Voice). The long-form Film File serif exception above remains open.
 
 Do not convert any of these into doctrine without the validation in §20.
 
@@ -406,8 +414,9 @@ Before any provisional decision (§19) becomes an accepted principle:
 1. Prototype it on **representative surfaces**: landing hero, primary
    recommendation (Tonight), Film File explanation, a dense authenticated
    interface, and the mobile recommendation flow.
-2. **Compare alternatives directly** (e.g. Instrument Sans vs Inter;
-   warm-neutral value candidates; ivory-only vs ivory-plus-warm-cue).
+2. **Compare alternatives directly** (e.g. warm-neutral value candidates;
+   ivory-only vs ivory-plus-warm-cue; a narrowly-bounded long-form Film File serif
+   test). The core sans-serif voice was decided this way in P1 (see ADR 014).
 3. Use **realistic fixtures**: short and long titles, missing/bright/dark posters,
    multiple languages, long explanations, sparse and mature histories, and
    loading/error states.

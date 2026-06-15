@@ -56,10 +56,17 @@ bundle's `metrics.csv`.
 
 ## Controlled variables
 
-Only the **foundation neutral set** varies between X / Y / Z:
+Candidate definitions were restricted to the **twelve-role foundation neutral set**:
 `--p2-canvas, --p2-surface-1, --p2-surface-2, --p2-surface-raised, --p2-text-primary,
 --p2-text-secondary, --p2-text-muted, --p2-border-subtle, --p2-border-strong,
 --p2-neutral-action-fill, --p2-neutral-action-text, --p2-neutral-focus`.
+
+**Eleven** of these roles differed between at least two candidates;
+`--p2-neutral-action-text` remained fixed at `#221b13` across all three (P1 control,
+warmer graphite, neutral graphite) and therefore functioned as a control. No styling
+values outside this twelve-role system differed — twelve roles comprise the selected
+foundation, eleven were experimentally varied, and one remained fixed within the
+experiment.
 
 Held identical across all three (fixed controls): Inter; the component tree; all
 content and fixtures; layout, breakpoints, spacing, type scale and weights;
@@ -133,8 +140,9 @@ judgement. The protocol ran in four steps:
 1. **Blind visual scoring** — using the *blind visual bundle*
    (`reviewer-scorecard.md`, `accessibility-gate-summary.md`, `sheets/`, `crops/`).
    The reviewer scored the five weighted dimensions 1–5 per variant, computed the
-   normalized 0–100 totals, and answered the ten mandatory questions. No hex/OKLCH
-   values, contrast ratios, or perceptual distances were present at this stage.
+   weighted totals (a maximum of 100, practical range 20–100 under the 1–5 rubric),
+   and answered the ten mandatory questions. No hex/OKLCH values, contrast ratios, or
+   perceptual distances were present at this stage.
 2. **Objective reconciliation** — only after the scorecard was locked, the reviewer
    opened the *post-score objective-evidence bundle* (`metrics.csv`,
    `metrics-summary.md`, `accessibility-details.md`, `candidate-separability.md`) and
@@ -150,8 +158,8 @@ The blind scorecard carried the five weighted dimensions — **Foundation charac
 · Film framing / genre neutrality 25 · Reading & information hierarchy 20 · Surface
 structure & mobile comfort 15 · Accessibility & implementation confidence 10**
 (semantic/aura coexistence and action clarity evaluated as subcriteria within these)
-— the ten mandatory questions, the **normalized-score formula**
-(`Σ (rating_d / 5) × weight_d`, total 20–100), and the **pre-registered decision
+— the ten mandatory questions, the **weighted-score formula**
+(`Σ (rating_d / 5) × weight_d`, maximum 100, practical range 20–100), and the **pre-registered decision
 rule**: any accessibility failure disqualifies → compare normalized totals →
 a lead < 5 points is a near-tie → near-tie tie-breaks on foundation character, then
 film framing / genre neutrality, then reading comfort, then grayscale hierarchy →

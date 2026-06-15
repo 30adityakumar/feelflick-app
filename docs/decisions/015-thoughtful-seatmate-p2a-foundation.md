@@ -73,7 +73,15 @@ the accepted system is exactly one of the three tested candidates.
 
 ## 5. Controlled experiment
 
-Only the **twelve coherent foundation roles** varied between candidates:
+Candidate definitions were restricted to the **twelve-role foundation system** below
+— the complete accepted foundation. **Eleven** of these roles differed between at
+least two candidates; `neutral-action-text` remained fixed at `#221b13` across all
+three (P1 control, warmer graphite, neutral graphite) and therefore functioned as a
+control within the experiment. No styling values outside this twelve-role system
+differed. So twelve roles comprise the selected foundation, eleven were
+experimentally varied, and one remained fixed within the experiment.
+
+The twelve foundation roles (the complete accepted system):
 
 - canvas
 - surface 1
@@ -85,7 +93,7 @@ Only the **twelve coherent foundation roles** varied between candidates:
 - subtle border
 - strong border
 - neutral action fill
-- neutral action text
+- neutral action text — **fixed at `#221b13`** across all three candidates (the one role held constant within the experiment)
 - neutral focus
 
 Held fixed across all candidates:
@@ -117,8 +125,9 @@ objective numbers could not anchor qualitative judgement:
 1. **Blind visual scoring** — one AI-assisted blind reviewer scored the five weighted
    dimensions (Foundation character 30 · Film framing / genre neutrality 25 ·
    Reading & information hierarchy 20 · Surface structure & mobile comfort 15 ·
-   Accessibility & implementation confidence 10) on a 1–5 scale, normalized to a
-   0–100 total by `Σ (rating_d / 5) × weight_d`, and answered ten mandatory
+   Accessibility & implementation confidence 10) on a 1–5 scale, combined into a
+   weighted total by `Σ (rating_d / 5) × weight_d` — a maximum of 100 and a
+   practical range of 20–100 under the 1–5 rubric — and answered ten mandatory
    questions. The blind bundle contained no hex/OKLCH values, contrast ratios, or
    perceptual distances.
 2. **Objective reconciliation** — only after the scorecard was locked were the

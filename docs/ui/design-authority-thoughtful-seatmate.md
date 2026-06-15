@@ -23,20 +23,20 @@ surface. The core voice (Inter, [ADR 014](../decisions/014-thoughtful-seatmate-p
 and the exact foundation token values (warm graphite / projection-ivory,
 [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md)) are now accepted —
 the foundation values as prototype / pilot-scoped, **not yet** global production
-tokens. The contextual-color **normalization envelope** is now accepted (strict,
-[ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md));
-navigation structure, couple-mode mechanics, contextual-color **opacity/strength** and
-the **extraction** method, gradient survival, and the long-form serif exception remain
-prototype questions (§19).
+tokens. The contextual-color treatment is now accepted in full — the **normalization
+envelope** (strict, [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md))
+and the **aura strength** (alpha 0.14, [ADR 018](../decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md));
+navigation structure, couple-mode mechanics, the contextual-color **extraction** method,
+gradient survival, and the long-form serif exception remain prototype questions (§19).
 
 This document deliberately does **not** use "approved and fully migrating"
 language. The foundation principles below are accepted, and the core voice (ADR 014)
 and the foundation token values (ADR 015) are fixed for prototypes and scoped pilots,
 and the decision signal is ivory-only (ADR 016, no warm-cue token), and the
-contextual-color **normalization envelope** is accepted (strict, ADR 017);
-contextual-color **opacity/strength** and **extraction**, gradient survival, and the
-serif exception remain open and must be validated before they become doctrine or global
-production tokens.
+contextual-color treatment is accepted in full (strict normalization envelope, ADR 017;
+aura strength alpha 0.14, ADR 018); the contextual-color **extraction** method, gradient
+survival, and the serif exception remain open and must be validated before they become
+doctrine or global production tokens.
 
 ### Status legend
 
@@ -346,12 +346,24 @@ into the first glance.
   carried a hierarchy/restraint penalty). This is not a blend. **P2C-A does not
   authorize a production aura** — it authorizes only the normalization **envelope** for
   P2C-B and scoped pilot evaluation.
-- **Active prototype question (still open):** contextual-film-color **opacity/strength**
-  (the compositing alpha was a fixed control at 0.14 in P2C-A and is **not** accepted —
-  it is the subject of P2C-B), and the **extraction algorithm and seed-generation
-  method** (P2C-A used manually assigned deterministic seeds only to isolate
-  normalization; no extraction method is accepted). Both must be validated with
-  representative posters and moods before any production aura.
+- **Accepted (P2C-B — Aura Strength, 2026-06-15):** the aura **compositing strength** is
+  fixed at **alpha 0.14**, per
+  [ADR 018](../decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md). A controlled
+  blind comparison held the strict envelope fixed and varied only the compositing alpha
+  across an off control and three non-zero strengths (0 → 0.07 → 0.14 → 0.21). The
+  **reference strength (alpha 0.14) independently cleared** the pre-registered ≥5-point
+  bar over off; **alpha 0.07 did not clear it** and **alpha 0.21 scored below off**
+  (weakened hierarchy and product consistency). Because exactly one non-off treatment
+  qualified, **no lower-strength tie-break was needed** and **no blending or interpolation
+  occurred**. The **complete accepted contextual-color treatment** is therefore: preserve
+  source hue, output **L = 0.62**, retained chroma cap **C = 0.04**, **compositing alpha
+  0.14**, single focal-film scope, under the fixed suppression/semantic-safety/gamut
+  rules. **No production aura is authorized**; no global contextual-color token is created.
+- **Active prototype question (still open):** the **extraction algorithm and
+  seed-generation method** (P2C-A and P2C-B both used manually assigned deterministic
+  seeds only to isolate the variable under test; **no extraction method is accepted**, and
+  manual deterministic seeds are **not** an accepted production extraction method). This
+  must be resolved with representative posters before any production aura.
 
 ---
 
@@ -491,10 +503,10 @@ table's left column is what ships today.
 
 These are **active prototype questions**. None is finalized here:
 
-- contextual-film-color **opacity/strength** (the compositing alpha; P2C-B — the
-  normalization *envelope* is resolved by [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md), but strength is not)
-- the contextual-color **extraction algorithm and seed-generation method** (P2C-A used
-  manually assigned deterministic seeds only to isolate normalization)
+- the contextual-color **extraction algorithm and seed-generation method** (P2C-A and
+  P2C-B both used manually assigned deterministic seeds only to isolate the variable
+  under test; manual deterministic seeds are **not** an accepted production extraction
+  method)
 - whether the legacy gradient ultimately survives
 - whether a serif has any role in genuinely long-form Film File reading
 - exact bottom-navigation structure
@@ -520,8 +532,15 @@ These are **active prototype questions**. None is finalized here:
   fixed low-saturation, semantic-safety, and gamut rules, single focal-film scope — per
   [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)
   (P2C-A — Contextual-Color Envelope). This resolves the *normalization thresholds*
-  question only (see §12); contextual-color **opacity/strength** and **extraction**
-  remain open above, and **no production aura is authorized**.
+  question only (see §12);
+- the contextual-color **aura strength**: **compositing alpha 0.14**, applied only to the
+  strict envelope on a single focal-film surface — the reference strength independently
+  cleared the pre-registered ≥5-point bar over off, while alpha 0.07 did not and alpha
+  0.21 scored below off; no tie-break was needed and no strengths were blended — per
+  [ADR 018](../decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md) (P2C-B — Aura
+  Strength). The **complete accepted contextual-color treatment** is now hue preserved,
+  L = 0.62, C = 0.04, alpha 0.14, focal-film scope; contextual-color **extraction** remains
+  open above, and **no production aura is authorized**.
 
 The long-form Film File serif exception above remains open.
 

@@ -19,13 +19,20 @@
 under **active prototype validation**. **Not yet implemented.**
 
 This document governs the visual and interaction *direction* for every FeelFlick
-surface. It does not encode final font choices, exact color tokens, navigation
-structure, or couple-mode mechanics — those are prototype questions (§19).
+surface. The core voice (Inter, [ADR 014](../decisions/014-thoughtful-seatmate-p1-core-voice.md))
+and the exact foundation token values (warm graphite / projection-ivory,
+[ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md)) are now accepted —
+the foundation values as prototype / pilot-scoped, **not yet** global production
+tokens. Navigation structure, couple-mode mechanics, the warm decision-signal hue,
+contextual-color thresholds, gradient survival, and the long-form serif exception
+remain prototype questions (§19).
 
 This document deliberately does **not** use "approved and fully migrating"
-language. The foundation principles below are accepted; the exact typeface, token
-values, warm-cue hue, gradient survival, and serif exception remain open and must
-be validated before they become doctrine.
+language. The foundation principles below are accepted, and the core voice (ADR 014)
+and the foundation token values (ADR 015) are fixed for prototypes and scoped pilots;
+the warm-cue hue, contextual-color thresholds, gradient survival, and serif exception
+remain open and must be validated before they become doctrine or global production
+tokens.
 
 ### Status legend
 
@@ -262,8 +269,34 @@ into the first glance.
   high-contrast warm neutral).
 - **Retired as target:** rose as the permanent brand signature; plum as the normal
   supporting atmosphere; any permanent rose/plum core identity.
-- **Active prototype question:** exact warm-neutral / graphite token values; exact
-  ivory value. Treat any specific hex as illustrative, not locked.
+- **Accepted (P2A — Foundation Neutrals, 2026-06-14):** the exact warm graphite
+  foundation values and the projection-ivory hierarchy — with the related surface,
+  border, and neutral-action roles — are now fixed, per
+  [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md). The P1-control
+  warm graphite system won a controlled blind comparison against a warmer and a more
+  neutral graphite (the warmer imposed too much atmosphere; the neutral read
+  neutral-to-cool rather than unmistakably warm). These are **accepted prototype /
+  pilot-scoped values**: they must be used **unchanged** in P2B and as scoped/local
+  values in the Tonight and Film File pilots. They are **not yet global production
+  tokens**, and shared-token promotion remains gated by pilot validation (§21, gate 5).
+
+  ```css
+  --canvas: #15120f;
+  --surface-1: #1d1814;
+  --surface-2: #241e19;
+  --surface-raised: #2d2621;
+
+  --text-primary: #f3ecdf;        /* projection ivory */
+  --text-secondary: #beb8ad;
+  --text-muted: #8d887f;
+
+  --border-subtle: #302c28;
+  --border-strong: #46423d;
+
+  --neutral-action-fill: #efe7d7;
+  --neutral-action-text: #221b13;
+  --neutral-focus: #f3ecdf;
+  ```
 - **Semantic colors remain load-bearing.** Amber (rating/caution), red
   (destructive/error), and green (success/watched/public) are functional, not
   brand, and must not be folded into the brand palette. See
@@ -295,9 +328,11 @@ into the first glance.
 - **Accepted principle:** on dark core surfaces the **default primary commitment
   action uses a solid light-neutral fill with dark warm text** — calm and legible.
   It must not depend on contextual film color, the legacy gradient, or a permanent
-  rose accent. Exact ivory and graphite token values remain provisional. Alternate
-  polarity is permitted only when the surrounding surface or accessibility
-  requirements justify it.
+  rose accent. The exact ivory and graphite foundation token values are now
+  **accepted** (warm graphite / projection-ivory,
+  [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md), prototype /
+  pilot-scoped — see §11). Alternate polarity is permitted only when the surrounding
+  surface or accessibility requirements justify it.
 - **Accepted principle:** **one rare warm signal** may mark a meaningful selection
   or commitment. It is an accent of emphasis, used sparingly — not the dominant
   surface color and not on every control.
@@ -371,7 +406,7 @@ Prefer CSS and native browser capability over heavy libraries for small effects.
 
 | Dimension | Current production baseline (F3/F4, transitional) | Accepted target direction | Status of the gap |
 |---|---|---|---|
-| Foundation | warm near-black canvas + ivory/bone text | warm graphite / warm-neutral + projection-ivory | exact values are an active prototype question |
+| Foundation | warm near-black canvas + ivory/bone text | ADR 015 warm graphite / projection-ivory system (exact values) | accepted for prototype and scoped pilots; production migration gated |
 | Type voice | Newsreader + Inter + Outfit, mixed across surfaces | **Inter** — single core Latin sans-serif (one coherent voice) | accepted (ADR 014); Newsreader/Outfit consolidation is later, gated surface work |
 | Brand color | rose `#DD4E83` accent + legacy purple/pink tokens | warm-neutral identity; one rare warm signal | warm-signal hue is an active prototype question |
 | Primary action | neutral solid fill on `/home`; gradient/rose elsewhere | solid light-neutral fill + dark warm text on dark surfaces | accepted principle; not yet migrated |
@@ -388,8 +423,6 @@ table's left column is what ships today.
 
 These are **active prototype questions**. None is finalized here:
 
-- exact warm-neutral or graphite token values
-- exact ivory value
 - exact warm decision-signal hue
 - ivory-only versus ivory-plus-warm-cue selected states
 - contextual-film-color strength
@@ -399,9 +432,17 @@ These are **active prototype questions**. None is finalized here:
 - exact bottom-navigation structure
 - exact couple-mode interaction
 
-**Resolved (moved to accepted):** the single core sans-serif voice is **Inter**,
-per [ADR 014](../decisions/014-thoughtful-seatmate-p1-core-voice.md) (P1 — Core
-Voice). The long-form Film File serif exception above remains open.
+**Resolved (moved to accepted):**
+
+- the single core sans-serif voice is **Inter**, per
+  [ADR 014](../decisions/014-thoughtful-seatmate-p1-core-voice.md) (P1 — Core Voice);
+- the exact **warm graphite foundation values** and the **projection-ivory
+  hierarchy** (the twelve foundation roles), per
+  [ADR 015](../decisions/015-thoughtful-seatmate-p2a-foundation.md) (P2A — Foundation
+  Neutrals) — accepted as prototype / pilot-scoped values (see §11), not yet global
+  production tokens.
+
+The long-form Film File serif exception above remains open.
 
 Do not convert any of these into doctrine without the validation in §20.
 

@@ -4,7 +4,7 @@
 
 **Date:** 2026-04-22
 
-**Superseded by:** [ADR 014](014-thoughtful-seatmate-p1-core-voice.md) + the active [Thoughtful Seatmate design authority](../ui/design-authority-thoughtful-seatmate.md) (2026-06-14)
+**Superseded by:** [ADR 015](015-thoughtful-seatmate-p2a-foundation.md) — the specific palette/foundation replacement decision (the accepted warm graphite / projection-ivory foundation) — with the active [Thoughtful Seatmate design authority](../ui/design-authority-thoughtful-seatmate.md) as the governing context (2026-06-14)
 
 > **SUPERSEDED — historical record only.**
 >

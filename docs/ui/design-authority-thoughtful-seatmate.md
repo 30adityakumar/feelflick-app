@@ -26,17 +26,20 @@ the foundation values as prototype / pilot-scoped, **not yet** global production
 tokens. The contextual-color treatment is now accepted in full — the **normalization
 envelope** (strict, [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md))
 and the **aura strength** (alpha 0.14, [ADR 018](../decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md));
-navigation structure, couple-mode mechanics, the contextual-color **extraction** method,
-gradient survival, and the long-form serif exception remain prototype questions (§19).
+navigation structure, couple-mode mechanics, the contextual-color **extraction** method, and
+gradient survival remain prototype questions (§19). The **long-form Film File serif exception is now
+resolved** — P2D rejected it; Film File remains Inter-only (§12 / §19).
 
 This document deliberately does **not** use "approved and fully migrating"
 language. The foundation principles below are accepted, and the core voice (ADR 014)
 and the foundation token values (ADR 015) are fixed for prototypes and scoped pilots,
 and the decision signal is ivory-only (ADR 016, no warm-cue token), and the
 contextual-color treatment is accepted in full (strict normalization envelope, ADR 017;
-aura strength alpha 0.14, ADR 018); the contextual-color **extraction** method, gradient
-survival, and the serif exception remain open and must be validated before they become
-doctrine or global production tokens.
+aura strength alpha 0.14, ADR 018); the contextual-color **extraction** method and gradient
+survival remain open and must be validated before they become doctrine or global production tokens.
+The **long-form Film File serif exception is resolved** — P2D rejected a bounded Newsreader long-form
+body (it tied Inter-only and lost on coherence/robustness/reflow); Film File long-form prose remains
+Inter, governed by ADR 014.
 
 ### Status legend
 
@@ -252,9 +255,16 @@ into the first glance.
 - **Retired as target:** the permanent "Inter is the system; Newsreader is the
   curator" serif-versus-system split, and Newsreader as the default
   recommendation-title and rationale voice.
-- **Active prototype question (still open):** whether a serif has **any** role in
-  genuinely **long-form Film File reading**. This is a narrowly-bounded exception to
-  test, not a default; it must not reinstate a system/editorial split.
+- **Resolved (P2D — Film File stays Inter-only):** whether a serif has any role in genuinely
+  **long-form Film File reading** was tested in P2D (Inter-only vs a bounded Newsreader long-form
+  body). Newsreader improved sustained reading comfort but **tied Inter-only 90–90** overall, scored
+  lower on product-voice coherence and cross-content/script robustness, and carried greater font-swap
+  reflow; under the pre-registered tie-defaults-to-Inter rule the exception is **not accepted**.
+  **Film File long-form body prose remains Inter; do not introduce Newsreader or another serif into
+  it.** Newsreader stays transitional shipped-baseline usage only (do not remove opportunistically;
+  removal needs a separate scoped migration). See the closure record
+  [`thoughtful-seatmate-p2d-reading-voice-closure.md`](thoughtful-seatmate-p2d-reading-voice-closure.md)
+  and the [evidence packet](thoughtful-seatmate-p2d-filmfile-reading-voice-evaluation.md).
 - **Restraint, not a locked scale:** keep type restrained and legible across
   narrow screens, long titles, localization, and zoom. Do not lock one exact scale,
   weight, or tracking value across every future surface.
@@ -517,7 +527,6 @@ These are **active prototype questions**. None is finalized here:
   accepted and edge-context must not be implemented in production (see
   [`thoughtful-seatmate-p2c-d-validation-closure.md`](thoughtful-seatmate-p2c-d-validation-closure.md))
 - whether the legacy gradient ultimately survives
-- whether a serif has any role in genuinely long-form Film File reading
 - exact bottom-navigation structure
 - exact couple-mode interaction
 
@@ -549,9 +558,17 @@ These are **active prototype questions**. None is finalized here:
   [ADR 018](../decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md) (P2C-B — Aura
   Strength). The **complete accepted contextual-color treatment** is now hue preserved,
   L = 0.62, C = 0.04, alpha 0.14, focal-film scope; contextual-color **extraction** remains
-  open above, and **no production aura is authorized**.
+  open above, and **no production aura is authorized**;
+- the **long-form Film File reading voice**: **Film File remains Inter-only, including genuinely
+  long-form reading bodies**, per **P2D**. A bounded Newsreader long-form exception was tested against
+  Inter-only; it improved sustained reading comfort but **tied 90–90** overall, scored lower on
+  product-voice coherence and cross-content/script robustness, and carried greater font-swap reflow,
+  so under the pre-registered tie-defaults-to-Inter rule it is **not accepted**. ADR 014 remains
+  authoritative; **no second long-form reading voice is accepted**; **do not introduce Newsreader or
+  another serif into Film File long-form body prose**. This is not an ADR (see the closure record
+  [`thoughtful-seatmate-p2d-reading-voice-closure.md`](thoughtful-seatmate-p2d-reading-voice-closure.md)).
 
-The long-form Film File serif exception above remains open.
+The long-form Film File serif exception is now **resolved** (P2D — Film File remains Inter-only).
 
 Do not convert any of these into doctrine without the validation in §20.
 

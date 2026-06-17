@@ -1,0 +1,77 @@
+/* PrimaryAction — neutral projection-ivory primary action (Stage 1).
+   No transition by default (reduced-motion-safe baseline); hover/press transitions
+   are gated by prefers-reduced-motion: no-preference. No rose/purple/gradient/glow. */
+
+.ts-action-primary {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 9999px; /* pill — matches the Button contract */
+  background: var(--ts-action-primary-fill, #efe7d7);
+  color: var(--ts-action-primary-text, #221b13);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: none;
+}
+
+.ts-action-primary--sm { min-height: 44px; padding: 8px 16px; font-size: 13px; }
+.ts-action-primary--md { min-height: 44px; padding: 10px 22px; font-size: 14px; }
+.ts-action-primary--lg { min-height: 48px; padding: 12px 28px; font-size: 16px; font-weight: 700; }
+.ts-action-primary--full { width: 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ts-action-primary {
+    transition:
+      filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+.ts-action-primary:hover:not(:disabled) { filter: brightness(0.95); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ts-action-primary:active:not(:disabled) { transform: translateY(1px); }
+}
+
+/* Focus-visible: an offset ivory outline (matches the app's outline-based focus
+   pattern). Drawn outside the element, so it is visible on the ivory fill and on any
+   graphite surface, with zero layout shift, and it survives forced-colors. */
+.ts-action-primary:focus-visible {
+  outline: 2px solid var(--ts-focus, #f3ecdf);
+  outline-offset: 2px;
+}
+
+.ts-action-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Loading: spinner overlays a width-reserving label → no layout shift. */
+.ts-action-primary[data-loading="true"] .ts-action-primary__label { opacity: 0; }
+
+.ts-action-primary__spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 9999px;
+  border: 2px solid rgba(34, 27, 19, 0.35);
+  border-top-color: #221b13;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ts-action-primary__spinner { animation: ts-action-spin 0.7s linear infinite; }
+}
+
+@keyframes ts-action-spin { to { transform: rotate(360deg); } }
+
+@media (forced-colors: active) {
+  .ts-action-primary { border-color: ButtonText; }
+  .ts-action-primary:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; box-shadow: none; }
+}

@@ -1,0 +1,8 @@
+/* Surface — solid graphite contained-surface primitive (Stage 1).
+   Borders over shadows. No transition / hover lift by default (reduced-motion-safe
+   baseline). Interactive lift, if ever needed, is added by the owning control, not
+   baked into this generic surface. */
+
+.ts-surface {
+  box-sizing: border-box;
+}

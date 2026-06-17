@@ -56,6 +56,13 @@ confirm intentional; review desktop + mobile; re-baseline deliberately, never to
 
 ## Stage 1 — Shared tokens and primitives (define + scaffold; do not globalize)
 
+> **Status: IMPLEMENTED (foundations only), not adopted, not merged.** Built on branch
+> `migration/thoughtful-seatmate-stage1-foundations` off `origin/main` `5c7191ea`. Scoped `--ts-*` tokens
+> + primitives live in `src/shared/ui/thoughtful-seatmate/`, with a dev-only showcase and a legacy-gradient
+> guard. No production surface adopts it; it is excluded from the production bundle. Details:
+> [`thoughtful-seatmate-stage1-foundations-implementation.md`](thoughtful-seatmate-stage1-foundations-implementation.md).
+> Token globalization still waits for the two pilots (gate 5).
+
 - **Current typography:** font pipeline registers Inter + Newsreader + Outfit (`--font-body`/`--font-ui`
   Inter; `--font-display`/`--font-editorial` Newsreader).
 - **Current background:** production base tokens are the legacy palette (`#000000`/`#06060a`); the

@@ -22,6 +22,8 @@
     "persona:revisit:summary": "node scripts/personas/summarize-revisit-followups.mjs",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
+    "guard:foundations": "node scripts/guards/legacy-gradient-guard.mjs",
+    "guard:foundations:update": "node scripts/guards/legacy-gradient-guard.mjs --update-baseline",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

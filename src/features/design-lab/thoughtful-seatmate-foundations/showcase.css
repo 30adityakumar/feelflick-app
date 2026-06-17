@@ -1,0 +1,67 @@
+/* Stage 1 showcase layout — DEV-ONLY, not shipped to production.
+   Layout scaffolding only; visual roles come from the Stage 1 primitives. */
+
+.tsx-page { min-height: 100vh; }
+
+.tsx-wrap {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 48px 20px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.tsx-head { display: flex; flex-direction: column; gap: 12px; }
+.tsx-lede { color: var(--ts-text-secondary, #beb8ad); max-width: 60ch; }
+
+.tsx-section { display: flex; flex-direction: column; gap: 14px; }
+.tsx-section__body { display: flex; flex-direction: column; gap: 14px; }
+
+.tsx-depth-demo {
+  height: 160px;
+  border-radius: 12px;
+  border: 1px solid var(--ts-border-subtle, #302c28);
+}
+
+.tsx-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.tsx-cell { min-height: 96px; display: flex; align-items: flex-end; padding: 12px; }
+.tsx-pad { padding: 20px; }
+.tsx-stack { display: flex; flex-direction: column; gap: 10px; }
+.tsx-card { display: flex; flex-direction: column; gap: 12px; }
+
+.tsx-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.tsx-row--narrow { max-width: 320px; }
+
+.tsx-poster {
+  width: 140px;
+  aspect-ratio: 2 / 3;
+  display: grid;
+  place-items: center;
+}
+
+.tsx-selectable {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--ts-border-subtle, #302c28);
+  background: var(--ts-surface-2, #241e19);
+  color: var(--ts-text-primary, #f3ecdf);
+  cursor: pointer;
+}
+.tsx-selectable__state { margin-left: auto; }
+/* The selected row also changes its border (a non-color cue beyond the marker). */
+.tsx-selectable--on { border-color: var(--ts-border-strong, #46423d); }
+.tsx-selectable:focus-visible {
+  outline: 2px solid var(--ts-focus, #f3ecdf);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .tsx-grid { grid-template-columns: 1fr; }
+}

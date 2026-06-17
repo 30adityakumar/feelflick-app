@@ -30,6 +30,14 @@ const History = lazy(() => import('@/features/history/History'))
 // 404
 const NotFound = lazy(() => import('@/app/NotFound'))
 
+// Stage 1 — Thoughtful Seatmate foundations showcase (DEV-ONLY). The literal
+// `import.meta.env.DEV` guard + static import path let Rollup dead-code-eliminate
+// both this lazy import and its route from the production build (no prod chunk, no
+// user-accessible route). Not a normal route; for foundation review in dev only.
+const Stage1Foundations = import.meta.env.DEV
+  ? lazy(() => import('@/features/design-lab/thoughtful-seatmate-foundations/Showcase'))
+  : null
+
 // Shared top/bottom nav + footer (used by legal pages)
 import TopNav from '@/components/layout/TopNav'
 import Footer from '@/components/layout/Footer'
@@ -214,6 +222,11 @@ export const router = sentryCreateBrowserRouter([
     element: <PublicShell />,
     errorElement: <ErrorBoundary />,
     children: [
+      // DEV-ONLY Stage 1 foundations showcase — empty in production (tree-shaken).
+      ...(import.meta.env.DEV
+        ? [{ path: 'design-lab/thoughtful-seatmate-foundations', element: <LazyRoute Component={Stage1Foundations} />, errorElement: <ErrorBoundary /> }]
+        : []),
+
       // Root decides: Landing (anon) or /home (authed)
       { index: true, element: <RootEntry /> },
 

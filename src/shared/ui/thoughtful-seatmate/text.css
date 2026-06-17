@@ -1,0 +1,70 @@
+/* Thoughtful Seatmate typography roles (Stage 1) — INTER ONLY.
+   Hierarchy comes from scale / weight / measure / spacing in a single sans-serif
+   voice. No Newsreader, no Outfit, no serif, no display font, no editorial-context
+   family switching. Weights used (400/500/600/700) are all globally loaded. Sizes
+   use px to match the codebase; explicit line-heights; safe wrapping for long /
+   localized / missing content. Colors read the scoped projection-ivory hierarchy. */
+
+.ts-text {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+  color: var(--ts-text-primary, #f3ecdf);
+}
+
+.ts-text--display {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.ts-text--title {
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.ts-text--section {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.ts-text--body {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.ts-text--body-sm {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.ts-text--label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.ts-text--caption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ts-text-secondary, #beb8ad);
+}
+
+.ts-text--metadata {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ts-text-muted, #8d887f);
+}

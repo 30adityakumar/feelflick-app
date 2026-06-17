@@ -1,0 +1,44 @@
+/* === Thoughtful Seatmate — Stage 1 scoped foundation tokens =================
+ *
+ * SCOPED to the `.ts-root` class — NOT `:root`. These `--ts-*` custom properties
+ * only exist inside an element carrying `ts-root` (see ThoughtfulRoot.jsx). This
+ * keeps Stage 1 fully isolated: it does not touch global tokens, the production
+ * canvas, fonts, focus ring, or selection, and it is excluded from the production
+ * bundle until a pilot imports a Stage 1 primitive. Mirrors TS_TOKENS in ./tokens.js.
+ *
+ * These are the accepted target values (visual-system closure). Stage 1 does not
+ * apply them to any production surface.
+ */
+
+.ts-root {
+  /* Background depth + solid graphite surfaces (near-black → warm graphite) */
+  --ts-canvas: #15120f;
+  --ts-surface-1: #1d1814;
+  --ts-surface-2: #241e19;
+  --ts-surface-raised: #2d2621;
+
+  /* Projection-ivory text hierarchy */
+  --ts-text-primary: #f3ecdf;
+  --ts-text-secondary: #beb8ad;
+  --ts-text-muted: #8d887f;
+
+  /* Subtle graphite borders */
+  --ts-border-subtle: #302c28;
+  --ts-border-strong: #46423d;
+
+  /* Neutral primary action (projection-ivory fill, dark warm text) */
+  --ts-action-primary-fill: #efe7d7;
+  --ts-action-primary-text: #221b13;
+
+  /* Focus (projection ivory) */
+  --ts-focus: #f3ecdf;
+
+  /* One restrained solid rose accent (+ white-on-rose contrast variant only) */
+  --ts-brand-rose: #dd4e83;
+  --ts-brand-rose-contrast: #c0356c;
+
+  /* Base typography role: Inter only (reuses the globally-loaded family; does not
+     re-import or redefine fonts). Hierarchy comes from scale/weight/measure. */
+  color: var(--ts-text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}

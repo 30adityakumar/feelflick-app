@@ -14,10 +14,15 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackInteraction } from '@/shared/services/interactions'
 import { updateImpression } from '@/shared/services/recommendations'
 
-import { HP, MOOD_META } from './data'
+import { MOOD_META } from './data'
 import { MoodReactor, TheBriefing } from './sections-top'
 import { QuickLog, PageEndCard } from './sections-bottom'
 import { HomeDataProvider, useHomeData } from './useHomeData'
+// Stage 2 — Thoughtful Seatmate pilot: Tonight activates the Stage 1 foundation
+// LOCALLY via <ThoughtfulRoot> (scoped .ts-root, never global) and paints the page
+// canvas with the neutral near-black→warm-graphite <PageDepth> (replacing the prior
+// mood-tuned ambient gradient). No behavior/recommendation/analytics change.
+import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
 import './home.css'
 
 // Calm, honest top-level error when the home briefing data fails to load. No raw
@@ -26,10 +31,10 @@ import './home.css'
 function HomeLoadError() {
   return (
     <div role="alert" className="flex flex-col items-center gap-2 px-6 py-24 text-center">
-      <p style={{ fontSize: 16, fontWeight: 600, color: HP.text, fontFamily: 'Inter, sans-serif', margin: 0 }}>
+      <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--ts-text-primary, #f3ecdf)', fontFamily: 'Inter, sans-serif', margin: 0 }}>
         We couldn&rsquo;t load your home briefing.
       </p>
-      <p style={{ fontSize: 14, color: HP.textMuted, fontFamily: 'Inter, sans-serif', margin: 0 }}>
+      <p style={{ fontSize: 14, color: 'var(--ts-text-muted, #8d887f)', fontFamily: 'Inter, sans-serif', margin: 0 }}>
         Try refreshing in a moment.
       </p>
     </div>
@@ -119,13 +124,11 @@ function HomeBody() {
   // are surfaced on their proper routes (/browse, /lists, /people).
 
   return (
-    <div className="ff-home" style={{ minHeight: '100vh', background: HP.bg, color: HP.text, position: 'relative', overflowX: 'hidden' }}>
-      {/* Mood-tuned ambient gradient — reactive */}
-      <div aria-hidden style={{
-        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
-        background: `radial-gradient(ellipse 80% 50% at 15% 0%, ${currentMood.hex}1f 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 85% 100%, ${currentMood.hex}14 0%, transparent 50%)`,
-        transition: 'background 0.6s ease',
-      }} />
+    // Neutral near-black→warm-graphite page canvas (Stage 1 PageDepth). Replaces the
+    // prior mood-tuned ambient gradient: the background is neutral depth, never a
+    // recommendation/mood signal. minHeight + canvas fill keep it correct on short,
+    // tall, loading, and error content.
+    <PageDepth depth="radial" className="ff-home" style={{ minHeight: '100vh', color: 'var(--ts-text-primary, #f3ecdf)', position: 'relative', overflowX: 'hidden' }}>
       <div style={{ position: 'relative', zIndex: 1 }}>
         {/* a11y landmark (F12B): the visual masthead is the Briefing hero; an sr-only h1 gives the page its heading without competing with the pick. */}
         <h1 className="sr-only">Tonight — your nightly pick</h1>
@@ -166,20 +169,24 @@ function HomeBody() {
                     it should not dominate or duplicate Profile on every Home visit. */}
             <QuickLog onLog={onLog} />
             <PageEndCard
-              currentMood={currentMood}
               onDiscover={() => navigate('/discover')}
             />
           </>
         )}
       </div>
-    </div>
+    </PageDepth>
   )
 }
 
 export default function Home() {
   return (
     <HomeDataProvider>
-      <HomeBody />
+      {/* Local Stage 1 activation boundary — scopes the --ts-* foundation to the
+          Tonight surface only (inside HomeDataProvider so hooks work, inside the
+          shared AppShell so Header/BottomNav stay outside the visual system). */}
+      <ThoughtfulRoot>
+        <HomeBody />
+      </ThoughtfulRoot>
     </HomeDataProvider>
   )
 }

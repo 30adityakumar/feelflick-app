@@ -13,23 +13,25 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
 
-// F2 — mirrors the F1 briefing palette (scoped to /home; not promoted to shared
-// tokens yet) so the bottom sections speak the same Midnight Film Journal language
-// as the briefing. ROSE is imported (single source); the warm neutrals mirror
-// sections-top's local consts.
-const EDITORIAL = 'var(--font-editorial)'
-const IVORY = '#F2ECE1'
-const IVORY_META = 'rgba(242,236,225,0.62)'
-const WARM_KEYLINE = 'rgba(242,236,225,0.18)'
+// Stage 2 — Thoughtful Seatmate: the bottom sections speak the consolidated system
+// (one Inter voice, projection-ivory hierarchy, graphite keylines) via the scoped
+// --ts-* tokens, with literal fallbacks for out-of-.ts-root rendering. Mirrors
+// sections-top. ROSE stays imported for the non-rendered components + the single
+// bounded large editorial closer em (AA as large text); rendered kickers are ivory.
+const EDITORIAL = 'Inter, system-ui, sans-serif'
+const IVORY = 'var(--ts-text-primary, #f3ecdf)'
+const IVORY_META = 'var(--ts-text-muted, #8d887f)'
+const WARM_KEYLINE = 'var(--ts-border-strong, #46423d)'
 
 // `accent` colours the kicker eyebrow + its rule. Defaults to undefined → the
-// Eyebrow's own default (the rendered /home sections pass rose; the not-yet-
-// rendered sections keep their default until their own migration).
+// Eyebrow's own default (the rendered /home sections pass ivory — rose fails AA on
+// the depth canvas as small text; the not-yet-rendered sections keep their default
+// until their own migration).
 const Heading = ({ kicker, title, sub, accent }) => (
   <header style={{ marginBottom: 36 }}>
     <Eyebrow rule color={accent} size={10} spacing="0.24em" style={{ marginBottom: 14 }}>{kicker}</Eyebrow>
-    <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 400, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>{title}</h2>
-    {sub && <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Inter, sans-serif', textWrap: 'pretty' }}>{sub}</p>}
+    <h2 style={{ fontFamily: 'Inter, system-ui, sans-serif', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.05, fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--ts-text-primary, #f3ecdf)', margin: 0, textWrap: 'balance' }}>{title}</h2>
+    {sub && <p style={{ marginTop: 14, fontSize: 14, color: 'var(--ts-text-muted, #8d887f)', maxWidth: 540, fontFamily: 'Inter, sans-serif', textWrap: 'pretty' }}>{sub}</p>}
   </header>
 )
 
@@ -598,8 +600,8 @@ function SeenTile({ film, onConfirm }) {
           </div>
         )}
       </div>
-      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
-      <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 3, letterSpacing: '0.06em' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: 'var(--ts-text-primary, #f3ecdf)', lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
+      <div style={{ fontSize: 10, color: 'var(--ts-text-muted, #8d887f)', fontFamily: 'Inter, sans-serif', marginTop: 3, letterSpacing: '0.06em' }}>
         {film.release_year || ''}{film.primary_genre ? ` · ${film.primary_genre}` : ''}
       </div>
     </button>
@@ -681,12 +683,12 @@ export function QuickLog({ onLog }) {
   const allConfirmed = visible.length === 0
 
   return (
-    <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[72px] lg:pb-24" style={{ borderColor: HP.border, background: 'rgba(255,255,255,0.008)' }}>
+    <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[72px] lg:pb-24" style={{ borderColor: 'var(--ts-border-subtle, #302c28)', background: 'rgba(255,255,255,0.008)' }}>
       {/* QuickLog-owned polite live region — announces log success/failure once. */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{statusMsg}</div>
       <Heading
         kicker="Feed the engine"
-        accent={ROSE}
+        accent={IVORY}
         title={allConfirmed ? 'Nice — your taste profile just got sharper.' : 'Have you seen any of these?'}
         sub={allConfirmed
           ? 'These were our best guesses. Want to log something else?'
@@ -721,15 +723,15 @@ export function QuickLog({ onLog }) {
           (the FeelFlick catalog). The page-end card below offers the
           mood path; this pill offers the catalog path — two distinct
           exits, not redundant. */}
-      <div style={{ marginTop: allConfirmed ? 8 : 32, paddingTop: allConfirmed ? 0 : 24, borderTop: allConfirmed ? 'none' : `1px solid ${HP.border}` }}>
-        <p style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginBottom: 10, letterSpacing: '0.04em' }}>
+      <div style={{ marginTop: allConfirmed ? 8 : 32, paddingTop: allConfirmed ? 0 : 24, borderTop: allConfirmed ? 'none' : `1px solid var(--ts-border-subtle, #302c28)` }}>
+        <p style={{ fontSize: 12, color: 'var(--ts-text-muted, #8d887f)', fontFamily: 'Inter, sans-serif', marginBottom: 10, letterSpacing: '0.04em' }}>
           {allConfirmed ? 'Browse the catalog:' : 'Don’t see what you watched? Browse the catalog:'}
         </p>
         <button
           type="button"
           onClick={() => onLog?.()}
           className="group inline-flex min-h-[44px] items-center gap-2 rounded-full bg-transparent px-5 py-2.5 transition-all duration-200 hover:bg-white/[0.04] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/40"
-          style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.textSoft, letterSpacing: '0.02em', border: `1px solid ${WARM_KEYLINE}` }}
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: 'var(--ts-text-secondary, #beb8ad)', letterSpacing: '0.02em', border: `1px solid ${WARM_KEYLINE}` }}
         >
           Open Browse
           <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
@@ -743,23 +745,22 @@ export function QuickLog({ onLog }) {
 // ALREADY given tonight's pick above; this is just the optional door to Discover
 // for when the user would rather shape a pick deliberately by mood + context.
 // Deliberately calmer than a second hero and SUBORDINATE to the briefing's
-// bone-slab primary — the gradient pill + glowing card were retired (F2) for a
-// warm hairline panel, an editorial heading, and a rose-ghost CTA. A whisper of
-// the current mood remains as faint atmosphere (consistent with the page ambient).
-export function PageEndCard({ currentMood, onDiscover }) {
-  const tint = currentMood?.hex || ROSE
+// bone-slab primary — the gradient pill + glowing card were retired (F2), and in
+// Stage 2 the mood-tinted panel + rose CTA became a neutral graphite panel with a
+// quiet graphite-outline CTA (no per-mood colour). The editorial closer keeps the
+// single bounded rose em (large text → AA).
+export function PageEndCard({ onDiscover }) {
   return (
-    <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[64px] lg:pb-[80px]" style={{ borderColor: HP.border }}>
+    <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[64px] lg:pb-[80px]" style={{ borderColor: 'var(--ts-border-subtle, #302c28)' }}>
       <div
         style={{
           position: 'relative',
           borderRadius: 14,
           overflow: 'hidden',
           padding: '40px 28px',
-          background: `
-            radial-gradient(ellipse 60% 80% at 18% 110%, ${tint}10, transparent 60%),
-            linear-gradient(180deg, rgba(242,236,225,0.022), transparent 55%)
-          `,
+          // Stage 2 — neutral graphite panel (was a mood-tinted radial). No per-mood
+          // or contextual colour; a faint ivory top-wash on a solid graphite surface.
+          background: 'linear-gradient(180deg, rgba(243,236,223,0.03), transparent 60%), var(--ts-surface-1, #1d1814)',
           border: `1px solid ${WARM_KEYLINE}`,
           textAlign: 'center',
         }}
@@ -773,8 +774,9 @@ export function PageEndCard({ currentMood, onDiscover }) {
           Or shape your own
           <span aria-hidden style={{ height: 1, width: 24, background: IVORY_META, opacity: 0.6 }} />
         </div>
-        {/* Editorial closer voice (Newsreader) — the curator inviting the
-            deliberate path; emphasis in restrained rose, not the old mood-purple. */}
+        {/* Editorial closer voice (Inter, Stage 2) — the curator inviting the
+            deliberate path; emphasis in the single bounded rose accent (large
+            editorial text → AA), not the old mood-purple. */}
         <h2 style={{
           fontFamily: EDITORIAL,
           fontSize: 'clamp(26px, 3vw, 40px)',
@@ -806,7 +808,9 @@ export function PageEndCard({ currentMood, onDiscover }) {
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               minHeight: 44, padding: '12px 24px', borderRadius: 4,
-              border: `1px solid ${ROSE}`, color: IVORY,
+              // Subordinate to the briefing's neutral PrimaryAction: a quiet graphite
+              // outline (no rose border, no gradient), per the secondary-action rule.
+              border: '1px solid var(--ts-border-strong, #46423d)', color: IVORY,
               fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
               cursor: 'pointer',
             }}

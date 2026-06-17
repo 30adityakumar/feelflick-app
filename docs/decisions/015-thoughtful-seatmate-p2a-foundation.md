@@ -295,14 +295,16 @@ pure white is used as a core identity color.
 
 ## 15. What this decision does NOT decide
 
-- It does **not** resolve the exact **warm decision-signal hue**, nor whether
-  selected states are **ivory-only** or **ivory-plus-a-warm-cue** — those remain open
-  prototype questions.
+- It does **not** itself resolve the exact **warm decision-signal hue**, nor whether
+  selected states are **ivory-only** or **ivory-plus-a-warm-cue** — those questions were later
+  **resolved by ADR 016** (ivory-only; no separate warm cue). See the Status update below.
 - It does **not** resolve **contextual-film-color strength** or **normalization
   thresholds**.
-- It does **not** resolve whether the **legacy gradient** survives in any narrow role.
-- It does **not** resolve the **long-form Film File serif exception**, **bottom
-  navigation**, or **couple-mode** mechanics.
+- It does **not** itself resolve whether the **legacy gradient** survives, the **long-form
+  Film File serif exception**, **bottom navigation**, or **couple-mode** mechanics. *(Update
+  2026-06-17: serif → resolved Inter-only by P2D; legacy-gradient survival → resolved, retired
+  from the target (P2E stopped without a decision); bottom navigation and couple-mode remain
+  open product questions. See the Status update at the end of this file.)*
 - It does **not** promote these values to **global production tokens** or authorize
   broad surface migration.
 - It does **not** change product doctrine
@@ -341,11 +343,24 @@ pure white is used as a core identity color.
 - **P2B** proceeds on this fixed foundation (resolving the next questions — e.g. the
   warm decision-signal hue and ivory-only-vs-ivory-plus-warm-cue selected states —
   not re-opening the foundation).
-- Keep the remaining authority prototype questions open: warm-cue hue,
-  contextual-color strength and normalization thresholds, gradient survival,
-  long-form Film File serif exception, bottom navigation, couple mode.
+- Keep the remaining authority prototype questions open: **bottom navigation and couple
+  mode**. (Warm-cue hue and contextual-color strength/normalization thresholds were resolved by
+  ADR 016 / 017 / 018; the long-form serif role and legacy-gradient survival have since been
+  resolved — see the Status update below; contextual-color extraction is deferred.)
 - When foundation migration is scheduled, follow the authority's migration gates:
   scoped Tonight + Film File pilots with these local values → after both validate,
   promote to shared tokens/primitives → surface-by-surface migration with deliberate
   visual-regression re-baselining. Do not globalize these tokens before pilot
   validation.
+
+## Status update (2026-06-17 — Thoughtful Seatmate visual-system closure)
+
+Of the remaining authority prototype questions listed above, two are now **resolved** and must
+not be reopened during migration: the **long-form Film File serif role** (P2D — Film File stays
+Inter-only) and **legacy-gradient survival** (retired from the target system — the P2E
+gradient-survival study was stopped before a valid blind review and produced no decision; no
+winner, no decision rule applied). The warm-cue hue and contextual-color strength/normalization
+thresholds were resolved by ADR 016 / 017 / 018. The contextual-color **extraction** method
+remains **deferred**, and bottom-navigation and couple-mode remain open product questions. This
+ADR's own decision — the warm graphite foundation values — is unchanged and remains authoritative.
+See [`../ui/thoughtful-seatmate-visual-system-closure.md`](../ui/thoughtful-seatmate-visual-system-closure.md).

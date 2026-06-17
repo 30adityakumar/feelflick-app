@@ -100,17 +100,18 @@ The target is the **Thoughtful Seatmate** direction — design for someone smart
 * progressive recommendation depth; explanation present and truthful; no required numbered case
 * poster as a cinematic/editorial object, not a flat grid thumbnail
 * brief, purposeful, nonblocking motion; reduced decorative chrome (hairline rules over glow/glass)
-* the legacy purple–pink gradient barred from default actions, selected states, chrome, AI/premium signaling, and permanent atmosphere (any narrow reveal/memory/celebration role remains an unresolved prototype question)
+* the legacy purple–pink gradient **retired from the target system** — no memory-only or share-only role, no replacement gradient, no new gradient token; existing shipped usage is transitional migration debt removed only on deliberate surface migration (do not claim it is already gone from production)
+* a **neutral near-black → warm-graphite depth treatment** for large backgrounds (radial preferred; linear only where geometry requires) — this is a neutral atmospheric treatment, **not** a brand gradient, and stays off cards/buttons/chips/nav/selected/semantic states
+* **one restrained solid rose accent** (`#DD4E83`) used sparingly — never a primary action, decision signal, semantic state, large atmosphere, or pervasive treatment
 * no default visible backup recommendations on Tonight
 
-These foundation principles are **accepted**. The replacement *specifics* are **active prototype questions** (below). The full direction, surface roles, and rationale live in the active authority document: [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). The prior [`docs/ui/design-authority-f3.md`](../../docs/ui/design-authority-f3.md) is **historical** — it records the shipped F3/F4 baseline, not the target.
+These foundation principles are **accepted**, and the visual system is now **consolidated** (closure: [`docs/ui/thoughtful-seatmate-visual-system-closure.md`](../../docs/ui/thoughtful-seatmate-visual-system-closure.md)) — typography, foundation values, primary action, decision signal, contextual-color envelope and strength, the one restrained rose accent, the neutral depth treatment, and the legacy-gradient retirement are all **resolved**. Only a few genuine product/interaction questions remain open (below). The full direction, surface roles, and rationale live in the active authority document: [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). The prior [`docs/ui/design-authority-f3.md`](../../docs/ui/design-authority-f3.md) is **historical** — it records the shipped F3/F4 baseline, not the target.
 
 ### Accepted principles versus prototype questions
 
-Do **not** finalize any of these — they remain prototype questions until validated by rendered prototypes and a decision record:
+The visual system is now **consolidated** — see [`docs/ui/thoughtful-seatmate-visual-system-closure.md`](../../docs/ui/thoughtful-seatmate-visual-system-closure.md). Only genuine product/interaction questions remain open; the **legacy-gradient survival** and **long-form serif** questions are **resolved** (see below) and must not be reopened during migration unless implementation exposes a real accessibility or usability failure:
 
-* the contextual-color **extraction algorithm / seed-generation method** — the normalization envelope (ADR 017) and the aura strength (alpha 0.14, ADR 018) are resolved, but extraction is **unresolved and not accepted**: edge-context was selected in the synthetic P2C-C comparison but **failed the genuine real-poster holdout** (P2C-D) on transformation stability, alternate-rendition stability, incidental-color rate, product value over off, and harmful suppression — **do not implement edge-context as the production extraction method**; no automatic extraction method is accepted and manual deterministic seeds are **not** a production extraction method (closure: [`docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md`](../../docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md))
-* whether the legacy gradient ultimately survives
+* the contextual-color **extraction algorithm / seed-generation method** — **deferred** (not a blocker for the design migration): the normalization envelope (ADR 017) and the aura strength (alpha 0.14, ADR 018) are resolved, but extraction is **unresolved and not accepted**: edge-context was selected in the synthetic P2C-C comparison but **failed the genuine real-poster holdout** (P2C-D) on transformation stability, alternate-rendition stability, incidental-color rate, product value over off, and harmful suppression — **do not implement edge-context as the production extraction method**; no automatic extraction method is accepted and manual deterministic seeds are **not** a production extraction method. Treat contextual film color as a **deferred enhancement** (closure: [`docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md`](../../docs/ui/thoughtful-seatmate-p2c-d-validation-closure.md))
 * exact bottom-navigation structure
 * exact couple-mode interaction
 
@@ -122,6 +123,9 @@ Do **not** finalize any of these — they remain prototype questions until valid
 * the **decision signal**: meaningful selected/committed states are **ivory-only** (projection ivory `#f3ecdf` supplementary marker + redundant non-color signals); **no separate warm decision-signal hue and no new color token** ([ADR 016](../../docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md)). This resolves the warm-cue-hue and ivory-only-vs-ivory-plus-warm-cue questions (see "Primary action and decision signal")
 * the contextual-color **normalization envelope**: the **strict** envelope — preserve source hue, output lightness **L = 0.62**, retained chroma cap **C = 0.04**, under the fixed low-saturation, semantic-safety, and gamut rules, single focal-film scope ([ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md))
 * the contextual-color **aura strength**: **compositing alpha 0.14**, applied only to the strict envelope on a single focal-film surface ([ADR 018](../../docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md)) — the reference strength independently cleared the ≥5-point bar over off, while 0.07 did not and 0.21 scored below off; no tie-break, no blending. The **complete accepted contextual-color treatment** is now hue preserved, L = 0.62, C = 0.04, alpha 0.14, focal-film scope; **extraction remains provisional**, and **no production aura is authorized**
+* the **legacy purple–pink gradient is retired from the target system** — no memory-only role, no share-only role, no replacement gradient, no new gradient token. The **P2E gradient-survival study was stopped before a valid blind review and produced no decision** (no winner, no decision rule applied); gradient survival is resolved by simplification — retired. Existing shipped usage (`--brand-gradient`/`--gradient-primary`, `HP_GRAD`) is transitional migration debt removed only on deliberate surface migration; **do not claim it is already gone from production** (closure: [`docs/ui/thoughtful-seatmate-visual-system-closure.md`](../../docs/ui/thoughtful-seatmate-visual-system-closure.md))
+* the **neutral background-depth treatment** — a near-black → warm-graphite tonal transition (radial preferred; linear only where geometry requires) for page canvas, hero regions, immersive modal backgrounds, Tonight/Film File depth, and large section transitions. It is a **neutral atmospheric treatment, not a brand gradient**, and stays off cards/buttons/chips/nav/selected/semantic states/decorative glow (see "Gradients")
+* the **brand accent** — **one restrained solid rose** (`#DD4E83`), used sparingly (wordmark detail, lightweight links, subtle active emphasis, small signature marks, bounded editorial/promotional moments); `#C0356C` is retained **only** as the AA-contrast variant for white text on rose. Rose is **not** a primary action, decision signal, semantic state, navigation background, large atmosphere, card fill, or pervasive glow (see "Primary action and decision signal")
 
 ## Design modes
 
@@ -222,14 +226,7 @@ Editorial moments should feel:
 
 ### Existing Outfit usage
 
-Outfit remains part of the current baseline during validation.
-
-It may be retained if testing shows that it has a clear unique role, such as:
-
-* wordmark
-* compact brand labels
-* selected uppercase identity treatments
-* a specific display system not served by Newsreader
+Outfit remains part of the current shipped baseline as **transitional migration debt** — not a typeface under validation for adoption. The consolidated target is **Inter only** (see closure: [`docs/ui/thoughtful-seatmate-visual-system-closure.md`](../../docs/ui/thoughtful-seatmate-visual-system-closure.md)); Outfit is **not** retained as a permanent family. Remove Outfit from a surface only when that surface is deliberately migrated — do not remove it opportunistically in unrelated work, and do not extend it to new surfaces.
 
 Do not preserve Outfit as a third permanent family merely because it is already installed.
 
@@ -349,7 +346,7 @@ The target identity is carried by the **warm-neutral foundation and ivory text**
   * **Forbidden scope:** default CTA, hover, focus, navigation, tabs, routine filters, every chip, loading, disabled, errors, destructive actions, ratings, caution, success/watched, availability, confidence, headings, wordmark/logo, AI/premium signaling, page atmosphere, poster aura, decorative separators. It is **not** a brand accent.
   * **Token discipline:** do **not** create a new global `--decision-signal` color token aliasing `#f3ecdf`. Scoped pilots may use a **local semantic alias** to the ADR 015 projection-ivory role; the source of color truth remains ADR 015. No global token migration is authorized.
 
-**Current production baseline (transitional):** migrated surfaces ship rose (`#DD4E83`) as the accent, with the legacy purple/pink tokens on the rest. Rose as a *permanent* brand signature or default primary-CTA color is **retired as the target** — it is a transitional accent, not the core identity. Do not extend rose as the brand signature to new surfaces, and do not make every button, heading, icon, border, and glow rose.
+**Brand accent — one restrained solid rose (accepted).** The recognizable FeelFlick accent is **one restrained solid rose, `#DD4E83`** (the value shipped most consistently on migrated surfaces); `#C0356C` is retained **only** as the AA-contrast variant for white text on rose — not a second brand hue or a new semantic token. Use rose **sparingly**: wordmark detail, lightweight links, subtle active emphasis, small signature marks, bounded editorial/promotional moments. Rose is **not** a primary action (that is the neutral ivory fill, [ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)), **not** the decision signal (that is ivory-only, [ADR 016](../../docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md)), and **not** a semantic, navigation-background, large-atmosphere, card-fill, or pervasive-glow color. What is **retired** is rose as a *pervasive, permanent brand signature or default primary-CTA color*; what is **accepted** is rose as the **one bounded brand accent**. Do not make every button, heading, icon, border, and glow rose. (Current production baseline, transitional: migrated surfaces ship rose; residual surfaces still carry legacy purple/pink tokens.)
 
 Semantic colors are separate and load-bearing (see "Semantic colors"); never fold amber/red/green into the brand palette.
 
@@ -433,18 +430,20 @@ Semantic meaning should not rely on color alone.
 
 ## Gradients
 
-The legacy purple-to-pink gradient is **retired as a primary action and as default atmosphere**. On `/home` it has been replaced with the neutral primary (a solid light-neutral fill with dark warm text). **Accepted restriction:** it must not function as the default primary action, a routine selected state, application chrome, a generic AI/premium signal, or permanent atmosphere. **Active prototype question:** whether it retains any narrow role — a rare reveal, memory, campaign, sharing, or celebration moment — or survives at all is unresolved; do not create new production uses until that role is validated, and do not treat a possible future use as an approved production treatment.
+The legacy purple-to-pink gradient — `linear-gradient(135deg, #9333ea 0%, #ec4899 100%)` (`--brand-gradient` / `--gradient-primary`, `HP_GRAD`) — is **retired from the target system.** There is **no memory-only role, no share-only role, no replacement gradient, and no new gradient token**; do not introduce new gradient usage anywhere. The **P2E gradient-survival study was stopped before a valid blind review and produced no decision** (no winner, no decision rule applied); gradient survival is resolved by simplification — retired (closure: [`docs/ui/thoughtful-seatmate-visual-system-closure.md`](../../docs/ui/thoughtful-seatmate-visual-system-closure.md)). Existing shipped gradient usage is transitional migration debt removed only on deliberate surface migration; **do not claim it is already gone from production.**
 
-Gradients are appropriate when they communicate:
+The one accepted tonal treatment is the **neutral background-depth treatment** — a near-black → warm-graphite transition for large backgrounds only. It is a **neutral atmospheric treatment, not a brand gradient**:
 
-* atmosphere
-* emotional transition
-* visual depth
-* selection
-* contextual film color
-* a focused brand moment
+```css
+/* preferred — radial */
+background: radial-gradient(circle at 50% 0%, #241e19 0%, #1d1814 38%, #15120f 100%);
+/* linear — only where the surface geometry clearly requires it */
+background: linear-gradient(180deg, #241e19 0%, #1d1814 42%, #15120f 100%);
+```
 
-Avoid using gradients as automatic shorthand for:
+Use it **only** for page canvas, hero regions, immersive modal backgrounds, Tonight/Film File page depth, and large section transitions. Do **not** use it inside cards, on buttons, chips, or navigation items, as a selected state, as a semantic state, as a decorative glow, or as a per-section identity treatment. Cards and contained surfaces remain mostly solid graphite. The single-hue contextual-film-color radial aura is governed separately (ADR 017/018) and remains **deferred** — not implemented.
+
+No gradient is used for selection, the primary action, a decision/committed state, a brand moment, premium, or AI. Avoid using gradients as automatic shorthand for:
 
 * premium
 * AI
@@ -813,7 +812,7 @@ Perform at least one critique and refinement pass.
 The Thoughtful Seatmate direction is **accepted at the principle level**, not yet implemented. Migration proceeds through these gates, in order — do not skip ahead:
 
 1. **Doctrine accepted** — the active authority is [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md). ✅
-2. **Isolated prototypes resolve the open questions** — contextual-color extraction and gradient survival — answered with rendered desktop + mobile evidence. (The core voice (Inter, [ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md)), the warm graphite / projection-ivory foundation values (prototype/pilot-scoped, [ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)), the ivory-only decision signal (no warm-cue token, [ADR 016](../../docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md)), the contextual-color normalization envelope (strict, [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)), the aura strength (alpha 0.14, [ADR 018](../../docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md)), and the **long-form Film File serif exception (P2D — rejected; Film File stays Inter-only)** are now resolved.) *Remaining questions open.*
+2. **Define and pilot the consolidated direction.** The visual system is consolidated (closure: [`docs/ui/thoughtful-seatmate-visual-system-closure.md`](../../docs/ui/thoughtful-seatmate-visual-system-closure.md)); the core voice (Inter, [ADR 014](../../docs/decisions/014-thoughtful-seatmate-p1-core-voice.md)), the warm graphite / projection-ivory foundation values (prototype/pilot-scoped, [ADR 015](../../docs/decisions/015-thoughtful-seatmate-p2a-foundation.md)), the ivory-only decision signal (no warm-cue token, [ADR 016](../../docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md)), the contextual-color normalization envelope (strict, [ADR 017](../../docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md)), the aura strength (alpha 0.14, [ADR 018](../../docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md)), the **long-form Film File serif exception (P2D — rejected; Film File stays Inter-only)**, the **brand accent (one restrained solid rose)**, and **legacy-gradient survival (retired from the target; P2E stopped without a decision)** are all resolved. The only deferred item is the contextual-color **extraction** method, which the design migration does **not** block on (contextual film color is implemented in no stage). Pilot the consolidated direction on the two representative surfaces below.
 3. **A decision record approves** the chosen prototype direction.
 4. **Pilot** the accepted direction on **two representative production surfaces** using **scoped/local values** rather than prematurely globalizing tokens. Tonight (`/home`) and Film File (`/movie/:id`) are the recommended pilots unless a later decision record chooses equivalent surfaces.
 5. **After both pilot surfaces validate** the values and the interaction pattern, **promote** the values into shared tokens and primitives.

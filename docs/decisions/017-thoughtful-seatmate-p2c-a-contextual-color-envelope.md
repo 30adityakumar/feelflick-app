@@ -75,9 +75,11 @@ explicitly separated from the opacity question (§7).
 - **The extraction algorithm and seed-generation method.** P2C-A used **manually
   assigned deterministic artwork seeds** only to isolate normalization; no extraction
   method is accepted.
-- Legacy purple→pink gradient survival; the long-form Film File serif role; exact
-  bottom-navigation structure; couple-mode mechanics — all remain open (carried over
-  from the authority's provisional list).
+- Exact **bottom-navigation structure** and **couple-mode** mechanics remain open, and the
+  contextual-color **extraction** method remains deferred. *(Update 2026-06-17: legacy-gradient
+  survival → resolved, retired from the target (P2E stopped without a decision); the long-form
+  Film File serif role → resolved Inter-only by P2D. See the Status update at the end of this
+  file.)*
 
 ## 6. Fixed ADR 014–016 controls
 
@@ -348,7 +350,10 @@ are approximations, not medical certainty.
 It does **not** decide aura **opacity/strength** (P2C-B); the **extraction** algorithm
 or seed-generation method (manual deterministic seeds were used only to isolate
 normalization); legacy-gradient survival; the long-form Film File serif role; bottom
-navigation; or couple-mode mechanics. It does **not** authorize a production aura, a
+navigation; or couple-mode mechanics. *(Update 2026-06-17: aura strength resolved by ADR 018;
+the long-form serif role resolved Inter-only by P2D; legacy-gradient survival resolved — retired
+from the target (P2E stopped without a decision); bottom navigation and couple-mode remain open;
+extraction is deferred. See the Status update below.)* It does **not** authorize a production aura, a
 global contextual-color token, or any production change. It does **not** change product
 doctrine ([`product-doctrine.md`](../product-doctrine.md)) or
 [`.claude/rules/product.md`](../../.claude/rules/product.md), and it does **not** alter
@@ -388,11 +393,26 @@ semantic-safety rule.
   documentation task.
 - Resolve the **extraction/seed-generation** method separately before any production
   aura; manual deterministic seeds were an experiment device only.
-- Keep the remaining authority prototype questions open: legacy-gradient survival, the
-  long-form Film File serif role, bottom navigation, couple mode.
+- Keep the remaining authority prototype questions open: **bottom navigation and couple mode**
+  (and the deferred contextual-color **extraction** method). (Legacy-gradient survival and the
+  long-form serif role have since been resolved — see the Status update below.)
 - When a contextual aura migrates, follow the migration gates: resolve opacity and
   extraction → scoped Tonight and Film File pilots (local values, not global tokens) →
   after both validate, promote shared primitives where justified → surface-by-surface
   migration with deliberate re-baselining. **Do not create an independent global
-  contextual-color token; do not treat alpha 0.14 as accepted; do not treat manual seed
-  assignment as the accepted extraction method.**
+  contextual-color token; do not treat manual seed
+  assignment as the accepted extraction method.** (Aura strength was subsequently
+  accepted as alpha 0.14 by ADR 018.)
+
+## Status update (2026-06-17 — Thoughtful Seatmate visual-system closure)
+
+Of the remaining authority prototype questions listed above, two are now **resolved** and must
+not be reopened during migration: **legacy-gradient survival** (retired from the target system —
+the P2E gradient-survival study was stopped before a valid blind review and produced no decision;
+no winner, no decision rule applied) and the **long-form Film File serif role** (P2D — Film File
+stays Inter-only). The contextual-color **extraction** method (this ADR's follow-up) remains
+**unresolved and deferred** — no automatic method is accepted; edge-context failed the P2C-D
+holdout; contextual film color is implemented in no migration stage. This ADR's own decision —
+the strict normalization envelope (hue preserved, L = 0.62, C = 0.04) — is unchanged and remains
+authoritative. See
+[`../ui/thoughtful-seatmate-visual-system-closure.md`](../ui/thoughtful-seatmate-visual-system-closure.md).

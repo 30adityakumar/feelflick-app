@@ -175,9 +175,9 @@ Instrument Sans did not meet this threshold.
 
 ## 14. What this decision does NOT decide
 
-- It does **not** resolve whether a serif has a **narrowly bounded** role in
-  genuinely **long-form Film File reading** — that remains an open prototype
-  question.
+- It does **not** itself resolve whether a serif has a **narrowly bounded** role in
+  genuinely **long-form Film File reading** — that question was later **resolved by P2D**
+  (Film File stays Inter-only; no serif). See the Status update below.
 - It is **"Latin"** by intent: non-Latin / multilingual fallback coverage was not
   tested, so this decision is scoped to the Latin core voice.
 - It does **not** claim every current surface already uses only Inter (see
@@ -213,8 +213,9 @@ Instrument Sans did not meet this threshold.
 
 ## 17. Follow-up work
 
-- Keep the long-form Film File **serif exception** as an open prototype question
-  for a future, narrowly-scoped test.
+- The long-form Film File **serif exception** was carried as a future, narrowly-scoped
+  test; it has since been **resolved by P2D** (Film File stays Inter-only) — see the Status
+  update below. No serif prototype question remains; it is closed.
 - When typography migration is scheduled, follow the authority’s migration gates:
   resolve remaining provisional questions → decision record → scoped pilots
   (Tonight, Film File) with local values → promote to shared tokens/components →
@@ -223,3 +224,14 @@ Instrument Sans did not meet this threshold.
   Inter loading path**, define non-Latin fallback coverage, and validate both on
   the pilot surfaces. Change the loading strategy only if that audit identifies a
   measurable need.
+
+## Status update (2026-06-17 — Thoughtful Seatmate visual-system closure)
+
+The forward prototype question above — the long-form Film File **serif exception** — was
+subsequently **resolved by P2D**: a bounded Newsreader long-form body tied Inter-only 90–90,
+lost on coherence / robustness / reflow, and was rejected under the pre-registered
+tie-defaults-to-Inter rule, so **Film File long-form prose remains Inter** (do not introduce
+Newsreader or another serif). This ADR's own decision — Inter as the single core Latin
+sans-serif — is unchanged and remains authoritative. The visual system is now consolidated in
+[`../ui/thoughtful-seatmate-visual-system-closure.md`](../ui/thoughtful-seatmate-visual-system-closure.md),
+which also retires the legacy purple–pink gradient from the target system.

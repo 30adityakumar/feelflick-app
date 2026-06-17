@@ -3,7 +3,7 @@
 // from useHomeData. HPNav is removed — AppShell owns the global TopNav.
 
 import { useState } from 'react'
-import { HP, gradForId } from './data'
+import { HP } from './data'
 import { tmdbImg, posterSrcSet } from '@/shared/api/tmdb'
 
 export function FFMark({ size = 28 }) {
@@ -39,9 +39,10 @@ export function SmartImg({
   if (!film) return <div style={{ ...style, background: 'rgba(255,255,255,0.04)' }} />
   const path = film.poster
   if (failed || !path) {
-    const [a, b] = gradForId(film.id)
+    // Stage 2 — neutral graphite missing-poster placeholder (was a per-film
+    // purple/pink gradient). No contextual/legacy colour; the title carries identity.
     return (
-      <div style={{ ...style, display: 'flex', alignItems: 'flex-end', padding: big ? 28 : 14, background: `linear-gradient(135deg, ${a} 0%, ${b} 100%)`, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ ...style, display: 'flex', alignItems: 'flex-end', padding: big ? 28 : 14, background: 'var(--ts-surface-2, #241e19)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.16), transparent 50%), radial-gradient(circle at 80% 90%, rgba(0,0,0,0.4), transparent 60%)' }} />
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: big ? 42 : 18, lineHeight: 1, letterSpacing: '-0.02em', color: '#fff', textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>{film.title}</div>

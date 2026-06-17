@@ -100,6 +100,14 @@ confirm intentional; review desktop + mobile; re-baseline deliberately, never to
 
 ## Stage 3 — Tonight / home (pilot A)
 
+> **Status: IMPLEMENTED (the "Stage 2 — Tonight pilot"), not merged.** Branch
+> `migration/thoughtful-seatmate-tonight-pilot` off `origin/main` `b3691f45`. Tonight activates the
+> foundation locally via `<ThoughtfulRoot>` + `<PageDepth>`; Inter-only, neutral ivory PrimaryAction,
+> ivory-only decisions, bounded rose; behavior preserved (103 Home tests green). Authenticated visual
+> evidence + baseline regeneration are verified in CI. Details:
+> [`thoughtful-seatmate-stage2-tonight-pilot.md`](thoughtful-seatmate-stage2-tonight-pilot.md). Film File
+> (Stage 4 / pilot B) remains a separate later stage; token globalization still waits for both pilots.
+
 - **Current typography:** Newsreader editorial + Inter; numbered `I ·`/`II ·` case (test-asserted).
 - **Current background:** warm dark neutrals.
 - **Current accent/gradient:** rose `#DD4E83` accent; neutral primary CTA already on `/home`.

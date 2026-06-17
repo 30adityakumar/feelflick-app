@@ -10,30 +10,35 @@ import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
 import { recordRecommendationOutcome } from '@/shared/services/recommendationOutcomes'
 import Eyebrow from '@/shared/ui/Eyebrow'
+import { PrimaryAction } from '@/shared/ui/thoughtful-seatmate'
 import { HP, MOOD_META } from './data'
 import { SmartImg } from './atoms'
-import WhyThisPick, { CaseRung, ROSE } from './WhyThisPick'
+import WhyThisPick, { CaseRung } from './WhyThisPick'
 import { todaySeed, buildBriefingQueue } from './homeDerive'
 import { useHomeData } from './useHomeData'
 
-// F1 — Midnight Film Journal palette, SCOPED to the Briefing surface (this is an
-// accepted-direction migration of /home's top section only; these values are not
-// yet promoted to shared tokens). Warm ivory ink + brand rose accent on the dark
-// canvas, replacing the briefing's purple/gradient dependence.
-const EDITORIAL = 'var(--font-editorial)'      // Newsreader — the curator voice
-const IVORY = '#F2ECE1'                          // warm display ink (titles)
-const IVORY_SOFT = 'rgba(242,236,225,0.82)'      // body / synopsis
-const IVORY_META = 'rgba(242,236,225,0.62)'      // metadata caps (AA on near-black)
-const IVORY_SEP = 'rgba(242,236,225,0.30)'       // meta separators
-const IVORY_LABEL = 'rgba(242,236,225,0.70)'     // quiet case label (reserve rose for the kicker + the "why")
-const HAIRLINE = 'rgba(242,236,225,0.12)'        // case + action rules
-const WARM_KEYLINE = 'rgba(242,236,225,0.20)'    // warm secondary-control + chip border
-const ROSE_MAT = 'rgba(221,78,131,0.30)'         // poster plate keyline
+// Stage 2 — Thoughtful Seatmate: the Briefing now speaks the consolidated system.
+// One Inter voice (no Newsreader), projection-ivory hierarchy, and solid graphite
+// keylines, read from the scoped --ts-* tokens (activated by <ThoughtfulRoot> in
+// Home.jsx). Literal fallbacks keep the components rendering correctly when mounted
+// outside a .ts-root (e.g. in unit tests). Rose is retired from the briefing
+// eyebrows — they are ivory-only (rose fails AA on the lighter depth region as
+// small text); rose survives only on the wordmark + the large editorial closer.
+const EDITORIAL = 'Inter, system-ui, sans-serif'           // one Inter voice (was Newsreader)
+const IVORY = 'var(--ts-text-primary, #f3ecdf)'            // projection-ivory titles
+const IVORY_SOFT = 'var(--ts-text-secondary, #beb8ad)'     // body / synopsis
+const IVORY_META = 'var(--ts-text-muted, #8d887f)'         // metadata caps
+const IVORY_SEP = 'var(--ts-border-strong, #46423d)'       // meta separators
+const IVORY_LABEL = 'var(--ts-text-secondary, #beb8ad)'    // quiet case label
+const HAIRLINE = 'var(--ts-border-subtle, #302c28)'        // case + action rules
+const WARM_KEYLINE = 'var(--ts-border-strong, #46423d)'    // secondary-control + chip border
+const ROSE_MAT = 'var(--ts-border-subtle, #302c28)'        // poster plate keyline → neutral graphite
+const IVORY_MARKER = '#f3ecdf'                             // ivory hex for the ivory-only committed-state tint
 
-// Warm retone for the shared <SecondaryActionButton> on this surface: a warm
-// ivory keyline + bone label instead of the cool-grey default, applied via the
-// component's `style` passthrough. Background is intentionally NOT overridden so
-// the rose active tint (accent={ROSE}) and loading/disabled states still work.
+// Neutral graphite retone for the shared <SecondaryActionButton> on this surface
+// (graphite keyline + projection-ivory label), via the component's `style`
+// passthrough. Background is NOT overridden so the ivory committed-state tint
+// (accent={IVORY_MARKER}) and loading/disabled states still work.
 const SECONDARY_STYLE = { borderColor: WARM_KEYLINE, color: IVORY_SOFT }
 
 // The Briefing presents ONE confident pick. Its eyebrow is a constant —
@@ -46,7 +51,8 @@ const TONIGHT_LABEL = "Tonight's pick"
 // MoodReactor — secondary "Adjust mood" control strip (F4.4: demoted BELOW the
 // pick — Home leads with tonight's pick, mood is an optional adjustment, not the
 // front door). Pill picker with an "ADJUST MOOD" kicker on the left. The active
-// pill already carries the mood color + glow, so the kicker doesn't echo the
+// pill carries an ivory keyline + ivory dot + heavier label (the ivory-only
+// decision state, ≥2 non-colour cues), so the kicker doesn't echo the
 // selected label (would be redundant + cause width jitter on selection).
 // Auto-scrolls the active pill into view on mobile so the user can always see
 // their current pick even when their baseline mood sits at the end of MOOD_META
@@ -69,8 +75,8 @@ export function MoodReactor({ currentMood, setMood }) {
     <section className="px-5 pt-5 pb-2 sm:px-8 sm:pt-6 sm:pb-4 lg:px-[88px] lg:pt-[12px] lg:pb-5">
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
         <div className="flex flex-none items-baseline gap-2.5">
-          <span aria-hidden style={{ height: 1, width: 18, background: ROSE, opacity: 0.6, alignSelf: 'center' }} />
-          <Eyebrow color={HP.textMuted} size={10} style={{ whiteSpace: 'nowrap' }}>Adjust mood</Eyebrow>
+          <span aria-hidden style={{ height: 1, width: 18, background: 'var(--ts-text-muted, #8d887f)', opacity: 0.6, alignSelf: 'center' }} />
+          <Eyebrow color="var(--ts-text-muted, #8d887f)" size={10} style={{ whiteSpace: 'nowrap' }}>Adjust mood</Eyebrow>
         </div>
         <div
           ref={pillsRef}
@@ -91,17 +97,18 @@ export function MoodReactor({ currentMood, setMood }) {
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 minHeight: 44, padding: '8px 14px', borderRadius: 999,
-                // Selected state is carried by background tint + border + text colour
-                // (not only the dot), and is exposed non-visually via aria-pressed.
-                background: active ? `${m.hex}22` : 'transparent',
-                border: `1px solid ${active ? m.hex : HP.border}`,
-                color: active ? HP.text : HP.textSoft,
-                fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500,
+                // Stage 2 — ivory-only selected state (no mood colour). Carried by an
+                // ivory tint + ivory keyline + heavier label + the ivory dot, and
+                // exposed non-visually via aria-pressed (≥2 non-colour cues).
+                background: active ? 'rgba(243,236,223,0.10)' : 'transparent',
+                border: `1px solid ${active ? 'var(--ts-focus, #f3ecdf)' : 'var(--ts-border-subtle, #302c28)'}`,
+                color: active ? 'var(--ts-text-primary, #f3ecdf)' : 'var(--ts-text-muted, #8d887f)',
+                fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: active ? 600 : 500,
                 letterSpacing: '-0.005em', cursor: 'pointer', transition: 'all 0.25s ease',
                 flex: 'none',
               }}
             >
-              <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: 999, background: m.hex, boxShadow: active ? `0 0 10px ${m.hex}` : 'none', transition: 'box-shadow 0.25s ease' }} />
+              <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: 999, background: active ? 'var(--ts-focus, #f3ecdf)' : 'var(--ts-text-muted, #8d887f)', transition: 'background 0.25s ease' }} />
               {m.label}
             </button>
           )
@@ -115,8 +122,8 @@ export function MoodReactor({ currentMood, setMood }) {
 // In-card action buttons are the canonical family in shared/components/ActionButton
 // (rounded-8, Inter — shared with /movie so the briefing actions don't feel like a
 // different system). The three below are thin wrappers that add the icon, label, and
-// active state on top of <SecondaryActionButton>, each passing accent={ROSE} so the
-// active tint matches this migrated surface. F4.6/F1-A: the ring classes below currently
+// active state on top of <SecondaryActionButton>, each passing accent={IVORY_MARKER}
+// so the committed state is ivory-only (Stage 2). F4.6/F1-A: the ring classes below currently
 // render nothing (Tailwind v4.3 ring layers collapse at box-shadow substitution);
 // visible keyboard focus comes from the global :focus-visible outline in
 // src/styles/globals.css — do NOT add focus:outline-none here, it suppresses it.
@@ -126,7 +133,7 @@ function WatchedButton({ isWatched, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
-      accent={ROSE}
+      accent={IVORY_MARKER}
       style={SECONDARY_STYLE}
       className={FOCUS_RING}
       active={isWatched}
@@ -143,7 +150,7 @@ function SaveButton({ isInWatchlist, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
-      accent={ROSE}
+      accent={IVORY_MARKER}
       style={SECONDARY_STYLE}
       className={FOCUS_RING}
       active={isInWatchlist}
@@ -349,16 +356,17 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
       {/* Content column */}
       <div className="flex w-full flex-col text-center lg:flex-1 lg:text-left lg:max-w-[680px]">
         {/* Eyebrow — constant "Tonight's pick" (single confident pick, never a
-            positional label), now in the rose brand ink. */}
-        <Eyebrow rule color={ROSE} className="self-center lg:self-start" style={{ marginBottom: 14 }}>{TONIGHT_LABEL}</Eyebrow>
-        {/* Title — the editorial voice (Newsreader): the film name set like a
+            positional label), in quiet projection-ivory (rose fails AA on the
+            lighter depth region as small text, so the kicker is ivory-only). */}
+        <Eyebrow rule color={IVORY} className="self-center lg:self-start" style={{ marginBottom: 14 }}>{TONIGHT_LABEL}</Eyebrow>
+        {/* Title — the editorial voice (Inter, Stage 2): the film name set like a
             journal entry's headline, not a UI label. */}
         <h2 style={{
           fontFamily: EDITORIAL,
           fontSize: 'clamp(42px, 6vw, 88px)',
-          lineHeight: 1.0,
-          fontWeight: 500,
-          letterSpacing: '-0.015em',
+          lineHeight: 1.02,
+          fontWeight: 600,
+          letterSpacing: '-0.02em',
           color: IVORY,
           margin: '0 0 16px 0',
           textWrap: 'balance',
@@ -405,9 +413,10 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
                 <CaseRung
                   numeral={numbered ? 'II' : undefined}
                   label="What you’re in for"
-                  /* Quiet bone label — rose is reserved for the masthead kicker
-                     and the personalised "Why this pick", per the rose-restraint
-                     discipline (don't make every eyebrow the brand accent). */
+                  /* Quiet bone label — one step softer than the ivory "Why this
+                     pick" rung above it, per the ivory-only eyebrow discipline
+                     (rose is not used for small labels — it fails AA on the depth
+                     canvas; it survives only on the large editorial closer). */
                   accent={IVORY_LABEL}
                   className={hasReason ? 'hidden sm:block' : 'block'}
                   style={hasReason ? { marginTop: 20, paddingTop: 20, borderTop: `1px solid ${HAIRLINE}` } : undefined}
@@ -455,20 +464,16 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
               44×44 icon buttons (label hidden).
             • lg+: a wrap row of labeled controls. */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3 pt-5 lg:justify-start" style={{ borderTop: `1px solid ${HAIRLINE}` }}>
-          <button
-            type="button"
+          {/* Stage 2 — the single main action is the neutral projection-ivory
+              PrimaryAction (Stage 1 primitive: #efe7d7 fill / #221b13 text), replacing
+              the bone-slab outline. Handler / label / chevron / focus ring unchanged. */}
+          <PrimaryAction
             onClick={handleOpen}
-            className={`ff-brief-primary inline-flex h-11 flex-1 items-center justify-center gap-2 lg:h-auto lg:flex-none ${FOCUS_RING}`}
-            style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, letterSpacing: '0.01em',
-              padding: '14px 26px', borderRadius: 4, minHeight: 48, cursor: 'pointer',
-              border: `1px solid ${IVORY}`,
-              boxShadow: '0 12px 30px -16px rgba(0,0,0,0.7)',
-            }}
+            className={`flex-1 lg:flex-none ${FOCUS_RING}`}
           >
             <span>Open Film File</span>
             <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-          </button>
+          </PrimaryAction>
           <WatchedButton isWatched={isWatched} loading={watchedState === 'saving'} error={watchedState === 'error'} onClick={handleMarkWatched} />
           <SaveButton isInWatchlist={isInWatchlist} loading={saveState === 'saving'} error={saveState === 'error'} onClick={handleSave} />
           <SkipButton onClick={() => onSkip?.(film)} />
@@ -501,10 +506,10 @@ function BriefingSkeleton() {
         </div>
         {/* Content column */}
         <div className="flex w-full flex-col items-center gap-4 lg:flex-1 lg:items-start lg:max-w-[680px]">
-          <div className="h-3.5 w-32 animate-pulse rounded-full bg-[rgba(221,78,131,0.18)]" />
+          <div className="h-3.5 w-32 animate-pulse rounded-full bg-white/[0.08]" />
           <div className="h-14 w-3/4 animate-pulse rounded-lg bg-white/[0.06] lg:h-20" />
           <div className="h-3 w-44 animate-pulse rounded-full bg-white/[0.04]" />
-          <div className="mt-1 h-14 w-full max-w-[520px] animate-pulse rounded-lg bg-[rgba(221,78,131,0.07)]" />
+          <div className="mt-1 h-14 w-full max-w-[520px] animate-pulse rounded-lg bg-white/[0.05]" />
           <div className="h-3 w-full max-w-[480px] animate-pulse rounded-full bg-white/[0.04]" />
           <div className="h-3 w-2/3 max-w-[360px] animate-pulse rounded-full bg-white/[0.04]" />
           <div className="mt-3 flex w-full flex-wrap items-center justify-center gap-2.5 lg:justify-start">
@@ -669,7 +674,7 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
         <div className="flex flex-col items-center gap-5 py-12 text-center">
           <p style={{ fontSize: 15, lineHeight: 1.6, color: HP.textSoft, fontFamily: 'Inter, sans-serif', margin: 0, maxWidth: 480 }}>
             You&rsquo;ve reviewed all of tonight&rsquo;s{' '}
-            <em style={{ fontStyle: 'italic', color: currentMood.hex, fontWeight: 500 }}>{currentMood.label.toLowerCase()}</em>{' '}
+            <em style={{ fontStyle: 'italic', color: 'var(--ts-text-secondary, #beb8ad)', fontWeight: 600 }}>{currentMood.label.toLowerCase()}</em>{' '}
             picks. Switch moods below, or
           </p>
           <button
@@ -683,7 +688,7 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
         </div>
       ) : isNoFilms ? (
         <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: 'Inter, sans-serif', color: HP.textMuted, fontSize: 14, fontStyle: 'italic' }}>
-          No <span style={{ color: currentMood.hex, fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood below.
+          No <span style={{ color: 'var(--ts-text-secondary, #beb8ad)', fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood below.
         </div>
       ) : !pick ? (
         <BriefingSkeleton />

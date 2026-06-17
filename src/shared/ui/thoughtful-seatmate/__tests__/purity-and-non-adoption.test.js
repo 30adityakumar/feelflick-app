@@ -70,11 +70,16 @@ describe('Stage 1 — production non-adoption', () => {
   const importsShowcase = /['"]@\/features\/design-lab\/thoughtful-seatmate-foundations/
   const all = walk(join(ROOT, 'src')).filter((f) => f.endsWith('.js') || f.endsWith('.jsx'))
 
-  it('no production surface imports the foundation (only the dev-only showcase may)', () => {
+  // Authorized adopters: the dev-only showcase, and — as of Stage 2 — the Tonight
+  // pilot (src/features/home). Any OTHER production surface importing the foundation
+  // is still a violation (Film File and the rest remain unmigrated).
+  const ADOPTERS = ['src/features/home/']
+  it('only the Tonight pilot + the dev-only showcase import the foundation', () => {
     const offenders = []
     for (const f of all) {
       const r = rel(f)
       if (r.startsWith(NS) || r.startsWith(SHOWCASE) || r.includes('/__tests__/')) continue
+      if (ADOPTERS.some((a) => r.startsWith(a))) continue
       if (importsFoundation.test(readFileSync(f, 'utf8'))) offenders.push(r)
     }
     expect(offenders).toEqual([])

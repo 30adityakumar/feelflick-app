@@ -10,44 +10,27 @@
 }
 .ff-home ::selection { background: rgba(221,78,131,0.35); color: #fff; }
 
-/* === F1 Briefing — Midnight Film Journal direction (scoped to /home) ======== */
+/* === Stage 2 — Thoughtful Seatmate (scoped to /home) ======================== */
 
-/* Warm pool behind tonight's pick — low-alpha radials that fade to transparent
-   so there's no hard seam against the page's near-black canvas. */
+/* The page canvas is now the neutral <PageDepth> primitive (near-black → warm
+   graphite). The legacy rose/brown "warm pool" behind the pick is retired — the
+   element is kept for layout stability but paints nothing (no rose atmosphere). */
 .ff-home .ff-brief-warm {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(85% 70% at 12% -8%, rgba(221, 78, 131, 0.07), transparent 56%),
-    radial-gradient(70% 80% at 102% 118%, rgba(150, 74, 52, 0.06), transparent 60%);
+  background: none;
 }
 
-/* Primary "Open Film File" — the journal bone-slab CTA (replaces the brand
-   gradient). Background/colour live here so :hover/:active can shift them
-   (inline styles would win and block the hover); layout/size stay inline. */
-.ff-home .ff-brief-primary {
-  background: #f2ece1;
-  color: #15100c;
-  transition:
-    background var(--motion-base, 180ms) ease,
-    box-shadow var(--motion-base, 180ms) ease,
-    transform var(--motion-fast, 120ms) ease;
-}
-.ff-home .ff-brief-primary:hover {
-  background: #ffffff;
-  box-shadow: 0 16px 38px -16px rgba(221, 78, 131, 0.55);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .ff-home .ff-brief-primary:active { transform: translateY(1px); }
-}
+/* The primary "Open Film File" action is now the Stage 1 <PrimaryAction> primitive
+   (neutral projection-ivory fill); its old .ff-brief-primary rule is retired. */
 
-/* F2 — lower Discover hand-off CTA: a quiet rose-ghost, deliberately subordinate
-   to the briefing's bone-slab primary (no gradient, no glow). Background lives
-   here so :hover can tint it (inline border/colour stay at the call site). */
+/* Lower Discover hand-off CTA — a quiet NEUTRAL ghost, subordinate to the briefing's
+   neutral PrimaryAction (no rose, no gradient, no glow). Background lives here so
+   :hover can tint it (inline border/colour stay at the call site). */
 .ff-home .ff-discover-cta {
   background: transparent;
   transition: background var(--motion-base, 180ms) ease;
 }
-.ff-home .ff-discover-cta:hover { background: rgba(221, 78, 131, 0.12); }
+.ff-home .ff-discover-cta:hover { background: rgba(243, 236, 223, 0.06); }

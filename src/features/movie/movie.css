@@ -323,7 +323,7 @@
 }
 .ff-disclosure__summary::-webkit-details-marker { display: none; }
 .ff-disclosure__summary:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #f3ecdf);
   outline-offset: -3px;
   border-radius: 6px;
 }
@@ -339,7 +339,7 @@
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #DD4E83;
+  color: var(--ts-text-secondary, #beb8ad);
 }
 .ff-disclosure__heading {
   font-family: 'Inter', sans-serif;
@@ -347,19 +347,19 @@
   line-height: 1.1;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: #fafafa;
+  color: var(--ts-text-primary, #f3ecdf);
   text-wrap: balance;
 }
 .ff-disclosure__copy {
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   line-height: 1.5;
-  color: rgba(250, 250, 250, 0.55);
+  color: var(--ts-text-secondary, #beb8ad);
 }
 .ff-disclosure__chevron {
   flex-shrink: 0;
   display: inline-flex;
-  color: rgba(250, 250, 250, 0.6);
+  color: var(--ts-text-secondary, #beb8ad);
   transition: transform 0.2s ease;
 }
 .ff-disclosure__details[open] .ff-disclosure__chevron {
@@ -397,7 +397,7 @@
   border-radius: 8px;
 }
 .ff-movie-explore-card:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #f3ecdf);
   outline-offset: 4px;
 }
 @media (max-width: 720px) {
@@ -427,8 +427,8 @@
   align-items: center;
   min-height: 44px;
   padding: 12px 20px;
-  background: #a78bfa;
-  color: #0a0510;
+  background: var(--ts-action-primary-fill, #efe7d7);
+  color: var(--ts-action-primary-text, #221b13);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 700;
@@ -439,16 +439,17 @@
 .ff-movie-skip-link:focus,
 .ff-movie-skip-link:focus-visible {
   transform: translateY(0);
-  outline: 3px solid #fff;
+  /* Dark inset ring on the ivory action pill (white-on-ivory failed AA ~1.2:1). */
+  outline: 3px solid var(--ts-action-primary-text, #221b13);
   outline-offset: -3px;
 }
 /* Movie-local icon/error control focus rings. */
 .ff-movie-icon-btn:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #f3ecdf);
   outline-offset: 2px;
 }
 .ff-movie-error-btn:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #f3ecdf);
   outline-offset: 3px;
 }
 /* main landmark target must not steal an outline when focused programmatically by

@@ -65,12 +65,17 @@ describe('Stage 2 — local activation boundary', () => {
 
 describe('Stage 2 — no other production surface adopts the foundation', () => {
   const importsFoundation = /['"]@\/shared\/ui\/thoughtful-seatmate(['"/]|$)/
-  it('only Tonight and the dev-only showcase import the Stage 1 foundation', () => {
+  // As of Stage 3, Film File (src/features/movie) is the SECOND authorized pilot
+  // adopter alongside Tonight + the dev-only showcase. Any OTHER surface is still a
+  // violation. (Cross-pilot guard kept here; the canonical allowlist lives in the
+  // foundation's purity-and-non-adoption test.)
+  it('only Tonight + Film File + the dev-only showcase import the Stage 1 foundation', () => {
     const offenders = []
     for (const f of walk(join(ROOT, 'src'))) {
       const r = rel(f)
       if (r.startsWith('src/shared/ui/thoughtful-seatmate')) continue // the foundation itself
-      if (r.startsWith('src/features/home/')) continue // Tonight (this pilot)
+      if (r.startsWith('src/features/home/')) continue // Tonight (Stage 2)
+      if (r.startsWith('src/features/movie/')) continue // Film File (Stage 3)
       if (r.startsWith('src/features/design-lab/thoughtful-seatmate-foundations')) continue // dev-only showcase
       if (r.includes('/__tests__/')) continue
       if (!/\.(jsx?)$/.test(r)) continue
@@ -79,11 +84,9 @@ describe('Stage 2 — no other production surface adopts the foundation', () => 
     expect(offenders).toEqual([])
   })
 
-  it('does not migrate Film File (no foundation import in features/movie)', () => {
-    const movieFiles = walk(join(ROOT, 'src/features/movie')).filter((f) => /\.jsx?$/.test(f))
-    for (const f of movieFiles) {
-      expect(importsFoundation.test(readFileSync(f, 'utf8'))).toBe(false)
-    }
+  it('Tonight remains an independent adopter (its own <ThoughtfulRoot> boundary, unchanged by Stage 3)', () => {
+    const home = read('src/features/home/Home.jsx')
+    expect(home).toMatch(/<ThoughtfulRoot>\s*<HomeBody\s*\/>\s*<\/ThoughtfulRoot>/)
   })
 })
 

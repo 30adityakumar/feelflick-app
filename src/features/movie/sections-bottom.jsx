@@ -1,9 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { tmdbImg } from '@/shared/api/tmdb'
-import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, ROSE, RADIUS } from './data'
+import { PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP as HP_BASE, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
+
+const HP = {
+  ...HP_BASE,
+  panel: 'var(--ts-surface-1, #1d1814)',
+  border: 'var(--ts-border-subtle, #302c28)',
+  borderStrong: 'var(--ts-border-strong, #46423d)',
+  text: 'var(--ts-text-primary, #f3ecdf)',
+  textSoft: 'var(--ts-text-secondary, #beb8ad)',
+  textMuted: 'var(--ts-text-muted, #8d887f)',
+  textFaint: 'var(--ts-text-muted, #8d887f)',
+  purple: 'var(--ts-text-secondary, #beb8ad)',
+  purpleDeep: 'var(--ts-text-muted, #8d887f)',
+  pink: 'var(--ts-text-secondary, #beb8ad)',
+}
 
 // FeelFlick — Movie page · Cast (flip), Videos (hover-preview), Providers, Pairs (reshuffle), Friends, TasteTwin, Timeline, Director shelf, YourTake unlock, Footer.
 
@@ -21,10 +35,10 @@ function CastSection() {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:32, flexWrap:'wrap', gap:24 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Ensemble
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Ensemble
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:44, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color: HP.text, margin:0 }}>The cast.</h2>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:44, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color: HP.text, margin:0 }}>The cast.</h2>
         </div>
         {hasCrew && (
           <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em' }}>
@@ -67,17 +81,17 @@ function CastCard({ p }) {
           still appears on hover/focus — just without the spin). */}
       <div style={{ aspectRatio:'2/3', borderRadius:RADIUS.sm, marginBottom:14, position:'relative', transformStyle:'preserve-3d', transition: reduced ? 'none' : 'transform 0.6s cubic-bezier(0.2,0.8,0.2,1)', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
         {/* Front */}
-        <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, overflow:'hidden', background:`linear-gradient(155deg, ${p.tint}33, ${p.tint}08)`, border:`1px solid ${HP.border}`, backfaceVisibility:'hidden' }}>
+        <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, overflow:'hidden', background:'var(--ts-surface-2, #241e19)', border:`1px solid ${HP.border}`, backfaceVisibility:'hidden' }}>
           {hasProfile ? (
             <img src={tmdbImg(p.profilePath, 'w342')} alt={p.name} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
           ) : (
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontSize:54, fontWeight:200, color:p.tint, opacity:0.6 }}>{p.name.split(' ').map(w=>w[0]).join('')}</div>
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontSize:54, fontWeight:200, color:'var(--ts-text-secondary, #beb8ad)', opacity:0.6 }}>{p.name.split(' ').map(w=>w[0]).join('')}</div>
           )}
           <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.65))' }} />
         </div>
         {/* Back (only when filmography data has resolved) */}
         {hasFlip && (
-          <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, padding:16, background:`linear-gradient(155deg, ${p.tint}55, ${p.tint}15)`, border:`1px solid ${p.tint}55`, backfaceVisibility:'hidden', transform:'rotateY(180deg)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+          <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, padding:16, background:'var(--ts-surface-2, #241e19)', border:'1px solid var(--ts-border-subtle, #302c28)', backfaceVisibility:'hidden', transform:'rotateY(180deg)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
             <div>
               <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.text, opacity:0.85, marginBottom:10 }}>Also in</div>
               <ul style={{ margin:0, padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:6 }}>
@@ -116,10 +130,10 @@ function VideosSection({ onPlayVideo }) {
   if (extras.length === 0) return null;
   return (
     <section className="ff-movie-section" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />More to watch
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
+        <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />More to watch
       </div>
-      <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:'0 0 28px 0' }}>
+      <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:'0 0 28px 0' }}>
         Featurettes & <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>extras.</em>
       </h2>
       <div className="ff-movie-videos-rest" style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(extras.length, 3)},1fr)`, gap:18 }}>
@@ -165,16 +179,16 @@ const PROVIDER_ATTRIBUTION = 'Availability for the United States via TMDB and Ju
 function ProviderSectionShell({ children }) {
   return (
     <section className="ff-movie-section ff-movie-providers" aria-label="Where to watch" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Where to watch
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+        <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Where to watch
       </div>
       {children}
     </section>
   );
 }
-const sectionH2 = { fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: 'var(--ff-text, #FAFAFA)', margin:0 };
-const stateBody = { margin:'14px 0 0 0', fontSize:14, lineHeight:1.6, color:'rgba(250,250,250,0.7)', fontFamily:'Inter, sans-serif', maxWidth:520, overflowWrap:'anywhere' };
-const attributionStyle = { margin:'18px 0 0 0', fontSize:11.5, lineHeight:1.5, color:'rgba(250,250,250,0.45)', fontFamily:'Inter, sans-serif', maxWidth:560, overflowWrap:'anywhere' };
+const sectionH2 = { fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: 'var(--ts-text-primary, #f3ecdf)', margin:0 };
+const stateBody = { margin:'14px 0 0 0', fontSize:14, lineHeight:1.6, color:'var(--ts-text-secondary, #beb8ad)', fontFamily:'Inter, sans-serif', maxWidth:520, overflowWrap:'anywhere' };
+const attributionStyle = { margin:'18px 0 0 0', fontSize:11.5, lineHeight:1.5, color:'var(--ts-text-secondary, #beb8ad)', fontFamily:'Inter, sans-serif', maxWidth:560, overflowWrap:'anywhere' };
 
 function ProvidersSection() {
   const { providers, providerStatus } = useMovieData();
@@ -186,7 +200,7 @@ function ProvidersSection() {
   if (status === 'loading') {
     return (
       <ProviderSectionShell>
-        <div role="status" aria-live="polite" style={{ marginTop:6, fontSize:14, color:'rgba(250,250,250,0.7)', fontFamily:'Inter, sans-serif' }}>
+        <div role="status" aria-live="polite" style={{ marginTop:6, fontSize:14, color:'var(--ts-text-secondary, #beb8ad)', fontFamily:'Inter, sans-serif' }}>
           Checking availability…
         </div>
       </ProviderSectionShell>
@@ -196,7 +210,7 @@ function ProvidersSection() {
   if (status === 'empty') {
     return (
       <ProviderSectionShell>
-        <h2 className="ff-movie-section-h2" style={{ ...sectionH2, color:'#FAFAFA' }}>Availability not found</h2>
+        <h2 className="ff-movie-section-h2" style={{ ...sectionH2, color:'var(--ts-text-primary, #f3ecdf)' }}>Availability not found</h2>
         <p style={stateBody}>We couldn’t find streaming, rental, or purchase options for the United States.</p>
         <p style={attributionStyle}>{PROVIDER_ATTRIBUTION}</p>
       </ProviderSectionShell>
@@ -206,7 +220,7 @@ function ProvidersSection() {
   if (status === 'error') {
     return (
       <ProviderSectionShell>
-        <h2 className="ff-movie-section-h2" style={{ ...sectionH2, color:'#FAFAFA' }}>Availability unavailable</h2>
+        <h2 className="ff-movie-section-h2" style={{ ...sectionH2, color:'var(--ts-text-primary, #f3ecdf)' }}>Availability unavailable</h2>
         <p style={stateBody}>Provider information couldn’t be reached right now.</p>
         <p style={stateBody}>You can check again later or search directly on JustWatch.</p>
         <a
@@ -229,7 +243,7 @@ function ProvidersSection() {
       rel="noopener noreferrer"
       aria-label={`Watch on ${p.name} (opens JustWatch in a new tab)`}
       title={p.name}
-      style={{ width:56, height:56, borderRadius:RADIUS.md, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', textDecoration:'none', cursor:'pointer', transition:'all 0.2s' }}
+      style={{ width:56, height:56, borderRadius:RADIUS.md, background:'rgba(243,236,223,0.06)', border:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', textDecoration:'none', cursor:'pointer', transition:'all 0.2s' }}
     >
       {p.logoPath ? (
         <img src={tmdbImg(p.logoPath, 'w92')} alt="" style={{ width:40, height:40, objectFit:'contain', borderRadius:RADIUS.xs }} />
@@ -243,10 +257,10 @@ function ProvidersSection() {
     <section className="ff-movie-section ff-movie-providers" aria-label="Where to watch" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div className="ff-movie-providers-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:64, alignItems:'flex-start' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Where to watch
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Where to watch
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
             Streaming <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>now.</em>
           </h2>
           <a
@@ -293,15 +307,15 @@ function PairsWith({ goToMovie }) {
     <section className="ff-movie-section" style={{ padding:'88px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:36, flexWrap:'wrap', gap:20 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Pairs with
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Pairs with
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:48, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:48, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
             If this hits, <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>these will too.</em>
           </h2>
         </div>
         {canReshuffle && (
-          <button onClick={()=>setSeed(s=>s+1)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor:'pointer' }}>
+          <button onClick={()=>setSeed(s=>s+1)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:RADIUS.pill, background:'rgba(243,236,223,0.06)', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor:'pointer' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 18 0M3 12l3-3M3 12l3 3"/></svg>
             Show me more
           </button>
@@ -414,24 +428,24 @@ function TasteTwinReview({ twin }) {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div className="ff-movie-twin-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:48, alignItems:'flex-start' }}>
         <div style={{ textAlign:'center' }}>
-          <div style={{ position:'relative', width:96, height:96, borderRadius:RADIUS.pill, background: twin.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, color:'#0A0510', fontSize:36, margin:'0 auto', boxShadow:`0 0 32px ${twin.avatarBg}55`, overflow:'hidden' }}>
+          <div style={{ position:'relative', width:96, height:96, borderRadius:RADIUS.pill, background: twin.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, color:'#0A0510', fontSize:36, margin:'0 auto', boxShadow:'0 1px 2px rgba(0,0,0,0.3)', overflow:'hidden' }}>
             {twin.avatarUrl ? (
               <img src={twin.avatarUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
             ) : (
               (twin.name || '?').charAt(0).toUpperCase()
             )}
-            <div aria-label={`${twin.matchPct}% overall taste similarity`} style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:RADIUS.pill, background: HP.bgDeep, border:`1px solid ${ROSE}`, fontSize:10, fontWeight:700, color: ROSE, fontFamily:'Inter, sans-serif' }}>{twin.matchPct}%</div>
+            <div aria-label={`${twin.matchPct}% overall taste similarity`} style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:RADIUS.pill, background: HP.bgDeep, border:'1px solid var(--ts-border-strong, #46423d)', fontSize:10, fontWeight:700, color: 'var(--ts-text-primary, #f3ecdf)', fontFamily:'Inter, sans-serif' }}>{twin.matchPct}%</div>
           </div>
           <div style={{ marginTop:14, fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color: HP.text }}>{twin.name}</div>
           <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginTop:3 }}>Your taste twin</div>
           <div style={{ fontSize:10.5, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.04em', marginTop:4 }}>{twin.matchPct}% overall taste similarity</div>
         </div>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />They rated it · {twin.watchedDate}
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />They rated it · {twin.watchedDate}
           </div>
           {twin.note ? (
-            <p style={{ margin:0, fontFamily:'var(--font-editorial)', fontSize:24, lineHeight:1.5, color: HP.text, fontStyle:'italic', letterSpacing:'-0.012em', textWrap:'pretty' }}>
+            <p style={{ margin:0, fontFamily:'Inter, system-ui, sans-serif', fontSize:24, lineHeight:1.5, color: HP.text, fontStyle:'italic', letterSpacing:'-0.012em', textWrap:'pretty' }}>
               “{twin.note}”
             </p>
           ) : (
@@ -474,8 +488,8 @@ function TimelineSection() {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-movie-timeline-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:64, alignItems:'flex-start' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14 }}>{kicker}</div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>{headline}</h2>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14 }}>{kicker}</div>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>{headline}</h2>
           {mv.languages.length > 0 && (
             <div style={{ marginTop:24, display:'flex', alignItems:'center', gap:10, fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
               <span>Languages</span>
@@ -489,7 +503,7 @@ function TimelineSection() {
           <div style={{ position:'absolute', left:5, top:6, bottom:6, width:1, background: HP.border }} />
           {timeline.map((t, i) => (
             <div key={i} style={{ position:'relative', paddingBottom:24, paddingLeft:24 }}>
-              <div style={{ position:'absolute', left:-3.5, top:4, width:11, height:11, borderRadius:RADIUS.pill, background: i===0 ? FILM_PALETTE.primary : ROSE, boxShadow:`0 0 12px ${i===0 ? FILM_PALETTE.primary : ROSE}66` }} />
+              <div style={{ position:'absolute', left:-3.5, top:4, width:11, height:11, borderRadius:RADIUS.pill, background: 'var(--ts-text-primary, #f3ecdf)', boxShadow:'none' }} />
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Inter, sans-serif' }}>{t.date}</div>
               <div style={{ fontFamily:'Inter, sans-serif', fontSize:18, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginTop:4 }}>{t.label}</div>
               {t.note && <div style={{ fontSize:12, color: HP.textSoft, marginTop:3, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>{t.note}</div>}
@@ -510,10 +524,10 @@ function DirectorShelf({ goToMovie }) {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:32 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />{directorLabel}
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />{directorLabel}
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:36, lineHeight:1, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
             Where to go <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>next.</em>
           </h2>
         </div>
@@ -537,7 +551,7 @@ function DirectorShelf({ goToMovie }) {
           >
             <div style={{ position:'relative', borderRadius:RADIUS.xs, overflow:'hidden', marginBottom:10, boxShadow:'0 8px 24px -8px rgba(0,0,0,0.5)' }}>
               <img src={f.poster} alt={f.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} onError={(e)=>{ e.currentTarget.style.display='none'; }} />
-              <div style={{ position:'absolute', inset:0, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}11, transparent)` }} />
+              <div style={{ position:'absolute', inset:0, background:'transparent' }} />
               {f.yourRating ? (
                 <div style={{ position:'absolute', top:8, right:8, padding:'3px 7px', borderRadius:3, background:'rgba(0,0,0,0.85)', border:`1px solid ${HP.amber}55`, fontSize:9, fontWeight:700, color: HP.amber, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em' }}>{f.yourRating}★ YOU</div>
               ) : (
@@ -569,7 +583,7 @@ function YourTake({ isWatched, userId, internalId, onSaved, onError }) {
 function YourTakeLockedPrompt() {
   return (
     <section className="ff-movie-section ff-movie-your-take-compact" style={{ padding:'28px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: ROSE, marginBottom:8 }}>After watching</div>
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:8 }}>After watching</div>
       <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:22, lineHeight:1.1, fontWeight:500, color: HP.text, margin:0, letterSpacing:'-0.02em' }}>Your take</h2>
       <p style={{ margin:'8px 0 0 0', fontSize:13.5, lineHeight:1.5, color: HP.textMuted, fontFamily:'Inter, sans-serif', maxWidth:560 }}>
         Mark this film watched above to rate it — your ratings sharpen your engine.
@@ -618,10 +632,10 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
 
   return (
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, animation:'mv-fade-in 0.6s ease both' }}>
-      <div className="ff-movie-your-take-card" aria-busy={saveStatus === 'saving' || undefined} style={{ padding:'32px 28px', borderRadius:RADIUS.sm, background:`linear-gradient(135deg, ${FILM_PALETTE.primary}11, rgba(221,78,131,0.04))`, border:`1px solid ${FILM_PALETTE.primary}33` }}>
+      <div className="ff-movie-your-take-card" aria-busy={saveStatus === 'saving' || undefined} style={{ padding:'32px 28px', borderRadius:RADIUS.sm, background:'var(--ts-surface-1, #1d1814)', border:'1px solid var(--ts-border-subtle, #302c28)' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:14, flexWrap:'wrap', marginBottom:14 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: FILM_PALETTE.primary, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: FILM_PALETTE.primary, boxShadow:`0 0 12px ${FILM_PALETTE.primary}` }} />
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: 'var(--ts-text-primary, #f3ecdf)', boxShadow:'none' }} />
             Unlocked · How did it land?
           </div>
           <SaveIndicator status={saveStatus} showIdleSavedHint={showIdleSavedHint} />
@@ -661,10 +675,11 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
                     onClick={() => setReaction(active ? '' : t)}
                     style={{
                       padding:'7px 12px', borderRadius:RADIUS.pill,
-                      background: active ? 'rgba(221,78,131,0.12)' : 'rgba(255,255,255,0.04)',
-                      border:`1px solid ${active ? ROSE + '88' : HP.border}`,
+                      background: active ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.04)',
+                      border:`1px solid ${active ? 'var(--ts-focus, #f3ecdf)' : HP.border}`,
+                      boxShadow: active ? 'inset 0 0 0 1px var(--ts-focus, #f3ecdf)' : 'none',
                       color: active ? HP.text : HP.textSoft,
-                      fontFamily:'Inter, sans-serif', fontSize:11.5, fontWeight:500, cursor:'pointer', letterSpacing:'-0.005em',
+                      fontFamily:'Inter, sans-serif', fontSize:11.5, fontWeight: active ? 700 : 500, cursor:'pointer', letterSpacing:'-0.005em',
                       transition:'all 0.18s ease',
                     }}>
                     {t}
@@ -701,7 +716,7 @@ function SaveIndicator({ status, showIdleSavedHint }) {
   if (status === 'idle' && !showIdleSavedHint) return null;
   const map = {
     saving:    { label: 'Saving…',                color: HP.textMuted },
-    saved:     { label: 'Saved ✓',                color: ROSE         },
+    saved:     { label: 'Saved ✓',                color: 'var(--ts-text-primary, #f3ecdf)' },
     error:     { label: 'Could not save. Try again.', color: '#f87171' },
     idleSaved: { label: 'Saved',                  color: HP.textMuted },
   };
@@ -722,7 +737,7 @@ function DNADelta() {
   }, []);
   return (
     <div style={{ padding:'22px 24px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.35)', border:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: ROSE, marginBottom:6 }}>Your engine projects this shift</div>
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:6 }}>Your engine projects this shift</div>
       <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic', marginBottom:18 }}>Real before/after deltas land in a follow-up — for now, projected from your taste profile.</div>
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
         {PARASITE_DNA_DELTA_SAMPLE.map(d => {
@@ -732,10 +747,10 @@ function DNADelta() {
             <div key={d.motif}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
                 <span style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, color: HP.text }}>{d.motif}</span>
-                <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, color: FILM_PALETTE.primary, fontWeight:700 }}>+{delta}</span>
+                <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, color: 'var(--ts-text-secondary, #beb8ad)', fontWeight:700 }}>+{delta}</span>
               </div>
               <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
-                <div style={{ height:'100%', width:`${w*100}%`, background:`linear-gradient(90deg, ${ROSE}, ${FILM_PALETTE.primary})`, transition:'width 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
+                <div style={{ height:'100%', width:`${w*100}%`, background:'var(--ts-text-secondary, #beb8ad)', transition:'width 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
               </div>
             </div>
           );
@@ -753,8 +768,8 @@ function DetailsSection() {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:80 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18 }}>Production</div>
-          <h3 style={{ fontFamily:'var(--font-editorial)', fontSize:28, fontWeight:400, color: HP.text, margin:'0 0 24px 0', letterSpacing:'-0.025em' }}>The receipts.</h3>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:18 }}>Production</div>
+          <h3 style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:28, fontWeight:400, color: HP.text, margin:'0 0 24px 0', letterSpacing:'-0.025em' }}>The receipts.</h3>
           <div className="ff-movie-details-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'20px 32px' }}>
             {mv.releaseDate && <Stat label="Released"   value={mv.releaseDate} />}
             {hasRuntime && <Stat label="Runtime"    value={`${Math.floor(mv.runtime/60)}h ${mv.runtime%60}m`} />}
@@ -786,7 +801,7 @@ function MovieFooter({ onBackToBriefing }) {
   return (
     <footer className="ff-movie-section ff-movie-footer" style={{ padding:'48px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background: '#DD4E83', display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
+        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background: 'var(--ts-surface-2, #241e19)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontWeight:700, fontSize:13, color:'var(--ts-text-primary, #f3ecdf)' }}>FF</div>
         <span style={{ fontSize:13, color: HP.textMuted, letterSpacing:'0.04em' }}>FeelFlick · Film File Nº {String(mv.id).padStart(4, '0')}</span>
       </div>
       <div style={{ display:'flex', gap:28, fontFamily:'Inter, sans-serif' }}>

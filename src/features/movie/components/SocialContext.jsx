@@ -15,7 +15,21 @@
 //    returned identity data is not altered or overwritten.
 
 import FilmFileDisclosure from './FilmFileDisclosure'
-import { HP, ROSE, RADIUS } from '../data'
+import { HP as HP_BASE, RADIUS } from '../data'
+
+const HP = {
+  ...HP_BASE,
+  panel: 'var(--ts-surface-1, #1d1814)',
+  border: 'var(--ts-border-subtle, #302c28)',
+  borderStrong: 'var(--ts-border-strong, #46423d)',
+  text: 'var(--ts-text-primary, #f3ecdf)',
+  textSoft: 'var(--ts-text-secondary, #beb8ad)',
+  textMuted: 'var(--ts-text-muted, #8d887f)',
+  textFaint: 'var(--ts-text-muted, #8d887f)',
+  purple: 'var(--ts-text-secondary, #beb8ad)',
+  purpleDeep: 'var(--ts-text-muted, #8d887f)',
+  pink: 'var(--ts-text-secondary, #beb8ad)',
+}
 
 const starText = (rating10) => `${(rating10 / 2).toFixed(1)} out of 5 stars`
 
@@ -59,7 +73,7 @@ function FriendsSummary({ friends }) {
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: HP.text }}>{f.name}</div>
                 <div style={{ marginLeft: 'auto', fontSize: 11, color: HP.amber, fontFamily: 'Inter, sans-serif', fontWeight: 700 }} aria-label={starText(f.rating)}>{(f.rating / 2).toFixed(1)}★</div>
               </div>
-              <div style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'var(--font-editorial)', fontStyle: 'italic' }}>
+              <div style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Inter, system-ui, sans-serif', fontStyle: 'italic' }}>
                 {f.reviewText}
               </div>
             </div>
@@ -78,8 +92,8 @@ function TwinSpotlight({ twin }) {
   return (
     <div className="ff-movie-twin-anon" style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
       {/* generic, identity-free glyph */}
-      <div aria-hidden="true" style={{ flexShrink: 0, width: 44, height: 44, borderRadius: RADIUS.pill, background: 'rgba(221,78,131,0.10)', border: `1px solid ${ROSE}33`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ROSE} strokeWidth="1.6"><circle cx="12" cy="8" r="4" /><path d="M4 21v-1a8 8 0 0 1 16 0v1" /></svg>
+      <div aria-hidden="true" style={{ flexShrink: 0, width: 44, height: 44, borderRadius: RADIUS.pill, background: 'var(--ts-surface-1, #1d1814)', border: '1px solid var(--ts-border-subtle, #302c28)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ts-text-primary, #f3ecdf)" strokeWidth="1.6"><circle cx="12" cy="8" r="4" /><path d="M4 21v-1a8 8 0 0 1 16 0v1" /></svg>
       </div>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: HP.text }}>A taste twin rated this film</div>
@@ -93,7 +107,7 @@ function TwinSpotlight({ twin }) {
         </div>
         {twin.note
           ? (
-            <p style={{ margin: '12px 0 0 0', fontFamily: 'var(--font-editorial)', fontSize: 16, lineHeight: 1.5, color: HP.text, fontStyle: 'italic', letterSpacing: '-0.012em', textWrap: 'pretty' }}>
+            <p style={{ margin: '12px 0 0 0', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 16, lineHeight: 1.5, color: HP.text, fontStyle: 'italic', letterSpacing: '-0.012em', textWrap: 'pretty' }}>
               “{twin.note}”
             </p>
             )

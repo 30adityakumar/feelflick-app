@@ -123,6 +123,18 @@ confirm intentional; review desktop + mobile; re-baseline deliberately, never to
 
 ## Stage 4 — Film File (pilot B)
 
+> **Status: IMPLEMENTED (the "Stage 3 — Film File pilot"), not merged.** Branch
+> `migration/thoughtful-seatmate-film-file-pilot` off `origin/main` `3c0c561f` (main after the Tonight
+> pilot #309). Film File (`/movie/:id`) activates the foundation locally via `<ThoughtfulRoot>` +
+> `<PageDepth>`; Inter-only, neutral ivory `PrimaryAction` ("Play Trailer"), `Surface` for the leading case
+> card (the `AccentPanel` purple gradient is retired), ivory-only committed states, bounded rose, and the
+> poster/mood-derived `FILM_PALETTE` colour fully removed from the chrome (no contextual aura). Behavior
+> preserved (full Film File suites green; 1582 tests). Authenticated visual evidence + baseline
+> regeneration are verified in CI. Details:
+> [`thoughtful-seatmate-stage3-film-file-pilot.md`](thoughtful-seatmate-stage3-film-file-pilot.md). Both
+> pilots (Tonight + Film File) now validate; **token globalization is still deferred** to its own later
+> stage (gate 5) — implemented in **no** pilot PR.
+
 - **Current typography:** Inter body + Newsreader headings; long-form prose already Inter (P2D).
 - **Current background:** warm dark; PrimaryCaseCard uses a tone-driven gradient surface.
 - **Current accent/gradient:** AccentPanel `gradient` variant (tone wash), match-badge, chips.

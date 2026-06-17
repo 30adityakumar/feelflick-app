@@ -55,6 +55,13 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: npm ci
 
+      # Mandatory: fails the quality gate on any NEW legacy-gradient occurrence or
+      # Stage 1 foundation purity violation. Compare-only (never regenerates the
+      # baseline in CI). No continue-on-error — a non-zero exit blocks the gate.
+      - name: Guard — Stage 1 foundation safeguards
+        if: steps.changes.outputs.code == 'true'
+        run: npm run guard:foundations
+
       - name: Lint
         if: steps.changes.outputs.code == 'true'
         run: npm run lint --silent

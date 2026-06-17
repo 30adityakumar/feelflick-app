@@ -7,7 +7,7 @@ import './PrimaryAction.css'
  * Solid ivory fill (`--ts-action-primary-fill` #efe7d7) + dark warm text
  * (`--ts-action-primary-text` #221b13). Calm, high-contrast, obvious. NO rose,
  * purple, gradient, glow, or contextual color. Follows the established Button
- * architecture (forwardRef, sm/md/lg size floors 40/44/48, in-button micro-spinner
+ * architecture (forwardRef, sm/md/lg touch-target floors 44/44/48, in-button micro-spinner
  * for `loading`, disabled state, focus-visible ring, reduced-motion-gated press) as
  * an opt-in scoped primitive — it does not fork or modify the production Button, and
  * is excluded from the production bundle until a pilot imports it.
@@ -16,7 +16,7 @@ import './PrimaryAction.css'
  * overlays a centered spinner while the label reserves its width.
  *
  * @param {object} props
- * @param {'sm'|'md'|'lg'} [props.size='md'] touch-target floors 40 / 44 / 48 px
+ * @param {'sm'|'md'|'lg'} [props.size='md'] touch-target floors 44 / 44 / 48 px
  * @param {boolean} [props.fullWidth=false]
  * @param {boolean} [props.loading=false] shows the in-button spinner + disables
  * @param {boolean} [props.disabled=false]

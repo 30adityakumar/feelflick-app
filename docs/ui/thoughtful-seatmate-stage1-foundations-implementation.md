@@ -107,6 +107,11 @@ must contain none of the legacy gradient, legacy purple/pink hexes/vars, Newsrea
 contextual-colour vars (usage-based patterns, so explanatory prose is not flagged). The legacy-gradient detection covers hex,
 rgb/rgba, and `var(--purple/--pink)` forms of the legacy linear gradient (not just hex), so a re-expressed
 gradient cannot evade the baseline. Baseline at authoring: **6 files / 16 allowlisted occurrences**.
+**Enforced in CI:** the App Quality Gate (`.github/workflows/app-quality.yml`, `quality-gate` job) runs
+`npm run guard:foundations` after dependency install and before the gate can pass — compare-only
+(never regenerates the baseline in CI), mandatory, no `continue-on-error`. A committed test
+(`__tests__/purity-and-non-adoption.test.js`) asserts the workflow invokes the guard and that it is not
+optional.
 
 ## 13. Showcase
 

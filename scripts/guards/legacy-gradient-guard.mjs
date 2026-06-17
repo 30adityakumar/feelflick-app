@@ -21,7 +21,7 @@
 // SCOPE NOTE: broader bans (new Newsreader/Outfit/purple/plum/contextual usage on
 // production target surfaces) remain REVIEW rules — see the Stage 1 implementation
 // record. Only the legacy gradient (app-wide) and Stage-1 purity are automated here.
-import { readFile, writeFile, readdir, stat } from 'node:fs/promises'
+import { readFile, writeFile, readdir } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 
 const ROOT = process.cwd()

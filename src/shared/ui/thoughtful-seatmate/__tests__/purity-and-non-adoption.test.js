@@ -93,3 +93,16 @@ describe('Stage 1 — production non-adoption', () => {
     expect(/import\.meta\.env\.DEV[\s\S]{0,60}import\('@\/features\/design-lab\/thoughtful-seatmate-foundations\/Showcase'\)/.test(router)).toBe(true)
   })
 })
+
+describe('Stage 1 — guard is mandatory in CI', () => {
+  const wf = readFileSync(join(ROOT, '.github/workflows/app-quality.yml'), 'utf8')
+
+  it('the App Quality Gate runs `npm run guard:foundations`', () => {
+    expect(wf).toMatch(/run:\s*npm run guard:foundations\b/)
+  })
+
+  it('the guard is not optional (no continue-on-error directive, no baseline regeneration in CI)', () => {
+    expect(wf).not.toMatch(/continue-on-error\s*:/i)
+    expect(wf).not.toContain('guard:foundations:update')
+  })
+})

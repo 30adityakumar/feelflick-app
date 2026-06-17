@@ -1,14 +1,29 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import Tooltip from '@/shared/ui/Tooltip'
-import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
-import { FILM_PALETTE, HP, ROSE, RADIUS } from './data'
+import { SecondaryActionButton } from '@/shared/components/ActionButton'
+import { PrimaryAction } from '@/shared/ui/thoughtful-seatmate'
+import { HP as HP_BASE, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
+
+const HP = {
+  ...HP_BASE,
+  panel: 'var(--ts-surface-1, #1d1814)',
+  border: 'var(--ts-border-subtle, #302c28)',
+  borderStrong: 'var(--ts-border-strong, #46423d)',
+  text: 'var(--ts-text-primary, #f3ecdf)',
+  textSoft: 'var(--ts-text-secondary, #beb8ad)',
+  textMuted: 'var(--ts-text-muted, #8d887f)',
+  textFaint: 'var(--ts-text-muted, #8d887f)',
+  purple: 'var(--ts-text-secondary, #beb8ad)',
+  purpleDeep: 'var(--ts-text-muted, #8d887f)',
+  pink: 'var(--ts-text-secondary, #beb8ad)',
+}
 
 // FeelFlick — Movie page · Hero, scroll progress, trailer modal, why-for-you, synopsis, mood radar, take, critic quotes.
 
 // F5.7: ≥44×44 touch target (the visible icon stays small).
-const iconBtnStyle = { width:44, height:44, borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid rgba(255,255,255,0.08)`, color:'rgba(250,250,250,0.72)', cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
+const iconBtnStyle = { width:44, height:44, borderRadius:RADIUS.pill, background:'var(--ts-surface-1, #1d1814)', border:`1px solid var(--ts-border-subtle, #302c28)`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
 
 // Reset-button style for wrapping elements that need to be focusable buttons
 // without inheriting the browser's default button chrome.
@@ -28,7 +43,7 @@ function ScrollProgress() {
   }, []);
   return (
     <div style={{ position:'fixed', top:0, left:0, right:0, height:2, zIndex:200, pointerEvents:'none' }}>
-      <div style={{ height:'100%', width:`${pct}%`, background: FILM_PALETTE.primary, transition:'width 0.1s linear', boxShadow:`0 0 12px ${FILM_PALETTE.primary}88` }} />
+      <div style={{ height:'100%', width:`${pct}%`, background:'var(--ts-text-primary, #f3ecdf)', transition:'width 0.1s linear' }} />
     </div>
   );
 }
@@ -92,17 +107,16 @@ function MovieHero({
         <div style={{ position:'absolute', inset:0, animation:'mv-kenburns 22s ease-in-out infinite alternate' }}>
           {mv.backdrop
             ? <img src={mv.backdrop} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 30%' }} />
-            : <div style={{ width:'100%', height:'100%', background:`radial-gradient(ellipse at center, ${FILM_PALETTE.glow} 0%, #06060a 70%)` }} />
+            : <div style={{ width:'100%', height:'100%', background:'var(--ts-surface-1, #1d1814)' }} />
           }
         </div>
-        <div style={{ position:'absolute', inset:0, background:`radial-gradient(ellipse 80% 70% at 20% 30%, rgba(${FILM_PALETTE.rgb.primary}, 0.38), transparent 60%), radial-gradient(ellipse 60% 50% at 90% 90%, rgba(${FILM_PALETTE.rgb.secondary}, 0.18), transparent 55%)` }} />
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 30%, rgba(0,0,0,0.85) 82%, #06060a 100%)' }} />
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)' }} />
       </div>
 
       {/* Top nav */}
       <div className="ff-movie-top-nav" style={{ position:'absolute', top:0, left:0, right:0, padding:'24px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', zIndex:5 }}>
-        <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'8px 16px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
+        <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'8px 16px', borderRadius:RADIUS.pill, background:'var(--ts-surface-1, #1d1814)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
           <span aria-hidden="true" style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
         </button>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
@@ -125,8 +139,8 @@ function MovieHero({
             willChange:'transform',
           }}>
             {mv.poster
-              ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:RADIUS.md, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
-              : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:RADIUS.md, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Inter, sans-serif', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
+              ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:RADIUS.md, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }} />
+              : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:RADIUS.md, background:'var(--ts-surface-2, #241e19)', display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Inter, sans-serif', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
             }
             {/* F5.3: the user-match ring is removed from the hero — the qualitative
                 fit band lives only in the PrimaryCase (mv.ffMatch is unchanged). */}
@@ -135,12 +149,12 @@ function MovieHero({
 
         <div style={{ maxWidth:780 }}>
           <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:22 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE }}>Film File</div>
-            <div style={{ flex:'none', height:1, width:36, background: ROSE, opacity:0.5 }} />
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)' }}>Film File</div>
+            <div style={{ flex:'none', height:1, width:36, background:'var(--ts-border-strong, #46423d)', opacity:0.5 }} />
             <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Inter, sans-serif' }}>Nº {String(mv.id).padStart(4, '0')} · {mv.year || '—'} · {mv.language}</div>
           </div>
 
-          <h1 className="ff-movie-hero-h1" style={{ fontFamily:'var(--font-editorial)', fontSize:92, lineHeight:0.94, fontWeight:400, letterSpacing:'-0.05em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h1 className="ff-movie-hero-h1" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:92, lineHeight:0.94, fontWeight:400, letterSpacing:'-0.05em', color: HP.text, margin:0, textWrap:'balance' }}>
             {mv.title}
           </h1>
 
@@ -177,7 +191,7 @@ function MovieHero({
 
           {mv.daypartFit && (
             // F5.3: generated suggestion — FeelFlick-owned, not an objective "best time".
-            <div aria-label={`FeelFlick-generated viewing suggestion: ${mv.daypartFit}`} style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(221,78,131,0.10)', border:`1px solid ${ROSE}33`, color: ROSE }}>
+            <div aria-label={`FeelFlick-generated viewing suggestion: ${mv.daypartFit}`} style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(243,236,223,0.06)', border:`1px solid var(--ts-border-subtle, #302c28)`, color:'var(--ts-text-secondary, #beb8ad)' }}>
               <svg aria-hidden width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>FeelFlick suggests · {mv.daypartFit}</span>
             </div>
@@ -193,7 +207,7 @@ function MovieHero({
           )}
 
           <div className="ff-movie-hero-actions" style={{ display:'flex', alignItems:'center', gap:12, marginTop:32, flexWrap:'wrap' }}>
-            <ActionButton
+            <PrimaryAction
               className="ff-movie-hero-action-btn ff-movie-hero-action-btn--primary"
               onClick={onPlayTrailer}
               disabled={!hasTrailer}
@@ -202,7 +216,7 @@ function MovieHero({
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l16-9z"/></svg>
               Play Trailer
-            </ActionButton>
+            </PrimaryAction>
             <MarkWatchedButton
               isWatched={isWatched}
               onToggleWatched={onToggleWatched}
@@ -256,7 +270,6 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct, celebr
   return (
     <>
       <SecondaryActionButton
-        accent={FILM_PALETTE.primary}
         active={isWatched}
         loading={loading}
         disabled={disabled}
@@ -265,7 +278,12 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct, celebr
         title={!canAct ? 'Sign in to track what you watch' : undefined}
         label={isWatched ? 'Watched' : 'Mark Watched'}
         className="ff-movie-hero-action-btn"
-        style={{ position: 'relative', opacity: disabled && !isWatched ? 0.6 : 1 }}
+        style={{
+          position: 'relative', opacity: disabled && !isWatched ? 0.6 : 1,
+          background: isWatched ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.06)',
+          borderColor: isWatched ? 'var(--ts-focus, #f3ecdf)' : 'var(--ts-border-subtle, #302c28)',
+          color: 'var(--ts-text-primary, #f3ecdf)',
+        }}
         icon={<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
       />
       {celebrate && <Confetti />}
@@ -285,7 +303,12 @@ function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
       title={!canAct ? 'Sign in to save films' : undefined}
       label={isInWatchlist ? 'Saved' : 'Save'}
       className="ff-movie-hero-action-btn"
-      style={{ opacity: disabled && !isInWatchlist ? 0.6 : 1 }}
+      style={{
+        opacity: disabled && !isInWatchlist ? 0.6 : 1,
+        background: isInWatchlist ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.06)',
+        borderColor: isInWatchlist ? 'var(--ts-focus, #f3ecdf)' : 'var(--ts-border-subtle, #302c28)',
+        color: 'var(--ts-text-primary, #f3ecdf)',
+      }}
       icon={isInWatchlist
         ? <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>}
@@ -294,7 +317,7 @@ function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
 }
 
 function Confetti() {
-  const colors = [ROSE, HP.pink, HP.amber, FILM_PALETTE.primary, FILM_PALETTE.secondary];
+  const colors = ['#f3ecdf', '#beb8ad', '#8d887f'];
   const pieces = Array.from({ length: 28 }, (_, i) => ({
     left: Math.random() * 100,
     delay: Math.random() * 0.3,
@@ -352,7 +375,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
       style={{
         position:'fixed', top:0, left:0, right:0, zIndex:100,
         padding:'12px 56px',
-        background:'rgba(6,6,10,0.94)', backdropFilter:'blur(20px)',
+        background:'var(--ts-surface-1, #1d1814)',
         borderBottom:`1px solid ${HP.border}`,
         transform: scrolled ? 'translateY(0)' : 'translateY(-100%)',
         transition:'transform 0.35s cubic-bezier(0.2,0.8,0.2,1)',
@@ -360,7 +383,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         display:'flex', alignItems:'center', gap:20,
       }}
     >
-      <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ width:44, height:44, borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
+      <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ width:44, height:44, borderRadius:RADIUS.pill, background:'var(--ts-surface-1, #1d1814)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
         <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div style={{ display:'flex', alignItems:'center', gap:14, flex:1 }}>
@@ -374,18 +397,19 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
           </div>
         </div>
       </div>
-      <button
+      <PrimaryAction
+        size="sm"
         onClick={onPlayTrailer}
         disabled={!hasTrailer}
         title={hasTrailer ? undefined : 'No trailer available'}
         style={{
-          padding:'8px 14px', borderRadius:RADIUS.sm, background: '#DD4E83', border:'none', color:'#fff',
-          fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600,
+          padding:'8px 14px', borderRadius:RADIUS.sm,
+          fontSize:12, fontWeight:600,
           cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5,
         }}
       >
         Play Trailer
-      </button>
+      </PrimaryAction>
       <button
         className="ff-movie-sticky-bar-save"
         onClick={onToggleWatchlist}
@@ -394,8 +418,8 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         title={wlTitle}
         style={{
           padding:'8px 14px', borderRadius:RADIUS.sm,
-          background: isInWatchlist ? 'rgba(221,78,131,0.12)' : 'rgba(255,255,255,0.06)',
-          border:`1px solid ${isInWatchlist ? ROSE + '66' : HP.borderStrong}`,
+          background: isInWatchlist ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.06)',
+          border:`1px solid ${isInWatchlist ? 'var(--ts-focus, #f3ecdf)' : HP.borderStrong}`,
           color: HP.text, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600,
           cursor: wlDisabled ? 'not-allowed' : 'pointer', opacity: wlDisabled && !isInWatchlist ? 0.6 : 1,
         }}>
@@ -422,8 +446,8 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
           that left a tall void below it. Centering balances the visual mass. */}
       <div className="ff-movie-why-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:72, alignItems:'center' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)', marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background:'var(--ts-border-strong, #46423d)', opacity:0.6 }} />
             {eyebrow || 'Why this fits you'}
           </div>
           <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, sans-serif', fontSize:44, lineHeight:1.02, fontWeight:500, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
@@ -446,14 +470,14 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
                 onMouseLeave={() => onHoverReason?.(null)}
                 style={{
                   padding:'28px 24px', borderRadius:RADIUS.sm,
-                  border:`1px solid ${active ? ROSE+'66' : HP.border}`,
-                  background: active ? 'rgba(221,78,131,0.06)' : 'rgba(255,255,255,0.025)',
+                  border:`1px solid ${active ? 'var(--ts-border-strong, #46423d)' : HP.border}`,
+                  background: active ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.025)',
                   transition:'all 0.25s ease',
                   transform: active ? 'translateY(-2px)' : 'translateY(0)',
                   cursor:'default',
                 }}>
                 <div className="ff-movie-why-card-header">
-                  <div className="ff-movie-why-card-icon" style={{ width:36, height:36, borderRadius:RADIUS.md, background:'rgba(221,78,131,0.12)', border:`1px solid ${ROSE}33`, display:'flex', alignItems:'center', justifyContent:'center', color: ROSE, marginBottom:18 }}>
+                  <div className="ff-movie-why-card-icon" style={{ width:36, height:36, borderRadius:RADIUS.md, background:'rgba(243,236,223,0.06)', border:`1px solid var(--ts-border-subtle, #302c28)`, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--ts-text-secondary, #beb8ad)', marginBottom:18 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{iconMap[r.icon] || iconMap.dna}</svg>
                   </div>
                   <div className="ff-movie-why-card-title" style={{ fontFamily:'Inter, sans-serif', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:8 }}>{r.title}</div>
@@ -479,12 +503,12 @@ function Synopsis() {
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ maxWidth:780 }}>
         <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:20 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />Synopsis
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)', display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background:'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Synopsis
           </div>
         </div>
-        <p className="ff-movie-synopsis-text" style={{ margin:0, fontFamily:'var(--font-editorial)', fontSize:19, lineHeight:1.6, color: HP.text, letterSpacing:'-0.01em', textWrap:'pretty', animation:'mv-fade-in 0.5s ease both' }}>
-          <span style={{ fontFamily:'var(--font-editorial)', fontSize:56, fontWeight:400, color: FILM_PALETTE.primary, float:'left', lineHeight:0.85, marginRight:10, marginTop:4, marginBottom:-6 }}>{first}</span>
+        <p className="ff-movie-synopsis-text" style={{ margin:0, fontFamily:'Inter, system-ui, sans-serif', fontSize:19, lineHeight:1.6, color: HP.text, letterSpacing:'-0.01em', textWrap:'pretty', animation:'mv-fade-in 0.5s ease both' }}>
+          <span style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:56, fontWeight:400, color:'var(--ts-text-primary, #f3ecdf)', float:'left', lineHeight:0.85, marginRight:10, marginTop:4, marginBottom:-6 }}>{first}</span>
           {rest}
         </p>
       </div>
@@ -524,10 +548,10 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
     <section ref={ref} className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-movie-radar-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.2fr', gap:56, alignItems:'center' }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: ROSE, opacity:0.6 }} />FeelFlick mood profile
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)', marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background:'var(--ts-border-strong, #46423d)', opacity:0.6 }} />FeelFlick mood profile
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'var(--font-editorial)', fontSize:40, lineHeight:1.02, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:40, lineHeight:1.02, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0, textWrap:'balance' }}>
             How it <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>feels.</em>
           </h2>
           {/* F5.3: generated origin made explicit; raw 0–100 numbers removed (the
@@ -543,9 +567,9 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
                 <div key={m.name}
                   onMouseEnter={() => enter(m.name)}
                   onMouseLeave={leave}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:RADIUS.sm, background: lit ? `${m.hex}1a` : 'transparent', border:`1px solid ${lit ? m.hex+'55' : 'transparent'}`, transition:'all 0.25s ease', cursor:'default' }}>
+                  style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:RADIUS.sm, background: lit ? 'rgba(243,236,223,0.10)' : 'transparent', border:`1px solid ${lit ? 'var(--ts-focus, #f3ecdf)' : 'transparent'}`, transition:'all 0.25s ease', cursor:'default' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                    <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: m.hex, boxShadow:`0 0 ${lit?12:0}px ${m.hex}` }} />
+                    <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: lit ? 'var(--ts-text-primary, #f3ecdf)' : 'var(--ts-text-muted, #8d887f)', boxShadow:'none' }} />
                     <span style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:500, color: HP.text }}>{m.name}</span>
                   </div>
                   {/* F5.3: raw 0–100 value removed; axis label only (geometry uses m.weight). */}
@@ -568,13 +592,13 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
               const a = -Math.PI/2 + (i/n) * Math.PI*2;
               return <line key={i} x1={cx} y1={cy} x2={cx + Math.cos(a)*R} y2={cy + Math.sin(a)*R} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />;
             })}
-            <path d={path(ptsFor(animW))} fill={`${FILM_PALETTE.primary}33`} stroke={FILM_PALETTE.primary} strokeWidth="1.5" />
+            <path d={path(ptsFor(animW))} fill="rgba(243,236,223,0.12)" stroke="var(--ts-text-secondary, #beb8ad)" strokeWidth="1.5" />
             {ptsFor(animW).map((p, i) => {
               const m = moods[i];
               const lit = highlightMood === m.name;
-              return <circle key={i} cx={p[0]} cy={p[1]} r={lit?7:4} fill={m.hex}
+              return <circle key={i} cx={p[0]} cy={p[1]} r={lit?7:4} fill={lit ? 'var(--ts-text-primary, #f3ecdf)' : 'var(--ts-text-secondary, #beb8ad)'}
                 onMouseEnter={() => enter(m.name)} onMouseLeave={leave}
-                style={{ transition:'all 0.3s ease', filter: lit?`drop-shadow(0 0 8px ${m.hex})`:'none', cursor:'default' }} />;
+                style={{ transition:'all 0.3s ease', filter:'none', cursor:'default' }} />;
             })}
             {moods.map((m, i) => {
               const a = -Math.PI/2 + (i/n) * Math.PI*2;
@@ -583,7 +607,7 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
               return (
                 <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
                   onMouseEnter={() => enter(m.name)} onMouseLeave={leave}
-                  style={{ fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:500, fill: highlightMood===m.name ? m.hex : HP.textSoft, letterSpacing:'0.02em', transition:'fill 0.25s ease', cursor:'default' }}>
+                  style={{ fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:500, fill: highlightMood===m.name ? 'var(--ts-text-primary, #f3ecdf)' : HP.textSoft, letterSpacing:'0.02em', transition:'fill 0.25s ease', cursor:'default' }}>
                   {m.name}
                 </text>
               );

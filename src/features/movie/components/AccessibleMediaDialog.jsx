@@ -108,8 +108,8 @@ export default function AccessibleMediaDialog({ open, onClose, youtubeKey, title
       />
       {/* Decorative curtains — hidden from assistive tech; CSS entrance is neutralised
           under reduced motion by the global reset. */}
-      <div aria-hidden="true" className="ff-media-dialog__curtain-l" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '50%', background: 'linear-gradient(90deg, rgba(221,78,131,0.18) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-l 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
-      <div aria-hidden="true" className="ff-media-dialog__curtain-r" style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '50%', background: 'linear-gradient(-90deg, rgba(221,78,131,0.18) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-r 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
+      <div aria-hidden="true" className="ff-media-dialog__curtain-l" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '50%', background: 'linear-gradient(90deg, rgba(243,236,223,0.06) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-l 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
+      <div aria-hidden="true" className="ff-media-dialog__curtain-r" style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '50%', background: 'linear-gradient(-90deg, rgba(243,236,223,0.06) 0%, transparent 100%)', opacity: 0.6, animation: 'mv-curtain-r 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents: 'none' }} />
 
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
         <button
@@ -118,7 +118,7 @@ export default function AccessibleMediaDialog({ open, onClose, youtubeKey, title
           onClick={() => onCloseRef.current?.()}
           aria-label="Close trailer"
           className="ff-media-dialog__close"
-          style={{ position: 'absolute', top: 22, right: 22, width: 44, height: 44, borderRadius: 999, background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.28)', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, lineHeight: 1, zIndex: 5, pointerEvents: 'auto' }}
+          style={{ position: 'absolute', top: 22, right: 22, width: 44, height: 44, borderRadius: 999, background: 'var(--ts-surface-1, #1d1814)', border: '1px solid var(--ts-border-subtle, #302c28)', color: 'var(--ts-text-primary, #f3ecdf)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, lineHeight: 1, zIndex: 5, pointerEvents: 'auto' }}
         >×</button>
 
         {/* Clicks inside the player must NOT close the dialog. Pure click-intercept;
@@ -140,8 +140,8 @@ export default function AccessibleMediaDialog({ open, onClose, youtubeKey, title
         </div>
 
         <div id={CAPTION_ID} style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', textAlign: 'center', pointerEvents: 'none' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#DD4E83', marginBottom: 6 }}>Now Playing</div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: '#FAFAFA', letterSpacing: '-0.015em' }}>{caption}</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom: 6 }}>Now Playing</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 500, color: 'var(--ts-text-primary, #f3ecdf)', letterSpacing: '-0.015em' }}>{caption}</div>
         </div>
       </div>
     </div>,

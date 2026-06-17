@@ -26,17 +26,21 @@ the foundation values as prototype / pilot-scoped, **not yet** global production
 tokens. The contextual-color treatment is now accepted in full — the **normalization
 envelope** (strict, [ADR 017](../decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md))
 and the **aura strength** (alpha 0.14, [ADR 018](../decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md));
-navigation structure, couple-mode mechanics, the contextual-color **extraction** method, and
-gradient survival remain prototype questions (§19). The **long-form Film File serif exception is now
-resolved** — P2D rejected it; Film File remains Inter-only (§12 / §19).
+navigation structure, couple-mode mechanics, and the contextual-color **extraction** method remain
+open (extraction is **deferred** — no method accepted; §19). The **long-form Film File serif exception
+is resolved** — P2D rejected it; Film File remains Inter-only (§12 / §19). The **legacy purple–pink
+gradient is retired from the target system**; the consolidated visual system is recorded in
+[`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md), and the
+P2E gradient-survival study was stopped without a decision (§14 / §19).
 
 This document deliberately does **not** use "approved and fully migrating"
 language. The foundation principles below are accepted, and the core voice (ADR 014)
 and the foundation token values (ADR 015) are fixed for prototypes and scoped pilots,
 and the decision signal is ivory-only (ADR 016, no warm-cue token), and the
 contextual-color treatment is accepted in full (strict normalization envelope, ADR 017;
-aura strength alpha 0.14, ADR 018); the contextual-color **extraction** method and gradient
-survival remain open and must be validated before they become doctrine or global production tokens.
+aura strength alpha 0.14, ADR 018); the contextual-color **extraction** method remains open and
+**deferred** (no method accepted), and the legacy purple–pink gradient is **retired** from the
+target (§14) — neither becomes a global production token except through a deliberate, gated migration.
 The **long-form Film File serif exception is resolved** — P2D rejected a bounded Newsreader long-form
 body (it tied Inter-only and lost on coherence/robustness/reflow); Film File long-form prose remains
 Inter, governed by ADR 014.
@@ -185,13 +189,16 @@ Tonight recovery model.
 - a neutral, high-contrast primary action
 - progressive recommendation depth
 - brief, purposeful, nonblocking motion
-- legacy purple–pink–amber gradient kept out of default actions, selected states,
-  application chrome, generic AI/premium signaling, and permanent atmosphere (any
-  narrow reveal/memory/campaign/sharing/celebration role remains an unresolved
-  prototype question)
+- legacy purple–pink gradient **retired from the target system** — no memory-only, share-only,
+  or any narrow role; no replacement gradient; no new gradient token (existing shipped usage is
+  transitional migration debt; see §14)
+- a **neutral near-black → warm-graphite depth treatment** for large backgrounds (radial preferred;
+  linear only where geometry requires) — a neutral atmospheric treatment, **not** a brand gradient
+- **one restrained solid rose accent** (`#DD4E83`) used sparingly — never a primary action, decision
+  signal, semantic state, large atmosphere, or pervasive treatment (see §11)
 - no default visible backup recommendations on Tonight
 - no permanent serif-versus-system personality split
-- no permanent rose/plum foundation as the core identity
+- no plum/purple supporting system; rose stays a bounded accent, not the dominant interface color
 - no roman-numeral case structure as a universal requirement
 
 ---
@@ -282,8 +289,20 @@ into the first glance.
   most backgrounds, surfaces, text, borders, and chrome, framing film artwork
   rather than competing with it. Text is **projection-ivory** (or an equivalent
   high-contrast warm neutral).
-- **Retired as target:** rose as the permanent brand signature; plum as the normal
-  supporting atmosphere; any permanent rose/plum core identity.
+- **Accepted — one restrained solid rose accent:** rose (`#DD4E83`) is the recognizable
+  FeelFlick accent, used **sparingly** (wordmark detail, lightweight links, subtle active
+  emphasis, small signature marks, bounded editorial/promotional moments). `#C0356C` is
+  retained **only** as the AA-contrast variant for white text on rose — not a second brand hue.
+  Rose is **not** a primary action, decision signal, semantic state, navigation background,
+  large atmosphere, card fill, or pervasive glow.
+- **Retired as target:** rose as a *pervasive, permanent brand signature or default-CTA color*;
+  plum as the normal supporting atmosphere; any permanent rose/plum **core identity** or
+  plum-beside-rose system.
+- **Accepted — neutral background-depth treatment:** a near-black → warm-graphite tonal
+  transition (radial preferred; linear only where geometry requires) for large backgrounds
+  (page canvas, hero, immersive modals, Tonight/Film File depth, large section transitions). It
+  is a **neutral atmospheric treatment, not a brand gradient**, and stays off cards, buttons,
+  chips, navigation, selected/semantic states, and decorative glow (see §14).
 - **Accepted (P2A — Foundation Neutrals, 2026-06-14):** the exact warm graphite
   foundation values and the projection-ivory hierarchy — with the related surface,
   border, and neutral-action roles — are now fixed, per
@@ -439,17 +458,22 @@ authorized.
 
 ## 14. Legacy-gradient status
 
-- **Current production baseline:** the legacy purple→pink gradient and purple/pink
-  tokens remain on unmigrated surfaces; `/home` already replaced the gradient CTA
-  with a neutral primary.
-- **Accepted restriction:** the legacy purple–pink–amber gradient must **not**
-  function as the default primary action, a routine selected state, application
-  chrome, a generic AI/premium signal, or permanent atmosphere.
-- **Active prototype question:** whether it retains any **narrow** role — a rare
-  reveal, memory, campaign, sharing, or celebration moment — is **unresolved**, as is
-  whether it survives at all. Do **not** create new production uses of the gradient
-  until such a role has been validated; a possible future use is not an approved
-  production treatment.
+- **Retired from the target system (decided).** The legacy purple→pink gradient —
+  `linear-gradient(135deg, #9333ea 0%, #ec4899 100%)` (`--brand-gradient` /
+  `--gradient-primary`, `HP_GRAD`) — is **retired**. There is **no memory-only role, no
+  share-only role, no replacement gradient, and no new gradient token**; no new gradient
+  usage is introduced anywhere (closure:
+  [`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md)).
+- **P2E stopped without a decision.** The gradient-survival study (P2E) was stopped before a
+  valid blind review and produced **no winner and no applied decision rule**; gradient survival
+  is resolved by simplification — retired — not by an experiment outcome.
+- **Current production baseline (transitional):** the legacy gradient and purple/pink tokens
+  **still ship** on unmigrated surfaces; `/home` already replaced the gradient CTA with the
+  neutral primary. Existing shipped usage is transitional migration debt removed only on
+  deliberate surface migration — **do not claim it is already gone from production.**
+- **Neutral depth is separate:** the accepted near-black → warm-graphite depth treatment (§11)
+  is a neutral atmospheric treatment, **not** a brand gradient and **not** a replacement for the
+  legacy gradient.
 
 ---
 
@@ -503,11 +527,11 @@ Prefer CSS and native browser capability over heavy libraries for small effects.
 |---|---|---|---|
 | Foundation | warm near-black canvas + ivory/bone text | ADR 015 warm graphite / projection-ivory system (exact values) | accepted for prototype and scoped pilots; production migration gated |
 | Type voice | Newsreader + Inter + Outfit, mixed across surfaces | **Inter** — single core Latin sans-serif (one coherent voice) | accepted (ADR 014); Newsreader/Outfit consolidation is later, gated surface work |
-| Brand color | rose `#DD4E83` accent + legacy purple/pink tokens | warm-neutral identity; no separate warm cue | accepted (ADR 016): ivory-only decision signal, no warm-cue token |
+| Brand color | rose `#DD4E83` accent + legacy purple/pink tokens | warm-neutral identity + **one bounded rose accent** (`#DD4E83`, used sparingly); no separate warm cue | accepted: one restrained rose accent (§11); ivory-only decision signal (ADR 016) |
 | Primary action | neutral solid fill on `/home`; gradient/rose elsewhere | solid light-neutral fill + dark warm text on dark surfaces | accepted principle; not yet migrated |
 | Decision signal (selected/committed) | ivory-only selected states on `/home`; no distinct marker | restrained projection-ivory marker (`#f3ecdf`) + redundant non-color signals; no separate warm cue | accepted for prototype and scoped pilots (ADR 016); production migration gated |
 | Recommendation case | numbered I/II case shipped on `/home` | natural progressive explanation; no required numbering | accepted principle; reversal is later code work |
-| Gradient | retired as CTA on `/home`; legacy elsewhere | barred from default action/selected-state/chrome/atmosphere; any narrow role unresolved | active prototype question |
+| Gradient | legacy purple→pink still ships on unmigrated surfaces; retired as CTA on `/home` | **retired from the target** — no role, no replacement, no new token; neutral depth treatment ≠ brand gradient | **resolved (retired)**; removed only on deliberate migration |
 | Identity framing | "Midnight Film Journal / trusted curator" | Compounding Decision Companion / Thoughtful Seatmate | accepted |
 
 **Do not claim the Thoughtful Seatmate direction is implemented.** It is not. The
@@ -517,18 +541,22 @@ table's left column is what ships today.
 
 ## 19. Explicitly provisional decisions
 
-These are **active prototype questions**. None is finalized here:
+These are the **only** remaining open questions. The visual system is otherwise consolidated
+(closure: [`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md)):
 
-- the contextual-color **extraction algorithm and seed-generation method** — still
-  **unresolved**; P2C-A and P2C-B used manually assigned deterministic seeds only to isolate
-  the variable under test (manual deterministic seeds are **not** an accepted production
-  extraction method), and the **edge-context** candidate selected in the synthetic P2C-C
-  comparison **failed the genuine real-poster holdout (P2C-D)** — no extraction method is
-  accepted and edge-context must not be implemented in production (see
+- the contextual-color **extraction algorithm and seed-generation method** — **deferred** (not a
+  blocker for the design migration; contextual film color is implemented in no migration stage):
+  still **unresolved**; P2C-A and P2C-B used manually assigned deterministic seeds only to isolate
+  the variable under test (manual deterministic seeds are **not** an accepted production extraction
+  method), and the **edge-context** candidate selected in the synthetic P2C-C comparison **failed
+  the genuine real-poster holdout (P2C-D)** — no extraction method is accepted and edge-context must
+  not be implemented in production (see
   [`thoughtful-seatmate-p2c-d-validation-closure.md`](thoughtful-seatmate-p2c-d-validation-closure.md))
-- whether the legacy gradient ultimately survives
 - exact bottom-navigation structure
 - exact couple-mode interaction
+
+The **legacy-gradient survival** and **long-form serif** questions are no longer open — both are
+resolved below.
 
 **Resolved (moved to accepted):**
 
@@ -566,9 +594,22 @@ These are **active prototype questions**. None is finalized here:
   so under the pre-registered tie-defaults-to-Inter rule it is **not accepted**. ADR 014 remains
   authoritative; **no second long-form reading voice is accepted**; **do not introduce Newsreader or
   another serif into Film File long-form body prose**. This is not an ADR (see the closure record
-  [`thoughtful-seatmate-p2d-reading-voice-closure.md`](thoughtful-seatmate-p2d-reading-voice-closure.md)).
+  [`thoughtful-seatmate-p2d-reading-voice-closure.md`](thoughtful-seatmate-p2d-reading-voice-closure.md));
+- the **legacy purple–pink gradient**: **retired from the target system** — no memory-only,
+  share-only, or any narrow role; no replacement gradient; no new gradient token. **P2E** (the
+  gradient-survival study) was **stopped before a valid blind review and produced no decision** (no
+  winner, no decision rule applied); gradient survival is resolved by simplification — retired.
+  Existing shipped usage is transitional migration debt (§14; closure:
+  [`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md));
+- the **brand accent**: **one restrained solid rose** (`#DD4E83`), used sparingly; `#C0356C` only as
+  the white-on-rose AA-contrast variant; rose is never a primary action, decision signal, semantic
+  state, large atmosphere, or pervasive treatment (§11);
+- the **neutral background-depth treatment**: a near-black → warm-graphite transition for large
+  backgrounds (radial preferred; linear where geometry requires) — a neutral atmospheric treatment,
+  **not** a brand gradient (§11 / §14).
 
-The long-form Film File serif exception is now **resolved** (P2D — Film File remains Inter-only).
+The long-form Film File serif exception is now **resolved** (P2D — Film File remains Inter-only), and
+**legacy-gradient survival is resolved (retired from the target)**.
 
 Do not convert any of these into doctrine without the validation in §20.
 
@@ -603,8 +644,13 @@ comparisons. Keep it isolated; it is not production UI.
 Migration proceeds through these gates, in order:
 
 1. **Doctrine accepted** — this document (principle level). ✅ done.
-2. **Isolated prototypes resolve the provisional questions** (§19) with rendered
-   desktop/mobile evidence. *Open.*
+2. **The visual system is consolidated** (closure:
+   [`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md));
+   the staged surface migration is planned in
+   [`thoughtful-seatmate-visual-migration-plan.md`](thoughtful-seatmate-visual-migration-plan.md).
+   The only deferred visual item is contextual-color **extraction**, which the migration does
+   **not** block on (contextual film color is implemented in no stage). *Bottom-navigation and
+   couple-mode remain open product questions.*
 3. **A decision record approves** the chosen prototype direction.
 4. **Pilot** the accepted direction on **two representative production surfaces**
    using **scoped/local values** rather than prematurely globalizing tokens.
@@ -658,6 +704,8 @@ The direction explicitly rejects:
 ## Related documents
 
 - [`CLAUDE.md`](../../CLAUDE.md) — root operating guide (routes here for design authority)
+- [`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md) — **consolidated visual-system closure** (retires further visual-system experimentation)
+- [`thoughtful-seatmate-visual-migration-plan.md`](thoughtful-seatmate-visual-migration-plan.md) — **staged surface migration plan** (not started)
 - [`.claude/rules/design-system.md`](../../.claude/rules/design-system.md) — durable visual implementation rules
 - [`.claude/rules/ui-implementation.md`](../../.claude/rules/ui-implementation.md) — interaction, accessibility, and state behavior
 - [`product-doctrine.md`](../product-doctrine.md) — canonical product doctrine

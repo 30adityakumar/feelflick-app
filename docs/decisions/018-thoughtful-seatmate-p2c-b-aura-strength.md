@@ -63,8 +63,10 @@ FeelFlick focal-film surfaces, before any pilot or production work. [ADR 014](01
   assigned deterministic artwork seeds** only to isolate the variable under test; **no extraction
   method is accepted**, and manual deterministic seeds are **not** an accepted production extraction
   method.
-- Legacy purple→pink gradient survival; the long-form Film File serif role; exact bottom-navigation
-  structure; couple-mode mechanics — all remain open.
+- Exact **bottom-navigation structure** and **couple-mode** mechanics remain open, and the
+  contextual-color **extraction** method remains deferred. *(Update 2026-06-17: legacy-gradient
+  survival → resolved, retired from the target (P2E stopped without a decision); the long-form Film
+  File serif role → resolved Inter-only by P2D. See the Status update at the end of this file.)*
 
 ## 6. Fixed ADR 014–017 controls
 
@@ -237,7 +239,9 @@ a semantic (approximations, not medical or device certainty).
 It does **not** decide the **extraction** algorithm or seed-generation method (manual deterministic
 seeds were an experiment device only and are **not** an accepted production extraction method); legacy
 purple→pink gradient survival; the long-form Film File serif role; bottom navigation; or couple-mode
-mechanics. It does **not** authorize a production aura, a global contextual-color token, or any
+mechanics. *(Update 2026-06-17: the long-form serif role resolved Inter-only by P2D; legacy-gradient
+survival resolved — retired from the target (P2E stopped without a decision); bottom navigation and
+couple-mode remain open; extraction is deferred. See the Status update below.)* It does **not** authorize a production aura, a global contextual-color token, or any
 production change. It does **not** reopen the ADR 017 normalization envelope, change the ladder, or
 blend strengths. It does **not** alter product doctrine
 ([`product-doctrine.md`](../product-doctrine.md)) or
@@ -271,9 +275,23 @@ numbers are from the dev-server DOM, not a production benchmark.
   seeds were an experiment device only and are **not** an accepted production solution.
 - Carry the accepted treatment (hue preserved, L = 0.62, C = 0.04, alpha 0.14, focal-film scope) into
   the scoped Tonight and Film File pilots with scoped/local values, gated by pilot validation.
-- Keep the remaining authority prototype questions open: legacy-gradient survival, the long-form Film
-  File serif role, bottom navigation, couple mode.
+- Keep the remaining authority prototype questions open: **bottom navigation and couple mode** (and
+  the deferred contextual-color **extraction** method). (Legacy-gradient survival and the long-form
+  serif role have since been resolved — see the Status update below.)
 - When a contextual aura migrates, follow the migration gates: resolve extraction → scoped pilots
   (local values, not global tokens) → after both validate, promote shared primitives where justified →
   surface-by-surface migration with deliberate re-baselining. **Do not create an independent global
   contextual-color token, and do not treat manual seed assignment as the accepted extraction method.**
+
+## Status update (2026-06-17 — Thoughtful Seatmate visual-system closure)
+
+Of the remaining authority prototype questions listed above, two are now **resolved** and must not
+be reopened during migration: **legacy-gradient survival** (retired from the target system — the P2E
+gradient-survival study was stopped before a valid blind review and produced no decision; no winner,
+no decision rule applied) and the **long-form Film File serif role** (P2D — Film File stays
+Inter-only). The contextual-color **extraction** method remains **unresolved and deferred** (no
+automatic method accepted; edge-context failed the P2C-D holdout; contextual film color is implemented
+in no migration stage), and bottom-navigation and couple-mode remain open product questions. This
+ADR's own decision — aura strength alpha 0.14 on the strict envelope — is unchanged and remains
+authoritative. See
+[`../ui/thoughtful-seatmate-visual-system-closure.md`](../ui/thoughtful-seatmate-visual-system-closure.md).

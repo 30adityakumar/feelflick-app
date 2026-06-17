@@ -238,7 +238,10 @@ decision avoids by staying neutral.
 
 It does **not** resolve contextual-film-color strength or normalization thresholds;
 legacy-gradient survival; the long-form Film File serif role; bottom navigation; or
-couple-mode mechanics — all remain open. It does **not** prohibit warmth elsewhere in
+couple-mode mechanics. *(Update 2026-06-17: contextual-color strength/normalization resolved by
+ADR 017 / 018; serif resolved Inter-only by P2D; legacy-gradient survival resolved — retired from
+the target (P2E stopped without a decision); bottom navigation and couple-mode remain open;
+contextual-color extraction is deferred. See the Status update below.)* It does **not** prohibit warmth elsewhere in
 the interface; it scopes only the selection/commitment confirmation role. It does
 **not** change product doctrine ([`product-doctrine.md`](../product-doctrine.md)) or
 [`.claude/rules/product.md`](../../.claude/rules/product.md).
@@ -273,12 +276,27 @@ dev-server DOM, not a production benchmark.
 
 - Carry the accepted ivory-only decision signal and its scope into the scoped Tonight
   and Film File pilots (local alias to ADR 015 ivory), not global tokens.
-- Keep the remaining authority prototype questions open: contextual-color strength
-  and normalization thresholds, gradient survival, long-form Film File serif, bottom
-  navigation, couple mode.
+- Keep the remaining authority prototype questions open: **bottom navigation and couple
+  mode**. (Contextual-color strength/normalization thresholds were resolved by ADR 017 / 018; the
+  long-form serif role and legacy-gradient survival have since been resolved — see the Status
+  update below; contextual-color extraction is deferred.)
 - When the decision-signal role migrates, follow the migration gates: scoped pilots →
   after both validate, promote the **ADR 015 projection-ivory foundation value**
   and/or the decision-signal role (as shared interaction guidance or a shared
   primitive) → surface-by-surface migration with deliberate re-baselining. The
   decision-signal colour keeps referencing the ADR 015 projection-ivory source; **do
   not create an independent global decision-signal color token**.
+
+## Status update (2026-06-17 — Thoughtful Seatmate visual-system closure)
+
+Of the remaining authority prototype questions listed above, two are now **resolved** and must
+not be reopened during migration: the **long-form Film File serif role** (P2D — Film File stays
+Inter-only) and **legacy-gradient survival** (retired from the target system — the P2E
+gradient-survival study was stopped before a valid blind review and produced no decision; no
+winner, no decision rule applied). Contextual-color strength/normalization thresholds were
+resolved by ADR 017 / 018. The contextual-color **extraction** method remains **deferred**, and
+bottom-navigation and couple-mode remain open product questions. This ADR's own decision — the
+ivory-only decision signal with no warm-cue token — is unchanged and remains authoritative; the
+separately accepted **one restrained solid rose accent** (`#DD4E83`, sparingly used) is **not** a
+decision signal and does not affect it. See
+[`../ui/thoughtful-seatmate-visual-system-closure.md`](../ui/thoughtful-seatmate-visual-system-closure.md).

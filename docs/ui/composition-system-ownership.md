@@ -96,7 +96,7 @@ retained for context only).
 
 | Component | Status | Notes |
 |---|---|---|
-| `Button` | **CANONICAL** generic app-interface button · **CANDIDATE** canonical neutral primary action | One button system for interface controls; its `primary` variant renders the neutral ivory action. Candidate to own the neutral primary action — pending the parity task. |
+| `Button` | **CANONICAL** generic app-interface button · **CANONICAL** neutral-primary public API | One button system for interface controls; `variant="primary"` owns the neutral-primary semantic/accessibility implementation (Slice A). `PrimaryAction` temporarily **wraps** it (see its `COMPATIBILITY` row, Slice B). Ownership is **resolved**; pending only the final resting-visual recipe, production-consumer migration, and compatibility-CSS retirement. |
 | `PrimaryAction` (Thoughtful Seatmate) | **COMPATIBILITY** (wrapper over `Button`) | Now a thin wrapper over `<Button variant="primary">` (Slice B) — delegates all semantics / loading / focus / forced-colours to Button; `PrimaryAction.css` only preserves the legacy visual recipe. Import path kept for existing home/movie/watchlist consumers. **No new adopters** — use `Button`. Retire (remove wrapper + CSS) once production imports reach zero, in a dedicated PR. |
 | `ActionButton`, `SecondaryActionButton`, `ChipButton` | **DOMAIN-SPECIFIC** | Intentional rose card-action family. **Not** automatically merged into `Button`. `ChipButton` is a compact action, not a selection pill. |
 
@@ -136,9 +136,16 @@ retained for context only).
 
 ## Button/PrimaryAction freeze
 
-`Button` (variant `primary`) and `PrimaryAction` **both currently represent the neutral ivory primary
-action**. This is the single most important ownership collision to resolve, and it is **frozen** until a
-dedicated parity task:
+> **RESOLVED (Slices A + B) — the framing below is the historical record of how this was settled.**
+> Ownership is now decided: **`Button` is the canonical neutral-primary public API** and **`PrimaryAction`
+> is a COMPATIBILITY wrapper** over `<Button variant="primary">` (see the Actions / buttons table and
+> **Status — Slice B** below). The original collision framing and bullets in this section are retained,
+> not erased, but are **superseded**; the only still-pending items are the final resting-visual recipe,
+> production-consumer migration, and compatibility-CSS retirement. No new `PrimaryAction` adopters.
+
+The collision (original framing, now resolved): `Button` (variant `primary`) and `PrimaryAction` both
+represent the neutral ivory primary action. This was the single most important ownership collision to
+resolve, and it was **frozen** until a dedicated parity task:
 
 - They are **not behaviourally identical** — they are two implementations (`Button` via Tailwind utility
   classes; `PrimaryAction` via a dedicated CSS class) that happen to render the same ivory action today.

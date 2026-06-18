@@ -139,10 +139,11 @@ export default function ThoughtfulSeatmateFoundationsShowcase() {
           </Section>
 
           {/* ── Button / PrimaryAction parity ─────────────────────────────────
-              Temporary Slice-A review tool. Renders the canonical, hardened
-              <Button variant="primary"> beside the FROZEN, unchanged PrimaryAction
-              so the two neutral-ivory actions can be compared before convergence.
-              PrimaryAction and its CSS are NOT modified. */}
+              Temporary review tool. <Button> is canonical; PrimaryAction is now a
+              COMPATIBILITY WRAPPER over <Button variant="primary"> (delegates all
+              semantics/loading/focus/forced-colours to Button). PrimaryAction.css
+              temporarily preserves PrimaryAction's legacy visual recipe on the
+              rendered Button. Production consumers are not yet migrated. */}
           <Section title="Button / PrimaryAction parity">
             <Text variant="caption" as="p">
               Temporary review tool. <strong>Button</strong> is canonical. <strong>PrimaryAction</strong> is now a

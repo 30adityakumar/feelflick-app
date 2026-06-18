@@ -146,8 +146,16 @@ confirm intentional; review desktop + mobile; re-baseline deliberately, never to
 - **Expected affected files:** `src/features/movie/*` (PrimaryCaseCard, AccentPanel usage, DnaConfidence).
 - **Must not change functionally:** Film File data, critic-quote→ViewerNotes mapping, DnaConfidence formula.
 
-> **Promotion checkpoint:** after Stages 3 and 4 both validate (visual + a11y, desktop + mobile),
-> promote the Stage 1 token/primitive layer to global defaults. Stages 5–12 consume the promoted layer.
+> **Promotion checkpoint — STATUS: REVIEWED, verdict READY WITH BLOCKERS (not merged).** The
+> two-pilot consolidation & globalization-readiness review (branch
+> `migration/thoughtful-seatmate-globalization-readiness`, off `origin/main` `e91cb1b4`) is **IMPLEMENTED
+> (docs-only), not merged**. Both pilots validated for *local* adoption (same `--ts-*` values, no override,
+> no primitive redesign, live + CI-green), but token globalization is **gated** on five blockers (repeated
+> a11y workarounds; 5/9 primitives unvalidated; a `--ts-*` ↔ `--brand-*/--bg-*/--font-*` collision; an
+> insufficient guard; under-exercised tokens). **Do not promote tokens to `:root` yet.** Safest next:
+> a foundation-hardening stage, then the **Library** local pilot. Details +
+> scorecard: [`thoughtful-seatmate-stage4-globalization-readiness.md`](thoughtful-seatmate-stage4-globalization-readiness.md).
+> Stages 5–12 continue as **scoped/local** per-route adoption (Level 1–2) until the blockers close.
 
 ## Stage 5 — Library / Browse
 

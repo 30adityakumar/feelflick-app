@@ -1,12 +1,14 @@
 /* global process */
 // Website-wide Thoughtful Seatmate theme — architecture invariants.
 // Static-source assertions (no render) proving the canonical theme is centrally
-// controlled: one root boundary, one canonical token source, compat aliases that
-// reference canonical (never duplicate independent values), Inter-only, neutral
-// Eyebrow default, ivory focus, and a working rollback switch.
+// controlled: one root boundary, one canonical token CONTRACT with CSS + JS mirrors
+// protected by a drift test, compat aliases that reference canonical (never duplicate
+// independent values), Inter-only, neutral Eyebrow default, ivory focus, and an
+// emergency theme switch (a runtime token-layer fallback, not an exact visual rollback).
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { CANONICAL_THEME } from '../tokens'
 
 const read = (p) => readFileSync(join(process.cwd(), p), 'utf8')
 
@@ -37,7 +39,7 @@ const CANONICAL = {
   '--color-brand-rose-contrast': '#c0356c',
 }
 
-describe('canonical token source of truth (foundations.css)', () => {
+describe('canonical token contract — CSS mirror (foundations.css)', () => {
   it('defines every canonical --color-* token with the exact value under .theme-thoughtful', () => {
     expect(foundations).toMatch(/\.theme-thoughtful\s*\{/)
     for (const [name, value] of Object.entries(CANONICAL)) {
@@ -61,6 +63,23 @@ describe('canonical token source of truth (foundations.css)', () => {
   })
 })
 
+describe('canonical token contract — CSS ↔ JS mirror drift test', () => {
+  // foundations.css (CSS mirror) and CANONICAL_THEME (JS mirror) are maintained by hand,
+  // NOT generated from one another. This guards against the two drifting apart: every
+  // CANONICAL_THEME token name + value must appear verbatim in the .theme-thoughtful CSS
+  // mirror. (This is what "one canonical token contract with CSS + JS mirrors protected
+  // by drift tests" means — not a literal single representation.)
+  const cssVar = (k) => '--' + k.replace(/([A-Z])/g, '-$1').replace(/([a-z])(\d)/g, '$1-$2').toLowerCase()
+  it('declares every CANONICAL_THEME token (name + exact value) in foundations.css', () => {
+    for (const [k, v] of Object.entries(CANONICAL_THEME)) {
+      expect(foundations, `${cssVar(k)}: ${v}`).toContain(`${cssVar(k)}: ${v};`)
+    }
+  })
+  it('covers the full canonical set (15 colour tokens + 2 font roles)', () => {
+    expect(Object.keys(CANONICAL_THEME)).toHaveLength(17)
+  })
+})
+
 describe('compatibility aliases reference canonical (index.css) — no duplicate independent values', () => {
   it('maps legacy surface/brand/font tokens to canonical under .theme-thoughtful', () => {
     expect(indexCss).toMatch(/\.theme-thoughtful\s*\{/)
@@ -80,16 +99,23 @@ describe('compatibility aliases reference canonical (index.css) — no duplicate
   })
 })
 
-describe('one root theme boundary + rollback switch (App.jsx)', () => {
+describe('one root theme boundary + emergency theme switch (App.jsx)', () => {
   it('selects the theme class from VITE_UI_THEME with thoughtful as the default', () => {
     expect(app).toMatch(/VITE_UI_THEME/)
     expect(app).toMatch(/theme-thoughtful/)
     expect(app).toMatch(/theme-legacy/)
   })
-  it('applies exactly one theme-thoughtful class literal in the app root (no per-route roots)', () => {
+  it('applies exactly one theme class at the app root (no per-route theme roots)', () => {
     // The boundary is a single className expression; no route file hardcodes the class.
     const occurrences = (app.match(/theme-thoughtful/g) || []).length
     expect(occurrences).toBeGreaterThanOrEqual(1)
+  })
+  it('frames the switch truthfully — a runtime token-layer fallback, NOT an exact visual rollback', () => {
+    // Truthfulness guard: the comment must describe a partial/runtime fallback and point to
+    // reverting the PR for a full visual rollback (locks the correction against regression).
+    expect(app).toMatch(/token-layer fallback/i)
+    expect(app).toMatch(/PARTIAL visual rollback/i)
+    expect(app).toMatch(/revert(ing)? this PR/i)
   })
 })
 

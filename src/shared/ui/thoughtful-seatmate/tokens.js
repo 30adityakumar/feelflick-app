@@ -19,8 +19,10 @@
 //     token, NO purple/plum target tokens
 
 /**
- * Canonical semantic theme tokens — the JS mirror of `.theme-thoughtful` in
- * `./foundations.css`. The single source of truth behind every surface.
+ * Canonical semantic theme tokens — the JS mirror of the canonical token contract.
+ * The CSS mirror is `.theme-thoughtful` in `./foundations.css`; the two are kept in
+ * sync by drift tests (neither is generated from the other). Together they are the one
+ * canonical token contract behind every surface.
  */
 export const CANONICAL_THEME = {
   colorCanvas: '#15120f',

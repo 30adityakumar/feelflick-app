@@ -40,9 +40,11 @@ flips the model from scoped adoption to a single canonical theme.
 
 ## 3. Decision
 
-1. **One canonical token source.** The semantic `--color-*` tokens live in
-   `src/shared/ui/thoughtful-seatmate/foundations.css` (`.theme-thoughtful`), mirrored 1:1
-   in `tokens.js` (`CANONICAL_THEME`). These are the single source of truth.
+1. **One canonical token contract.** The semantic `--color-*` tokens are defined in
+   `src/shared/ui/thoughtful-seatmate/foundations.css` (`.theme-thoughtful`), with a JS mirror
+   `CANONICAL_THEME` in `tokens.js`. The two are manually maintained mirrors (neither is
+   generated from the other) — **one canonical token contract with a CSS mirror and a JS
+   mirror, kept in sync by a drift test** that compares every token name + value.
 2. **One root boundary.** `src/App.jsx` wraps the entire app (the router, so every route,
    shell, and overlay) in `.theme-thoughtful`. No route declares its own theme root for
    colour; the legacy per-route `<ThoughtfulRoot>` wrappers become harmless no-ops nested
@@ -54,11 +56,17 @@ flips the model from scoped adoption to a single canonical theme.
    `IVORY`, `SHADOW.focus`, `C`) resolve to `var(--color-*, <legacy>)`. Aliases hold exactly
    one value (the canonical one); they are temporary and removed once consumers are migrated
    off the legacy names.
-4. **Rollback.** `VITE_UI_THEME=legacy` swaps the root class to a no-op `.theme-legacy`,
-   so the pre-existing `:root` tokens + the legacy literal fallbacks take over — no route
-   file is reverted. `thoughtful` is the production default.
+4. **Emergency theme fallback (partial visual rollback).** `VITE_UI_THEME=legacy` swaps the
+   root class to a no-op `.theme-legacy`, disabling the canonical alias layer so the pre-existing
+   `:root` tokens + the legacy literal `var()` fallbacks resolve again where they still exist. This
+   is a **runtime token-layer fallback** for palette / theme-boundary mitigation — a **partial**
+   visual rollback, **not** an exact restoration of the pre-migration site (it does not undo the
+   removed Newsreader/Outfit font loading, the changed shared-component defaults, or the directly
+   edited shell/route/CSS/SVG/JS presentation). A **full** return to the pre-#315 appearance
+   requires **reverting this PR's squash commit** (see §6). `thoughtful` is the production default.
 5. **Token ownership.** Anyone tuning the palette edits the canonical `--color-*` in
-   foundations.css (+ the JS mirror); the alias layer fans it out. No route owns colour.
+   foundations.css (+ the JS mirror, guarded by the drift test); the alias layer fans it out.
+   No route owns colour.
 
 ## 4. Why scoped pilot roots were replaced
 
@@ -77,15 +85,26 @@ regressions, and Stage 5 hardened the primitives + contrast rules. With the valu
 centralizing ownership is the only way to (a) finish the migration, (b) make tuning a
 one-line change, and (c) keep a single visual system rather than two maintained palettes.
 
-## 6. How rollback works
+## 6. How rollback works (two distinct levels)
 
-`VITE_UI_THEME` is read once in `App.jsx`. `thoughtful` → `.theme-thoughtful` (canonical
-tokens + aliases + theme application). `legacy` → `.theme-legacy` (no declarations), so
-`--color-*`/`--ts-*` are undefined and every `var(--color-*, <legacy>)` / `var(--ts-*, …)`
-falls back to its historical literal, while the untouched `:root` `--bg-*`/`--brand-*`/
-`--purple-*`/`--font-*` tokens drive the legacy look. The switch is a single class; no route
-edit, no rebuild of route files. Legacy mode is **temporary emergency support only**; its
-removal is scheduled with the alias-removal cleanup (see the migration doc).
+**Runtime emergency theme fallback — `VITE_UI_THEME=legacy`.** Read once in `App.jsx`.
+`thoughtful` → `.theme-thoughtful` (canonical tokens + aliases + theme application). `legacy`
+→ `.theme-legacy` (no declarations), so `--color-*`/`--ts-*` are undefined and every
+`var(--color-*, <legacy>)` / `var(--ts-*, …)` resolves to its historical literal, while the
+untouched `:root` `--bg-*`/`--brand-*`/`--purple-*`/`--font-*` tokens resolve again **where
+those fallbacks still exist**. This is a **runtime token-layer fallback** — useful for emergency
+palette / theme-boundary mitigation — and a **partial** visual rollback. It does **not** restore
+the removed Newsreader/Outfit font loading, the changed shared-component defaults, or the
+directly-edited shell/route/CSS/SVG/JS presentation, and it does not restore the old visual
+baselines. **Do not describe `.theme-legacy` as an exact restoration of the old website.**
+
+**Full visual rollback — revert the PR.** A full return to the exact pre-#315 appearance
+requires **reverting this PR's squash commit**. Because the migration lives behind one theme
+boundary class + a contained set of presentation edits, that revert is a clean, isolated
+operation — but it is the env switch *plus* the file changes, not the env switch alone.
+
+Legacy mode is **temporary emergency support only**; its removal is scheduled with the
+alias-removal cleanup (see the migration doc).
 
 ## 7. How token ownership works
 
@@ -123,5 +142,6 @@ to `:root`), preserving rollback.
 The shipped product moves fully onto the canonical theme (production default `thoughtful`).
 Validation: `guard:foundations` (legacy-gradient + theme audit) green, lint clean, the full
 unit suite green, build green; the website-wide visual baselines are regenerated and reviewed
-as the intentional migration diff (see the migration doc). Rollback to the legacy system is a
-single env/class flip.
+as the intentional migration diff (see the migration doc). Emergency theme mitigation is a
+single env/class flip (`VITE_UI_THEME=legacy`, a partial/runtime token-layer fallback); a full
+visual rollback to the pre-#315 appearance requires reverting this PR (see §6).

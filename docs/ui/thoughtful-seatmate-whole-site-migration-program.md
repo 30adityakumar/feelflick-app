@@ -6,7 +6,9 @@
 > [ADR 019](../decisions/019-thoughtful-seatmate-website-wide-theme.md) and recorded in
 > [`thoughtful-seatmate-website-wide-migration.md`](thoughtful-seatmate-website-wide-migration.md). The
 > theme is now applied once at the app root (`.theme-thoughtful`) with the canonical `--color-*` tokens as
-> the single source of truth; legacy systems alias them; `VITE_UI_THEME` is the rollback. The route-by-route
+> one canonical token contract (CSS + JS mirrors kept in sync by a drift test); legacy systems alias them;
+> `VITE_UI_THEME=legacy` is a runtime emergency theme fallback (partial — a full visual rollback reverts the
+> PR). The route-by-route
 > caveats below (one local `<ThoughtfulRoot>` per route, no `:root`/global promotion, one route family per
 > PR) are historical and no longer apply.
 
@@ -59,8 +61,10 @@
   canonical tokens; shell + header + bottom-nav + global focus migrated; all browser production routes themed
   (3 already-migrated via aliases, the rest recoloured by the theme + shared-token recolor + targeted holdout
   edits); Inter-only (Newsreader/Outfit removed); legacy purple/pink gradient chrome retired.
-- **Rollback:** `VITE_UI_THEME=legacy` → `.theme-legacy` no-op; legacy `:root` tokens + literal fallbacks
-  take over. One class flip; no route revert.
+- **Rollback:** `VITE_UI_THEME=legacy` → `.theme-legacy` no-op = a runtime emergency theme fallback
+  (legacy `:root` tokens + literal `var()` fallbacks resolve where they still exist) — a PARTIAL visual
+  rollback, not an exact restoration (removed fonts, changed component defaults, edited presentation, and
+  regenerated baselines are not reverted by the switch). A FULL visual rollback reverts this PR's commit.
 - **Deferred:** ShareCard / export artifacts (separate render env); alias + `HP_GRAD` + redundant-wrapper
   removal (post-monitoring follow-up); per-route visual specs for Browse/Collection/Lists/Account/
   Preferences/Onboarding/legal.

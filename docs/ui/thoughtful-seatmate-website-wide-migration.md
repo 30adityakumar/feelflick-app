@@ -25,8 +25,11 @@ change --color-* (foundations.css / CANONICAL_THEME)
 
 ## 2. Canonical token map
 
-Single source of truth: `src/shared/ui/thoughtful-seatmate/foundations.css`
-(`.theme-thoughtful`), mirrored in `tokens.js` (`CANONICAL_THEME`).
+One canonical token contract with two manually-maintained mirrors (neither generated from the
+other), kept in sync by a drift test: the CSS mirror in
+`src/shared/ui/thoughtful-seatmate/foundations.css` (`.theme-thoughtful`) and the JS mirror
+`CANONICAL_THEME` in `tokens.js`. The drift test (`website-theme.test.js`) compares every token
+name + value across both mirrors.
 
 | Token | Value | Token | Value |
 |---|---|---|---|
@@ -59,11 +62,16 @@ applies a theme class. The legacy per-route `<ThoughtfulRoot>` wrappers (Tonight
 File/Library) are now redundant no-ops nested inside the global theme — retained to
 minimize churn, scheduled for removal with the alias cleanup (§24).
 
-## 5. Rollback switch
+## 5. Emergency theme switch (partial visual rollback)
 
 `VITE_UI_THEME` (read once in App.jsx): `thoughtful` (default) → `.theme-thoughtful`;
-`legacy` → `.theme-legacy` (no-op) so the `:root` legacy tokens + `var(…, <legacy>)`
-fallbacks take over. One class flip; no route file reverts. See §23.
+`legacy` → `.theme-legacy` (no-op) so the `:root` legacy tokens + `var(…, <legacy>)` fallbacks
+resolve again **where those fallbacks still exist**. This is a **runtime token-layer fallback**
+(emergency palette / theme-boundary mitigation) — a **partial** visual rollback, **not** an exact
+restoration of the pre-migration site: it does not undo the removed Newsreader/Outfit font
+loading, the changed shared-component defaults, the directly-edited shell/route/CSS/SVG/JS
+presentation, or the regenerated baselines. A **full** visual rollback requires reverting this
+PR's squash commit (§23). Do not call `.theme-legacy` an exact restoration of the old website.
 
 ## 6. Routes migrated
 
@@ -239,12 +247,22 @@ documented and unrelated to the CI gate. The exact stale Darwin set = every
 
 ## 23. Rollback instructions
 
-Set `VITE_UI_THEME=legacy` (build/deploy env) → the app root renders `.theme-legacy`, the
-canonical `--color-*` tokens are undefined, and every consumer falls back to its legacy
-literal (and the untouched `:root` `--bg-*`/`--brand-*`/`--purple-*`/`--font-*` tokens drive
-the legacy purple/Newsreader look). No route files are reverted; no rebuild of route code is
-required beyond the env change. To roll back the *code*, revert this one PR (the theme
-scaffold + the holdout edits) — the boundary class makes that a clean, isolated revert.
+Two distinct levels:
+
+**Runtime emergency theme fallback (partial).** Set `VITE_UI_THEME=legacy` (build/deploy env)
+→ the app root renders `.theme-legacy`, the canonical `--color-*` tokens are undefined, and
+every consumer resolves its legacy literal (and the untouched `:root` `--bg-*`/`--brand-*`/
+`--purple-*`/`--font-*` tokens resolve again **where those fallbacks still exist**). This is a
+runtime token-layer fallback for emergency palette / theme-boundary mitigation and needs no
+route edits — but it is a **partial** visual rollback. It does **not** restore the removed
+Newsreader/Outfit font loading, the changed shared-component defaults, the directly-edited
+shell/route/CSS/SVG/JS presentation, or the regenerated visual baselines, so the result is
+**not** the exact pre-migration appearance.
+
+**Full visual rollback.** A full return to the exact pre-#315 appearance requires **reverting
+this PR's squash commit** (the theme scaffold + the presentation edits + the regenerated
+baselines together). The single theme-boundary class makes that revert clean and isolated, but
+it is the file revert, not the env switch alone.
 
 ## 24. Legacy-mode removal plan
 

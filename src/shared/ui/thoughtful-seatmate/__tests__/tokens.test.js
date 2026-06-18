@@ -100,7 +100,7 @@ describe('foundations.css mirrors TS_TOKENS via the canonical --color-* tokens',
     }
   })
 
-  it('aliases every --ts-* token to its canonical --color-* (single source of truth, no independent values)', () => {
+  it('aliases every --ts-* token to its canonical --color-* (canonical contract, no independent values)', () => {
     for (const k of EXPECTED_KEYS) {
       const tsVar = toCssVar(k)
       const colorVar = toColorVar(k)

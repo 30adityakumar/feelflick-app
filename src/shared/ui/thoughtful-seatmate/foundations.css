@@ -6,8 +6,9 @@
  * value here propagates to the shell, every route, and every shared component —
  * no route-by-route colour editing.
  *
- * This file is the SINGLE SOURCE OF TRUTH for the semantic `--color-*` tokens
- * (mirrored 1:1 in ./tokens.js). It is intentionally PURE: it declares only the
+ * This file is the CSS mirror of the canonical `--color-*` token contract (the JS
+ * mirror is `CANONICAL_THEME` in ./tokens.js; the two are kept in sync by drift tests
+ * — neither is generated from the other). It is intentionally PURE: it declares only the
  * canonical tokens, the `--ts-*` aliases (so the pilot ThoughtfulRoot wrappers
  * keep resolving), the Inter font roles, and the neutral page-depth recipes — it
  * references NO legacy purple/pink/gradient/editorial-serif tokens. The temporary
@@ -19,7 +20,7 @@
  */
 
 .theme-thoughtful {
-  /* ---- Canonical semantic tokens (single source of truth) ---- */
+  /* ---- Canonical semantic tokens (CSS mirror of the canonical contract) ---- */
   /* Background depth + solid graphite surfaces (near-black → warm graphite) */
   --color-canvas: #15120f;
   --color-surface-1: #1d1814;

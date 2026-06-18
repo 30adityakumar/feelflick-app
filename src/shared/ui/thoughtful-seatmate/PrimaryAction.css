@@ -23,6 +23,15 @@
    --color-action-primary-* tokens), so they are intentionally NOT re-declared here. */
 .ts-action-primary {
   box-shadow: none;
+  /* Legacy inherited line-height. The standalone PrimaryAction set font-size but NOT
+     line-height, so it inherited the surrounding unitless ratio (1.5). Button's size
+     utilities (text-xs/sm/base) instead contribute their own line-height; the compat
+     stylesheet restores font-size but, before this, left Button's line-height in place
+     — which made content-bound rows render 1px shorter (icon+label 57→56; movie-mobile
+     "Play Trailer" → the authenticated tail-mobile.png 7101→7100 regression). `inherit`
+     restores the legacy behaviour across sm/md/lg and disappears when this wrapper +
+     compat CSS are retired. (Proven via computed-style comparison vs base 94f925ab.) */
+  line-height: inherit;
   /* Legacy affordance: Button/Tailwind-v4 buttons default to `cursor: default`;
      PrimaryAction has always used a pointer cursor (disabled → not-allowed below). */
   cursor: pointer;

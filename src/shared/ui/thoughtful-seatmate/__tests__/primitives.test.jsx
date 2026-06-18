@@ -196,6 +196,9 @@ describe('PrimaryAction.css compatibility contract', () => {
   it('removes the primary shadow (flat surface)', () => {
     expect(css).toMatch(/\.ts-action-primary\s*\{[^}]*box-shadow:\s*none/)
   })
+  it('restores the legacy inherited line-height (not Button’s size-utility line-height)', () => {
+    expect(css).toMatch(/\.ts-action-primary\s*\{[^}]*line-height:\s*inherit/)
+  })
   it('preserves darken-on-hover', () => {
     expect(css).toMatch(/\.ts-action-primary:hover:not\(:disabled\)\s*\{[^}]*filter:\s*brightness\(0\.95\)/)
   })

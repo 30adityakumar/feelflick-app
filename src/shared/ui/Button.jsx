@@ -47,8 +47,10 @@ const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transi
  *     caller cannot spread props that make a loading button appear enabled or not busy.
  *   • an invalid/undefined `size` falls back to `md` (ordinary and icon) — never throws.
  *
- * Font: inherited Inter (interface voice). PrimaryAction (Thoughtful Seatmate) remains
- * frozen and standalone — not wrapped or migrated in this slice.
+ * Font: inherited Inter (interface voice). `Button` is the canonical neutral-primary
+ * public API; PrimaryAction (Thoughtful Seatmate) is now a temporary compatibility
+ * wrapper over `<Button variant="primary">` — its consumers and legacy visual recipe
+ * remain pending migration.
  *
  * @param {object} props
  * @param {'primary'|'secondary'|'ghost'|'icon'|'destructive'} [props.variant='secondary']

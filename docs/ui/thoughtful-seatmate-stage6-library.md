@@ -73,6 +73,14 @@ chrome.
 Inter only. The Masthead `<h1>` `var(--font-editorial)` (Newsreader) → `Inter, system-ui, sans-serif`
 (weight 400→600); all other text was already Inter. No Newsreader/Outfit/serif remains.
 
+The three **section-tone** `<Eyebrow>` labels ("Your library" masthead, "Watchlist" in the empty + error
+states) were passed `color="var(--ts-text-secondary, #beb8ad)"` to neutralize them to ivory. The shared
+`<Eyebrow>` primitive's *default* colour is the legacy `HP.purple` literal — so it carries **no**
+purple-pink hex of its own and the foundation guard cannot see it (see §26). The masthead eyebrow was
+therefore still rendering purple after the first migration pass; caught by inspecting the regenerated
+`watchlist-empty-mobile` actual and fixed by the explicit `color` prop (the line-47 `tone="meta"` eyebrow
+was already muted and left as-is).
+
 ## 11. Surface migration
 
 Graphite via the local **shadowed-`HP`** block (`text`/`border`/`panel`/`purple`/`pink`/… → `var(--ts-*)`),
@@ -166,22 +174,44 @@ Full keyboard/SR/forced-colours/zoom/touch-target verification runs in CI.
 ## 23. Visual evidence
 
 The authenticated harness `e2e/visual-auth/library.visual.js` (project `visual-app`, fixture
-`e2e/fixtures/library.js`) captures the library family. Its Watchlist captures (e.g. `watchlist-empty-*`)
-change with this migration; its **Diary** captures (`diary-*`) must stay byte-identical (History excluded).
-Captures run in CI on the PR (secrets available).
+`e2e/fixtures/library.js`) captures the library family — 8 states (4 Watchlist + 4 Diary). The Watchlist
+captures change with this migration; the **Diary** captures (`diary-*`) stay byte-identical (History
+excluded). Captures run in CI; Linux baselines are regenerated via the `visual-baselines/library-*` helper-
+branch flow. The regenerated `watchlist-empty-mobile` actual was image-inspected and shows the migrated
+state: neutral graphite canvas (rose masthead-atmosphere removed), Inter `<h1>` (was Newsreader), ivory
+section eyebrow (was purple), ivory `PrimaryAction` "Open Discover →" (was a rose fill), and the ivory
+section-nav underline.
 
 ## 24. Baseline classification
 
-Pending on the PR (same disciplined process): the authenticated `visual-app` job fails first (intended);
-every diff is classified; only **Watchlist** Linux captures are expected to change; the **Diary** Linux
-captures must be **unchanged** (proving the shared-nav scoped fallback kept History identical). Only
-Library-owned Linux baselines are regenerated; no Home/Film File/Discover/Profile baseline changes; no
-threshold relaxation; no diff artifacts committed.
+Regenerated via the `visual-baselines/library-stage6*` helper-branch CI flow (`test:visual:library:update` =
+`playwright test --project=visual-app e2e/visual-auth/library.visual.js --update-snapshots`, Linux runner).
+Playwright's `--update-snapshots` is **threshold-aware**: it re-renders all nine captures with the migrated
+code, compares each against its prior baseline, and rewrites **only** the ones whose delta exceeds the
+existing project comparison threshold. The run logged `9 passed` with exactly one
+`… watchlist-empty-mobile … is re-generated, writing actual`. Classification of the eight library captures:
+
+| Capture | Result | Why |
+|---|---|---|
+| `watchlist-empty-mobile` | **Regenerated** (intended migration) | The prominent rose→ivory `PrimaryAction` block on the 390px viewport, plus the masthead changes, exceed the threshold. Image-inspected: graphite canvas, Inter h1, ivory eyebrow + CTA + nav underline. |
+| `watchlist-populated-desktop` / `-mobile`, `watchlist-filtered-empty-desktop` | **Unchanged** (within threshold) | Same migrated masthead (Inter h1, ivory eyebrow, ivory active filter pill) renders, but the changed pixels stay under the comparison threshold on these layouts (poster artwork is fixture-provided and identical), so Playwright did not rewrite them. No threshold was relaxed. |
+| `diary-populated-desktop` / `-mobile`, `diary-remove-dialog-desktop`, `diary-searched-empty-mobile` | **Byte-identical** | History/Diary has no `.ts-root`, so the shared `library.css` renders its exact legacy fallback values — proving the scoped-fallback technique kept the excluded route pixel-for-pixel unchanged. |
+
+Only Watchlist-owned Linux baselines changed (one file). No Home / Film File / Discover / Profile / People
+authenticated baseline changed; no public baseline changed; no Darwin baseline changed; no diff artifacts
+committed; no threshold relaxation. The unchanged-but-migrated Watchlist captures are an honest property of
+the existing threshold (the migrated masthead delta is sub-threshold on those layouts); forcing a rewrite
+would require lowering the threshold, which is prohibited.
 
 ## 25. Deterministic rerun result
 
-Pending on the PR: the authenticated suite is run twice in compare mode on the same head; both must pass with
-no further baseline change (to be recorded at the CI baseline step).
+The Library authenticated suite was regenerated **twice** from the same eyebrow-fixed head (`55645932`) on
+two independent helper branches (`visual-baselines/library-stage6b`, `…-stage6c`). Both runs logged
+`9 passed` and rewrote **exactly one** snapshot (`watchlist-empty-mobile`); the second pass's
+`watchlist-empty-mobile-visual-app-linux.png` is **byte-identical** to the first (empty `git diff`), and no
+other library baseline differed between the two passes. The render is deterministic and the single baseline
+update is stable. (The authenticated `visual-app` job is the CI gate; there are no local creds, so the
+determinism was established on the Linux CI runner, not locally.)
 
 ## 26. Guard update
 
@@ -190,6 +220,15 @@ no further baseline change (to be recorded at the CI baseline step).
 `library.css` is intentionally **not** in `MIGRATED_FILES` (it keeps legacy fallbacks for History); the
 backward-compat is asserted by the Stage 6 test instead. Legacy-gradient baseline **unchanged (6 / 16)** —
 Watchlist had no baselined gradient occurrence.
+
+**Guard gap (found this stage).** The guard scans each migrated file's *own* source for legacy hex / editorial
+font / `HP.purple-pink` / `FILM_PALETTE` / `var(--context-)`. It cannot see a legacy colour a migrated file
+inherits from a **shared component's default prop** — here the shared `<Eyebrow>` defaults to the legacy
+`HP.purple` literal, so a section eyebrow rendered purple inside the migrated surface while the guard stayed
+green (the literal lives in `Eyebrow`'s file, not Watchlist's). It was caught by visual inspection, not the
+guard, and fixed by an explicit ivory `color` prop (§10). Recorded as a program follow-up: when the shared
+chrome migrates (Stage 12), retire the `<Eyebrow>` purple default; until then, migrated surfaces must pass an
+explicit neutral `color` to section-tone eyebrows, and the visual baseline is the backstop the guard is not.
 
 ## 27. Tests
 
@@ -227,6 +266,12 @@ History is unaffected either way.)
 - The shared `LibrarySectionNav`/`library.css` is migrated only via scoped fallbacks; it fully migrates (its
   own MIGRATED_FILES entry, fallbacks removed) when its last consumer (History/Diary, Stage 7) migrates.
 - `<Text>` variant-scale adoption deferred for Watchlist (bespoke surface scale) — documented in §12.
+- The shared `<Eyebrow>` purple **default** prop is invisible to the foundation guard (§26); migrated
+  surfaces must pass an explicit neutral `color` until the shared chrome migrates (Stage 12). The visual
+  baseline, not the guard, is the backstop for inherited shared-component defaults.
+- Three Watchlist captures render the migrated masthead but stay within the visual-diff threshold, so their
+  Linux baselines were not rewritten (§24); they still depict the pre-migration masthead within tolerance.
+  This is a property of the existing threshold, not a regression — production renders the migrated masthead.
 
 ## 31. Darwin baseline status
 

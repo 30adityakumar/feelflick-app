@@ -210,6 +210,14 @@ only visual values + the theme scaffold; and the routes auto-migrating via token
 - **Redundant `<ThoughtfulRoot>` wrappers** in Tonight/Film File/Library — now no-ops.
 - **Visual-spec coverage gaps** for Browse/Collection/Lists/Account/Preferences/Onboarding/
   legal — add authenticated/public specs as follow-up.
+- **Rose density on Profile / People** — these routes carry denser rose accents (eyebrows,
+  editorial lines, the white-on-rose share pill) inherited from the earlier F4 rose sweep.
+  This is within the "one bounded rose" rule (§13) and uses only §12-permitted rose roles
+  (editorial emphasis, the approved white-on-rose pill, inline brand moments on the canvas
+  where contrast passes), and the legacy purple/pink gradient system is fully removed. A
+  design-polish follow-up may tighten rose further toward maximal restraint (move secondary
+  rose eyebrows to ivory); it is not a migration regression. Baseline inspection confirmed
+  no legacy violet/purple renders on these routes.
 
 ## 21. Deferred share/export artifacts
 

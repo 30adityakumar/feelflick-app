@@ -11,9 +11,9 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Clapperboard, LayoutGrid, Sparkles, Fingerprint, User } from 'lucide-react'
 
-const AMBIENT_HEX = '#A78BFA'
-const PINK = '#EC4899'
-const GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
+const ACTIVE_INK = 'var(--color-text-primary, #f3ecdf)'
+const PILL_FILL = 'var(--color-action-primary-fill, #efe7d7)'
+const PILL_TEXT = 'var(--color-action-primary-text, #221b13)'
 
 // Exported as the mobile IA contract (asserted in __tests__/BottomNav.test.jsx):
 // the `hero` tab must be the Briefing (/home, "Tonight"); Discover is a normal tab.
@@ -78,7 +78,8 @@ export default function BottomNav({ active }) {
                     width: 54,
                     height: 54,
                     borderRadius: 999,
-                    background: `radial-gradient(circle, ${PINK}88, ${AMBIENT_HEX}44 50%, transparent 75%)`,
+                    background: 'var(--color-action-primary-fill, #efe7d7)',
+                    opacity: 0.18,
                     filter: 'blur(12px)',
                     animation: 'ff-bloom-pulse 3.4s ease-in-out infinite',
                   }}
@@ -91,25 +92,26 @@ export default function BottomNav({ active }) {
                     width: 32,
                     height: 32,
                     borderRadius: 999,
-                    background: `conic-gradient(${AMBIENT_HEX}, ${PINK}, #fbcfe8, ${PINK}, ${AMBIENT_HEX})`,
+                    background: 'var(--color-border-strong, #46423d)',
                     padding: 1.5,
                     animation: 'ff-bloom-pulse 6s ease-in-out infinite',
                   }}
                 >
                   <span
-                    className="flex items-center justify-center w-full h-full rounded-full text-white"
+                    className="flex items-center justify-center w-full h-full rounded-full"
                     style={{
-                      background: GRAD,
+                      background: PILL_FILL,
+                      color: PILL_TEXT,
                       boxShadow:
-                        '0 4px 12px -2px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
+                        '0 4px 12px -2px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.3)',
                     }}
                   >
                     <Icon className="w-4 h-4" />
                   </span>
                 </span>
                 <span
-                  className="relative text-[10px] font-semibold text-white"
-                  style={{ fontFamily: '"Outfit", sans-serif', letterSpacing: '-0.005em' }}
+                  className="relative text-[10px] font-semibold"
+                  style={{ fontFamily: '"Inter", sans-serif', color: ACTIVE_INK, letterSpacing: '-0.005em' }}
                 >
                   {t.label}
                 </span>
@@ -140,8 +142,8 @@ export default function BottomNav({ active }) {
                       width: 4,
                       height: 4,
                       borderRadius: 999,
-                      background: AMBIENT_HEX,
-                      boxShadow: `0 0 6px ${AMBIENT_HEX}`,
+                      background: ACTIVE_INK,
+                      boxShadow: '0 0 6px rgba(243,236,223,0.55)',
                     }}
                   />
                 )}
@@ -149,7 +151,7 @@ export default function BottomNav({ active }) {
               <span
                 className="text-[10px]"
                 style={{
-                  fontFamily: '"Outfit", sans-serif',
+                  fontFamily: '"Inter", sans-serif',
                   fontWeight: on ? 600 : 500,
                   color: on ? '#FAFAFA' : 'rgba(250,250,250,0.45)',
                   letterSpacing: '-0.005em',

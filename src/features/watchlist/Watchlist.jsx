@@ -42,7 +42,7 @@ function Masthead() {
     <section className="ff-wl-section ff-wl-section--masthead" style={{ padding:'72px 88px 28px', position:'relative' }}>
       <div style={{ position:'relative' }}>
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24, flexWrap:'wrap' }}>
-          <Eyebrow spacing="0.32em" size={10}>Your library</Eyebrow>
+          <Eyebrow color="var(--ts-text-secondary, #beb8ad)" spacing="0.32em" size={10}>Your library</Eyebrow>
           <div style={{ height:1, width:38, background:'var(--ts-border-strong, #46423d)', opacity:0.6 }} />
           <Eyebrow tone="meta" weight={500} size={10}>{total} film{total === 1 ? '' : 's'} saved</Eyebrow>
         </div>
@@ -155,7 +155,7 @@ function EmptyState() {
   const navigate = useNavigate();
   return (
     <section className="ff-wl-section" style={{ padding:'56px 88px 96px', textAlign:'center' }}>
-      <Eyebrow size={10} style={{ marginBottom:18 }}>Watchlist</Eyebrow>
+      <Eyebrow color="var(--ts-text-secondary, #beb8ad)" size={10} style={{ marginBottom:18 }}>Watchlist</Eyebrow>
       <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:34, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 14px 0' }}>Your Watchlist is open.</h2>
       <p style={{ margin:'0 auto 28px', maxWidth:460, fontSize:14, color:HP.textMuted, fontFamily:'Inter, sans-serif', lineHeight:1.6 }}>
         Save a film when you want to remember it for another time.
@@ -280,7 +280,7 @@ function PageError({ onRetry, onHome }) {
   return (
     <div style={{ minHeight:'60vh', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
       <div role="alert" style={{ textAlign:'center', maxWidth:520 }}>
-        <Eyebrow size={10} style={{ marginBottom:18 }}>Watchlist</Eyebrow>
+        <Eyebrow color="var(--ts-text-secondary, #beb8ad)" size={10} style={{ marginBottom:18 }}>Watchlist</Eyebrow>
         <h1 style={{ fontFamily:'Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Watchlist.</h1>
         <p style={{ margin:'0 0 28px 0', color:'var(--ts-text-muted, #8d887f)', fontSize:14, lineHeight:1.6 }}>Your saved films are still safe. Try again in a moment.</p>
         <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>

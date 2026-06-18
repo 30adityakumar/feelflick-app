@@ -7,9 +7,21 @@ import { WatchlistProvider } from '@/app/providers/WatchlistContext'
 import { useSessionTracking } from '@/shared/hooks/useInteractionTracking'
 import { queryClient } from '@/shared/lib/queryClient'
 
+// === Canonical website theme boundary + rollback switch =====================
+// The whole application is themed by ONE root class. `VITE_UI_THEME` selects it:
+//   • 'thoughtful' (default) → `.theme-thoughtful` — the canonical Thoughtful
+//     Seatmate system (warm-graphite canvas, ivory text, Inter, restrained rose).
+//   • 'legacy'              → `.theme-legacy` (a no-op marker) — the pre-existing
+//     :root tokens + literal fallbacks take over (emergency rollback only).
+// Changing a single `--color-*` token (foundations.css) propagates everywhere
+// under this class. The class is fully removable; rolling back needs no route edits.
+const UI_THEME = import.meta.env.VITE_UI_THEME === 'legacy' ? 'legacy' : 'thoughtful'
+const THEME_CLASS = UI_THEME === 'legacy' ? 'theme-legacy' : 'theme-thoughtful'
+
 export default function App() {
   useSessionTracking()
   return (
+    <div className={THEME_CLASS} data-ui-theme={UI_THEME} style={{ minHeight: '100vh' }}>
     <Sentry.ErrorBoundary
       fallback={() => (
         // Last-resort outer boundary (the route-level ErrorBoundary handles most
@@ -41,5 +53,6 @@ export default function App() {
         </WatchlistProvider>
       </QueryClientProvider>
     </Sentry.ErrorBoundary>
+    </div>
   )
 }

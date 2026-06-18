@@ -11,7 +11,8 @@
 
 html {
   color-scheme: dark;
-  background: #000;
+  /* Canonical warm-graphite canvas backdrop (behind the themed app root). */
+  background: #15120f;
 }
 
 html,
@@ -46,8 +47,10 @@ body {
   color: #fff;
 }
 
+/* Global focus ring — projection ivory under the canonical theme (never a brand
+   hue); falls back to the legacy rose when the theme class is absent (rollback). */
 :focus-visible {
-  outline: 2px solid var(--brand-rose, #DD4E83);
+  outline: 2px solid var(--color-focus, var(--brand-rose, #DD4E83));
   outline-offset: 3px;
   border-radius: 0.5rem;
 }

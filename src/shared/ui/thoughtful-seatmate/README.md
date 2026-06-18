@@ -62,8 +62,42 @@ This keeps activation **local/scoped**. Do not add `.ts-root` to `<body>`, `#roo
 Rose-as-text (`#dd4e83`) meets WCAG AA only on `--ts-canvas` (~4.88:1) and `--ts-surface-1` (~4.60:1). It
 is **~4.31:1 on `--ts-surface-2`** and **3.89:1 on `--ts-surface-raised`** — both below AA for small/normal
 text. **Use rose text only on canvas or surface-1**; on lighter surfaces use the non-text `BrandMark`,
-large/bold text, or the white-on-rose solid pill (`#c0356c`). Neutral ivory text/actions and the ivory
-decision marker pass on all surfaces.
+large/bold text (AA-large 3:1, which rose clears on every stop), or the white-on-rose solid pill (`#c0356c`,
+which passes AA for white text). Neutral ivory text/actions and the ivory decision marker pass on all
+surfaces.
+
+**`--ts-text-muted` usage rule (Stage 5/B1):** muted (`#8d887f`) passes AA on `canvas` / `surface-1` /
+`surface-2` (~5.3/5.0/4.7:1) but is **~4.2:1 on `--ts-surface-raised` — below AA.** Use `text-muted` only on
+canvas/surface-1/surface-2; on `surface-raised` (or any lighter elevation), promote muted → `text-secondary`
+(`#beb8ad`, ≥7.5:1 everywhere). These bounds — and the rose bounds above — are **enforced** by
+`__tests__/contrast-rules.test.js`, which computes the ratios from the live token values and fails CI if a
+value drifts so a rule breaks. Do not change a token value without re-reviewing that table.
+
+## Stage 5 — hardening status (B1–B5)
+
+The foundation was hardened against the globalization-readiness blockers
+([stage4 review](../../../../docs/ui/thoughtful-seatmate-stage4-globalization-readiness.md)).
+Summary of the durable decisions (full record:
+[stage5](../../../../docs/ui/thoughtful-seatmate-stage5-foundation-hardening.md)):
+
+- **Primitive adoption status.** All 9 primitive APIs are unit-tested (`__tests__/primitives.test.jsx`) and
+  demoed in the dev showcase. Production adoption so far: `ThoughtfulRoot` / `PageDepth` / `PrimaryAction`
+  (both pilots), `Surface` (Film File). **None deprecated** — all are retained. `Text`, `DecisionMarker`,
+  `BrandMark`/`BrandLink`/`BrandSignature` are validated by test + showcase; their *production* adoption is
+  scheduled, not forced: `Text` is the preferred way to set standard hierarchy on **newly** migrated
+  surfaces; `DecisionMarker` is adopted where a supplementary dot helps; the Brand* helpers are for the
+  shell wordmark migration (Stage 12) + bounded editorial moments.
+- **DecisionMarker reconciliation.** The pilots' hand-rolled ivory committed states (semantic state +
+  ≥2 non-colour cues) are the **canonical** pattern; `DecisionMarker` is the **optional** supplementary
+  ivory dot for it (never sufficient alone). Pinned by `__tests__/decision-state-composition.test.jsx`.
+- **Token retention.** `surface-raised`, `page-depth linear`, `--ts-brand-rose(-contrast)` are **retained**
+  (exercised in the showcase; needed by elevated surfaces / geometry / the rose contract) even though the
+  two pilots did not exercise them. There is no `--ts-decision` token by design (the marker reuses
+  `--ts-focus`). No token value changed in Stage 5 (pilot visuals are byte-identical).
+- **Guard.** `scripts/guards/legacy-gradient-guard.mjs` now also enforces (C) migrated-surface purity —
+  the rendered files of each migrated surface must stay free of editorial font / purple-pink chrome /
+  contextual colour — and (D) the adopter allowlist (`src/features/home/`, `src/features/movie/` + the dev
+  showcase). Each future stage adds its surface to `ADOPTERS` + `MIGRATED_FILES`.
 
 ## Rolling back one pilot without affecting the other
 

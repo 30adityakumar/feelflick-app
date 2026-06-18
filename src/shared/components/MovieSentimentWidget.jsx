@@ -13,15 +13,15 @@ const SENTIMENTS = [
     value: 'loved',
     label: 'Loved it',
     icon: Heart,
-    activeClass: 'bg-linear-to-br from-purple-500/30 to-pink-500/20 border-purple-400/70',
-    iconClass: 'text-pink-400',
+    activeClass: 'bg-[var(--color-surface-raised,#2d2621)] border-[var(--color-border-strong,#46423d)]',
+    iconClass: 'text-[var(--color-text-primary,#f3ecdf)]',
   },
   {
     value: 'liked',
     label: 'Liked it',
     icon: ThumbsUp,
-    activeClass: 'bg-purple-500/20 border-purple-400/50',
-    iconClass: 'text-purple-400',
+    activeClass: 'bg-[var(--color-surface-2,#241e19)] border-[var(--color-border-strong,#46423d)]',
+    iconClass: 'text-[var(--color-text-secondary,#beb8ad)]',
   },
   {
     value: 'meh',
@@ -212,8 +212,8 @@ export default function MovieSentimentWidget({
         <div className="p-5 space-y-5 overflow-y-auto" style={{ maxHeight: '68vh' }}>
           {submitted ? (
             <div className="py-10 text-center space-y-3">
-              <div className="inline-flex h-14 w-14 rounded-2xl bg-linear-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 items-center justify-center">
-                <Check className="h-7 w-7 text-purple-400" />
+              <div className="inline-flex h-14 w-14 rounded-2xl bg-[var(--color-surface-raised,#2d2621)] border border-[var(--color-border-strong,#46423d)] items-center justify-center">
+                <Check className="h-7 w-7 text-[var(--color-text-primary,#f3ecdf)]" />
               </div>
               <h3 className="text-lg font-bold text-white">Saved!</h3>
               <p className="text-sm text-white/40">Your feedback shapes your recommendations.</p>
@@ -247,7 +247,7 @@ export default function MovieSentimentWidget({
                   onChange={e => setReviewText(e.target.value.slice(0, REVIEW_MAX))}
                   placeholder="What did you think? Any thoughts worth remembering…"
                   rows={3}
-                  className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all"
+                  className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:border-[var(--color-focus,#f3ecdf)] focus:ring-2 focus:ring-[color:rgba(243,236,223,0.18)] transition-all"
                 />
               </div>
 
@@ -266,7 +266,7 @@ export default function MovieSentimentWidget({
                   onChange={e => setReflectionText(e.target.value.slice(0, 300))}
                   placeholder="Your thoughts…"
                   rows={2}
-                  className="w-full resize-none rounded-xl border border-white/8 bg-white/3 px-4 py-3 text-sm text-white placeholder-white/20 focus:border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-500/10 transition-all"
+                  className="w-full resize-none rounded-xl border border-white/8 bg-white/3 px-4 py-3 text-sm text-white placeholder-white/20 focus:border-[var(--color-focus,#f3ecdf)] focus:outline-none focus:ring-2 focus:ring-[color:rgba(243,236,223,0.18)] transition-all"
                 />
               </div>
 
@@ -313,7 +313,7 @@ export default function MovieSentimentWidget({
                         onClick={() => toggleTag(tag.value, viewingContext, setViewingContext)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
                           isSelected
-                            ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                            ? 'bg-[var(--color-surface-raised,#2d2621)] border-[var(--color-border-strong,#46423d)] text-[var(--color-text-primary,#f3ecdf)] font-semibold'
                             : 'bg-white/3 border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
                         }`}
                       >
@@ -338,7 +338,7 @@ export default function MovieSentimentWidget({
                         onClick={() => toggleTag(tag.value, whatStoodOut, setWhatStoodOut)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
                           isSelected
-                            ? 'bg-pink-500/20 border-pink-500/40 text-pink-300'
+                            ? 'bg-[var(--color-surface-raised,#2d2621)] border-[var(--color-border-strong,#46423d)] text-[var(--color-text-primary,#f3ecdf)] font-semibold'
                             : 'bg-white/3 border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
                         }`}
                       >
@@ -361,7 +361,11 @@ export default function MovieSentimentWidget({
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="w-full py-3 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 text-white text-sm font-bold shadow-lg shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                className="w-full py-3 rounded-xl text-sm font-bold disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                style={{
+                  background: 'var(--color-action-primary-fill, #efe7d7)',
+                  color: 'var(--color-action-primary-text, #221b13)',
+                }}
               >
                 {submitting ? 'Saving…' : (initialRating > 0 || initialSentiment) ? 'Update your take' : 'Save your take'}
               </button>

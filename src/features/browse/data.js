@@ -7,9 +7,9 @@ import { HP as baseHP, ROSE, ROSE_DEEP } from '@/shared/lib/tokens'
 // spread the shared core and override only those (explicit, not drift).
 export const HP = {
   ...baseHP,
-  bg: '#06060a', surface: '#0e0b18',
+  bg: 'var(--color-canvas, #15120f)', surface: 'var(--color-surface-1, #1d1814)',
   border: 'rgba(255,255,255,0.07)', textFaint: 'rgba(250,250,250,0.32)',
-  purpleDeep: '#9333ea',
+  purpleDeep: 'var(--color-text-muted, #9333ea)',
   textHi: 'rgba(250,250,250,0.92)', textMid: 'rgba(250,250,250,0.72)', textLow: 'rgba(250,250,250,0.5)',
   blue: '#7DD3FC',
 }

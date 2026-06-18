@@ -25,7 +25,10 @@ export default function RecommendationFeedback({ movieId, sessionId }) {
 
   return (
     <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
-      <div className="bg-linear-to-r from-purple-900/95 to-pink-900/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-4">
+      <div
+        className="backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-4"
+        style={{ background: 'var(--color-surface-1, #1d1814)' }}
+      >
         <span className="text-white font-medium">Was this a good match?</span>
         
         <div className="flex gap-2">

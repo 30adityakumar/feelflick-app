@@ -21,7 +21,7 @@ const Checkbox = forwardRef(function Checkbox(
           className="sr-only peer"
           {...props}
         />
-        <span className="block h-5 w-9 rounded-full bg-white/10 peer-checked:bg-purple-500 transition-colors" />
+        <span className="block h-5 w-9 rounded-full bg-white/10 peer-checked:bg-[var(--color-action-primary-fill,#efe7d7)] transition-colors" />
         <span className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
       </span>
       {label && (

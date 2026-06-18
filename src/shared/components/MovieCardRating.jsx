@@ -41,26 +41,38 @@ export default function MovieCardRating({ movie, personalRating, showGenreBadge 
         style={{
           background: 'rgba(0,0,0,0.72)',
           border: isPersonal
-            ? '1px solid rgba(192,132,252,0.35)'
+            ? '1px solid var(--color-border-strong, #46423d)'
             : '1px solid rgba(248,250,252,0.12)',
         }}
       >
-        {isPersonal && <Sparkles className={`${iconSize} text-purple-300`} />}
-        <span className={`${textSize} font-bold ${isPersonal ? 'text-purple-100' : 'text-white'} tabular-nums`}>
+        {isPersonal && <Sparkles className={iconSize} style={{ color: 'var(--color-text-primary, #f3ecdf)' }} />}
+        <span
+          className={`${textSize} font-bold ${isPersonal ? '' : 'text-white'} tabular-nums`}
+          style={isPersonal ? { color: 'var(--color-text-primary, #f3ecdf)' } : undefined}
+        >
           {value}
         </span>
-        {isPersonal && <span className="text-[0.55rem] font-normal text-purple-300/70">MATCH</span>}
+        {isPersonal && (
+          <span className="text-[0.55rem] font-normal" style={{ color: 'var(--color-text-secondary, #beb8ad)' }}>
+            MATCH
+          </span>
+        )}
       </div>
       {genreExcellent && (
         <div
           className="rounded-full px-1.5 py-0.5 backdrop-blur-sm"
           style={{
-            background: 'rgba(192,132,252,0.15)',
-            border: '1px solid rgba(192,132,252,0.3)',
+            background: 'var(--color-surface-2, #241e19)',
+            border: '1px solid var(--color-border-strong, #46423d)',
           }}
           title={`Exceptional for ${movie.primary_genre || 'genre'}`}
         >
-          <span className="text-[0.55rem] font-bold text-purple-200 uppercase tracking-wider">Top</span>
+          <span
+            className="text-[0.55rem] font-bold uppercase tracking-wider"
+            style={{ color: 'var(--color-text-secondary, #beb8ad)' }}
+          >
+            Top
+          </span>
         </div>
       )}
     </div>

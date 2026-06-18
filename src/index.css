@@ -5,6 +5,12 @@
 
 @import './styles/globals.css' layer(base);
 
+/* Canonical Thoughtful Seatmate website theme tokens (the .theme-thoughtful class).
+   The canonical --color-* token contract (CSS mirror; the JS mirror is CANONICAL_THEME
+   in tokens.js, kept in sync by drift tests). Loaded globally so the one root theme
+   boundary in src/App.jsx themes the whole application. */
+@import './shared/ui/thoughtful-seatmate/foundations.css';
+
 @import 'tailwindcss';
 
 @config '../tailwind.config.js';
@@ -72,6 +78,62 @@
   --motion-base: 180ms;
   --motion-slow: 240ms;
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* === Thoughtful Seatmate website theme — legacy compatibility aliases ========
+   TEMPORARY. Under the canonical `.theme-thoughtful` root (applied once at the app
+   root), the legacy global tokens and the Tailwind purple/pink scale resolve to
+   canonical `--color-*` values — so every legacy consumer (inline HP/ROSE styles,
+   Tailwind purple/pink utilities, --bg-* / --brand-* / --font-editorial CSS) is
+   recoloured site-wide with NO per-file edits. The canonical tokens are defined in
+   src/shared/ui/thoughtful-seatmate/foundations.css. These aliases are removed once
+   consumers are migrated off the legacy names (see the website-wide migration doc).
+   EMERGENCY THEME FALLBACK: dropping the class (VITE_UI_THEME=legacy) disables this
+   alias layer so the :root values above resolve again — a runtime token-layer fallback,
+   NOT an exact restoration of the pre-migration site (it does not undo removed font
+   loading, changed component defaults, or directly-edited presentation). NOTE: this
+   block intentionally does NOT redeclare the legacy
+   brand-gradient token — that token expands from the --purple-600 / --pink-500
+   scale vars, so overriding the scale below already renders it as flat graphite
+   (no replacement gradient), and avoids growing the legacy-gradient guard baseline. */
+.theme-thoughtful {
+  /* Surfaces / brand / fonts */
+  --bg-base: var(--color-canvas);
+  --bg-elevated: var(--color-surface-raised);
+  --brand-ivory: var(--color-text-primary);
+  --brand-ivory-soft: var(--color-text-secondary);
+  --brand-warm-hairline: var(--color-border-subtle);
+  --brand-rose: var(--color-brand-rose);
+  --brand-rose-soft: rgba(221, 78, 131, 0.15);
+  --font-body: var(--font-ui);
+  --font-editorial: var(--font-ui); /* retire the editorial serif → Inter */
+  --font-display: var(--font-ui);
+
+  /* Legacy purple/pink SCALE → neutral graphite/ivory ramp. tailwind.config.js maps
+     {bg,text,border,ring,from,to,via}-{purple,pink}-N to these vars, so this single
+     block neutralises every purple/pink Tailwind utility across the site. Light
+     tiers map to ivory text; dark tiers to graphite surfaces. Mood/avatar DATA hex
+     live as literals in JS and are untouched (allowed identity/data-viz). */
+  --purple-50:  var(--color-text-primary);
+  --purple-100: var(--color-text-primary);
+  --purple-200: var(--color-text-secondary);
+  --purple-300: var(--color-text-secondary);
+  --purple-400: var(--color-text-secondary);
+  --purple-500: var(--color-border-strong);
+  --purple-600: var(--color-surface-raised);
+  --purple-700: var(--color-surface-2);
+  --purple-800: var(--color-surface-1);
+  --purple-900: var(--color-canvas);
+  --pink-50:  var(--color-text-primary);
+  --pink-100: var(--color-text-primary);
+  --pink-200: var(--color-text-secondary);
+  --pink-300: var(--color-text-secondary);
+  --pink-400: var(--color-text-secondary);
+  --pink-500: var(--color-border-strong);
+  --pink-600: var(--color-surface-raised);
+  --pink-700: var(--color-surface-2);
+  --pink-800: var(--color-surface-1);
+  --pink-900: var(--color-canvas);
 }
 
 /* === F12C mobile touch-target utilities (≤767px only — desktop unchanged) ===

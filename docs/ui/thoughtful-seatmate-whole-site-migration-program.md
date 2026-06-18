@@ -1,13 +1,27 @@
 # Thoughtful Seatmate — Whole-Site Migration Program (coordination ledger)
 
-> **Coordination doc only.** Each stage executes in its **own** fresh worktree / branch / PR / validation /
-> rollback boundary. No stage is merged automatically. No giant combined PR. Tokens are **not** promoted to
-> `:root` until the dedicated shell/token stages (12/13) and all preceding gates pass.
-> Every stage PR updates this ledger.
+> **SUPERSEDED (2026-06-18) by the Website-Wide Globalization stage.** The slow route-by-route adoption
+> model below (Stages 7–16) is **replaced** by one coordinated website-wide migration delivered in a single
+> branch/PR (`migration/thoughtful-seatmate-website-wide`), governed by
+> [ADR 019](../decisions/019-thoughtful-seatmate-website-wide-theme.md) and recorded in
+> [`thoughtful-seatmate-website-wide-migration.md`](thoughtful-seatmate-website-wide-migration.md). The
+> theme is now applied once at the app root (`.theme-thoughtful`) with the canonical `--color-*` tokens as
+> one canonical token contract (CSS + JS mirrors kept in sync by a drift test); legacy systems alias them;
+> `VITE_UI_THEME=legacy` is a runtime emergency theme fallback (partial — a full visual rollback reverts the
+> PR). The route-by-route
+> caveats below (one local `<ThoughtfulRoot>` per route, no `:root`/global promotion, one route family per
+> PR) are historical and no longer apply.
+
+> **Coordination doc only (historical).** Each pilot stage (1–6) executed in its **own** fresh worktree /
+> branch / PR / validation / rollback boundary. The website-wide stage intentionally consolidates the
+> remaining surfaces + shell + token reconciliation into one PR (see ADR 019 for why scoped roots were
+> replaced).
 
 ## Current state
 
-- **Current origin/main:** `85fa89c85c76174830aafb9544654141465b6bf8` (after #313, Stage 5 hardening).
+- **Current origin/main:** `ae45f3e678d953a4251cbeeba948f94cdbf60ec1` (after #314, Stage 6 — Library).
+- **Website-wide globalization:** branch `migration/thoughtful-seatmate-website-wide` (this PR) —
+  canonical theme applied site-wide; supersedes Stages 7–16 below.
 - **Design target (non-negotiable):** Inter only · near-black→warm-graphite depth · solid graphite
   surfaces · projection-ivory text · neutral ivory primary action · ivory-only decision signal · one
   bounded rose · legacy purple–pink gradient retired · contextual film colour deferred. No replacement
@@ -24,19 +38,42 @@
 | 3 | Film File pilot (`/movie/:id`) | `…film-file-pilot` | #310 | **MERGED / live** |
 | 4 | Globalization-readiness review | `…globalization-readiness` | #312 | **MERGED** (verdict: READY WITH BLOCKERS) |
 | 5 | Foundation hardening (close B1/B2/B4/B5; plan B3) | `…stage5-foundation-hardening` | #313 | **MERGED** |
-| **6** | **Library family — Watchlist route** (`/watchlist`) | `…stage6-library` | **this PR** | **OPEN — not merged** |
-| 7 | Personal archive (History / Diary / viewing log) | — | — | not started |
-| 8 | Lists (index / detail / create-edit / states) | — | — | not started |
-| 9 | Discover + search (de-flake `discover.e2e.js:211` first, own PR) | — | — | not started |
-| 10 | Identity + preference surfaces (Profile / People / preferences / account / DNA / onboarding prefs) | — | — | not started |
-| 11 | Logged-out + acquisition (landing / about / auth / signup-login / onboarding entry) | — | — | not started |
-| 12 | Shared shell (AppShell / header / bottom-nav / global frame / shared modal + focus/selection) — HIGH RISK | — | — | not started |
-| 13 | Token promotion (reconcile `--ts-*` ↔ globals; one canonical system) — dedicated PR | — | — | not started |
-| 14 | Legacy retirement (gradient/font/purple-pink/glow/glass; reduce guard baseline) | — | — | not started |
-| 15 | Share / export artifacts (`ShareCard`, social/exported images, non-DOM) | — | — | not started |
-| 16 | Whole-site closure audit + final record | — | — | not started |
+| 6 | Library family — Watchlist route (`/watchlist`) | `…stage6-library` | #314 | **MERGED / live** |
+| **WW** | **Website-wide globalization** (canonical theme + shell + all routes + token reconciliation + legacy retirement) — supersedes 7–14, 16 | `…website-wide` | **this PR** | **OPEN — not merged** |
+| ~~7~~ | ~~Personal archive (History / Diary)~~ — **folded into WW** (auto-migrated via shared tokens) | — | — | superseded |
+| ~~8~~ | ~~Lists~~ — **folded into WW** | — | — | superseded |
+| ~~9~~ | ~~Discover + search~~ — **folded into WW** | — | — | superseded |
+| ~~10~~ | ~~Profile / People / preferences / account~~ — **folded into WW** | — | — | superseded |
+| ~~11~~ | ~~Logged-out + acquisition (landing / about / auth)~~ — **folded into WW** | — | — | superseded |
+| ~~12~~ | ~~Shared shell~~ — **folded into WW** (AppShell / header / bottom-nav / focus / selection migrated) | — | — | superseded |
+| ~~13~~ | ~~Token promotion~~ — **folded into WW** (one canonical `--color-*` system + compat aliases) | — | — | superseded |
+| ~~14~~ | ~~Legacy retirement~~ — **partially in WW** (gradient debt 16→10; full alias/HP_GRAD removal scheduled post-monitoring, see migration doc §24) | — | — | superseded / follow-up |
+| 15 | Share / export artifacts (`ShareCard`, social/exported images, non-DOM) | — | — | **deferred** (separate render env; migration doc §21) |
+| 16 | Whole-site closure audit + final record | — | — | folded into WW record |
 
-## Open stage — Stage 6 (Library family — Watchlist)
+## Open stage — Website-wide globalization (supersedes 7–16)
+
+- **Branch:** `migration/thoughtful-seatmate-website-wide` · **PR:** this PR · **ADR:**
+  [019](../decisions/019-thoughtful-seatmate-website-wide-theme.md) · **Record:**
+  [`thoughtful-seatmate-website-wide-migration.md`](thoughtful-seatmate-website-wide-migration.md).
+- **Scope:** one canonical theme (`.theme-thoughtful` at the app root) owning `--color-*`; legacy systems
+  (`--ts-*`/`--bg-*`/`--brand-*`/Tailwind `--purple-*`/`--pink-*`/`--font-editorial`/`HP`/`ROSE`) alias the
+  canonical tokens; shell + header + bottom-nav + global focus migrated; all browser production routes themed
+  (3 already-migrated via aliases, the rest recoloured by the theme + shared-token recolor + targeted holdout
+  edits); Inter-only (Newsreader/Outfit removed); legacy purple/pink gradient chrome retired.
+- **Rollback:** `VITE_UI_THEME=legacy` → `.theme-legacy` no-op = a runtime emergency theme fallback
+  (legacy `:root` tokens + literal `var()` fallbacks resolve where they still exist) — a PARTIAL visual
+  rollback, not an exact restoration (removed fonts, changed component defaults, edited presentation, and
+  regenerated baselines are not reverted by the switch). A FULL visual rollback reverts this PR's commit.
+- **Deferred:** ShareCard / export artifacts (separate render env); alias + `HP_GRAD` + redundant-wrapper
+  removal (post-monitoring follow-up); per-route visual specs for Browse/Collection/Lists/Account/
+  Preferences/Onboarding/legal.
+- **Validation:** `guard:foundations` (legacy-gradient + theme audit) green, lint clean, 1612 unit tests
+  green, build green; website-wide Linux visual baselines regenerated via CI (run twice; thresholds
+  unchanged); Darwin baselines intentionally stale (documented).
+- **Production status:** not merged, not deployed.
+
+### (historical) Stage 6 — Library (Watchlist), MERGED #314
 
 - **Branch:** `migration/thoughtful-seatmate-stage6-library` · **PR:** #314. (Stage 5 merged as #313.)
 - **Routes included:** `/watchlist` (`src/features/watchlist`). **Excluded:** History/Diary (`/watched`,

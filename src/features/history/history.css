@@ -82,7 +82,7 @@
 
 /* F6.3 — sanitized error recovery buttons + the data-library-fallback focus target. */
 .ff-hist-error-btn:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--color-focus, #f3ecdf);
   outline-offset: 3px;
 }
 [data-library-fallback]:focus {
@@ -92,7 +92,7 @@
 /* F6.5 — Remove-from-Diary confirmation dialog: visible focus rings on its actions
    and a comfortable narrow-screen fit. */
 .ff-hist-dialog-btn:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--color-focus, #f3ecdf);
   outline-offset: 3px;
 }
 @media (max-width: 480px) {
@@ -110,7 +110,7 @@
 .ff-hist-row__title { overflow-wrap: anywhere; min-width: 0; }
 .ff-hist-row__poster:focus-visible,
 .ff-hist-filter-pill:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--color-focus, #f3ecdf);
   outline-offset: 3px;
   border-radius: 6px;
 }

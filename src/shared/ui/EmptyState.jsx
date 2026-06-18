@@ -14,7 +14,7 @@ export default function EmptyState({ icon: Icon, title, description, action, cla
           <Icon className="h-5 w-5 text-white/40" />
         </div>
       )}
-      <h3 className="text-base font-bold text-white mb-1.5">{title}</h3>
+      <h3 className="text-base font-bold text-[var(--color-text-primary,#f3ecdf)] mb-1.5">{title}</h3>
       {description && (
         <p className="text-sm text-white/60 max-w-sm">{description}</p>
       )}

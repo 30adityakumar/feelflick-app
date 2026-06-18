@@ -29,8 +29,10 @@ import { HP } from '@/shared/lib/tokens'
  * @param {object}  [props.style]           Merged onto the root (margins / positioning).
  * @returns {JSX.Element}
  */
+// Default accent is the neutral ivory-secondary token (canonical theme) — NEVER
+// purple/pink. Call-sites may still pass an explicit `color` for emphasis.
 const TONES = {
-  section: { color: HP.purple, spacing: '0.28em' },
+  section: { color: HP.textSoft, spacing: '0.28em' },
   meta: { color: HP.textMuted, spacing: '0.18em' },
 }
 

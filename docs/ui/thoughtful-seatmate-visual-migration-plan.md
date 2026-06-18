@@ -1,5 +1,13 @@
 # FeelFlick — Thoughtful Seatmate Visual Migration Plan
 
+> **SUPERSEDED (2026-06-18).** The staged, surface-by-surface migration described below was replaced by a
+> single **website-wide globalization** (one canonical `.theme-thoughtful` root + `--color-*` source of
+> truth + compatibility aliases + `VITE_UI_THEME` rollback) — see
+> [ADR 019](../decisions/019-thoughtful-seatmate-website-wide-theme.md) and
+> [`thoughtful-seatmate-website-wide-migration.md`](thoughtful-seatmate-website-wide-migration.md). The
+> "one surface group at a time" sequencing and per-surface gates below are now **historical**; the Target
+> section still describes the (now-shipped) visual system accurately.
+
 > **This is a plan. It is not executed here, and it authorizes no production change.**
 > It stages the eventual surface migration toward the system consolidated in
 > [`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md).

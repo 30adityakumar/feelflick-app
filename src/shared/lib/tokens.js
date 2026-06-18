@@ -22,28 +22,34 @@
 // these same hexes and is a candidate to fold in next (deferred — `C` is used
 // across the visual-regression-tested landing).
 
-/** Core editorial palette for inline-style feature surfaces. */
+/**
+ * Core palette for inline-style feature surfaces. Website-wide globalization:
+ * each value now resolves to the canonical `--color-*` theme token, with the
+ * historical literal as the rollback fallback. So every inline `HP.*` consumer
+ * (Discover, History, Profile, People, Lists, Account, Preferences, Browse, …)
+ * is recoloured to the canonical warm-graphite/ivory system with no per-file
+ * edit, and reverts to the legacy hue when the theme class is removed. The legacy
+ * purple/pink hues are neutralised to the ivory text tiers (no purple/pink chrome);
+ * the amber/red/green SEMANTIC accents are unchanged (load-bearing).
+ */
 export const HP = {
   // — Surfaces & text —
-  bg: '#000000',
-  bgDeep: '#06060a',
-  panel: 'rgba(255,255,255,0.04)',
-  border: 'rgba(255,255,255,0.08)',
-  borderStrong: 'rgba(255,255,255,0.14)',
-  text: '#FAFAFA',
-  textSoft: 'rgba(250,250,250,0.72)',
-  textMuted: 'rgba(250,250,250,0.45)',
+  bg: 'var(--color-canvas, #000000)',
+  bgDeep: 'var(--color-canvas, #06060a)',
+  panel: 'var(--color-surface-1, rgba(255,255,255,0.04))',
+  border: 'var(--color-border-subtle, rgba(255,255,255,0.08))',
+  borderStrong: 'var(--color-border-strong, rgba(255,255,255,0.14))',
+  text: 'var(--color-text-primary, #FAFAFA)',
+  textSoft: 'var(--color-text-secondary, rgba(250,250,250,0.72))',
+  textMuted: 'var(--color-text-muted, rgba(250,250,250,0.45))',
   // AA-large floor (~3.3:1). Was 0.28 ≈ 2.4:1, which failed AA outright across
   // every feature surface's faint labels. Matches the landing's C.textFaint.
-  textFaint: 'rgba(250,250,250,0.40)',
-  // — Legacy brand hues (purple system, mid-migration) —
-  // Use ROSE for new surfaces and migrations. HP.purple is retained for:
-  //   • semantic focus rings (SHADOW.focus)
-  //   • existing unmigrated surfaces
-  // Do not add new purple brand usage on surfaces being migrated.
-  purple: '#A78BFA',
-  purpleDeep: '#7C3AED',
-  pink: '#EC4899',
+  textFaint: 'var(--color-text-muted, rgba(250,250,250,0.40))',
+  // — Legacy brand hues → neutralised to ivory under the canonical theme —
+  // (rollback fallback keeps the historical purple/pink). No NEW purple chrome.
+  purple: 'var(--color-text-secondary, #A78BFA)',
+  purpleDeep: 'var(--color-text-muted, #7C3AED)',
+  pink: 'var(--color-text-secondary, #EC4899)',
   // — Semantic accents (NOT brand; never use in brand gradients/ambient) —
   amber: '#F59E0B', // gold rating-stars · "stale" / caution
   red: '#EF4444',   // destructive / error
@@ -56,8 +62,8 @@ export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 // === Approved direction warm palette (F3 lock, F4 migration) ================
 // Use these on surfaces being migrated away from the purple system.
 
-/** Brand rose — the red-ink accent replacing the purple→pink gradient on migrated surfaces. */
-export const ROSE = '#DD4E83'
+/** Brand rose — the one restrained accent. Resolves to the canonical theme token. */
+export const ROSE = 'var(--color-brand-rose, #DD4E83)'
 
 /**
  * Deep rose — for FILLED buttons that carry white text. White on `ROSE` (#DD4E83)
@@ -65,10 +71,10 @@ export const ROSE = '#DD4E83'
  * ≈5:1. Use `ROSE_DEEP` for solid white-text CTAs; keep `ROSE` for accents,
  * kickers, rose-on-dark text, borders, bars, and glows (which pass on dark).
  */
-export const ROSE_DEEP = '#C0356C'
+export const ROSE_DEEP = 'var(--color-brand-rose-contrast, #C0356C)'
 
-/** Warm ivory — primary text color for editorial/cinematic surfaces. */
-export const IVORY = '#F2ECE1'
+/** Warm ivory — primary text color. Resolves to the canonical theme token. */
+export const IVORY = 'var(--color-text-primary, #F2ECE1)'
 
 /** Warm palette constants for inline-style surfaces. */
 export const WARM = {
@@ -90,8 +96,8 @@ export const WARM = {
 export const C = {
   bg: HP.bgDeep,
   bgPure: HP.bg,
-  bgLight: '#0d0b14',
-  bgPaper: '#0f0c18',
+  bgLight: 'var(--color-surface-1, #0d0b14)',
+  bgPaper: 'var(--color-surface-2, #0f0c18)',
   text: HP.text,
   textHi: 'rgba(250,250,250,0.92)',
   textMid: HP.textSoft,
@@ -139,7 +145,7 @@ export const RADIUS = {
 export const SHADOW = {
   card: '0 1px 2px rgba(0,0,0,0.30)', // barely-there base (optional; borders do most of the work)
   hover: '0 10px 30px -12px rgba(0,0,0,0.55)', // subtle lift for an interactive card
-  focus: '0 0 0 3px rgba(167,139,250,0.45)', // brand focus ring (HP.purple @ 0.45)
+  focus: '0 0 0 3px var(--color-focus-ring, rgba(167,139,250,0.45))', // ivory focus ring (canonical; legacy = purple)
 }
 
 /**

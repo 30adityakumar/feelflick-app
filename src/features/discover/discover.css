@@ -1,5 +1,6 @@
-/* Discover — scoped animations + base. Newsreader + Inter load globally via index.html
-   (no per-page @import — it's render-blocking + slower than the global <link>).
+/* Discover — scoped animations + base. Inter loads globally via index.html (the
+   legacy editorial serif / Outfit are retired site-wide; no per-page @import — it's
+   render-blocking + slower than the global <link>).
  *
  * Base/button/selection rules are SCOPED to .ff-discover (the DiscoverBody root)
  * so this lazy chunk no longer leaks globals app-wide once /discover is visited.

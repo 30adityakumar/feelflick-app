@@ -9,8 +9,11 @@ import './PrimaryAction.css'
  * purple, gradient, glow, or contextual color. Follows the established Button
  * architecture (forwardRef, sm/md/lg touch-target floors 44/44/48, in-button micro-spinner
  * for `loading`, disabled state, focus-visible ring, reduced-motion-gated press) as
- * an opt-in scoped primitive — it does not fork or modify the production Button, and
- * is excluded from the production bundle until a pilot imports it.
+ * a scoped primitive — it does not fork or modify the production Button. It is now
+ * adopted in production (home, movie, watchlist) and ships in the bundle. NOTE: Button
+ * (variant `primary`) also renders a neutral ivory primary action; the two are not yet
+ * reconciled — add NO new PrimaryAction adopters until the Button/PrimaryAction parity
+ * task resolves ownership (see docs/ui/composition-system-ownership.md).
  *
  * States carry no layout shift: hover dims via filter, press translates, loading
  * overlays a centered spinner while the label reserves its width.

@@ -23,13 +23,66 @@ const rel = (f) => relative(ROOT, f).split('\\').join('/')
 
 const MIGRATED = ['src/features/watchlist/Watchlist.jsx', 'src/features/watchlist/watchlist.css']
 
-describe('Stage 6 — local Watchlist activation boundary', () => {
-  it('wraps the Watchlist body in <ThoughtfulRoot> + <PageDepth depth="radial"> and consumes PrimaryAction', () => {
-    const w = read('src/features/watchlist/Watchlist.jsx')
+describe('Stage 6 — local Watchlist activation boundary + canonical-Button migration', () => {
+  const w = read('src/features/watchlist/Watchlist.jsx')
+
+  // (1) still wraps its body in the foundation scope
+  it('still imports + renders <ThoughtfulRoot>', () => {
     expect(w).toMatch(/from\s+['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
     expect(w).toMatch(/<ThoughtfulRoot>/)
+  })
+  // (2)
+  it('still renders <PageDepth depth="radial">', () => {
     expect(w).toMatch(/<PageDepth\s+depth="radial"/)
-    expect(w).toMatch(/<PrimaryAction/)
+  })
+  // (3) imports the canonical Button
+  it('imports the canonical Button from @/shared/ui/Button', () => {
+    expect(w).toMatch(/import\s+Button\s+from\s+['"]@\/shared\/ui\/Button['"]/)
+  })
+  // (4) no longer imports PrimaryAction as a component (the CSS-path import does not count)
+  it('does not import the PrimaryAction component', () => {
+    expect(w).not.toMatch(/import\s*\{[^}]*\bPrimaryAction\b[^}]*\}\s*from\s*['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
+  })
+  // (5) no longer renders <PrimaryAction>
+  it('does not render <PrimaryAction>', () => {
+    expect(w).not.toMatch(/<PrimaryAction[\s/>]/)
+  })
+  // (6) explicitly loads the temporary compatibility stylesheet
+  it('explicitly imports PrimaryAction.css as temporary visual compatibility', () => {
+    expect(w).toMatch(/import\s+['"]@\/shared\/ui\/thoughtful-seatmate\/PrimaryAction\.css['"]/)
+  })
+  // (7) the compat class string carries both required classes
+  it('WATCHLIST_PRIMARY_COMPAT_CLASS contains ts-action-primary and ts-action-primary--md', () => {
+    const m = w.match(/const\s+WATCHLIST_PRIMARY_COMPAT_CLASS\s*=\s*'([^']*)'/)
+    expect(m, 'compat-class constant present').toBeTruthy()
+    expect(m[1]).toContain('ts-action-primary')
+    expect(m[1]).toContain('ts-action-primary--md')
+  })
+  // (8) exactly two direct canonical primary Buttons for this migration
+  it('renders exactly two direct primary Buttons using the compat class', () => {
+    const count = (w.match(/className=\{WATCHLIST_PRIMARY_COMPAT_CLASS\}/g) || []).length
+    expect(count).toBe(2)
+  })
+  // (9) both specify variant="primary", size="md", className={WATCHLIST_PRIMARY_COMPAT_CLASS}
+  it('both migrated Buttons specify variant="primary", size="md" and the compat class', () => {
+    const buttons = w.match(/<Button\b[\s\S]*?<\/Button>/g) || []
+    const migrated = buttons.filter((b) => b.includes('WATCHLIST_PRIMARY_COMPAT_CLASS'))
+    expect(migrated).toHaveLength(2)
+    for (const b of migrated) {
+      expect(b).toMatch(/variant="primary"/)
+      expect(b).toMatch(/size="md"/)
+      expect(b).toMatch(/className=\{WATCHLIST_PRIMARY_COMPAT_CLASS\}/)
+    }
+  })
+  // (10) both preserve the single child <span> wrapping the label
+  it('both migrated Buttons preserve a single child <span> label', () => {
+    const buttons = (w.match(/<Button\b[\s\S]*?<\/Button>/g) || []).filter((b) => b.includes('WATCHLIST_PRIMARY_COMPAT_CLASS'))
+    for (const b of buttons) {
+      expect(b).toMatch(/<span>[^<]+<\/span>/)
+    }
+    // the original labels are preserved
+    expect(w).toMatch(/<span>Open Discover →<\/span>/)
+    expect(w).toMatch(/<span>Try again<\/span>/)
   })
 })
 

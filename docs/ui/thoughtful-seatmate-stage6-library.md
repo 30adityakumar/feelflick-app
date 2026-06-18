@@ -112,6 +112,19 @@ again" (error) → the Stage 1 `<PrimaryAction>` (neutral projection-ivory). The
 page-level primary action (it is a passive saved list), so none was invented (§6). The secondary actions
 ("Browse films", "Go to Home", "Show all") remain subordinate graphite ghosts.
 
+> **Update — canonical-Button consumer migration (Slice C, later PR).** Watchlist's two primary CTAs now
+> render the **canonical shared `Button` directly** instead of the `PrimaryAction` wrapper:
+> `<Button variant="primary" size="md" className="ts-action-primary ts-action-primary--md"><span>…</span></Button>`.
+> Watchlist imports `Button` from `@/shared/ui/Button` and imports `@/shared/ui/thoughtful-seatmate/PrimaryAction.css`
+> itself, so the **Stage-6 visual recipe is temporarily preserved unchanged** via the `ts-action-primary*`
+> compat classes. This is a **zero-pixel** change: the rendered DOM (same element, same classes, same single
+> child `<span>`) and computed styles are byte-identical to the wrapper output, so the §23–§25 visual
+> baselines are unaffected. The compat classes + explicit CSS import are a temporary bridge until the final
+> neutral-primary recipe is approved + implemented (see the
+> [PrimaryAction retirement gate](composition-system-ownership.md#primaryaction-retirement-gate)). Home and
+> movie still use the `PrimaryAction` wrapper. This makes Watchlist the **first** production consumer to
+> render the canonical Button directly.
+
 ## 15. Filters / tabs / sort treatment
 
 - **Filter pills** (film-mood): active state → ivory-only (`rgba(243,236,223,0.08)` fill +
@@ -240,6 +253,17 @@ adopter allowlists in `purity-and-non-adoption.test.js`, `HomeStage2Migration.te
 `FilmFileStage3Migration.test.js` were updated to add Watchlist as the authorized 4th adopter. Local:
 `npm ci` ✓, `guard:foundations` ✓ (6/16; 18 migrated clean), `lint` ✓, `test` ✓ (**1597 passed**),
 `build` ✓, `git diff --check` ✓.
+
+> **Update — canonical-Button consumer migration (Slice C, later PR).** The first describe block of
+> `WatchlistStage6Migration.test.js` was rewritten from "local boundary + `PrimaryAction` consumption" to
+> "local Watchlist activation boundary + canonical-Button migration": it now pins that Watchlist imports
+> `Button` from `@/shared/ui/Button`, does **not** import/render the `PrimaryAction` component, explicitly
+> imports `PrimaryAction.css`, exposes a `WATCHLIST_PRIMARY_COMPAT_CLASS` carrying both
+> `ts-action-primary` + `ts-action-primary--md`, and renders exactly two direct `<Button variant="primary"
+> size="md">` controls each preserving a single `<span>` label — while keeping the `<ThoughtfulRoot>` /
+> `<PageDepth depth="radial">` boundary and the no-global-activation assertions unchanged. The authenticated
+> `e2e/app/library.e2e.js` empty/error assertions were strengthened to verify the live DOM (native
+> `<button>`, `ff-btn` + `ts-action-primary` + `ts-action-primary--md`, single child span).
 
 ## 28. Non-regression proof
 

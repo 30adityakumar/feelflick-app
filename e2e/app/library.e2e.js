@@ -163,7 +163,17 @@ test.describe('User Library — authenticated, intercepted', () => {
     const empty = await installLibraryFixture(page, { mode: 'empty' })
     await openWatchlist(page)
     await expect(page.getByText('Your Watchlist is open.')).toBeVisible()
-    await expect(page.getByRole('button', { name: /Open Discover/i })).toBeVisible()
+    // Primary CTA migrated to the canonical Button while temporarily keeping the
+    // PrimaryAction visual recipe via the ts-action-primary* compat classes. Assert
+    // the live DOM: native <button>, both class families, and the single <span> label.
+    const openDiscover = page.getByRole('button', { name: /Open Discover/i })
+    await expect(openDiscover).toBeVisible()
+    await expect(openDiscover).toHaveJSProperty('tagName', 'BUTTON')
+    await expect(openDiscover).toHaveClass(/\bff-btn\b/)
+    await expect(openDiscover).toHaveClass(/\bts-action-primary\b/)
+    await expect(openDiscover).toHaveClass(/\bts-action-primary--md\b/)
+    await expect(openDiscover.locator('> span')).toHaveCount(1)
+    await expect(openDiscover.locator('> span')).toHaveText('Open Discover →')
     await expect(page.getByRole('button', { name: /Browse films/i })).toBeVisible()
     expect(empty.unexpectedRequests).toEqual([])
 
@@ -174,7 +184,15 @@ test.describe('User Library — authenticated, intercepted', () => {
     expect(alert).not.toMatch(/mock load error|500|supabase|PGRST|column|relation/i)
     await expect(h1(page)).toHaveCount(1)
     await expect(libNav(page)).toBeVisible() // nav still reachable in the error state
-    await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
+    // Same migration guard for the error-state primary CTA.
+    const tryAgain = page.getByRole('button', { name: 'Try again' })
+    await expect(tryAgain).toBeVisible()
+    await expect(tryAgain).toHaveJSProperty('tagName', 'BUTTON')
+    await expect(tryAgain).toHaveClass(/\bff-btn\b/)
+    await expect(tryAgain).toHaveClass(/\bts-action-primary\b/)
+    await expect(tryAgain).toHaveClass(/\bts-action-primary--md\b/)
+    await expect(tryAgain.locator('> span')).toHaveCount(1)
+    await expect(tryAgain.locator('> span')).toHaveText('Try again')
     await expect(page.getByRole('button', { name: 'Go to Home' })).toBeVisible()
     expect(ledger.unexpectedRequests).toEqual([])
   })

@@ -20,12 +20,18 @@ const SIZE_CLASS = {
  * forced-colours support, the reduced-motion-safe spinner, and invalid-size fallback.
  *
  * This wrapper exists only so the current import path keeps working and the existing
- * home / movie / watchlist visuals stay byte-identical until those consumers migrate
- * to `<Button variant="primary">`. It adds the legacy `ts-action-primary*` compatibility
- * classes; the legacy *visual recipe* (flat ivory, legacy size metrics, darken-on-hover,
- * 1px press translate) is preserved by `./PrimaryAction.css`. Do NOT add new adopters —
- * use `<Button variant="primary">`. Retirement: when production imports reach zero, this
- * file + PrimaryAction.css are removed in a dedicated PR.
+ * home / movie visuals stay byte-identical until those consumers migrate to
+ * `<Button variant="primary">`. (Watchlist has already migrated: it renders the
+ * canonical Button directly and imports `./PrimaryAction.css` itself for the same legacy
+ * recipe, so this wrapper's remaining *component* consumers are home + movie.) It adds
+ * the legacy `ts-action-primary*` compatibility classes; the legacy *visual recipe*
+ * (flat ivory, legacy size metrics, darken-on-hover, 1px press translate) is preserved by
+ * `./PrimaryAction.css`. Do NOT add new adopters — use `<Button variant="primary">`.
+ * Retirement follows the complete four-condition gate in
+ * docs/ui/composition-system-ownership.md: zero production component imports, zero
+ * `ts-action-primary*` compatibility-class consumers, zero `PrimaryAction.css` imports,
+ * and the final neutral-primary Button recipe approved + implemented. Removal happens in
+ * a dedicated PR.
  *
  * @param {object} props
  * @param {'sm'|'md'|'lg'} [props.size='md']

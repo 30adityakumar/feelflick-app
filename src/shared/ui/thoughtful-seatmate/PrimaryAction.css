@@ -9,14 +9,20 @@
  *
  * This file ONLY preserves PrimaryAction's legacy *visual recipe* on the rendered
  * Button so existing home/movie/watchlist visuals stay byte-identical until those
- * consumers migrate. The element carries both `.ff-btn` (Button) and `.ts-action-primary*`
- * (these compat hooks). Every selector is scoped to `.ts-action-primary` — no global
- * selectors. They override Button's primary recipe, whose visual utilities live in
- * Tailwind's lower-priority `utilities` cascade layer, so this unlayered author CSS
- * wins predictably WITHOUT `!important`.
+ * consumers adopt the final neutral-primary recipe. The recipe attaches to any element
+ * carrying both `.ff-btn` (canonical Button) and `.ts-action-primary*` — whether that
+ * element comes from the PrimaryAction wrapper (home, movie) or from a consumer that
+ * already renders `<Button variant="primary" className="ts-action-primary ...">` directly
+ * (watchlist, which imports this stylesheet itself). Every selector is scoped to
+ * `.ts-action-primary` — no global selectors. They override Button's primary recipe, whose
+ * visual utilities live in Tailwind's lower-priority `utilities` cascade layer, so this
+ * unlayered author CSS wins predictably WITHOUT `!important`.
  *
  * Do NOT add focus / spinner / forced-colours / loading-DOM rules here — Button owns
- * them. When production imports reach zero, this file is deleted (retirement PR). */
+ * them. Delete this stylesheet only when the complete retirement gate in
+ * docs/ui/composition-system-ownership.md is satisfied: zero PrimaryAction component
+ * imports, zero `ts-action-primary*` consumers, zero direct stylesheet imports, and the
+ * final neutral-primary Button recipe approved + implemented. */
 
 /* Flat ivory surface: Button's primary recipe carries `shadow-lg`; PrimaryAction is
    flat. Fill / text / pill radius / Inter already match Button's primary recipe (same

@@ -13,9 +13,9 @@ describe('Button', () => {
   it('applies variant class', () => {
     render(<Button variant="primary">Primary</Button>)
     const btn = screen.getByRole('button')
-    // Brand gradient canon = purple-600 → pink-500 (per CLAUDE.md "Editorial Language").
-    expect(btn.className).toContain('from-purple-600')
-    expect(btn.className).toContain('to-pink-500')
+    // Canonical primary = the one neutral ivory action pill (no purple/pink gradient).
+    expect(btn.className).toContain('bg-[var(--color-action-primary-fill')
+    expect(btn.className).not.toContain('from-purple-600')
   })
 
   it('disabled prop works', () => {
@@ -55,9 +55,9 @@ describe('Button', () => {
     },
   )
 
-  it('every variant shares the focus-visible purple ring', () => {
+  it('every variant shares the focus-visible ivory ring', () => {
     render(<Button variant="primary">f</Button>)
-    expect(screen.getByRole('button').className).toContain('focus-visible:ring-purple-400/50')
+    expect(screen.getByRole('button').className).toContain('focus-visible:ring-[var(--color-focus')
   })
 
   it('supports the sm/md/lg size ramp', () => {

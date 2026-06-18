@@ -82,29 +82,40 @@ describe('Thoughtful Seatmate Stage 1 — TS_TOKENS contract', () => {
   })
 })
 
-// The scoped CSS (.ts-root) must mirror TS_TOKENS exactly — same names, same values,
-// no extra/forbidden --ts-* tokens defined only in CSS.
-describe('foundations.css mirrors TS_TOKENS', () => {
+// Website-wide globalization: the canonical --color-* tokens are now the single
+// source of truth (under .theme-thoughtful), and --ts-* alias them 1:1 — so the
+// pilot namespace can never drift from canonical, and changing a canonical value
+// propagates everywhere. foundations.css must mirror TS_TOKENS via the canonical
+// --color-* tokens.
+describe('foundations.css mirrors TS_TOKENS via the canonical --color-* tokens', () => {
   const css = readFileSync(join(process.cwd(), 'src/shared/ui/thoughtful-seatmate/foundations.css'), 'utf8')
-  const declared = [...css.matchAll(/(--ts-[a-z0-9-]+)\s*:\s*([^;]+);/gi)].map(([, name, val]) => [name, val.trim()])
+  const colorMap = Object.fromEntries(
+    [...css.matchAll(/(--color-[a-z0-9-]+)\s*:\s*([^;]+);/gi)].map(([, name, val]) => [name, val.trim()])
+  )
+  const toColorVar = (k) => toCssVar(k).replace('--ts-', '--color-')
 
-  it('defines exactly the 14 --ts-* tokens, matching TS_TOKENS names + values', () => {
-    const map = Object.fromEntries(declared)
-    expect(declared.length).toBe(EXPECTED_KEYS.length)
+  it('defines every canonical --color-* token with the exact TS_TOKENS value', () => {
     for (const k of EXPECTED_KEYS) {
-      const cssVar = toCssVar(k)
-      expect(map[cssVar]).toBe(TS_TOKENS[k])
+      expect(colorMap[toColorVar(k)], k).toBe(TS_TOKENS[k])
+    }
+  })
+
+  it('aliases every --ts-* token to its canonical --color-* (single source of truth, no independent values)', () => {
+    for (const k of EXPECTED_KEYS) {
+      const tsVar = toCssVar(k)
+      const colorVar = toColorVar(k)
+      expect(css, tsVar).toMatch(new RegExp(`${tsVar}\\s*:\\s*var\\(${colorVar}`))
     }
   })
 
   it('defines no forbidden --ts-* token in CSS (gradient/decision/contextual/purple/plum)', () => {
-    for (const [name] of declared) {
+    for (const [name] of [...css.matchAll(/(--ts-[a-z0-9-]+)\s*:/gi)]) {
       expect(name).not.toMatch(/gradient|decision|signal|context|aura|plum|purple|pink/i)
     }
   })
 
-  it('scopes the tokens to .ts-root, never :root', () => {
-    expect(css).toContain('.ts-root {')
-    expect(css).not.toMatch(/:root\s*\{[^}]*--ts-/)
+  it('keeps the canonical tokens out of :root (theme is class-scoped + removable for rollback)', () => {
+    expect(css).toContain('.theme-thoughtful {')
+    expect(css).not.toMatch(/:root\s*\{[^}]*--(ts|color)-/)
   })
 })

@@ -23,11 +23,13 @@
   background: none;
 }
 
-/* The primary "Open Film File" action is now the Stage 1 <PrimaryAction> primitive
-   (neutral projection-ivory fill); its old .ff-brief-primary rule is retired. */
+/* The primary "Open Film File" action now renders the canonical <Button variant="primary">
+   DIRECTLY (neutral projection-ivory fill); the temporary `ts-action-primary*` compat
+   classes + PrimaryAction.css preserve the existing flat-ivory recipe. The retired
+   `.ff-brief-primary` rule remains retired. */
 
 /* Lower Discover hand-off CTA — a quiet NEUTRAL ghost, subordinate to the briefing's
-   neutral PrimaryAction (no rose, no gradient, no glow). Background lives here so
+   neutral primary Button (no rose, no gradient, no glow). Background lives here so
    :hover can tint it (inline border/colour stay at the call site). */
 .ff-home .ff-discover-cta {
   background: transparent;

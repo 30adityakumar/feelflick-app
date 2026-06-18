@@ -1,44 +1,103 @@
-/* === Thoughtful Seatmate — Stage 1 scoped foundation tokens =================
+/* === Thoughtful Seatmate — canonical website theme ==========================
  *
- * SCOPED to the `.ts-root` class — NOT `:root`. These `--ts-*` custom properties
- * only exist inside an element carrying `ts-root` (see ThoughtfulRoot.jsx). This
- * keeps Stage 1 fully isolated: it does not touch global tokens, the production
- * canvas, fonts, focus ring, or selection, and it is excluded from the production
- * bundle until a pilot imports a Stage 1 primitive. Mirrors TS_TOKENS in ./tokens.js.
+ * WEBSITE-WIDE. `.theme-thoughtful` is the ONE canonical visual theme for the
+ * whole application. It is applied exactly once, at the app root (src/App.jsx),
+ * and is fully removable (rollback: VITE_UI_THEME=legacy). Changing a `--color-*`
+ * value here propagates to the shell, every route, and every shared component —
+ * no route-by-route colour editing.
  *
- * These are the accepted target values (visual-system closure). Stage 1 does not
- * apply them to any production surface.
+ * This file is the SINGLE SOURCE OF TRUTH for the semantic `--color-*` tokens
+ * (mirrored 1:1 in ./tokens.js). It is intentionally PURE: it declares only the
+ * canonical tokens, the `--ts-*` aliases (so the pilot ThoughtfulRoot wrappers
+ * keep resolving), the Inter font roles, and the neutral page-depth recipes — it
+ * references NO legacy purple/pink/gradient/editorial-serif tokens. The temporary
+ * legacy compatibility aliases (the --bg-, --brand-, --purple-, --pink- scales and
+ * --font-editorial, all mapped to canonical) live in src/index.css, outside this
+ * pure namespace.
+ *
+ * Loaded globally via src/index.css (and by ThoughtfulRoot.jsx for the pilots).
  */
 
-.ts-root {
+.theme-thoughtful {
+  /* ---- Canonical semantic tokens (single source of truth) ---- */
   /* Background depth + solid graphite surfaces (near-black → warm graphite) */
-  --ts-canvas: #15120f;
-  --ts-surface-1: #1d1814;
-  --ts-surface-2: #241e19;
-  --ts-surface-raised: #2d2621;
+  --color-canvas: #15120f;
+  --color-surface-1: #1d1814;
+  --color-surface-2: #241e19;
+  --color-surface-raised: #2d2621;
 
   /* Projection-ivory text hierarchy */
-  --ts-text-primary: #f3ecdf;
-  --ts-text-secondary: #beb8ad;
-  --ts-text-muted: #8d887f;
+  --color-text-primary: #f3ecdf;
+  --color-text-secondary: #beb8ad;
+  --color-text-muted: #8d887f;
 
   /* Subtle graphite borders */
-  --ts-border-subtle: #302c28;
-  --ts-border-strong: #46423d;
+  --color-border-subtle: #302c28;
+  --color-border-strong: #46423d;
 
   /* Neutral primary action (projection-ivory fill, dark warm text) */
-  --ts-action-primary-fill: #efe7d7;
-  --ts-action-primary-text: #221b13;
+  --color-action-primary-fill: #efe7d7;
+  --color-action-primary-text: #221b13;
 
-  /* Focus (projection ivory) */
-  --ts-focus: #f3ecdf;
+  /* Focus + decision signal (both projection ivory — never a brand hue) */
+  --color-focus: #f3ecdf;
+  --color-focus-ring: rgba(243, 236, 223, 0.45);
+  --color-decision: #f3ecdf;
 
   /* One restrained solid rose accent (+ white-on-rose contrast variant only) */
-  --ts-brand-rose: #dd4e83;
-  --ts-brand-rose-contrast: #c0356c;
+  --color-brand-rose: #dd4e83;
+  --color-brand-rose-contrast: #c0356c;
 
-  /* Base typography role: Inter only (reuses the globally-loaded family; does not
-     re-import or redefine fonts). Hierarchy comes from scale/weight/measure. */
+  /* Typography roles — Inter only. Hierarchy is scale/weight/measure, not face. */
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Neutral background depth (NOT a brand gradient; no purple/pink). */
+  --page-depth-radial: radial-gradient(circle at 50% 0%, #241e19 0%, #1d1814 38%, #15120f 100%);
+  --page-depth-linear: linear-gradient(180deg, #241e19 0%, #1d1814 42%, #15120f 100%);
+
+  /* ---- --ts-* aliases → canonical (the pilot scoped namespace) ---- */
+  --ts-canvas: var(--color-canvas);
+  --ts-surface-1: var(--color-surface-1);
+  --ts-surface-2: var(--color-surface-2);
+  --ts-surface-raised: var(--color-surface-raised);
+  --ts-text-primary: var(--color-text-primary);
+  --ts-text-secondary: var(--color-text-secondary);
+  --ts-text-muted: var(--color-text-muted);
+  --ts-border-subtle: var(--color-border-subtle);
+  --ts-border-strong: var(--color-border-strong);
+  --ts-action-primary-fill: var(--color-action-primary-fill);
+  --ts-action-primary-text: var(--color-action-primary-text);
+  --ts-focus: var(--color-focus);
+  --ts-brand-rose: var(--color-brand-rose);
+  --ts-brand-rose-contrast: var(--color-brand-rose-contrast);
+
+  /* ---- Theme application (visual values only — never geometry/layout) ---- */
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+}
+
+/* `.ts-root` — the pilot ThoughtfulRoot wrapper. Now nested inside the global
+ * `.theme-thoughtful`, it inherits the canonical tokens; this thin rule keeps the
+ * --ts-* names resolving (and the colour/font applied) for any wrapper still in
+ * place, and keeps library.css's scoped fallbacks working. The --ts-* values are
+ * the canonical ones via the alias above. */
+.ts-root {
+  --ts-canvas: var(--color-canvas, #15120f);
+  --ts-surface-1: var(--color-surface-1, #1d1814);
+  --ts-surface-2: var(--color-surface-2, #241e19);
+  --ts-surface-raised: var(--color-surface-raised, #2d2621);
+  --ts-text-primary: var(--color-text-primary, #f3ecdf);
+  --ts-text-secondary: var(--color-text-secondary, #beb8ad);
+  --ts-text-muted: var(--color-text-muted, #8d887f);
+  --ts-border-subtle: var(--color-border-subtle, #302c28);
+  --ts-border-strong: var(--color-border-strong, #46423d);
+  --ts-action-primary-fill: var(--color-action-primary-fill, #efe7d7);
+  --ts-action-primary-text: var(--color-action-primary-text, #221b13);
+  --ts-focus: var(--color-focus, #f3ecdf);
+  --ts-brand-rose: var(--color-brand-rose, #dd4e83);
+  --ts-brand-rose-contrast: var(--color-brand-rose-contrast, #c0356c);
   color: var(--ts-text-primary);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui, 'Inter', system-ui, -apple-system, sans-serif);
 }

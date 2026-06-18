@@ -1,9 +1,6 @@
 {
   "_comment": "Legacy purple→pink gradient occurrence allowlist. Existing debt only. Any NEW occurrence (new file, or higher count) fails the guard. The legacy gradient is RETIRED from the target system; do not add new uses. Regenerate intentionally with --update-baseline and review the diff.",
   "counts": {
-    "index.html": 2,
-    "src/app/header/components/BottomNav.jsx": 1,
-    "src/app/header/Header.jsx": 3,
     "src/index.css": 4,
     "src/shared/lib/__tests__/tokens.test.js": 3,
     "src/shared/lib/tokens.js": 3

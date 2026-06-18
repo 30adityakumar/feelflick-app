@@ -27,9 +27,11 @@ const SIZE_CLASS = {
  * the legacy `ts-action-primary*` compatibility classes; the legacy *visual recipe*
  * (flat ivory, legacy size metrics, darken-on-hover, 1px press translate) is preserved by
  * `./PrimaryAction.css`. Do NOT add new adopters — use `<Button variant="primary">`.
- * Retirement: when production imports reach zero AND no consumer carries the
- * `ts-action-primary*` compat classes, this file + PrimaryAction.css are removed in a
- * dedicated PR.
+ * Retirement follows the complete four-condition gate in
+ * docs/ui/composition-system-ownership.md: zero production component imports, zero
+ * `ts-action-primary*` compatibility-class consumers, zero `PrimaryAction.css` imports,
+ * and the final neutral-primary Button recipe approved + implemented. Removal happens in
+ * a dedicated PR.
  *
  * @param {object} props
  * @param {'sm'|'md'|'lg'} [props.size='md']

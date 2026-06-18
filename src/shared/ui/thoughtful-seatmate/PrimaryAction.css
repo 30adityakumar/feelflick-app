@@ -19,8 +19,10 @@
  * unlayered author CSS wins predictably WITHOUT `!important`.
  *
  * Do NOT add focus / spinner / forced-colours / loading-DOM rules here — Button owns
- * them. When BOTH the PrimaryAction wrapper imports AND the `ts-action-primary*` compat-
- * class consumers reach zero, this file is deleted (retirement PR). */
+ * them. Delete this stylesheet only when the complete retirement gate in
+ * docs/ui/composition-system-ownership.md is satisfied: zero PrimaryAction component
+ * imports, zero `ts-action-primary*` consumers, zero direct stylesheet imports, and the
+ * final neutral-primary Button recipe approved + implemented. */
 
 /* Flat ivory surface: Button's primary recipe carries `shadow-lg`; PrimaryAction is
    flat. Fill / text / pill radius / Inter already match Button's primary recipe (same

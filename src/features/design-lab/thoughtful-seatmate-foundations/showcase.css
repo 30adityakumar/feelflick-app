@@ -62,6 +62,26 @@
   outline-offset: 2px;
 }
 
+/* Button / PrimaryAction parity matrix (dev-only review tool). */
+.tsx-parity { display: flex; flex-direction: column; gap: 10px; }
+.tsx-parity__head,
+.tsx-parity__row {
+  display: grid;
+  grid-template-columns: 120px 1fr 1fr;
+  align-items: center;
+  gap: 14px;
+}
+.tsx-parity__head {
+  color: var(--ts-text-secondary, #beb8ad);
+  border-bottom: 1px solid var(--ts-border-subtle, #302c28);
+  padding-bottom: 8px;
+}
+.tsx-parity__label { color: var(--ts-text-muted, #8d887f); }
+.tsx-parity__cell { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
 @media (max-width: 480px) {
   .tsx-grid { grid-template-columns: 1fr; }
+  /* Stack the parity columns so each control is full-width and legible at 360px. */
+  .tsx-parity__head { display: none; }
+  .tsx-parity__row { grid-template-columns: 1fr; gap: 8px; }
 }

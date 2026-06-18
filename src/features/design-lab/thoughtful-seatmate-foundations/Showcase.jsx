@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Button from '@/shared/ui/Button'
 import {
   ThoughtfulRoot,
   PageDepth,
@@ -49,6 +50,26 @@ function SelectableRow({ label }) {
         {selected ? 'Chosen ✓' : 'Choose'}
       </Text>
     </button>
+  )
+}
+
+// Decorative glyph for icon / icon+label parity demos (no meaning; aria-hidden).
+function Glyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2l2.4 7.2H22l-6 4.5 2.3 7.3L12 16.8 5.7 21l2.3-7.3-6-4.5h7.6z" />
+    </svg>
+  )
+}
+
+// One labelled parity row: the same state on Button (primary) and PrimaryAction.
+function ParityRow({ label, button, primaryAction }) {
+  return (
+    <div className="tsx-parity__row">
+      <span className="tsx-parity__label">{label}</span>
+      <span className="tsx-parity__cell">{button}</span>
+      <span className="tsx-parity__cell">{primaryAction}</span>
+    </div>
   )
 }
 
@@ -114,6 +135,47 @@ export default function ThoughtfulSeatmateFoundationsShowcase() {
             </div>
             <div className="tsx-row tsx-row--narrow">
               <PrimaryAction fullWidth>Full width</PrimaryAction>
+            </div>
+          </Section>
+
+          {/* ── Button / PrimaryAction parity ─────────────────────────────────
+              Temporary Slice-A review tool. Renders the canonical, hardened
+              <Button variant="primary"> beside the FROZEN, unchanged PrimaryAction
+              so the two neutral-ivory actions can be compared before convergence.
+              PrimaryAction and its CSS are NOT modified. */}
+          <Section title="Button / PrimaryAction parity">
+            <Text variant="caption" as="p">
+              Temporary review tool (Slice A). Left = canonical <strong>Button variant=&quot;primary&quot;</strong> (hardened
+              this PR). Right = <strong>PrimaryAction</strong> (frozen, unchanged). Tab to each to compare the focus
+              outline; the loading rows are static (disabled) so the spinner + width stability can be read; toggle
+              reduced-motion and forced-colors in the browser to review the spinner and the boundary/focus indicator.
+            </Text>
+
+            <div className="tsx-parity" role="group" aria-label="Button and PrimaryAction parity matrix">
+              <div className="tsx-parity__head">
+                <span className="tsx-parity__label">State</span>
+                <span className="tsx-parity__cell">Button (primary)</span>
+                <span className="tsx-parity__cell">PrimaryAction</span>
+              </div>
+              <ParityRow label="sm" button={<Button variant="primary" size="sm">Small</Button>} primaryAction={<PrimaryAction size="sm">Small</PrimaryAction>} />
+              <ParityRow label="md (default)" button={<Button variant="primary">Medium</Button>} primaryAction={<PrimaryAction>Medium</PrimaryAction>} />
+              <ParityRow label="lg" button={<Button variant="primary" size="lg">Large</Button>} primaryAction={<PrimaryAction size="lg">Large</PrimaryAction>} />
+              <ParityRow label="icon + label" button={<Button variant="primary"><Glyph />See why</Button>} primaryAction={<PrimaryAction><Glyph />See why</PrimaryAction>} />
+              <ParityRow label="disabled" button={<Button variant="primary" disabled>Disabled</Button>} primaryAction={<PrimaryAction disabled>Disabled</PrimaryAction>} />
+              <ParityRow label="loading (static)" button={<Button variant="primary" loading>Saving</Button>} primaryAction={<PrimaryAction loading>Saving</PrimaryAction>} />
+              <ParityRow label="full width" button={<Button variant="primary" fullWidth>Full width</Button>} primaryAction={<PrimaryAction fullWidth>Full width</PrimaryAction>} />
+            </div>
+
+            <Text variant="metadata" as="h3">Button — other variants &amp; edge cases</Text>
+            <div className="tsx-row">
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="icon" aria-label="Icon-only button"><Glyph /></Button>
+              <Button variant="destructive">Destructive</Button>
+              {/* Explicit submit type, demonstrated OUTSIDE a form (inert — clicking submits nothing). */}
+              <Button variant="primary" type="submit" onClick={(e) => e.preventDefault()}>type=&quot;submit&quot; (inert demo)</Button>
+              {/* Invalid size falls back to md (does not throw). */}
+              <Button variant="primary" size="enormous">Invalid size → md</Button>
             </div>
           </Section>
 

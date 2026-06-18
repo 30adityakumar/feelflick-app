@@ -1,0 +1,72 @@
+/* Button — canonical app-interface button.
+ *
+ * Owns only the cross-cutting accessibility concerns that are clearer/safer in CSS
+ * than in utility classes: the offset focus-visible outline, forced-colors support,
+ * and the reduced-motion-safe loading spinner + width-reserving label. All resting
+ * visuals (size, padding, type scale, colour, shadow, hover/press) stay in Button.jsx
+ * utility classes. No theme-token, gradient, or PrimaryAction.css coupling. */
+
+/* Anchor for the absolutely-positioned loading spinner. position:relative on a button
+   has no resting layout/visual effect. */
+.ff-btn {
+  position: relative;
+}
+
+/* Canonical focus: a 2px offset ivory outline, shared by every variant. Drawn outside
+   the element so it is visible on the ivory primary fill AND on dark surrounding
+   surfaces, with zero layout shift. Replaces the old tight box-shadow ring. */
+.ff-btn:focus-visible {
+  outline: 2px solid var(--color-focus, #f3ecdf);
+  outline-offset: 2px;
+}
+
+/* Loading: the label stays in flow (opacity only → still in the accessibility tree and
+   still reserves its width); the spinner overlays it. Mirrors the button's flex+gap so
+   the reserved width equals the non-loading layout → no horizontal shift. */
+.ff-btn__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+}
+
+.ff-btn__spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px; /* centre without a transform, so the spin animation is free */
+  border-radius: 9999px;
+  border: 2px solid color-mix(in oklab, currentColor 40%, transparent);
+  border-top-color: currentColor;
+}
+
+/* Reduced-motion-safe spinner: animate ONLY when motion is allowed. Under
+   prefers-reduced-motion: reduce the spinner is an explicit static ring (no animation
+   declared) — not merely a near-zero global duration — while aria-busy + the accessible
+   name remain. */
+@media (prefers-reduced-motion: no-preference) {
+  .ff-btn__spinner {
+    animation: ff-btn-spin 0.7s linear infinite;
+  }
+}
+
+@keyframes ff-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Forced-colors: keep a visible button boundary and a system-colour focus indicator.
+   box-shadow-based focus rings are dropped by forced-colors; the outline above is
+   retained and recoloured to Highlight here. border-box (Tailwind preflight) means the
+   added 1px boundary does not change the outer size. */
+@media (forced-colors: active) {
+  .ff-btn {
+    border: 1px solid ButtonText;
+  }
+  .ff-btn:focus-visible {
+    outline-color: Highlight;
+  }
+}

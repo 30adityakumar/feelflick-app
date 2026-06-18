@@ -149,7 +149,27 @@ dedicated parity task:
 - The next implementation phase **must compare**, with evidence from the live components and consumers:
   **sizes**, **loading behaviour**, **focus state**, **disabled state**, **motion**, **hover/press
   behaviour**, and **current consumers** — then decide which is canonical, whether the other becomes a
-  thin wrapper or is deprecated, and the migration path. Until then, both remain as-is.
+  thin wrapper or is deprecated, and the migration path.
+
+### Status — Slice A (canonical Button contract hardened)
+
+The long-term public API direction is **approved: `Button`**. The first slice has **hardened `Button`'s
+semantic / accessibility / loading / focus / forced-colours contract** so it can later absorb the
+neutral-primary role without regressing accessibility: `type="button"` default (explicit `type="submit"`
+preserved); `loading` now sets `aria-busy`/`data-loading`, overlays an `aria-hidden`, reduced-motion-safe
+spinner over a **width-reserving label** (accessible name preserved, no horizontal layout shift); the
+component owns `disabled`/`aria-busy`/`data-loading` (callers can't override the loading state); the focus
+ring is replaced by the canonical **2px offset `--color-focus` outline** (forced-colors: visible boundary +
+`Highlight` focus); invalid `size` falls back to `md`.
+
+Explicitly **not** done in this slice:
+
+- `PrimaryAction` remains **frozen and standalone** — not modified, not wrapped, not aliased.
+- **No compatibility wrapper** and **no consumer migration** have happened.
+- **Resting visual convergence is unresolved** — `Button` keeps its `40/44/48` size ramp, padding,
+  type scale, shadow, and hover/press direction unchanged this slice (the 44px small-size + visual
+  reconciliation are deferred). The only intentional interaction change is the keyboard focus outline.
+- **No new `PrimaryAction` adopters are allowed.** Convergence is **not** complete.
 
 ---
 

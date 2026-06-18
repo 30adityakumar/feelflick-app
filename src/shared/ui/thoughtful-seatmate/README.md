@@ -51,7 +51,10 @@ the whole app.
   graphite contained surfaces (cards). Keep cards solid; do not put `PageDepth` inside a card.
 - **`<Text variant="display|title|section|body|body-sm|label|caption|metadata" as="…">`** — Inter only;
   pick the semantic element via `as`.
-- **`<PrimaryAction size="sm|md|lg" fullWidth loading disabled>`** — the neutral ivory primary action.
+- **`<PrimaryAction size="sm|md|lg" fullWidth loading disabled type>`** — **COMPATIBILITY WRAPPER** over
+  `<Button variant="primary">`. Delegates all semantics/loading/focus/forced-colours to Button;
+  `PrimaryAction.css` only preserves its legacy visual recipe. Kept for existing consumers — **do not add
+  new adopters; use `Button` directly.**
 - **`<DecisionMarker active srLabel="…">`** — ivory selected/committed marker. **The owning control MUST
   also supply** the semantic state (`aria-pressed`/`aria-selected`/`checked`/status) **and ≥2 non-colour
   cues** (changed label, icon, neutral fill/border, status text, stable position). The marker alone is not
@@ -93,7 +96,9 @@ Summary of the durable decisions (full record:
 
 - **Primitive adoption status.** All 9 primitive APIs are unit-tested (`__tests__/primitives.test.jsx`) and
   demoed in the dev showcase. Production adoption: `ThoughtfulRoot` / `PageDepth` / `PrimaryAction`
-  (home, movie, watchlist), `Surface` (movie / Film File). **None deprecated** — all are retained. `Text`, `DecisionMarker`,
+  (home, movie, watchlist), `Surface` (movie / Film File). **`PrimaryAction` is now a compatibility wrapper
+  over `<Button variant="primary">`** (Slice B) — those consumers render the canonical Button via the
+  wrapper, unchanged, pending migration. **None deprecated** — all are retained. `Text`, `DecisionMarker`,
   `BrandMark`/`BrandLink`/`BrandSignature` are validated by test + showcase; their *production* adoption is
   scheduled, not forced: `Text` is the preferred way to set standard hierarchy on **newly** migrated
   surfaces; `DecisionMarker` is adopted where a supplementary dot helps; the Brand* helpers are for the

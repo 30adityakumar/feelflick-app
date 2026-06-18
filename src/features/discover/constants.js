@@ -5,7 +5,7 @@
 
 import { HP as baseHP } from '@/shared/lib/tokens'
 
-export const HP = { ...baseHP, purpleDeep: '#9333ea', surface: '#120d1c', paper: '#0d0b13' }
+export const HP = { ...baseHP, purpleDeep: 'var(--color-text-muted, #9333ea)', surface: 'var(--color-surface-1, #1d1814)', paper: 'var(--color-surface-2, #241e19)' }
 
 export const TIME_OPTIONS = [
   { id:'short', label:'~ 90 min', sub:'A quick one',  v:[60,99] },

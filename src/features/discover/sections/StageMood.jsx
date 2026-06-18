@@ -38,7 +38,7 @@ export default function StageMood({ selected, setSelected, onNext, blendHex, bur
       </div>
       <div className="ff-mood-canvas" role="group" aria-label="Choose one to three moods" style={{ position:'relative', width:'100%', maxWidth:1080, borderRadius:18, background:'rgba(255,255,255,0.012)', border:`1px solid ${HP.border}`, overflow:'hidden' }}>
         <svg aria-hidden="true" style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }}>
-          <defs><linearGradient id="ff-grad" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stopColor="#A78BFA" stopOpacity="0.9" /><stop offset="100%" stopColor="#EC4899" stopOpacity="0.9" /></linearGradient></defs>
+          <defs><linearGradient id="ff-grad" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stopColor="var(--color-text-secondary, #beb8ad)" stopOpacity="0.9" /><stop offset="100%" stopColor="var(--color-text-secondary, #beb8ad)" stopOpacity="0.9" /></linearGradient></defs>
           {lines.map(({ a, b, key }) => (
             <line key={key} x1={`${a.x}%`} y1={`${a.y}%`} x2={`${b.x}%`} y2={`${b.y}%`} stroke="url(#ff-grad)" strokeWidth="1.4" strokeDasharray="400" strokeDashoffset="400" style={{ animation:'ff-draw 0.7s cubic-bezier(.2,.7,.2,1) forwards' }} />
           ))}

@@ -1,31 +1,60 @@
-/* PrimaryAction — neutral projection-ivory primary action (Stage 1).
-   No transition by default (reduced-motion-safe baseline); hover/press transitions
-   are gated by prefers-reduced-motion: no-preference. No rose/purple/gradient/glow. */
+/* PrimaryAction — TEMPORARY visual-compatibility stylesheet (Slice B).
+ *
+ * PrimaryAction is now a thin wrapper over the canonical `<Button variant="primary">`
+ * (see PrimaryAction.jsx). Button owns ALL behaviour/semantics: native button +
+ * default type, disabled/loading precedence, aria-busy, data-loading, the loading DOM
+ * (.ff-btn__label / .ff-btn__spinner), accessible-name preservation + loading width
+ * stability, the offset focus-visible outline (--color-focus), forced-colours, the
+ * reduced-motion-safe spinner, and invalid-size fallback.
+ *
+ * This file ONLY preserves PrimaryAction's legacy *visual recipe* on the rendered
+ * Button so existing home/movie/watchlist visuals stay byte-identical until those
+ * consumers migrate. The element carries both `.ff-btn` (Button) and `.ts-action-primary*`
+ * (these compat hooks). Every selector is scoped to `.ts-action-primary` — no global
+ * selectors. They override Button's primary recipe, whose visual utilities live in
+ * Tailwind's lower-priority `utilities` cascade layer, so this unlayered author CSS
+ * wins predictably WITHOUT `!important`.
+ *
+ * Do NOT add focus / spinner / forced-colours / loading-DOM rules here — Button owns
+ * them. When production imports reach zero, this file is deleted (retirement PR). */
 
+/* Flat ivory surface: Button's primary recipe carries `shadow-lg`; PrimaryAction is
+   flat. Fill / text / pill radius / Inter already match Button's primary recipe (same
+   --color-action-primary-* tokens), so they are intentionally NOT re-declared here. */
 .ts-action-primary {
-  box-sizing: border-box;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid transparent;
-  border-radius: 9999px; /* pill — matches the Button contract */
-  background: var(--ts-action-primary-fill, #efe7d7);
-  color: var(--ts-action-primary-text, #221b13);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-weight: 600;
+  box-shadow: none;
+  /* Legacy affordance: Button/Tailwind-v4 buttons default to `cursor: default`;
+     PrimaryAction has always used a pointer cursor (disabled → not-allowed below). */
   cursor: pointer;
+  /* Legacy interaction niceties carried over from the standalone PrimaryAction. */
+  -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: none;
 }
 
-.ts-action-primary--sm { min-height: 44px; padding: 8px 16px; font-size: 13px; }
-.ts-action-primary--md { min-height: 44px; padding: 10px 22px; font-size: 14px; }
+.ts-action-primary:disabled {
+  cursor: not-allowed;
+}
+
+/* Legacy 1px transparent border (preserves the legacy box model + width parity).
+   Scoped to non-forced-colors so it never clobbers Button.css's forced-colours
+   `border: 1px solid ButtonText` boundary (Button owns the forced-colours treatment). */
+@media (forced-colors: none) {
+  .ts-action-primary {
+    border: 1px solid transparent;
+  }
+}
+
+/* Legacy size metrics — Button's primary size ramp differs (sm 40px / px-4 / text-xs;
+   md px-6; lg px-8). Restore PrimaryAction's 44/44/48 + padding + type scale. */
+.ts-action-primary--sm { min-height: 44px; padding: 8px 16px; font-size: 13px; font-weight: 600; }
+.ts-action-primary--md { min-height: 44px; padding: 10px 22px; font-size: 14px; font-weight: 600; }
 .ts-action-primary--lg { min-height: 48px; padding: 12px 28px; font-size: 16px; font-weight: 700; }
 .ts-action-primary--full { width: 100%; }
 
+/* Legacy transition vocabulary (Button uses `transition-all` 200ms). Reduced-motion-safe:
+   no transition unless motion is allowed (matches the legacy PrimaryAction baseline). */
+.ts-action-primary { transition: none; }
 @media (prefers-reduced-motion: no-preference) {
   .ts-action-primary {
     transition:
@@ -34,44 +63,13 @@
   }
 }
 
+/* Hover darkens (Button's primary recipe brightens). The `:not(:disabled)` selector
+   out-specifies Button's `:hover` utility, so this wins without `!important`. */
 .ts-action-primary:hover:not(:disabled) { filter: brightness(0.95); }
 
+/* Neutralise Button's hover/active SCALE and restore the legacy 1px press translate.
+   Movement stays reduced-motion-gated, matching both Button and the legacy recipe. */
 @media (prefers-reduced-motion: no-preference) {
+  .ts-action-primary:hover:not(:disabled) { transform: none; }
   .ts-action-primary:active:not(:disabled) { transform: translateY(1px); }
-}
-
-/* Focus-visible: an offset ivory outline (matches the app's outline-based focus
-   pattern). Drawn outside the element, so it is visible on the ivory fill and on any
-   graphite surface, with zero layout shift, and it survives forced-colors. */
-.ts-action-primary:focus-visible {
-  outline: 2px solid var(--ts-focus, #f3ecdf);
-  outline-offset: 2px;
-}
-
-.ts-action-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* Loading: spinner overlays a width-reserving label → no layout shift. */
-.ts-action-primary[data-loading="true"] .ts-action-primary__label { opacity: 0; }
-
-.ts-action-primary__spinner {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  margin: -8px 0 0 -8px;
-  border-radius: 9999px;
-  border: 2px solid rgba(34, 27, 19, 0.35);
-  border-top-color: #221b13;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .ts-action-primary__spinner { animation: ts-action-spin 0.7s linear infinite; }
-}
-
-@keyframes ts-action-spin { to { transform: rotate(360deg); } }
-
-@media (forced-colors: active) {
-  .ts-action-primary { border-color: ButtonText; }
-  .ts-action-primary:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; box-shadow: none; }
 }

@@ -8,6 +8,11 @@
 // composition-migrated. `<ThoughtfulRoot>` now marks Thoughtful Seatmate composition
 // scope (its `--ts-*` values resolve from the global theme). See ./README.md and
 // docs/ui/composition-system-ownership.md for the current ownership contract.
+//
+// `PrimaryAction` is now a COMPATIBILITY WRAPPER over the canonical `<Button
+// variant="primary">` (it delegates all semantics/loading/focus/forced-colours to
+// Button; ./PrimaryAction.css only preserves its legacy visual recipe). Its import
+// path is kept for existing consumers — do NOT add new adopters; use Button directly.
 
 export { default as ThoughtfulRoot } from './ThoughtfulRoot'
 export { default as PageDepth } from './PageDepth'

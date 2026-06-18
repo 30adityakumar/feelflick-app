@@ -145,10 +145,14 @@ export default function ThoughtfulSeatmateFoundationsShowcase() {
               PrimaryAction and its CSS are NOT modified. */}
           <Section title="Button / PrimaryAction parity">
             <Text variant="caption" as="p">
-              Temporary review tool (Slice A). Left = canonical <strong>Button variant=&quot;primary&quot;</strong> (hardened
-              this PR). Right = <strong>PrimaryAction</strong> (frozen, unchanged). Tab to each to compare the focus
-              outline; the loading rows are static (disabled) so the spinner + width stability can be read; toggle
-              reduced-motion and forced-colors in the browser to review the spinner and the boundary/focus indicator.
+              Temporary review tool. <strong>Button</strong> is canonical. <strong>PrimaryAction</strong> is now a
+              compatibility wrapper over <strong>Button variant=&quot;primary&quot;</strong> — it delegates all
+              semantics, loading, focus and forced-colours to Button, while its legacy visual recipe (flat ivory,
+              legacy size metrics, darken-on-hover, 1px press translate) is temporarily preserved via
+              PrimaryAction.css. Production consumers are not yet migrated. Left = Button; right = the PrimaryAction
+              wrapper. Tab to each to compare the focus outline; the loading rows are static (disabled) so the
+              spinner + width stability can be read; toggle reduced-motion and forced-colors to review the spinner
+              and the boundary/focus indicator.
             </Text>
 
             <div className="tsx-parity" role="group" aria-label="Button and PrimaryAction parity matrix">

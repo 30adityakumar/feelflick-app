@@ -97,7 +97,7 @@ retained for context only).
 | Component | Status | Notes |
 |---|---|---|
 | `Button` | **CANONICAL** generic app-interface button · **CANDIDATE** canonical neutral primary action | One button system for interface controls; its `primary` variant renders the neutral ivory action. Candidate to own the neutral primary action — pending the parity task. |
-| `PrimaryAction` (Thoughtful Seatmate) | **UNRESOLVED** (frozen) | Existing TS neutral-primary implementation, adopted by home/movie/watchlist. **No new adopters** until the [Button/PrimaryAction freeze](#buttonprimaryaction-freeze) resolves ownership. |
+| `PrimaryAction` (Thoughtful Seatmate) | **COMPATIBILITY** (wrapper over `Button`) | Now a thin wrapper over `<Button variant="primary">` (Slice B) — delegates all semantics / loading / focus / forced-colours to Button; `PrimaryAction.css` only preserves the legacy visual recipe. Import path kept for existing home/movie/watchlist consumers. **No new adopters** — use `Button`. Retire (remove wrapper + CSS) once production imports reach zero, in a dedicated PR. |
 | `ActionButton`, `SecondaryActionButton`, `ChipButton` | **DOMAIN-SPECIFIC** | Intentional rose card-action family. **Not** automatically merged into `Button`. `ChipButton` is a compact action, not a selection pill. |
 
 ### Surfaces
@@ -170,6 +170,26 @@ Explicitly **not** done in this slice:
   type scale, shadow, and hover/press direction unchanged this slice (the 44px small-size + visual
   reconciliation are deferred). The only intentional interaction change is the keyboard focus outline.
 - **No new `PrimaryAction` adopters are allowed.** Convergence is **not** complete.
+
+### Status — Slice B (PrimaryAction is now a compatibility wrapper)
+
+`PrimaryAction` status moves from **UNRESOLVED** to **COMPATIBILITY**. It no longer maintains a duplicate
+semantic/loading implementation — it renders `<Button variant="primary">` and **delegates** native button +
+default `type`, `disabled`/`loading` precedence, `aria-busy`, `data-loading`, the loading DOM, accessible-name
+preservation + loading width-stability, the offset `--color-focus` focus-visible outline, forced-colours, the
+reduced-motion-safe spinner, and invalid-size fallback to Button.
+
+- Its **old import path remains temporarily supported** (`@/shared/ui/thoughtful-seatmate`).
+- `PrimaryAction.css` is now a **temporary visual-compatibility stylesheet** that preserves the legacy
+  visual recipe (flat ivory, legacy 44/44/48 size metrics, darken-on-hover, 1px press translate) on the
+  rendered Button. Scoped to `.ts-action-primary`; no global selectors; no focus/spinner/forced-colours
+  duplication (Button owns those).
+- **No new `PrimaryAction` usage is allowed.**
+- **Consumer migration has not begun** — home, movie and watchlist are untouched and render unchanged.
+- **Final visual reconciliation remains pending** (Button keeps its own primary recipe for direct use;
+  PrimaryAction keeps the legacy recipe via compat CSS until consumers migrate).
+- **Retirement** requires **zero production `PrimaryAction` imports** and a dedicated PR that removes the
+  wrapper + `PrimaryAction.css`.
 
 ---
 

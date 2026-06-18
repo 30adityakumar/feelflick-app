@@ -70,13 +70,14 @@ describe('Stage 3 — local Film File activation boundary', () => {
 
 describe('Stage 3 — no third production surface adopts the foundation', () => {
   const importsFoundation = /['"]@\/shared\/ui\/thoughtful-seatmate(['"/]|$)/
-  it('only Tonight (home) + Film File (movie) + the dev-only showcase import the foundation', () => {
+  it('only the authorized adopters + the dev-only showcase import the foundation', () => {
     const offenders = []
     for (const f of walk(join(ROOT, 'src'))) {
       const r = rel(f)
       if (r.startsWith('src/shared/ui/thoughtful-seatmate')) continue // the foundation itself
       if (r.startsWith('src/features/home/')) continue // Tonight (Stage 2)
       if (r.startsWith('src/features/movie/')) continue // Film File (Stage 3, this pilot)
+      if (r.startsWith('src/features/watchlist/')) continue // Library/Watchlist (Stage 6)
       if (r.startsWith('src/features/design-lab/thoughtful-seatmate-foundations')) continue // dev-only showcase
       if (r.includes('/__tests__/')) continue
       if (!/\.(jsx?)$/.test(r)) continue

@@ -16,7 +16,7 @@
   min-height: 44px;
   padding: 8px 14px;
   border-bottom: 2px solid transparent;   /* non-colour active indicator reserves space */
-  color: rgba(250, 250, 250, 0.55);
+  color: var(--ts-text-muted, rgba(250, 250, 250, 0.55));
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
@@ -26,17 +26,17 @@
 }
 
 .ff-library-nav__link:hover {
-  color: rgba(250, 250, 250, 0.85);
+  color: var(--ts-text-secondary, rgba(250, 250, 250, 0.85));
 }
 
 .ff-library-nav__link--active {
-  color: #faf5ff;
+  color: var(--ts-text-primary, #faf5ff);
   font-weight: 700;                         /* weight = non-colour indicator */
-  border-bottom-color: #DD4E83;             /* underline = second non-colour indicator */
+  border-bottom-color: var(--ts-focus, #DD4E83);             /* underline = second non-colour indicator */
 }
 
 .ff-library-nav__link:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #a78bfa);
   outline-offset: 3px;
   border-radius: 4px;
 }

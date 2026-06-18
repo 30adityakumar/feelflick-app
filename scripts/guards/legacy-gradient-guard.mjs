@@ -87,7 +87,7 @@ const PURITY_PATTERNS = [
 //      A new production adopter outside the allowlist FAILS (mirrors the foundation
 //      purity test, enforced here too). Grow ADOPTERS + MIGRATED_FILES one stage at
 //      a time as each surface migrates.
-const ADOPTERS = ['src/features/home/', 'src/features/movie/']
+const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/']
 const ADOPTER_EXEMPT = [
   'src/shared/ui/thoughtful-seatmate', // the foundation itself
   'src/features/design-lab/thoughtful-seatmate-foundations', // dev-only showcase
@@ -114,6 +114,12 @@ const MIGRATED_FILES = [
   'src/features/movie/components/FilmFileDisclosure.jsx',
   'src/features/movie/components/AccessibleMediaDialog.jsx',
   'src/features/movie/movie.css',
+  // Library family (Stage 6) — the Watchlist route. The SHARED LibrarySectionNav
+  // (src/features/library/library.css) is migrated via backward-compatible scoped
+  // `var(--ts-*, <legacy>)` fallbacks so History (no .ts-root) stays byte-identical;
+  // it keeps legacy fallbacks for that reason, so it is intentionally NOT listed here.
+  'src/features/watchlist/Watchlist.jsx',
+  'src/features/watchlist/watchlist.css',
 ]
 const MIGRATED_PURITY = [
   [/var\(\s*--font-editorial\)/gi, 'editorial font var (migrated surfaces are Inter-only)'],

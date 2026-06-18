@@ -69,13 +69,14 @@ describe('Stage 2 — no other production surface adopts the foundation', () => 
   // adopter alongside Tonight + the dev-only showcase. Any OTHER surface is still a
   // violation. (Cross-pilot guard kept here; the canonical allowlist lives in the
   // foundation's purity-and-non-adoption test.)
-  it('only Tonight + Film File + the dev-only showcase import the Stage 1 foundation', () => {
+  it('only the authorized adopters + the dev-only showcase import the Stage 1 foundation', () => {
     const offenders = []
     for (const f of walk(join(ROOT, 'src'))) {
       const r = rel(f)
       if (r.startsWith('src/shared/ui/thoughtful-seatmate')) continue // the foundation itself
       if (r.startsWith('src/features/home/')) continue // Tonight (Stage 2)
       if (r.startsWith('src/features/movie/')) continue // Film File (Stage 3)
+      if (r.startsWith('src/features/watchlist/')) continue // Library/Watchlist (Stage 6)
       if (r.startsWith('src/features/design-lab/thoughtful-seatmate-foundations')) continue // dev-only showcase
       if (r.includes('/__tests__/')) continue
       if (!/\.(jsx?)$/.test(r)) continue

@@ -7,7 +7,7 @@
 
 ## Current state
 
-- **Current origin/main:** `8deaecf7daa88cb891fb885fb9bffb7048d2c8b8` (after #312).
+- **Current origin/main:** `85fa89c85c76174830aafb9544654141465b6bf8` (after #313, Stage 5 hardening).
 - **Design target (non-negotiable):** Inter only · near-black→warm-graphite depth · solid graphite
   surfaces · projection-ivory text · neutral ivory primary action · ivory-only decision signal · one
   bounded rose · legacy purple–pink gradient retired · contextual film colour deferred. No replacement
@@ -23,8 +23,8 @@
 | 2 | Tonight pilot (`/home`) | `…tonight-pilot` | #309 | **MERGED / live** |
 | 3 | Film File pilot (`/movie/:id`) | `…film-file-pilot` | #310 | **MERGED / live** |
 | 4 | Globalization-readiness review | `…globalization-readiness` | #312 | **MERGED** (verdict: READY WITH BLOCKERS) |
-| **5** | **Foundation hardening (close B1/B2/B4/B5; plan B3)** | `…stage5-foundation-hardening` | **this PR** | **OPEN — not merged** |
-| 6 | Library family (Library + Watchlist + Library-owned collections) | — | — | not started (next after 5) |
+| 5 | Foundation hardening (close B1/B2/B4/B5; plan B3) | `…stage5-foundation-hardening` | #313 | **MERGED** |
+| **6** | **Library family — Watchlist route** (`/watchlist`) | `…stage6-library` | **this PR** | **OPEN — not merged** |
 | 7 | Personal archive (History / Diary / viewing log) | — | — | not started |
 | 8 | Lists (index / detail / create-edit / states) | — | — | not started |
 | 9 | Discover + search (de-flake `discover.e2e.js:211` first, own PR) | — | — | not started |
@@ -36,16 +36,30 @@
 | 15 | Share / export artifacts (`ShareCard`, social/exported images, non-DOM) | — | — | not started |
 | 16 | Whole-site closure audit + final record | — | — | not started |
 
-## Open stage — Stage 5 (Foundation hardening)
+## Open stage — Stage 6 (Library family — Watchlist)
 
-- **Branch:** `migration/thoughtful-seatmate-stage5-foundation-hardening` · **PR:** this PR.
-- **Routes included:** none (foundation-only). **Routes excluded:** all (no route migrated).
-- **Visual baselines changed:** none (no token value or pilot file changed; pilot screenshots preserved).
-- **Blockers:** closes **B1, B2, B4, B5**; **B3** mapped/planned here, **executed at Stage 13**.
-- **Rollback boundary:** revert the foundation guard + primitive tests + README + Stage 5 docs; no production
-  surface, token value, or baseline involved.
-- **Production status:** no production change (foundation/guard/tests/docs only).
-- **Next authorized stage:** Stage 6 — Library family (its own worktree/branch/PR), only after Stage 5 lands.
+- **Branch:** `migration/thoughtful-seatmate-stage6-library` · **PR:** #314. (Stage 5 merged as #313.)
+- **Routes included:** `/watchlist` (`src/features/watchlist`). **Excluded:** History/Diary (`/watched`,
+  `/history` — Stage 7), Lists, Discover, Profile, People, prefs, onboarding, landing, auth, shell, header,
+  bottom-nav, generic modals, `collection/:id` (browse), ShareCard.
+- **Visual baselines changed:** exactly one — `watchlist-empty-mobile` Linux (regen via the
+  `visual-baselines/library-*` CI flow). The other three Watchlist captures render the migrated masthead but
+  stay within the comparison threshold (no rewrite); all four Diary captures are byte-identical (verified —
+  shared-nav scoped fallback kept History pixel-identical). Determinism confirmed by a second regen.
+- **Ownership note:** `LibrarySectionNav`/`library.css` are SHARED with the excluded History/Diary; migrated
+  via backward-compatible scoped `var(--ts-*, <legacy>)` fallbacks so History stays byte-identical.
+- **Program follow-ups raised this stage:** (1) the shared `<Eyebrow>` purple **default** prop is invisible
+  to the foundation guard — caught a purple masthead eyebrow by visual inspection, fixed via explicit ivory
+  `color`; retire the default when shared chrome migrates (Stage 12). (2) Three migrated Watchlist captures
+  sit within the visual-diff threshold, so their baselines still depict the pre-migration masthead within
+  tolerance (threshold property, not a regression).
+- **Blockers:** none opened; none closed (B3 still deferred to Stage 13).
+- **Rollback boundary:** watchlist source/test + Watchlist Linux baselines + the scoped `library.css` change
+  + the narrow guard/test adopter additions + Stage 6 docs/ledger. No Stage 1 / Tonight / Film File / Stage 5
+  / global token / shell / other-route revert needed.
+- **Production status:** not merged, not deployed.
+- **Next authorized stage:** Stage 7 — Personal archive (History/Diary), its own worktree/branch/PR; fully
+  migrate the shared `LibrarySectionNav`/`library.css` then.
 - **Prohibited next actions:** `:root` token promotion; shell migration; deleting legacy tokens;
   contextual-colour rollout; combining a route with the shell/token stage; more than one route family per PR.
 

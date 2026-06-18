@@ -159,6 +159,15 @@ confirm intentional; review desktop + mobile; re-baseline deliberately, never to
 
 ## Stage 5 — Library / Browse
 
+> **Status: Library family PARTIALLY IMPLEMENTED (the program's "Stage 6 — Watchlist"), not merged.** The
+> authenticated **Watchlist** route (`/watchlist`, `src/features/watchlist`) is migrated on branch
+> `migration/thoughtful-seatmate-stage6-library` (off `origin/main` `85fa89c8`) via a local `<ThoughtfulRoot>`
+> boundary; the shared `LibrarySectionNav`/`library.css` is migrated through backward-compatible scoped
+> fallbacks (History stays byte-identical). **Browse** + saved-film **collections** (`collection/:id`, which
+> are browse-owned) remain unmigrated. Details:
+> [`thoughtful-seatmate-stage6-library.md`](thoughtful-seatmate-stage6-library.md). Token globalization still
+> deferred (Stage 13).
+
 - **Current typography:** Inter-dominant with residual legacy styling.
 - **Current background:** legacy base; grid/rail surfaces.
 - **Current accent/gradient:** filter/sort chips; residual purple/pink on unmigrated controls.

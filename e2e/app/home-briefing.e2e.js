@@ -57,7 +57,29 @@ test.describe('Home Briefing — authenticated, intercepted', () => {
     expect(TENDER).toContain(initial)
     for (const t of BRIEFING.filter(t => t !== initial)) await expect(page.getByText(t, { exact: true })).toHaveCount(0)
 
-    await expect(btn(page, 'Open Film File')).toBeVisible()
+    // Open Film File migrated to the canonical <Button variant="primary"> directly while
+    // temporarily keeping the PrimaryAction visual recipe via the ts-action-primary* compat
+    // classes. Assert the live DOM. NB: Button only emits a `.ff-btn__label` wrapper when
+    // `loading`; this control is not loading, so the plain compatibility grouping <span> is
+    // a DIRECT child of the button (label span + aria-hidden chevron inside it).
+    const openFile = btn(page, 'Open Film File')
+    await expect(openFile).toBeVisible()
+    await expect(openFile).toHaveJSProperty('tagName', 'BUTTON')
+    await expect(openFile).toHaveAttribute('type', 'button')
+    await expect(openFile).toHaveClass(/\bff-btn\b/)
+    await expect(openFile).toHaveClass(/\bts-action-primary\b/)
+    await expect(openFile).toHaveClass(/\bts-action-primary--md\b/)
+    await expect(openFile).toHaveClass(/\bflex-1\b/)
+    await expect(openFile).toHaveClass(/focus-visible:ring-2/)
+    await expect(openFile).toHaveClass(/focus-visible:ring-white\/55/)
+    await expect(openFile).toHaveClass(/focus-visible:ring-offset-0/)
+    await expect(openFile.locator('.ff-btn__label')).toHaveCount(0) // not loading → no label wrapper
+    const ofGroup = openFile.locator('> span')
+    await expect(ofGroup).toHaveCount(1)                              // exactly one direct grouping span
+    await expect(ofGroup.locator('> span')).toHaveCount(1)           // one label span
+    await expect(ofGroup.locator('> span')).toHaveText('Open Film File')
+    await expect(ofGroup.locator('> svg')).toHaveCount(1)            // one chevron svg
+    await expect(ofGroup.locator('> svg')).toHaveAttribute('aria-hidden', 'true')
     await expect(btn(page, 'Mark Watched')).toBeVisible()
     await expect(btn(page, 'Save')).toBeVisible()
     await expect(btn(page, 'Not tonight')).toBeVisible()

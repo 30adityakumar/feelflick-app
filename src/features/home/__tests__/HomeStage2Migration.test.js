@@ -56,10 +56,90 @@ describe('Stage 2 — local activation boundary', () => {
     expect(home).toMatch(/<PageDepth\s+depth="radial"/)
   })
 
-  it('consumes the Stage 1 PrimaryAction for the single main action', () => {
-    const top = read('src/features/home/sections-top.jsx')
-    expect(top).toMatch(/import\s*\{\s*PrimaryAction\s*\}\s*from\s+['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
-    expect(top).toMatch(/<PrimaryAction[\s\S]{0,160}Open Film File/)
+})
+
+// Slice D (canonical-Button consumer migration) — Home's single primary action
+// ("Open Film File") now renders the canonical <Button variant="primary"> directly
+// instead of the PrimaryAction wrapper, while temporarily preserving the legacy flat-
+// ivory recipe via the ts-action-primary* compat classes + an explicit PrimaryAction.css
+// import. STRUCTURE only; behaviour stays covered by the other Home suites. (Watchlist
+// migrated first in Slice C; Movie remains the final wrapper consumer.)
+describe('Stage 2 / Slice D — canonical-Button migration of the primary action', () => {
+  const top = read('src/features/home/sections-top.jsx')
+  const home = read('src/features/home/Home.jsx')
+  // Strip block + whole-line comments so comment mentions of <Button> /
+  // HOME_PRIMARY_COMPAT_CLASS don't confuse the structural matches below.
+  const topCode = top.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map(l => l.replace(/^\s*\/\/.*$/, '')).join('\n')
+  const btnEl = (topCode.match(/<Button\b[\s\S]*?<\/Button>/) || [])[0] || ''
+
+  // (1) still wraps the Tonight body in its own foundation scope
+  it('Home still imports + renders its own <ThoughtfulRoot>', () => {
+    expect(home).toMatch(/from\s+['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
+    expect(home).toMatch(/<ThoughtfulRoot>\s*<HomeBody\s*\/>\s*<\/ThoughtfulRoot>/)
+  })
+  // (2)
+  it('Home still paints the canvas with <PageDepth depth="radial">', () => {
+    expect(home).toMatch(/<PageDepth\s+depth="radial"/)
+  })
+  // (3) imports the canonical Button
+  it('sections-top imports the canonical Button from @/shared/ui/Button', () => {
+    expect(top).toMatch(/import\s+Button\s+from\s+['"]@\/shared\/ui\/Button['"]/)
+  })
+  // (4) no longer imports the PrimaryAction component
+  it('does not import the PrimaryAction component', () => {
+    expect(top).not.toMatch(/import\s*\{[^}]*\bPrimaryAction\b[^}]*\}\s*from\s*['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
+  })
+  // (5) no longer renders <PrimaryAction>
+  it('does not render <PrimaryAction>', () => {
+    expect(topCode).not.toMatch(/<PrimaryAction[\s/>]/)
+  })
+  // (6) explicitly loads the temporary compatibility stylesheet
+  it('explicitly imports PrimaryAction.css as temporary visual compatibility', () => {
+    expect(top).toMatch(/import\s+['"]@\/shared\/ui\/thoughtful-seatmate\/PrimaryAction\.css['"]/)
+  })
+  // (7) the compat constant carries both required classes
+  it('HOME_PRIMARY_COMPAT_CLASS contains ts-action-primary and ts-action-primary--md', () => {
+    const m = topCode.match(/const\s+HOME_PRIMARY_COMPAT_CLASS\s*=\s*'([^']*)'/)
+    expect(m, 'compat-class constant present').toBeTruthy()
+    expect(m[1]).toContain('ts-action-primary')
+    expect(m[1]).toContain('ts-action-primary--md')
+  })
+  // (8) exactly one migrated direct canonical Button uses that constant
+  it('renders exactly one direct primary Button using the compat constant', () => {
+    expect((topCode.match(/className=\{`\$\{HOME_PRIMARY_COMPAT_CLASS\}/g) || []).length).toBe(1)
+    expect((topCode.match(/<Button\b[\s\S]*?<\/Button>/g) || []).length).toBe(1)
+  })
+  // (9) the Button specifies variant/size + the compat/responsive/focus className
+  it('the migrated Button specifies variant="primary", size="md" and the compat/responsive/focus className', () => {
+    expect(btnEl).toMatch(/variant="primary"/)
+    expect(btnEl).toMatch(/size="md"/)
+    expect(btnEl).toMatch(/className=\{`\$\{HOME_PRIMARY_COMPAT_CLASS\} flex-1 lg:flex-none \$\{FOCUS_RING\}`\}/)
+  })
+  // (10) preserves the outer plain grouping span (the compat structural grouping)
+  it('preserves the outer plain grouping span wrapping the label + chevron', () => {
+    expect(btnEl).toMatch(/>\s*<span>\s*<span>Open Film File<\/span>/)
+    expect(btnEl).toMatch(/<\/span>\s*<\/Button>/)
+  })
+  // (11) the grouping span holds the exact label span + one aria-hidden ChevronRight
+  it('the grouping span holds the Open Film File label span + one aria-hidden ChevronRight', () => {
+    expect(btnEl).toMatch(/<span>Open Film File<\/span>/)
+    expect((btnEl.match(/<ChevronRight\b/g) || []).length).toBe(1)
+    expect(btnEl).toMatch(/<ChevronRight\s+aria-hidden="true"\s+className="h-3\.5 w-3\.5"\s*\/>/)
+  })
+})
+
+describe('Stage 2 / Slice D — Movie remains the only production PrimaryAction component consumer', () => {
+  // (12) After Home migrates, exactly one production wrapper consumer remains: Movie.
+  it('exactly one production PrimaryAction component import remains, and it is Movie', () => {
+    const offenders = []
+    for (const f of walk(join(ROOT, 'src'))) {
+      const r = rel(f)
+      if (r.includes('/__tests__/')) continue
+      if (r.startsWith('src/features/design-lab/')) continue // dev-only showcase
+      if (!/\.jsx?$/.test(r)) continue
+      if (/import\s*\{[^}]*\bPrimaryAction\b[^}]*\}\s*from\s*['"]@\/shared\/ui\/thoughtful-seatmate['"]/.test(readFileSync(f, 'utf8'))) offenders.push(r)
+    }
+    expect(offenders).toEqual(['src/features/movie/sections-top.jsx'])
   })
 })
 

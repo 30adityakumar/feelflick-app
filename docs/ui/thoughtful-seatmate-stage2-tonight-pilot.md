@@ -88,6 +88,21 @@ fill `#efe7d7` / dark text `#221b13`). Its `onClick` (`handleOpen` → `recordRe
 keyboard behavior are unchanged. Secondary actions (Mark Watched / Save / Not tonight) remain the
 subordinate `SecondaryActionButton`s.
 
+> **Addendum — Slice D (canonical-Button consumer migration, current).** The Stage-2 pilot above adopted the
+> `<PrimaryAction>` wrapper, which is accurate for the pilot. After the Button ↔ PrimaryAction convergence
+> (Slices A/B) and the Watchlist migration (Slice C), **Home's *Open Film File* now renders the canonical
+> `<Button variant="primary">` directly** (`src/features/home/sections-top.jsx`) instead of the wrapper —
+> Home no longer imports the `PrimaryAction` component. The **exact compat structure is retained**:
+> `<Button variant="primary" size="md" className="ts-action-primary ts-action-primary--md flex-1
+> lg:flex-none …focus-ring…"><span><span>Open Film File</span><ChevronRight aria-hidden/></span></Button>`,
+> with `PrimaryAction.css` imported by Home itself, so the **DOM and visual output are unchanged**
+> (byte-identical, proven via Vite-SSR `renderToStaticMarkup` + a browser computed-style capture of the flat
+> recipe). The **authenticated Home visual suite passes without baseline regeneration** (zero-pixel). `onClick`
+> / outcome recording / navigation / accessible name / chevron / focus ring / responsive width are all
+> preserved. **Movie remains the final `PrimaryAction` wrapper consumer** (see
+> [`docs/ui/composition-system-ownership.md`](composition-system-ownership.md) → Status — Slice D). The
+> historical record above is unchanged and remains true for the pilot.
+
 ## 11. Decision-state migration
 
 Ivory-only. The MoodReactor pills' selected state drops the mood-hex tint/glow for an ivory keyline + ivory

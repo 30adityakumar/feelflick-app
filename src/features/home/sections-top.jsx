@@ -10,7 +10,17 @@ import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
 import { recordRecommendationOutcome } from '@/shared/services/recommendationOutcomes'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { PrimaryAction } from '@/shared/ui/thoughtful-seatmate'
+import Button from '@/shared/ui/Button'
+// TEMPORARY visual-compatibility import. Home's primary "Open Film File" action now
+// renders the canonical <Button variant="primary"> DIRECTLY — semantic ownership (native
+// button, type, disabled/loading/focus/forced-colours) lives in Button; the PrimaryAction
+// *component* is retired from this route. This stylesheet still loads HERE so the migrated
+// control keeps its EXACT pre-migration pixels (the legacy flat-ivory recipe applied via
+// the `.ts-action-primary*` compatibility classes — see HOME_PRIMARY_COMPAT_CLASS below).
+// Home must NOT rely on Movie or any other route importing this stylesheet in a separate
+// chunk. This import disappears only when Home drops the compatibility recipe under the
+// approved final neutral-primary visual convergence.
+import '@/shared/ui/thoughtful-seatmate/PrimaryAction.css'
 import { HP, MOOD_META } from './data'
 import { SmartImg } from './atoms'
 import WhyThisPick, { CaseRung } from './WhyThisPick'
@@ -128,6 +138,14 @@ export function MoodReactor({ currentMood, setMood }) {
 // visible keyboard focus comes from the global :focus-visible outline in
 // src/styles/globals.css — do NOT add focus:outline-none here, it suppresses it.
 const FOCUS_RING = 'focus-visible:ring-2 focus-visible:ring-white/55 focus-visible:ring-offset-0'
+
+// TEMPORARY compatibility class string — NOT a component, hook, or shared abstraction.
+// Reproduces the retired PrimaryAction wrapper's class output so Home's migrated primary
+// <Button variant="primary"> keeps the legacy flat-ivory visual recipe (flat ivory, 44px
+// height, 10/22 padding, darken-on-hover, 1px press translate) via the PrimaryAction.css
+// imported above, until the final neutral-primary recipe is reconciled — at which point
+// this constant + that import are removed.
+const HOME_PRIMARY_COMPAT_CLASS = 'ts-action-primary ts-action-primary--md'
 
 function WatchedButton({ isWatched, loading, error, onClick }) {
   return (
@@ -464,16 +482,25 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
               44×44 icon buttons (label hidden).
             • lg+: a wrap row of labeled controls. */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3 pt-5 lg:justify-start" style={{ borderTop: `1px solid ${HAIRLINE}` }}>
-          {/* Stage 2 — the single main action is the neutral projection-ivory
-              PrimaryAction (Stage 1 primitive: #efe7d7 fill / #221b13 text), replacing
-              the bone-slab outline. Handler / label / chevron / focus ring unchanged. */}
-          <PrimaryAction
+          {/* Stage 2 / Slice D — the single main action is the neutral projection-ivory
+              primary, now rendered by the canonical <Button variant="primary"> DIRECTLY
+              (semantic ownership in Button). The legacy flat-ivory recipe (#efe7d7 fill /
+              #221b13 text) is preserved unchanged via the HOME_PRIMARY_COMPAT_CLASS
+              compat classes + PrimaryAction.css. Handler / label / chevron / focus ring /
+              responsive width unchanged. The outer plain <span> reproduces the wrapper's
+              structural grouping so the label + chevron flow inline (no Button flex gap),
+              keeping the rendered DOM byte-identical to the pre-migration wrapper. */}
+          <Button
+            variant="primary"
+            size="md"
             onClick={handleOpen}
-            className={`flex-1 lg:flex-none ${FOCUS_RING}`}
+            className={`${HOME_PRIMARY_COMPAT_CLASS} flex-1 lg:flex-none ${FOCUS_RING}`}
           >
-            <span>Open Film File</span>
-            <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-          </PrimaryAction>
+            <span>
+              <span>Open Film File</span>
+              <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
+            </span>
+          </Button>
           <WatchedButton isWatched={isWatched} loading={watchedState === 'saving'} error={watchedState === 'error'} onClick={handleMarkWatched} />
           <SaveButton isInWatchlist={isInWatchlist} loading={saveState === 'saving'} error={saveState === 'error'} onClick={handleSave} />
           <SkipButton onClick={() => onSkip?.(film)} />

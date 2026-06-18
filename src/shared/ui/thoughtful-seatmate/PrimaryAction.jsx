@@ -19,13 +19,13 @@ const SIZE_CLASS = {
  * and loading width-stability, the 2px offset `--color-focus` focus-visible outline,
  * forced-colours support, the reduced-motion-safe spinner, and invalid-size fallback.
  *
- * This wrapper exists only so the current import path keeps working and the existing
- * home / movie visuals stay byte-identical until those consumers migrate to
- * `<Button variant="primary">`. (Watchlist has already migrated: it renders the
- * canonical Button directly and imports `./PrimaryAction.css` itself for the same legacy
- * recipe, so this wrapper's remaining *component* consumers are home + movie.) It adds
- * the legacy `ts-action-primary*` compatibility classes; the legacy *visual recipe*
- * (flat ivory, legacy size metrics, darken-on-hover, 1px press translate) is preserved by
+ * This wrapper exists only so the current import path keeps working and Movie's primary
+ * visuals stay byte-identical until it migrates to `<Button variant="primary">`. Movie is
+ * now the SOLE remaining *component* consumer: Watchlist (Slice C) and Home (Slice D) both
+ * render the canonical Button directly and import `./PrimaryAction.css` themselves for the
+ * same legacy recipe via the `ts-action-primary*` compat classes. The wrapper still adds
+ * the legacy `ts-action-primary*` compatibility classes; the legacy *visual recipe* (flat
+ * ivory, legacy size metrics, darken-on-hover, 1px press translate) is preserved by
  * `./PrimaryAction.css`. Do NOT add new adopters — use `<Button variant="primary">`.
  * Retirement follows the complete four-condition gate in
  * docs/ui/composition-system-ownership.md: zero production component imports, zero

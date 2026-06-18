@@ -1,9 +1,13 @@
-// Thoughtful Seatmate — Stage 1 foundation primitives (scoped barrel).
+// Thoughtful Seatmate — foundation primitives (scoped barrel).
 //
-// Importable by a FUTURE pilot (Tonight, then Film File). Tree-shaken out of the
-// production bundle until a pilot imports from here. Stage 1 adopts none of this
-// into any production surface. Activate the token scope by wrapping a region in
-// <ThoughtfulRoot>; see ./README.md for the pilot handoff contract.
+// The Thoughtful Seatmate theme is SHIPPED website-wide: `foundations.css` is loaded
+// globally via src/index.css and `.theme-thoughtful` is applied once at the app root
+// (src/App.jsx), so these primitives are part of the production bundle. They are
+// COMPOSITIONALLY adopted by selected production surfaces (home, movie, watchlist);
+// other routes are theme-migrated (recoloured by the global theme) without yet being
+// composition-migrated. `<ThoughtfulRoot>` now marks Thoughtful Seatmate composition
+// scope (its `--ts-*` values resolve from the global theme). See ./README.md and
+// docs/ui/composition-system-ownership.md for the current ownership contract.
 
 export { default as ThoughtfulRoot } from './ThoughtfulRoot'
 export { default as PageDepth } from './PageDepth'

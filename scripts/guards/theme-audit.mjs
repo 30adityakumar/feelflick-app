@@ -23,7 +23,7 @@
 //
 // Run: node scripts/guards/theme-audit.mjs   (--json for machine output)
 import { readFile, readdir } from 'node:fs/promises'
-import { join, relative, extname, basename } from 'node:path'
+import { join, relative, extname } from 'node:path'
 
 const ROOT = process.cwd()
 const JSON_OUT = process.argv.includes('--json')

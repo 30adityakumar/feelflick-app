@@ -49,9 +49,17 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
               aria-current={p === currentPage ? 'page' : undefined}
               className={`flex h-9 w-9 items-center justify-center rounded-full text-[0.82rem] font-medium transition-all ${
                 p === currentPage
-                  ? 'bg-purple-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)]'
+                  ? 'font-bold'
                   : 'border border-white/12 bg-white/6 text-white/60 hover:bg-white/12 hover:text-white'
               }`}
+              style={
+                p === currentPage
+                  ? {
+                      background: 'var(--color-action-primary-fill, #efe7d7)',
+                      color: 'var(--color-action-primary-text, #221b13)',
+                    }
+                  : undefined
+              }
             >
               {p}
             </button>

@@ -27,11 +27,11 @@ export default function Tooltip({ content, children, side = 'top', delayDuration
           <RadixTooltip.Content
             side={side}
             sideOffset={6}
-            className="z-50 max-w-xs select-none rounded-lg border border-white/10 bg-black/90 px-3 py-1.5 text-xs font-medium text-white/90 shadow-xl shadow-black/40 backdrop-blur-md"
+            className="z-50 max-w-xs select-none rounded-lg border border-white/10 bg-[var(--color-surface-2,#241e19)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-primary,#f3ecdf)] shadow-xl shadow-black/40 backdrop-blur-md"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             {content}
-            <RadixTooltip.Arrow className="fill-black/90" />
+            <RadixTooltip.Arrow className="fill-[var(--color-surface-2,#241e19)]" />
           </RadixTooltip.Content>
         </RadixTooltip.Portal>
       </RadixTooltip.Root>

@@ -1,9 +1,9 @@
 import { forwardRef } from 'react'
 
 const VARIANTS = {
-  primary: 'rounded-full bg-linear-to-r from-purple-600 to-pink-500 text-white shadow-lg shadow-purple-500/20 hover:brightness-110 motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.97]',
+  primary: 'rounded-full bg-[var(--color-action-primary-fill,#efe7d7)] text-[var(--color-action-primary-text,#221b13)] shadow-lg shadow-black/20 hover:brightness-110 motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.97]',
   secondary: 'rounded-full bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white hover:border-white/20',
-  ghost: 'rounded-full border border-purple-500/30 text-purple-400 hover:border-purple-400/50 hover:text-purple-300',
+  ghost: 'rounded-full border border-[var(--color-border-strong,#46423d)] text-[var(--color-text-secondary,#beb8ad)] hover:border-[var(--color-text-primary,#f3ecdf)] hover:text-[var(--color-text-primary,#f3ecdf)]',
   icon: 'rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-white/80 hover:bg-white/10 hover:text-white motion-safe:hover:scale-105 motion-safe:active:scale-95 flex items-center justify-center',
   destructive: 'rounded-full bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40',
 }
@@ -17,14 +17,14 @@ const SIZES = {
   lg: { base: 'min-h-12 px-8 py-3 text-base font-bold', icon: 'h-12 w-12' },
 }
 
-const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50'
+const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus,#f3ecdf)]'
 
 /**
  * Canonical button primitive — the one button system (F11B.1 pins this contract).
  *
- * Variants: `primary` (the one brand-gradient pill), `secondary`, `ghost`, `icon`,
+ * Variants: `primary` (the one neutral ivory action pill), `secondary`, `ghost`, `icon`,
  * `destructive` (alias of "danger"). Sizes: `sm` | `md` | `lg`. All variants are
- * fully-rounded (`rounded-full` ≈ RADIUS.pill), share the focus-visible purple ring,
+ * fully-rounded (`rounded-full` ≈ RADIUS.pill), share the focus-visible ivory ring,
  * the disabled (opacity) state, and the in-button micro-spinner (`loading`) — the one
  * sanctioned spinner per CLAUDE.md.
  *
@@ -61,7 +61,7 @@ const Button = forwardRef(function Button({
       {...props}
     >
       {loading ? (
-        <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+        <span className="inline-block h-4 w-4 rounded-full border-2 border-current/40 border-t-current animate-spin" />
       ) : children}
     </button>
   )

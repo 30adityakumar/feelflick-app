@@ -96,8 +96,8 @@ retained for context only).
 
 | Component | Status | Notes |
 |---|---|---|
-| `Button` | **CANONICAL** generic app-interface button · **CANONICAL** neutral-primary public API | One button system for interface controls; `variant="primary"` owns the neutral-primary semantic/accessibility implementation (Slice A). `PrimaryAction` temporarily **wraps** it (see its `COMPATIBILITY` row, Slice B). Ownership is **resolved**; pending only the final resting-visual recipe, production-consumer migration, and compatibility-CSS retirement. |
-| `PrimaryAction` (Thoughtful Seatmate) | **COMPATIBILITY** (wrapper over `Button`) | Now a thin wrapper over `<Button variant="primary">` (Slice B) — delegates all semantics / loading / focus / forced-colours to Button; `PrimaryAction.css` only preserves the legacy visual recipe. Import path kept for existing home/movie/watchlist consumers. **No new adopters** — use `Button`. Retire (remove wrapper + CSS) once production imports reach zero, in a dedicated PR. |
+| `Button` | **CANONICAL** generic app-interface button · **CANONICAL** neutral-primary public API | One button system for interface controls; `variant="primary"` owns the neutral-primary semantic/accessibility implementation (Slice A). `PrimaryAction` temporarily **wraps** it (see its `COMPATIBILITY` row, Slice B). Ownership is **resolved**; consumer migration is **underway** (watchlist renders `<Button variant="primary">` directly — Slice C); pending only the final resting-visual recipe, the remaining home/movie consumer migration, and compatibility-CSS retirement. |
+| `PrimaryAction` (Thoughtful Seatmate) | **COMPATIBILITY** (wrapper over `Button`) | Now a thin wrapper over `<Button variant="primary">` (Slice B) — delegates all semantics / loading / focus / forced-colours to Button; `PrimaryAction.css` only preserves the legacy visual recipe. Import path kept for its remaining **component** consumers (home, movie); **watchlist is the first consumer migrated to `<Button variant="primary">` directly** (Slice C — it imports `PrimaryAction.css` itself for the same recipe via the `ts-action-primary*` compat classes). **No new adopters** — use `Button`. Retire per the [PrimaryAction retirement gate](#primaryaction-retirement-gate), in a dedicated PR. |
 | `ActionButton`, `SecondaryActionButton`, `ChipButton` | **DOMAIN-SPECIFIC** | Intentional rose card-action family. **Not** automatically merged into `Button`. `ChipButton` is a compact action, not a selection pill. |
 
 ### Surfaces
@@ -188,15 +188,52 @@ reduced-motion-safe spinner, and invalid-size fallback to Button.
 
 - Its **old import path remains temporarily supported** (`@/shared/ui/thoughtful-seatmate`).
 - `PrimaryAction.css` is now a **temporary visual-compatibility stylesheet** that preserves the legacy
-  visual recipe (flat ivory, legacy 44/44/48 size metrics, darken-on-hover, 1px press translate) on the
-  rendered Button. Scoped to `.ts-action-primary`; no global selectors; no focus/spinner/forced-colours
+  visual recipe (flat ivory, legacy 44/44/48 size metrics, darken-on-hover, 1px press translate) on **any**
+  element carrying `.ff-btn` + `.ts-action-primary*` — whether produced by the wrapper or rendered directly
+  by a migrated consumer. Scoped to `.ts-action-primary`; no global selectors; no focus/spinner/forced-colours
   duplication (Button owns those).
 - **No new `PrimaryAction` usage is allowed.**
-- **Consumer migration has not begun** — home, movie and watchlist are untouched and render unchanged.
+- **Consumer migration began in Slice B's wake** — see **Slice C** below.
 - **Final visual reconciliation remains pending** (Button keeps its own primary recipe for direct use;
-  PrimaryAction keeps the legacy recipe via compat CSS until consumers migrate).
-- **Retirement** requires **zero production `PrimaryAction` imports** and a dedicated PR that removes the
-  wrapper + `PrimaryAction.css`.
+  the legacy recipe is preserved via compat CSS until consumers adopt the final neutral-primary recipe).
+- **Retirement** is gated — see the [PrimaryAction retirement gate](#primaryaction-retirement-gate).
+
+### Status — Slice C (first consumer migrated to the canonical Button)
+
+**Watchlist is the first production consumer to render the canonical Button directly**, replacing the
+`PrimaryAction` wrapper for its two primary CTAs (empty-state *Open Discover →*, error-state *Try again*).
+
+- Watchlist no longer imports or renders the `PrimaryAction` **component**. It imports `Button` from
+  `@/shared/ui/Button` and renders `<Button variant="primary" size="md" className="ts-action-primary
+  ts-action-primary--md"><span>…</span></Button>`.
+- It imports `@/shared/ui/thoughtful-seatmate/PrimaryAction.css` **itself**, so the legacy visual recipe is
+  preserved unchanged via the `ts-action-primary*` compat classes. **This is a zero-pixel migration** — the
+  rendered DOM and computed styles are byte-identical to the wrapper output (the wrapper renders the same
+  element with the same classes + single child `<span>`).
+- The single child `<span>` wrapper is **intentional** (legacy structural grouping — keeps icon+label
+  content flowing inline without Button's flex `gap`).
+- Home and movie still consume the `PrimaryAction` wrapper (unchanged).
+- **No new `PrimaryAction` adopters.** The compat classes + `PrimaryAction.css` import on watchlist are a
+  **temporary** bridge until the final neutral-primary recipe is approved + implemented, at which point the
+  compat classes and the explicit CSS import are removed.
+
+### PrimaryAction retirement gate
+
+The `PrimaryAction` wrapper (`PrimaryAction.jsx`) and its compatibility stylesheet (`PrimaryAction.css`)
+are removed in a dedicated PR **only** after **all** of the following hold (do not specify an arbitrary
+removal date):
+
+1. **Zero `PrimaryAction` component imports** in production (`@/shared/ui/thoughtful-seatmate` →
+   `PrimaryAction`) — i.e. home and movie have migrated to `<Button variant="primary">` directly.
+2. **Zero consumers carry the `ts-action-primary*` compat classes** — every primary action uses the final
+   neutral-primary recipe owned by `Button`, not the legacy compat recipe.
+3. **Zero `PrimaryAction.css` imports** remain (the wrapper and the migrated consumers that imported it
+   directly have all dropped it).
+4. **The final resting-visual neutral-primary recipe is approved and implemented** on `Button` (so dropping
+   the legacy recipe is an intentional, approved visual change — not an accidental regression), with
+   route-level visual-regression coverage updated for the new appearance.
+
+Until every condition holds, both files stay. They are a bridge with a clear end state, not permanent debt.
 
 ---
 

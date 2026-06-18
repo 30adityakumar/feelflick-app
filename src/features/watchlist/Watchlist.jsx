@@ -11,7 +11,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MoodPill from '@/shared/components/MoodPill'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { ThoughtfulRoot, PageDepth, PrimaryAction } from '@/shared/ui/thoughtful-seatmate'
+import Button from '@/shared/ui/Button'
+import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
+// TEMPORARY visual-compatibility import (see WATCHLIST_PRIMARY_COMPAT_CLASS below).
+// Watchlist now renders the canonical <Button variant="primary"> directly; the
+// PrimaryAction *component* is retired from this route. Its stylesheet still loads HERE
+// so the two migrated primary buttons keep their exact pre-migration pixels (the legacy
+// flat-ivory recipe applied via the .ts-action-primary* compatibility classes). Semantic
+// ownership now lives in Button; this import + the compat classes are removed when the
+// neutral-primary visual recipe is reconciled. Do NOT rely on Home/Movie importing this
+// stylesheet in another route chunk.
+import '@/shared/ui/thoughtful-seatmate/PrimaryAction.css'
 import { HP as HP_BASE } from './data'
 import { WatchlistDataProvider, useWatchlistData } from './useWatchlistData'
 import { sortItems } from './derive/watchlistDerive'
@@ -19,6 +29,13 @@ import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncemen
 import { scheduleFocus, findRemoveControl, findFallback, nextFocusId } from '@/features/library/focusAfterRemoval'
 import LibrarySectionNav from '@/features/library/LibrarySectionNav'
 import './watchlist.css'
+
+// TEMPORARY compatibility class string — NOT a component, hook, or shared abstraction.
+// Reproduces the retired PrimaryAction wrapper's class output so Watchlist's migrated
+// primary <Button variant="primary"> controls keep the legacy flat-ivory visual recipe
+// (via PrimaryAction.css, imported above) until the neutral-primary visual recipe is
+// reconciled — at which point this constant + that import are removed.
+const WATCHLIST_PRIMARY_COMPAT_CLASS = 'ts-action-primary ts-action-primary--md'
 
 const HP = {
   ...HP_BASE,
@@ -161,7 +178,14 @@ function EmptyState() {
         Save a film when you want to remember it for another time.
       </p>
       <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-        <PrimaryAction onClick={() => navigate('/discover')}>Open Discover →</PrimaryAction>
+        <Button
+          variant="primary"
+          size="md"
+          className={WATCHLIST_PRIMARY_COMPAT_CLASS}
+          onClick={() => navigate('/discover')}
+        >
+          <span>Open Discover →</span>
+        </Button>
         <button type="button" onClick={() => navigate('/browse')} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, cursor:'pointer' }}>Browse films</button>
       </div>
     </section>
@@ -284,7 +308,14 @@ function PageError({ onRetry, onHome }) {
         <h1 style={{ fontFamily:'Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Watchlist.</h1>
         <p style={{ margin:'0 0 28px 0', color:'var(--ts-text-muted, #8d887f)', fontSize:14, lineHeight:1.6 }}>Your saved films are still safe. Try again in a moment.</p>
         <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-          <PrimaryAction onClick={onRetry}>Try again</PrimaryAction>
+          <Button
+            variant="primary"
+            size="md"
+            className={WATCHLIST_PRIMARY_COMPAT_CLASS}
+            onClick={onRetry}
+          >
+            <span>Try again</span>
+          </Button>
           <button type="button" onClick={onHome} className="ff-wl-error-btn" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'transparent', color:'var(--ts-text-secondary, #beb8ad)', border:`1px solid ${HP.border}`, cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600 }}>Go to Home</button>
         </div>
       </div>

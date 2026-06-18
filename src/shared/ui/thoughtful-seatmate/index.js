@@ -3,16 +3,20 @@
 // The Thoughtful Seatmate theme is SHIPPED website-wide: `foundations.css` is loaded
 // globally via src/index.css and `.theme-thoughtful` is applied once at the app root
 // (src/App.jsx), so these primitives are part of the production bundle. They are
-// COMPOSITIONALLY adopted by selected production surfaces (home, movie, watchlist);
-// other routes are theme-migrated (recoloured by the global theme) without yet being
-// composition-migrated. `<ThoughtfulRoot>` now marks Thoughtful Seatmate composition
-// scope (its `--ts-*` values resolve from the global theme). See ./README.md and
+// COMPOSITIONALLY adopted by selected production surfaces (home, movie, watchlist —
+// each wraps its body in `<ThoughtfulRoot>` + `<PageDepth>`); other routes are
+// theme-migrated (recoloured by the global theme) without yet being composition-migrated.
+// `<ThoughtfulRoot>` now marks Thoughtful Seatmate composition scope (its `--ts-*` values
+// resolve from the global theme). See ./README.md and
 // docs/ui/composition-system-ownership.md for the current ownership contract.
 //
 // `PrimaryAction` is now a COMPATIBILITY WRAPPER over the canonical `<Button
 // variant="primary">` (it delegates all semantics/loading/focus/forced-colours to
-// Button; ./PrimaryAction.css only preserves its legacy visual recipe). Its import
-// path is kept for existing consumers — do NOT add new adopters; use Button directly.
+// Button; ./PrimaryAction.css only preserves its legacy visual recipe). Its remaining
+// component consumers are home + movie; watchlist has migrated to rendering `<Button
+// variant="primary">` directly (importing PrimaryAction.css itself for the same recipe).
+// The import path is kept for the remaining consumers — do NOT add new adopters; use
+// Button directly.
 
 export { default as ThoughtfulRoot } from './ThoughtfulRoot'
 export { default as PageDepth } from './PageDepth'

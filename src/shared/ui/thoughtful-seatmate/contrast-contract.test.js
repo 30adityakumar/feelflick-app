@@ -1,18 +1,46 @@
 import { describe, expect, it } from 'vitest'
-import { TS_TOKENS } from './tokens'
+import { TS_TOKENS as T } from './tokens'
 
-describe('theme contrast tokens', () => {
-  it('uses accessible text and border roles', () => {
-    expect(TS_TOKENS.textPrimary).toBe('#f5f2eb')
-    expect(TS_TOKENS.textSecondary).toBe('#c9c5bc')
-    expect(TS_TOKENS.textMuted).toBe('#a5a198')
-    expect(TS_TOKENS.borderStrong).toBe('#747a82')
+const linear = (value) => {
+  const n = value / 255
+  return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4
+}
+
+const luminance = (hex) => {
+  const value = hex.slice(1)
+  const r = parseInt(value.slice(0, 2), 16)
+  const g = parseInt(value.slice(2, 4), 16)
+  const b = parseInt(value.slice(4, 6), 16)
+  return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
+}
+
+const contrast = (a, b) => {
+  const first = luminance(a) + 0.05
+  const second = luminance(b) + 0.05
+  return Math.max(first, second) / Math.min(first, second)
+}
+
+const surfaces = [T.canvas, T.surface1, T.surface2, T.surfaceRaised]
+
+describe('theme contrast contract', () => {
+  it('keeps meaningful text readable', () => {
+    for (const surface of surfaces) {
+      expect(contrast(T.textPrimary, surface)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(T.textSecondary, surface)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(T.textMuted, surface)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(T.brandAccentText, surface)).toBeGreaterThanOrEqual(4.5)
+    }
   })
 
-  it('uses neutral actions and coral signature roles', () => {
-    expect(TS_TOKENS.actionPrimaryFill).toBe('#f0ece4')
-    expect(TS_TOKENS.actionPrimaryText).toBe('#0f1010')
-    expect(TS_TOKENS.brandAccentText).toBe('#ed7a87')
-    expect(TS_TOKENS.brandAccentStrong).toBe('#b83d4f')
+  it('keeps focus and functional boundaries visible', () => {
+    for (const surface of surfaces) {
+      expect(contrast(T.borderStrong, surface)).toBeGreaterThanOrEqual(3)
+      expect(contrast(T.focus, surface)).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('keeps filled actions readable', () => {
+    expect(contrast(T.actionPrimaryText, T.actionPrimaryFill)).toBeGreaterThanOrEqual(4.5)
+    expect(contrast('#ffffff', T.brandAccentStrong)).toBeGreaterThanOrEqual(4.5)
   })
 })

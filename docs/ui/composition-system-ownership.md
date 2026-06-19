@@ -96,8 +96,8 @@ retained for context only).
 
 | Component | Status | Notes |
 |---|---|---|
-| `Button` | **CANONICAL** generic app-interface button · **CANONICAL** neutral-primary public API | One button system for interface controls; `variant="primary"` owns the neutral-primary semantic/accessibility implementation (Slice A). `PrimaryAction` temporarily **wraps** it (see its `COMPATIBILITY` row, Slice B). Ownership is **resolved**; consumer migration is **underway** (Watchlist — Slice C, and Home — Slice D, render `<Button variant="primary">` directly; **Movie** is the sole remaining wrapper consumer); pending only the final resting-visual recipe, the Movie consumer migration, and compatibility-CSS retirement. |
-| `PrimaryAction` (Thoughtful Seatmate) | **COMPATIBILITY** (wrapper over `Button`) | Now a thin wrapper over `<Button variant="primary">` (Slice B) — delegates all semantics / loading / focus / forced-colours to Button; `PrimaryAction.css` only preserves the legacy visual recipe. Import path kept for its **sole remaining component consumer, Movie**; **Watchlist (Slice C) and Home (Slice D) have migrated to `<Button variant="primary">` directly** (each imports `PrimaryAction.css` itself for the same recipe via the `ts-action-primary*` compat classes). **No new adopters** — use `Button`. Retire per the [PrimaryAction retirement gate](#primaryaction-retirement-gate), in a dedicated PR. |
+| `Button` | **CANONICAL** generic app-interface button · **CANONICAL** neutral-primary public API | One button system for interface controls; `variant="primary"` owns the neutral-primary semantic/accessibility implementation (Slice A). `PrimaryAction` temporarily **wraps** it (see its `COMPATIBILITY` row, Slice B). Ownership is **resolved**; consumer migration is **complete** (Watchlist — Slice C, Home — Slice D, Movie — Slice E all render `<Button variant="primary">` directly; **zero production `PrimaryAction` component imports remain**); pending only the final resting-visual recipe and compatibility-CSS retirement (gate conditions 2–4). |
+| `PrimaryAction` (Thoughtful Seatmate) | **COMPATIBILITY** (wrapper over `Button`) | Now a thin wrapper over `<Button variant="primary">` (Slice B) — delegates all semantics / loading / focus / forced-colours to Button; `PrimaryAction.css` only preserves the legacy visual recipe. **Zero production component consumers** as of Slice E — **Watchlist (Slice C), Home (Slice D) and Movie (Slice E) all render `<Button variant="primary">` directly** (each imports `PrimaryAction.css` itself for the same recipe via the `ts-action-primary*` compat classes). Wrapper + barrel export **retained temporarily** (only retirement-gate condition 1 met; 2–4 pending). **No new adopters** — use `Button`. Retire per the [PrimaryAction retirement gate](#primaryaction-retirement-gate), in a dedicated PR. |
 | `ActionButton`, `SecondaryActionButton`, `ChipButton` | **DOMAIN-SPECIFIC** | Intentional rose card-action family. **Not** automatically merged into `Button`. `ChipButton` is a compact action, not a selection pill. |
 
 ### Surfaces
@@ -237,10 +237,37 @@ wrapper to `<Button variant="primary">` in `src/features/home/sections-top.jsx`.
   inline span, so the label + chevron flow inline *without* Button's flex `gap`. Reproducing it keeps the
   width/spacing/wrapping (and the byte-identical DOM). Because the control is **not loading**, this grouping
   span is a **direct child** of the button (Button only emits a `.ff-btn__label` wrapper when `loading`).
-- **Watchlist + Home** are now direct Button consumers; **Movie is the sole remaining `PrimaryAction`
-  component consumer** (out of scope here — the final, highest-risk wrapper consumer).
+- **Watchlist + Home** are direct Button consumers as of Slice D; **Movie was the sole remaining
+  `PrimaryAction` component consumer** until **Slice E** (below) migrated it.
 - **No new `PrimaryAction` adopters.** The compat classes + `PrimaryAction.css` import on Home are a
   **temporary** bridge until the final neutral-primary recipe is approved + implemented.
+
+### Status — Slice E (final consumer migrated — Movie; production wrapper imports now zero)
+
+**Movie (the Film File) is the third and final production consumer to render the canonical Button directly.**
+Its **two** trailer controls migrate from the `PrimaryAction` wrapper to `<Button variant="primary">` in
+`src/features/movie/sections-top.jsx`:
+
+- **Hero trailer** — `size="md"`, route classes `ff-movie-hero-action-btn ff-movie-hero-action-btn--primary`,
+  `disabled={!hasTrailer}`, conditional `title`, inline `cursor`/`opacity`, an outer plain grouping `<span>`
+  holding the original `<svg>` then the `Play Trailer` text.
+- **Sticky-bar trailer** — `size="sm"`, `disabled={!hasTrailer}`, conditional `title`, inline
+  `padding`/`borderRadius`(=`RADIUS.sm`)/`fontSize`/`fontWeight`/`cursor`/`opacity`, one plain child `<span>`
+  with `Play Trailer`.
+- Neither control uses `loading` (the loading state belongs to the out-of-scope Save / Mark-Watched controls).
+- Movie no longer imports or renders the `PrimaryAction` **component**; it imports `Button` and imports
+  `@/shared/ui/thoughtful-seatmate/PrimaryAction.css` **itself** (route-local `MOVIE_PRIMARY_COMPAT_MD` /
+  `MOVIE_PRIMARY_COMPAT_SM`). **Zero-pixel migration** — proven byte-identical via Vite-SSR
+  `renderToStaticMarkup` across **four** cases (hero enabled/disabled, sticky enabled/disabled) plus a browser
+  computed-style capture (flat recipe, inline overrides, disabled semantics) at desktop + mobile. Because
+  neither control loads, the grouping span is a **direct child** of the button (no `.ff-btn__label` /
+  `.ff-btn__spinner`).
+- **Production `PrimaryAction` component imports are now ZERO.** Home, Watchlist and Movie all render Button
+  directly while still consuming the `ts-action-primary*` compat classes + importing `PrimaryAction.css`.
+- **Retirement-gate status: only condition 1 is now satisfied** (zero component imports). **Conditions 2, 3 and
+  4 remain unsatisfied** (compat-class consumers, `PrimaryAction.css` imports, and the final recipe). The
+  wrapper, its barrel export and `PrimaryAction.css` are therefore **retained**; their removal is a separate,
+  later sequence.
 
 ### PrimaryAction retirement gate
 
@@ -249,17 +276,20 @@ are removed in a dedicated PR **only** after **all** of the following hold (do n
 removal date):
 
 1. **Zero `PrimaryAction` component imports** in production (`@/shared/ui/thoughtful-seatmate` →
-   `PrimaryAction`) — i.e. Movie has migrated to `<Button variant="primary">` directly (Watchlist + Home
-   already have).
+   `PrimaryAction`). **✅ SATISFIED as of Slice E** — Watchlist, Home and Movie have all migrated to
+   `<Button variant="primary">` directly.
 2. **Zero consumers carry the `ts-action-primary*` compat classes** — every primary action uses the final
-   neutral-primary recipe owned by `Button`, not the legacy compat recipe.
+   neutral-primary recipe owned by `Button`, not the legacy compat recipe. **⛔ NOT satisfied** — Home,
+   Watchlist and Movie still carry the compat classes.
 3. **Zero `PrimaryAction.css` imports** remain (the wrapper and the migrated consumers that imported it
-   directly have all dropped it).
+   directly have all dropped it). **⛔ NOT satisfied** — Home, Watchlist and Movie still import it.
 4. **The final resting-visual neutral-primary recipe is approved and implemented** on `Button` (so dropping
    the legacy recipe is an intentional, approved visual change — not an accidental regression), with
-   route-level visual-regression coverage updated for the new appearance.
+   route-level visual-regression coverage updated for the new appearance. **⛔ NOT satisfied** — unresolved.
 
 Until every condition holds, both files stay. They are a bridge with a clear end state, not permanent debt.
+**After Slice E only condition 1 is met; conditions 2–4 remain, so the wrapper + `PrimaryAction.css` are
+retained.**
 
 ---
 

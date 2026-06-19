@@ -246,7 +246,26 @@ test.describe('Film File — authenticated, intercepted', () => {
     await gotoFilmFile(page)
 
     // Hero trailer → named modal dialog, close gets focus, trap holds, Escape restores.
-    const trailer = page.getByRole('button', { name: 'Play Trailer' })
+    // Scope the hero control through the hero action row (the sticky bar carries a second
+    // "Play Trailer" button). It migrated to the canonical <Button variant="primary">
+    // directly, keeping the legacy recipe via the ts-action-primary* compat classes; assert
+    // the live DOM. NB: not loading → no `.ff-btn__label`; the grouping span is a direct child.
+    const trailer = page.locator('.ff-movie-hero-actions').getByRole('button', { name: 'Play Trailer' })
+    await expect(trailer).toBeVisible()
+    await expect(trailer).toHaveJSProperty('tagName', 'BUTTON')
+    await expect(trailer).toHaveAttribute('type', 'button')
+    await expect(trailer).toBeEnabled() // default fixture has a trailer
+    await expect(trailer).toHaveClass(/\bff-btn\b/)
+    await expect(trailer).toHaveClass(/\bts-action-primary\b/)
+    await expect(trailer).toHaveClass(/\bts-action-primary--md\b/)
+    await expect(trailer).toHaveClass(/\bff-movie-hero-action-btn\b/)
+    await expect(trailer).toHaveClass(/\bff-movie-hero-action-btn--primary\b/)
+    await expect(trailer.locator('.ff-btn__label')).toHaveCount(0)
+    await expect(trailer.locator('.ff-btn__spinner')).toHaveCount(0)
+    const heroGroup = trailer.locator('> span')
+    await expect(heroGroup).toHaveCount(1)               // one direct grouping span
+    await expect(heroGroup.locator('> svg')).toHaveCount(1) // grouping span holds exactly one svg
+    await expect(heroGroup).toHaveText('Play Trailer')
     await trailer.focus()
     await page.keyboard.press('Enter')
     const dialog = page.getByRole('dialog')
@@ -272,6 +291,38 @@ test.describe('Film File — authenticated, intercepted', () => {
     await expect(featurette).toBeFocused()
     // iframe removed after close.
     await expect(page.locator('iframe')).toHaveCount(0)
+
+    // ── Sticky-bar trailer control (the visual suite hides .ff-movie-sticky-bar, so its
+    //    migrated Button parity is proven here). Reveal it by scrolling past the 80px
+    //    threshold, then confirm it leaves the hidden/inert state and opens the dialog. ──
+    await page.evaluate(() => window.scrollTo(0, 600))
+    const stickyBar = page.locator('.ff-movie-sticky-bar')
+    await expect.poll(() => stickyBar.evaluate((el) => el.hasAttribute('aria-hidden'))).toBe(false)
+    await expect.poll(() => stickyBar.evaluate((el) => el.hasAttribute('inert'))).toBe(false)
+    const stickyTrailer = stickyBar.getByRole('button', { name: 'Play Trailer' })
+    await expect(stickyTrailer).toBeVisible()
+    await expect(stickyTrailer).toHaveJSProperty('tagName', 'BUTTON')
+    await expect(stickyTrailer).toHaveAttribute('type', 'button')
+    await expect(stickyTrailer).toHaveClass(/\bff-btn\b/)
+    await expect(stickyTrailer).toHaveClass(/\bts-action-primary\b/)
+    await expect(stickyTrailer).toHaveClass(/\bts-action-primary--sm\b/)
+    await expect(stickyTrailer.locator('.ff-btn__label')).toHaveCount(0)
+    await expect(stickyTrailer.locator('.ff-btn__spinner')).toHaveCount(0)
+    const stickyGroup = stickyTrailer.locator('> span')
+    await expect(stickyGroup).toHaveCount(1)             // one direct plain span
+    await expect(stickyGroup).toHaveText('Play Trailer')
+    // computed custom inline padding/radius/font preserved on the migrated Button
+    const stickyCss = await stickyTrailer.evaluate((el) => {
+      const c = getComputedStyle(el)
+      return { padding: `${c.paddingTop} ${c.paddingRight} ${c.paddingBottom} ${c.paddingLeft}`, radius: c.borderTopLeftRadius, fontSize: c.fontSize, fontWeight: c.fontWeight }
+    })
+    expect(stickyCss).toEqual({ padding: '8px 14px 8px 14px', radius: '6px', fontSize: '12px', fontWeight: '600' })
+    // activate → trailer dialog opens; close → focus returns to the sticky trigger
+    await stickyTrailer.click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await page.getByRole('button', { name: 'Close trailer' }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(stickyTrailer).toBeFocused()
 
     expect(ledger.unexpectedRequests).toEqual([])
     expect(errors, errors.join('\n')).toEqual([])

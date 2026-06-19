@@ -12,11 +12,12 @@
 //
 // `PrimaryAction` is now a COMPATIBILITY WRAPPER over the canonical `<Button
 // variant="primary">` (it delegates all semantics/loading/focus/forced-colours to
-// Button; ./PrimaryAction.css only preserves its legacy visual recipe). Movie is now the
-// SOLE remaining component consumer; Watchlist (Slice C) and Home (Slice D) have migrated
-// to rendering `<Button variant="primary">` directly (each importing PrimaryAction.css
-// itself for the same recipe via the ts-action-primary* compat classes). The import path
-// is kept for Movie — do NOT add new adopters; use Button directly.
+// Button; ./PrimaryAction.css only preserves its legacy visual recipe). It now has ZERO
+// production component consumers — Watchlist (Slice C), Home (Slice D) and Movie (Slice E)
+// all render `<Button variant="primary">` directly (each importing PrimaryAction.css itself
+// for the same recipe via the ts-action-primary* compat classes). The wrapper + this export
+// are RETAINED temporarily: only retirement-gate condition 1 (zero component imports) is met;
+// conditions 2–4 remain. Do NOT add new adopters — use Button directly.
 
 export { default as ThoughtfulRoot } from './ThoughtfulRoot'
 export { default as PageDepth } from './PageDepth'

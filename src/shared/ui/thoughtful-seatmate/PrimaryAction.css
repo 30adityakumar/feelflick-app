@@ -8,12 +8,12 @@
  * reduced-motion-safe spinner, and invalid-size fallback.
  *
  * This file ONLY preserves PrimaryAction's legacy *visual recipe* on the rendered
- * Button so existing movie/home/watchlist visuals stay byte-identical until those
+ * Button so existing home/watchlist/movie visuals stay byte-identical until those
  * consumers adopt the final neutral-primary recipe. The recipe attaches to any element
- * carrying both `.ff-btn` (canonical Button) and `.ts-action-primary*` — whether that
- * element comes from the PrimaryAction wrapper (Movie, the sole remaining wrapper consumer)
- * or from a consumer that already renders `<Button variant="primary" className="ts-action-primary ...">`
- * directly (Home + Watchlist, which import this stylesheet themselves). Every selector is scoped to
+ * carrying both `.ff-btn` (canonical Button) and `.ts-action-primary*`. As of Slice E the
+ * PrimaryAction wrapper has ZERO production consumers — Home, Watchlist and Movie all render
+ * `<Button variant="primary" className="ts-action-primary ...">` directly and import this
+ * stylesheet themselves. Every selector is scoped to
  * `.ts-action-primary` — no global selectors. They override Button's primary recipe, whose
  * visual utilities live in Tailwind's lower-priority `utilities` cascade layer, so this
  * unlayered author CSS wins predictably WITHOUT `!important`.

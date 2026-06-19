@@ -1,6 +1,14 @@
 # ADR 019 — Thoughtful Seatmate: Website-Wide Canonical Theme
 
-**Status:** Accepted
+> ✅ **Architecture preserved by [ADR 021](021-adaptive-editorial-cinema-foundation.md);
+> rendered values superseded.** The single-root-theme architecture decided here — one
+> `.theme-thoughtful` boundary, one canonical `--color-*` contract with a CSS+JS mirror +
+> drift test, compatibility aliases, and the `VITE_UI_THEME=legacy` rollback — **remains in
+> force**. Only the concrete token *values* the canonical contract renders changed (warm
+> graphite/ivory/rose → Adaptive Editorial Cinema deep-ink/paper-white/coral). The
+> `.theme-thoughtful` class name is retained as a temporary compatibility name.
+
+**Status:** Accepted (architecture in force; rendered values superseded by ADR 021)
 **Date:** 2026-06-18
 **Decided by:** Aditya Kumar. Supersedes the route-by-route adoption model of Stages 1–6 with a single centrally-controlled theme architecture, implemented in one coordinated PR.
 

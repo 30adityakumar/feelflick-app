@@ -1,63 +1,59 @@
-/* === Thoughtful Seatmate — canonical website theme ==========================
+/* === FeelFlick — canonical Adaptive Editorial Cinema theme ==================
  *
- * WEBSITE-WIDE. `.theme-thoughtful` is the ONE canonical visual theme for the
- * whole application. It is applied exactly once, at the app root (src/App.jsx),
- * and is fully removable (rollback: VITE_UI_THEME=legacy). Changing a `--color-*`
- * value here propagates to the shell, every route, and every shared component —
- * no route-by-route colour editing.
+ * WEBSITE-WIDE. `.theme-thoughtful` remains the single application theme
+ * boundary for compatibility, while the visual language is now Adaptive
+ * Editorial Cinema: deep neutral ink, paper-white typography, a restrained
+ * cinematic coral-red signature, neutral inverse actions, and flat-first
+ * editorial composition.
  *
- * This file is the CSS mirror of the canonical `--color-*` token contract (the JS
- * mirror is `CANONICAL_THEME` in ./tokens.js; the two are kept in sync by drift tests
- * — neither is generated from the other). It is intentionally PURE: it declares only the
- * canonical tokens, the `--ts-*` aliases (so the pilot ThoughtfulRoot wrappers
- * keep resolving), the Inter font roles, and the neutral page-depth recipes — it
- * references NO legacy purple/pink/gradient/editorial-serif tokens. The temporary
- * legacy compatibility aliases (the --bg-, --brand-, --purple-, --pink- scales and
- * --font-editorial, all mapped to canonical) live in src/index.css, outside this
- * pure namespace.
- *
- * Loaded globally via src/index.css (and by ThoughtfulRoot.jsx for the pilots).
+ * This file is the CSS mirror of `CANONICAL_THEME` in ./tokens.js. Drift tests
+ * keep both representations aligned. Temporary legacy aliases remain in
+ * src/index.css and below only where existing consumers still need them.
  */
 
 .theme-thoughtful {
-  /* ---- Canonical semantic tokens (CSS mirror of the canonical contract) ---- */
-  /* Background depth + solid graphite surfaces (near-black → warm graphite) */
-  --color-canvas: #15120f;
-  --color-surface-1: #1d1814;
-  --color-surface-2: #241e19;
-  --color-surface-raised: #2d2621;
+  /* Deep neutral ink: deliberately near-neutral, with useful layer separation. */
+  --color-canvas: #0f1010;
+  --color-surface-1: #171819;
+  --color-surface-2: #222427;
+  --color-surface-raised: #2e3135;
 
-  /* Projection-ivory text hierarchy */
-  --color-text-primary: #f3ecdf;
-  --color-text-secondary: #beb8ad;
-  --color-text-muted: #8d887f;
+  /* Paper-white hierarchy. Every meaningful tier passes AA on every surface. */
+  --color-text-primary: #f5f2eb;
+  --color-text-secondary: #c9c5bc;
+  --color-text-muted: #a5a198;
 
-  /* Subtle graphite borders */
-  --color-border-subtle: #302c28;
-  --color-border-strong: #46423d;
+  /* Decorative and functional boundaries are intentionally distinct. */
+  --color-border-subtle: #3a3d41;
+  --color-border-strong: #747a82;
 
-  /* Neutral primary action (projection-ivory fill, dark warm text) */
-  --color-action-primary-fill: #efe7d7;
-  --color-action-primary-text: #221b13;
+  /* Neutral inverse primary action: brand color does not carry command meaning. */
+  --color-action-primary-fill: #f0ece4;
+  --color-action-primary-text: #0f1010;
 
-  /* Focus + decision signal (both projection ivory — never a brand hue) */
-  --color-focus: #f3ecdf;
-  --color-focus-ring: rgba(243, 236, 223, 0.45);
-  --color-decision: #f3ecdf;
+  /* Focus and meaningful commitment remain high-contrast paper-white. */
+  --color-focus: #f5f2eb;
+  --color-focus-ring: rgba(245, 242, 235, 0.48);
+  --color-decision: #f5f2eb;
 
-  /* One restrained solid rose accent (+ white-on-rose contrast variant only) */
-  --color-brand-rose: #dd4e83;
-  --color-brand-rose-contrast: #c0356c;
+  /* Cinematic coral-red: signature, text-safe accent, and strong filled variant. */
+  --color-brand-accent: #e5636f;
+  --color-brand-accent-text: #ed7a87;
+  --color-brand-accent-strong: #b83d4f;
 
-  /* Typography roles — Inter only. Hierarchy is scale/weight/measure, not face. */
+  /* Temporary compatibility names. New work uses --color-brand-accent*. */
+  --color-brand-rose: var(--color-brand-accent);
+  --color-brand-rose-contrast: var(--color-brand-accent-strong);
+
+  /* Inter remains the one core voice. */
   --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* Neutral background depth (NOT a brand gradient; no purple/pink). */
-  --page-depth-radial: radial-gradient(circle at 50% 0%, #241e19 0%, #1d1814 38%, #15120f 100%);
-  --page-depth-linear: linear-gradient(180deg, #241e19 0%, #1d1814 42%, #15120f 100%);
+  /* Soft stage recipes. Flat canvas is the default; these are opt-in atmosphere. */
+  --page-depth-radial: radial-gradient(circle at 50% 0%, #222427 0%, #171819 34%, #0f1010 78%);
+  --page-depth-linear: linear-gradient(180deg, #222427 0%, #171819 38%, #0f1010 82%);
 
-  /* ---- --ts-* aliases → canonical (the pilot scoped namespace) ---- */
+  /* Pilot / composition aliases. */
   --ts-canvas: var(--color-canvas);
   --ts-surface-1: var(--color-surface-1);
   --ts-surface-2: var(--color-surface-2);
@@ -70,35 +66,37 @@
   --ts-action-primary-fill: var(--color-action-primary-fill);
   --ts-action-primary-text: var(--color-action-primary-text);
   --ts-focus: var(--color-focus);
-  --ts-brand-rose: var(--color-brand-rose);
-  --ts-brand-rose-contrast: var(--color-brand-rose-contrast);
+  --ts-brand-accent: var(--color-brand-accent);
+  --ts-brand-accent-text: var(--color-brand-accent-text);
+  --ts-brand-accent-strong: var(--color-brand-accent-strong);
+  --ts-brand-rose: var(--color-brand-accent);
+  --ts-brand-rose-contrast: var(--color-brand-accent-strong);
 
-  /* ---- Theme application (visual values only — never geometry/layout) ---- */
   background-color: var(--color-canvas);
   color: var(--color-text-primary);
   font-family: var(--font-ui);
 }
 
-/* `.ts-root` — the pilot ThoughtfulRoot wrapper. Now nested inside the global
- * `.theme-thoughtful`, it inherits the canonical tokens; this thin rule keeps the
- * --ts-* names resolving (and the colour/font applied) for any wrapper still in
- * place, and keeps library.css's scoped fallbacks working. The --ts-* values are
- * the canonical ones via the alias above. */
+/* Composition-migrated regions inherit the root contract. Fallbacks mirror the
+ * canonical values so isolated development still renders correctly. */
 .ts-root {
-  --ts-canvas: var(--color-canvas, #15120f);
-  --ts-surface-1: var(--color-surface-1, #1d1814);
-  --ts-surface-2: var(--color-surface-2, #241e19);
-  --ts-surface-raised: var(--color-surface-raised, #2d2621);
-  --ts-text-primary: var(--color-text-primary, #f3ecdf);
-  --ts-text-secondary: var(--color-text-secondary, #beb8ad);
-  --ts-text-muted: var(--color-text-muted, #8d887f);
-  --ts-border-subtle: var(--color-border-subtle, #302c28);
-  --ts-border-strong: var(--color-border-strong, #46423d);
-  --ts-action-primary-fill: var(--color-action-primary-fill, #efe7d7);
-  --ts-action-primary-text: var(--color-action-primary-text, #221b13);
-  --ts-focus: var(--color-focus, #f3ecdf);
-  --ts-brand-rose: var(--color-brand-rose, #dd4e83);
-  --ts-brand-rose-contrast: var(--color-brand-rose-contrast, #c0356c);
+  --ts-canvas: var(--color-canvas, #0f1010);
+  --ts-surface-1: var(--color-surface-1, #171819);
+  --ts-surface-2: var(--color-surface-2, #222427);
+  --ts-surface-raised: var(--color-surface-raised, #2e3135);
+  --ts-text-primary: var(--color-text-primary, #f5f2eb);
+  --ts-text-secondary: var(--color-text-secondary, #c9c5bc);
+  --ts-text-muted: var(--color-text-muted, #a5a198);
+  --ts-border-subtle: var(--color-border-subtle, #3a3d41);
+  --ts-border-strong: var(--color-border-strong, #747a82);
+  --ts-action-primary-fill: var(--color-action-primary-fill, #f0ece4);
+  --ts-action-primary-text: var(--color-action-primary-text, #0f1010);
+  --ts-focus: var(--color-focus, #f5f2eb);
+  --ts-brand-accent: var(--color-brand-accent, #e5636f);
+  --ts-brand-accent-text: var(--color-brand-accent-text, #ed7a87);
+  --ts-brand-accent-strong: var(--color-brand-accent-strong, #b83d4f);
+  --ts-brand-rose: var(--color-brand-accent, #e5636f);
+  --ts-brand-rose-contrast: var(--color-brand-accent-strong, #b83d4f);
   color: var(--ts-text-primary);
   font-family: var(--font-ui, 'Inter', system-ui, -apple-system, sans-serif);
 }

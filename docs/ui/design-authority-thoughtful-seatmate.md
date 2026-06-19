@@ -1,7 +1,17 @@
 # FeelFlick — Design Authority: The Thoughtful Seatmate Direction
 
-> **This is the active design-authority document for FeelFlick.** It supersedes
-> [`design-authority-f3.md`](design-authority-f3.md) as the *target* for new
+> ⚠️ **HISTORICAL — superseded by Adaptive Editorial Cinema (ADR 021).** This is no
+> longer the current design authority. The current authority is
+> [`design-authority-adaptive-editorial-cinema.md`](design-authority-adaptive-editorial-cinema.md)
+> ([ADR 021](../decisions/021-adaptive-editorial-cinema-foundation.md)): deep neutral
+> ink, paper-white type, a cinematic coral-red signature, neutral inverse actions, and
+> flat-first composition. The **warm-graphite/projection-ivory palette, the rose
+> accent, the universal-atmosphere direction, and the single-pick product framing in
+> this document are no longer current** — preserved as accurate history. ADR 014
+> (Inter) and ADR 019's single-root-theme architecture remain in force.
+
+> **(Historical.) This was the active design-authority document for FeelFlick.** It superseded
+> [`design-authority-f3.md`](design-authority-f3.md) as the *target* for
 > design and migration work. Detailed, durable visual implementation rules live in
 > [`.claude/rules/design-system.md`](../../.claude/rules/design-system.md); product
 > doctrine lives in [`product-doctrine.md`](../product-doctrine.md).

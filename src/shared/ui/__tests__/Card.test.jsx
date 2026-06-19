@@ -19,7 +19,7 @@ describe('Card', () => {
     const s = styleOf(el)
     expect(s).toContain(`border-radius:${RADIUS.lg}px`)
     expect(s).toContain(SURFACE.card.replace(/\s+/g, ''))
-    expect(s).toContain('1pxsolidvar(--color-border-subtle,rgba(255,255,255,0.08))') // HP.border → canonical token
+    expect(s).toContain('1pxsolidvar(--color-border-subtle,#3a3d41)') // HP.border → canonical decorative-boundary token
     expect(el.className).toContain('ff-card')
     expect(el.className).not.toContain('ff-card--hover')
   })
@@ -33,8 +33,8 @@ describe('Card', () => {
     const { container } = render(<Card radius="pill" tint="elevated">x</Card>)
     const s = styleOf(container.firstChild)
     expect(s).toContain(`border-radius:${RADIUS.pill}px`)
-    // SURFACE.elevated now resolves to the canonical surface token (legacy #0d0b14 fallback).
-    expect(s).toContain('background:var(--color-surface-1,#0d0b14)')
+    // SURFACE.elevated resolves to the canonical surface-1 token (deep-ink #171819 fallback).
+    expect(s).toContain('background:var(--color-surface-1,#171819)')
   })
 
   it('border={false} drops the hairline border', () => {

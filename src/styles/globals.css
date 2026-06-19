@@ -1,18 +1,14 @@
 /* ==========================================================================
    FeelFlick Global Styles
-   Motion tokens, base resets, accessibility. Typography via Tailwind.
-   See CLAUDE.md "Brand Surface — The Law" for the full design spec.
+   Base reset, global accessibility, and browser chrome.
    ========================================================================== */
 
 @import './tokens.css';
 @import './animations.css';
 
-/* === Base resets === */
-
 html {
   color-scheme: dark;
-  /* Canonical warm-graphite canvas backdrop (behind the themed app root). */
-  background: #15120f;
+  background: #0f1010;
 }
 
 html,
@@ -33,29 +29,28 @@ body {
   font-family: Inter, 'SF Pro Display', -apple-system, system-ui, sans-serif;
 }
 
-/* === Scrollbar === */
-
+/* Browser chrome follows the same neutral hierarchy as the application. */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #000; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; border: 2px solid #000; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-/* === Selection & focus === */
+::-webkit-scrollbar-track { background: var(--color-canvas, #0f1010); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle, #3a3d41);
+  border-radius: 9999px;
+  border: 2px solid var(--color-canvas, #0f1010);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong, #747a82); }
 
 ::selection {
-  background: rgba(221, 78, 131, 0.35);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-brand-accent, #e5636f) 38%, transparent);
+  color: var(--color-text-primary, #f5f2eb);
 }
 
-/* Global focus ring — projection ivory under the canonical theme (never a brand
-   hue); falls back to the legacy rose when the theme class is absent (rollback). */
+/* High-contrast, offset focus. Components may provide a more specific equivalent,
+   but no control should replace this with a glow or color-only state. */
 :focus-visible {
-  outline: 2px solid var(--color-focus, var(--brand-rose, #DD4E83));
+  outline: 2px solid var(--color-focus, #f5f2eb);
   outline-offset: 3px;
   border-radius: 0.5rem;
 }
-
-/* === Star rating interaction === */
 
 .star-container { contain: layout style paint; }
 

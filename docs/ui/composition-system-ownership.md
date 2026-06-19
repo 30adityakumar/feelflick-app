@@ -1,6 +1,16 @@
 # Composition-system ownership contract
 
-**Status:** current authority. **Scope:** how FeelFlick's shipped composition system is owned — the
+> **Note (ADR 021):** the **ownership model** in this document is still current — how the
+> single canonical theme, primitives, and per-component status are owned is unchanged.
+> Only the **visual foundation values** changed: the canonical theme now renders
+> **Adaptive Editorial Cinema** (deep neutral ink, paper-white, cinematic coral-red,
+> neutral inverse actions, flat-first depth) per
+> [ADR 021](../decisions/021-adaptive-editorial-cinema-foundation.md) and
+> [`design-authority-adaptive-editorial-cinema.md`](design-authority-adaptive-editorial-cinema.md).
+> Read "Thoughtful Seatmate palette/rose" references below as the now-superseded prior
+> values; the `.theme-thoughtful` class name remains as a temporary compatibility name.
+
+**Status:** current authority (ownership model). **Scope:** how FeelFlick's shipped composition system is owned — the
 canonical theme, which components are canonical vs domain-specific vs unresolved, and the approved order
 for resolving the rest.
 

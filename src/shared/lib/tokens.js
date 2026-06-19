@@ -1,110 +1,63 @@
-// === FeelFlick design tokens — single source of truth ======================
-//
-// The canonical values behind CLAUDE.md's "Editorial Language". The inline-style
-// feature surfaces used to each declare their own near-identical `HP` object
-// (14 copies that had quietly drifted); they now import from here.
-//
-// `HP` is the shared core. A surface that genuinely needs an extra/overridden
-// value spreads this and adds it locally (see features/browse, features/discover —
-// both already import `HP as baseHP` and spread it; the old "inline HP holdout"
-// is resolved) so any divergence is explicit rather than a silent copy-paste drift.
-//
-// BRAND vs SEMANTIC (F3 hardening): the palette is two groups —
-//   • BRAND — purple + pink (+ the single `HP_GRAD`). These, and ONLY these, are
-//     the gradient/identity hues. Never invent per-vibe variants; never use
-//     amber/orange/rose for brand ambient or accents.
-//   • SEMANTIC accents — amber / red / green. NOT brand colors, but load-bearing:
-//     amber = gold rating-stars + "stale"/caution, red = destructive/error,
-//     green = success/public/watched. Keep them — removing breaks ratings,
-//     destructive states, and status badges across the app.
-//
-// WHY: one place to tune the palette. The v3 landing's `C` palette aligns with
-// these same hexes and is a candidate to fold in next (deferred — `C` is used
-// across the visual-regression-tested landing).
+// === FeelFlick shared design tokens ==========================================
+// Canonical color values live in the website theme. These aliases keep legacy
+// inline-style surfaces aligned while preserving the emergency rollback values.
 
-/**
- * Core palette for inline-style feature surfaces. Website-wide globalization:
- * each value now resolves to the canonical `--color-*` theme token, with the
- * historical literal as the rollback fallback. So every inline `HP.*` consumer
- * (Discover, History, Profile, People, Lists, Account, Preferences, Browse, …)
- * is recoloured to the canonical warm-graphite/ivory system with no per-file
- * edit, and reverts to the legacy hue when the theme class is removed. The legacy
- * purple/pink hues are neutralised to the ivory text tiers (no purple/pink chrome);
- * the amber/red/green SEMANTIC accents are unchanged (load-bearing).
- */
 export const HP = {
-  // — Surfaces & text —
-  bg: 'var(--color-canvas, #000000)',
-  bgDeep: 'var(--color-canvas, #06060a)',
-  panel: 'var(--color-surface-1, rgba(255,255,255,0.04))',
-  border: 'var(--color-border-subtle, rgba(255,255,255,0.08))',
-  borderStrong: 'var(--color-border-strong, rgba(255,255,255,0.14))',
-  text: 'var(--color-text-primary, #FAFAFA)',
-  textSoft: 'var(--color-text-secondary, rgba(250,250,250,0.72))',
-  textMuted: 'var(--color-text-muted, rgba(250,250,250,0.45))',
-  // AA-large floor (~3.3:1). Was 0.28 ≈ 2.4:1, which failed AA outright across
-  // every feature surface's faint labels. Matches the landing's C.textFaint.
-  textFaint: 'var(--color-text-muted, rgba(250,250,250,0.40))',
-  // — Legacy brand hues → neutralised to ivory under the canonical theme —
-  // (rollback fallback keeps the historical purple/pink). No NEW purple chrome.
-  purple: 'var(--color-text-secondary, #A78BFA)',
-  purpleDeep: 'var(--color-text-muted, #7C3AED)',
-  pink: 'var(--color-text-secondary, #EC4899)',
-  // — Semantic accents (NOT brand; never use in brand gradients/ambient) —
-  amber: '#F59E0B', // gold rating-stars · "stale" / caution
-  red: '#EF4444',   // destructive / error
-  green: '#34D399', // success / public / watched
+  bg: 'var(--color-canvas, #0f1010)',
+  bgDeep: 'var(--color-canvas, #0f1010)',
+  panel: 'var(--color-surface-1, #171819)',
+  border: 'var(--color-border-subtle, #3a3d41)',
+  borderStrong: 'var(--color-border-strong, #747a82)',
+  text: 'var(--color-text-primary, #f5f2eb)',
+  textSoft: 'var(--color-text-secondary, #c9c5bc)',
+  textMuted: 'var(--color-text-muted, #a5a198)',
+  textFaint: 'var(--color-text-muted, #a5a198)',
+  // Legacy purple/pink brand hues are neutralised to the paper-white text tiers
+  // under .theme-thoughtful (the historical hue survives only as the rollback
+  // fallback). They are NOT remapped to the coral accent — the accent stays
+  // restrained; intentional accent usage imports ROSE / --color-brand-accent.
+  purple: 'var(--color-text-secondary, #a78bfa)',
+  purpleDeep: 'var(--color-text-muted, #7c3aed)',
+  pink: 'var(--color-text-secondary, #ec4899)',
+  amber: '#f59e0b',
+  red: '#ef4444',
+  green: '#34d399',
 }
 
-/** The one brand gradient — retained for legacy surfaces. Prefer ROSE on migrated surfaces. */
+/** Legacy-only gradient. Production aliases neutralize it under the root theme. */
 export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 
-// === Approved direction warm palette (F3 lock, F4 migration) ================
-// Use these on surfaces being migrated away from the purple system.
+/** Accessible coral-red text/signature accent on the dark theme. */
+export const ROSE = 'var(--color-brand-accent-text, #ed7a87)'
 
-/** Brand rose — the one restrained accent. Resolves to the canonical theme token. */
-export const ROSE = 'var(--color-brand-rose, #DD4E83)'
+/** Strong accent for rare white-text filled signature treatments. */
+export const ROSE_DEEP = 'var(--color-brand-accent-strong, #b83d4f)'
 
-/**
- * Deep rose — for FILLED buttons that carry white text. White on `ROSE` (#DD4E83)
- * is only 3.82:1 (below WCAG AA 4.5:1 for normal text); white on `ROSE_DEEP` is
- * ≈5:1. Use `ROSE_DEEP` for solid white-text CTAs; keep `ROSE` for accents,
- * kickers, rose-on-dark text, borders, bars, and glows (which pass on dark).
- */
-export const ROSE_DEEP = 'var(--color-brand-rose-contrast, #C0356C)'
+/** Paper-white primary text. */
+export const IVORY = 'var(--color-text-primary, #f5f2eb)'
 
-/** Warm ivory — primary text color. Resolves to the canonical theme token. */
-export const IVORY = 'var(--color-text-primary, #F2ECE1)'
-
-/** Warm palette constants for inline-style surfaces. */
+/** Compatibility name retained for inline-style consumers. */
 export const WARM = {
-  ivory:        '#F2ECE1',
-  ivorySoft:    'rgba(242,236,225,0.82)',
-  ivoryMeta:    'rgba(242,236,225,0.62)',
-  ivoryLabel:   'rgba(242,236,225,0.70)',
-  hairline:     'rgba(242,236,225,0.12)',
-  warmKeyline:  'rgba(242,236,225,0.20)',
-  roseMat:      'rgba(221,78,131,0.30)',
-  roseFaint:    'rgba(221,78,131,0.15)',
+  ivory: '#f5f2eb',
+  ivorySoft: 'rgba(245,242,235,0.82)',
+  ivoryMeta: 'rgba(245,242,235,0.68)',
+  ivoryLabel: 'rgba(245,242,235,0.76)',
+  hairline: 'rgba(116,122,130,0.42)',
+  warmKeyline: 'rgba(116,122,130,0.70)',
+  roseMat: 'rgba(229,99,111,0.28)',
+  roseFaint: 'rgba(229,99,111,0.14)',
 }
 
-/**
- * v3 landing palette. Same hexes as `HP`, different key names (hairline≈border,
- * textMid≈textSoft, bgPure≈bg) plus a few landing-only surface tints. Aliased to
- * `HP` where they align so the shared colors live in exactly one place.
- */
 export const C = {
   bg: HP.bgDeep,
   bgPure: HP.bg,
-  bgLight: 'var(--color-surface-1, #0d0b14)',
-  bgPaper: 'var(--color-surface-2, #0f0c18)',
+  bgLight: 'var(--color-surface-1, #171819)',
+  bgPaper: 'var(--color-surface-2, #222427)',
   text: HP.text,
-  textHi: 'rgba(250,250,250,0.92)',
+  textHi: 'var(--color-text-primary, #f5f2eb)',
   textMid: HP.textSoft,
-  textLow: 'rgba(250,250,250,0.55)',
-  // Landing-scoped faint tier raised to an AA-large floor (~3.3:1). HP.textFaint
-  // (0.28 ≈ 2.4:1) fails AA outright; small *informational* text uses textLow.
-  textFaint: 'rgba(250,250,250,0.40)',
+  textLow: HP.textMuted,
+  textFaint: HP.textMuted,
   hairline: HP.border,
   hairlineStrong: HP.borderStrong,
   purple: HP.purple,
@@ -113,97 +66,53 @@ export const C = {
   green: HP.green,
 }
 
-// === Shape / elevation / surface scales (F11B.1) ===========================
-//
-// The non-color side of the system. F11A found radii were ad-hoc inline values
-// (3/4/5/6/8/10/14/999 across 300+ call sites) with no scale, and shadows were
-// one-off inline strings. These give the inline-style surfaces a shared target.
-//
-// ADDITIVE + non-breaking: nothing consumes these yet beyond the `Card` primitive
-// and docs examples — existing call sites are migrated deliberately in later F11B
-// waves (where any visual-baseline route change is re-baselined on purpose).
-
-/**
- * Radius scale (px). Covers the ad-hoc inline values F11A catalogued; `pill` is
- * the fully-rounded value (Tailwind `rounded-full` ≈ 9999px).
- * @type {{ xs: number, sm: number, md: number, lg: number, xl: number, pill: number }}
- */
 export const RADIUS = {
-  xs: 4, // chips / tiny controls (was 3–5)
-  sm: 6, // small buttons / inputs (the most common inline value)
-  md: 8, // cards / callouts (the next most common)
-  lg: 12, // larger panels (was 10)
-  xl: 16, // hero panels / sheets (was 14; matches EmptyState's rounded-2xl)
-  pill: 9999, // fully rounded — buttons, mood/genre chips
+  xs: 4,
+  sm: 6,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  pill: 9999,
 }
 
-/**
- * Elevation. FeelFlick prefers BORDERS over shadows (doctrine); these are the few
- * sanctioned uses. `focus` is the brand purple ring (#A78BFA = HP.purple).
- * @type {{ card: string, hover: string, focus: string }}
- */
 export const SHADOW = {
-  card: '0 1px 2px rgba(0,0,0,0.30)', // barely-there base (optional; borders do most of the work)
-  hover: '0 10px 30px -12px rgba(0,0,0,0.55)', // subtle lift for an interactive card
-  focus: '0 0 0 3px var(--color-focus-ring, rgba(167,139,250,0.45))', // ivory focus ring (canonical; legacy = purple)
+  card: '0 1px 2px rgba(0,0,0,0.30)',
+  hover: '0 12px 28px -16px rgba(0,0,0,0.72)',
+  focus: '0 0 0 3px var(--color-focus-ring, rgba(245,242,235,0.48))',
 }
 
-/**
- * Surface tints — semantic aliases over the existing surface hexes so callouts
- * name their tint instead of repeating raw values. Same values as HP/C today;
- * named separately so a future divergence is explicit, not a copy-paste.
- * @type {{ base: string, panel: string, card: string, elevated: string }}
- */
 export const SURFACE = {
-  base: HP.bgDeep, // #06060a — page base
-  panel: HP.panel, // rgba(255,255,255,0.04) — faint panel tint
-  card: HP.panel, // callout / card tint (= panel today)
-  elevated: C.bgLight, // #0d0b14 — modals / menus (matches --bg-elevated)
+  base: HP.bgDeep,
+  panel: HP.panel,
+  card: HP.panel,
+  elevated: C.bgLight,
 }
 
-/**
- * Page-rhythm scale (px) — F11B.2. Names the section gutters + vertical rhythm the
- * authenticated surfaces use today (F11A found inline section padding spanned
- * 40/48/56/64/72/80/88 with a constant 88 gutter). Adopting these at *current
- * values* is zero-pixel; the named members let a later wave (F11B.3) normalize the
- * vertical rhythm with a single token change instead of hunting inline literals.
- * @type {{ gutter:number, gutterSm:number, sectionLg:number, section:number, sectionMd:number, sectionSm:number, sectionXs:number, stack:number, stackSm:number, stackXs:number }}
- */
 export const SPACE = {
-  gutter: 88, // desktop horizontal section gutter (constant across surfaces)
-  gutterSm: 32, // narrow / landing gutter
-  sectionLg: 80, // hero / lead section vertical padding
-  section: 72, // standard section
-  sectionMd: 56, // medium section
-  sectionSm: 48, // dense / secondary section
-  sectionXs: 40, // compact section
-  stack: 24, // standard vertical stack gap
+  gutter: 88,
+  gutterSm: 32,
+  sectionLg: 80,
+  section: 72,
+  sectionMd: 56,
+  sectionSm: 48,
+  sectionXs: 40,
+  stack: 24,
   stackSm: 16,
   stackXs: 12,
 }
 
-// === LAYOUT / GUTTER / TYPE (F12B) — the page-container + type-scale foundation ===
-// Additive only. Drives <PageContainer> + (incrementally) heading normalization.
-// NOTE: F12B ships the scale; broad visible application is deferred (no redesign).
-
-/** Page content max-widths (px). The shell/container caps — not arbitrary per-route. */
 export const LAYOUT = {
-  pageMax: 1280, // standard app content width (account, settings-like)
-  pageWide: 1440, // wide surfaces (catalog grid, diary)
-  pageNarrow: 1080, // reading width (prose / editorial)
+  pageMax: 1280,
+  pageWide: 1440,
+  pageNarrow: 1080,
 }
 
-/** Responsive horizontal gutters (px) — matches the existing px-5 → sm:px-8 → lg:px-[88px]. */
 export const GUTTER = {
-  mobile: 20, // < 768
-  tablet: 32, // ≥ 768 (= SPACE.gutterSm)
-  desktop: 88, // ≥ 1024 (= SPACE.gutter)
+  mobile: 20,
+  tablet: 32,
+  desktop: 88,
 }
 
-/**
- * Type scale for non-hero headings + body. Each step = { size, weight, spacing, lineHeight }.
- * Heroes (landing/discover/movie titles, .ff-d1/.ff-d2) are intentionally OUT of this scale.
- */
 export const TYPE = {
   pageTitle: { size: 'clamp(28px, 4vw, 44px)', weight: 300, spacing: '-0.03em', lineHeight: 1.05 },
   sectionTitle: { size: 'clamp(20px, 2.4vw, 28px)', weight: 500, spacing: '-0.02em', lineHeight: 1.1 },
@@ -211,16 +120,10 @@ export const TYPE = {
   body: { size: 'clamp(14px, 1vw, 15px)', weight: 400, spacing: '0em', lineHeight: 1.6 },
 }
 
-/**
- * Motion vocabulary (F12F) — RESTRAINT: clarify affordance, never decorate. Additive.
- * Mirrored as `--motion-*` CSS custom properties in `index.css` for CSS use. All movement
- * (hover/press transforms) is reduced-motion-gated at the consumer; under
- * `prefers-reduced-motion: reduce` the global guard collapses transitions to ~0.
- */
 export const MOTION = {
-  fast: '120ms', // micro-feedback (press, focus)
-  base: '180ms', // standard hover/state transitions
-  slow: '240ms', // larger surfaces / panels
-  ease: 'cubic-bezier(0.22, 1, 0.36, 1)', // the FeelFlick ease (matches MovieCard hover-LAW)
-  press: 'translateY(1px)', // tactile press offset (CSS-class only, reduced-motion-gated)
+  fast: '120ms',
+  base: '180ms',
+  slow: '240ms',
+  ease: 'cubic-bezier(0.22, 1, 0.36, 1)',
+  press: 'translateY(1px)',
 }

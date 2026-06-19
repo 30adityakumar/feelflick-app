@@ -1,6 +1,11 @@
 # ADR 017 — Thoughtful Seatmate P2C-A: Strict Contextual-Color Envelope
 
-**Status:** Accepted
+> ⚠️ **Superseded by [ADR 021](021-adaptive-editorial-cinema-foundation.md) where it conflicts.**
+> Contextual film color remains **deferred and unimplemented**; under Adaptive Editorial Cinema
+> imagery supplies atmosphere via selective backdrops and semantic scrims, not a tuned
+> contextual-color aura. The envelope math here is preserved as history, not a production target.
+
+**Status:** Accepted (deferred; superseded by ADR 021 where it conflicts)
 **Date:** 2026-06-15
 **Decided by:** Aditya Kumar, informed by one completed AI-assisted blind review of the anonymized P2C-A evidence bundle, followed by objective reconciliation. The blind scorecard was locked **before** the objective evidence was opened, and the authoritative Variant→treatment mapping was revealed **only after** reconciliation. No winner was selected during construction.
 

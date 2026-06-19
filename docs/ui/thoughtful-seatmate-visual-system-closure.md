@@ -1,7 +1,16 @@
 # FeelFlick — Thoughtful Seatmate Visual-System Closure
 
-> **This document consolidates accepted visual decisions and retires further
-> visual-system experimentation. It does not authorize an immediate production-wide
+> ⚠️ **HISTORICAL — superseded by Adaptive Editorial Cinema (ADR 021).** The "closure"
+> recorded here (warm-graphite/projection-ivory palette, rose accent, the consolidated
+> Thoughtful Seatmate visual system) was subsequently revised: the visual foundation is
+> now **Adaptive Editorial Cinema** — deep neutral ink, paper-white type, cinematic
+> coral-red, neutral inverse actions, flat-first composition. See
+> [`design-authority-adaptive-editorial-cinema.md`](design-authority-adaptive-editorial-cinema.md)
+> and [ADR 021](../decisions/021-adaptive-editorial-cinema-foundation.md). This file is
+> preserved as accurate history of the prior decision.
+
+> **(Historical.) This document consolidated accepted visual decisions and retired further
+> visual-system experimentation. It did not authorize an immediate production-wide
 > migration.**
 
 It supersedes the typography, gradient-survival, and contextual-colour *experimentation*

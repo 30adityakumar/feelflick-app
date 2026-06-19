@@ -1,28 +1,15 @@
-/* FeelFlick — root stylesheet. Keep this file tiny.
-   All design tokens → src/styles/globals.css (and sub-imports).
-   All component styles → Tailwind utilities + tailwind.config.js plugins.
+/* FeelFlick — root stylesheet. Keep this file small.
+   Design foundations → src/shared/ui/thoughtful-seatmate/foundations.css
+   Component styles → Tailwind utilities + component CSS.
    ========================================================================== */
 
 @import './styles/globals.css' layer(base);
-
-/* Canonical Thoughtful Seatmate website theme tokens (the .theme-thoughtful class).
-   The canonical --color-* token contract (CSS mirror; the JS mirror is CANONICAL_THEME
-   in tokens.js, kept in sync by drift tests). Loaded globally so the one root theme
-   boundary in src/App.jsx themes the whole application. */
 @import './shared/ui/thoughtful-seatmate/foundations.css';
-
 @import 'tailwindcss';
-
 @config '../tailwind.config.js';
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
+/* Tailwind v4 changed the default border colour to currentColor. Keep the v3
+   compatibility boundary until every dependent element declares a border. */
 @layer base {
   *,
   ::after,
@@ -33,11 +20,8 @@
   }
 }
 
-/* === Colour scales — Tailwind extends these via CSS var() ================
-   Purple/pink remain for legacy Tailwind utilities and semantic states.
-   Brand direction (F3 lock): rose #DD4E83 + warm ivory #F2ECE1 are the
-   editorial-surface accents. See --brand-rose / --brand-ivory below.
-   ========================================================================= */
+/* Legacy fallback values. These are active only when VITE_UI_THEME=legacy.
+   They remain load-bearing for rollback and are not the target system. */
 :root {
   --purple-50: #faf5ff;  --purple-100: #f3e8ff;  --purple-200: #e9d5ff;
   --purple-300: #d8b4fe; --purple-400: #c084fc;  --purple-500: #a855f7;
@@ -49,86 +33,78 @@
   --pink-600: #db2777;   --pink-700: #be185d;    --pink-800: #9f1239;
   --pink-900: #831843;
 
-  /* Brand gradient — kept for legacy purple-system surfaces still mid-migration. */
   --brand-gradient: linear-gradient(135deg, var(--purple-600) 0%, var(--pink-500) 100%);
-  --gradient-primary: var(--brand-gradient); /* backwards-compat alias */
+  --gradient-primary: var(--brand-gradient);
 
-  /* Approved direction accent (F3 lock) — warm rose as the editorial/CTA signature. */
-  --brand-rose: #DD4E83;
+  --brand-rose: #dd4e83;
   --brand-rose-soft: rgba(221, 78, 131, 0.15);
-  --brand-ivory: #F2ECE1;
+  --brand-ivory: #f2ece1;
   --brand-ivory-soft: rgba(242, 236, 225, 0.72);
   --brand-warm-hairline: rgba(242, 236, 225, 0.15);
 
-  /* Font stacks — keep inline fontFamily strings pointing here for consistency.
-     Migration (F4): Newsreader = editorial display (heroes, film titles, explanations).
-     Inter = interface voice (controls, nav, chips, labels). */
-  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif; /* editorial/display hero */
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', sans-serif;
-  --font-ui: 'Inter', sans-serif; /* alias for controls, keeps intent explicit */
-  /* --font-editorial mirrors --font-display; keep both so existing consumers work. */
+  --font-ui: 'Inter', sans-serif;
   --font-editorial: 'Newsreader', Georgia, 'Times New Roman', serif;
 
-  /* Surface backgrounds — match HP.bgDeep / v3 landing C.bg. */
   --bg-base: #06060a;
   --bg-elevated: #0d0b14;
 
-  /* Motion vocabulary (F12F) — mirrors MOTION in tokens.js. Movement is reduced-motion-gated. */
   --motion-fast: 120ms;
   --motion-base: 180ms;
   --motion-slow: 240ms;
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* === Thoughtful Seatmate website theme — legacy compatibility aliases ========
-   TEMPORARY. Under the canonical `.theme-thoughtful` root (applied once at the app
-   root), the legacy global tokens and the Tailwind purple/pink scale resolve to
-   canonical `--color-*` values — so every legacy consumer (inline HP/ROSE styles,
-   Tailwind purple/pink utilities, --bg-* / --brand-* / --font-editorial CSS) is
-   recoloured site-wide with NO per-file edits. The canonical tokens are defined in
-   src/shared/ui/thoughtful-seatmate/foundations.css. These aliases are removed once
-   consumers are migrated off the legacy names (see the website-wide migration doc).
-   EMERGENCY THEME FALLBACK: dropping the class (VITE_UI_THEME=legacy) disables this
-   alias layer so the :root values above resolve again — a runtime token-layer fallback,
-   NOT an exact restoration of the pre-migration site (it does not undo removed font
-   loading, changed component defaults, or directly-edited presentation). NOTE: this
-   block intentionally does NOT redeclare the legacy
-   brand-gradient token — that token expands from the --purple-600 / --pink-500
-   scale vars, so overriding the scale below already renders it as flat graphite
-   (no replacement gradient), and avoids growing the legacy-gradient guard baseline. */
+/* === Adaptive Editorial Cinema — website-wide compatibility bridge =========
+   The canonical theme is applied once at the app root. Legacy names and
+   Tailwind purple/pink utilities resolve to the new semantic contract so old
+   consumers inherit Deep Neutral Ink, Paper-White typography and the new
+   cinematic coral-red signature without route-by-route recolouring.
+
+   This bridge remains temporary. It intentionally does not create a new brand
+   gradient: the legacy gradient resolves to neutral stops under this scope. */
 .theme-thoughtful {
-  /* Surfaces / brand / fonts */
   --bg-base: var(--color-canvas);
   --bg-elevated: var(--color-surface-raised);
   --brand-ivory: var(--color-text-primary);
   --brand-ivory-soft: var(--color-text-secondary);
   --brand-warm-hairline: var(--color-border-subtle);
-  --brand-rose: var(--color-brand-rose);
-  --brand-rose-soft: rgba(221, 78, 131, 0.15);
+
+  --brand-accent: var(--color-brand-accent);
+  --brand-accent-text: var(--color-brand-accent-text);
+  --brand-accent-strong: var(--color-brand-accent-strong);
+  --brand-rose: var(--color-brand-accent); /* temporary legacy alias */
+  --brand-rose-soft: color-mix(in srgb, var(--color-brand-accent) 16%, transparent);
+
   --font-body: var(--font-ui);
-  --font-editorial: var(--font-ui); /* retire the editorial serif → Inter */
+  --font-editorial: var(--font-ui);
   --font-display: var(--font-ui);
 
-  /* Legacy purple/pink SCALE → neutral graphite/ivory ramp. tailwind.config.js maps
-     {bg,text,border,ring,from,to,via}-{purple,pink}-N to these vars, so this single
-     block neutralises every purple/pink Tailwind utility across the site. Light
-     tiers map to ivory text; dark tiers to graphite surfaces. Mood/avatar DATA hex
-     live as literals in JS and are untouched (allowed identity/data-viz). */
+  /* Legacy brand scales become a neutral/editorial ramp. Existing purple/pink
+     utilities therefore cannot recreate the retired gradient under production. */
   --purple-50:  var(--color-text-primary);
   --purple-100: var(--color-text-primary);
   --purple-200: var(--color-text-secondary);
   --purple-300: var(--color-text-secondary);
-  --purple-400: var(--color-text-secondary);
+  --purple-400: var(--color-text-muted);
   --purple-500: var(--color-border-strong);
   --purple-600: var(--color-surface-raised);
   --purple-700: var(--color-surface-2);
   --purple-800: var(--color-surface-1);
   --purple-900: var(--color-canvas);
+
+  /* Pink scale neutralises to the SAME graphite/ivory ramp as purple. It must NOT
+     map to the coral accent: legacy pink utilities are used in large gradient
+     atmospheres, gradient text and selected states (legal/onboarding/error), and
+     the cinematic accent is reserved (no gradients, no large atmosphere, no generic
+     selected states). Mapping pink → neutral renders those legacy gradients as flat
+     graphite. Intentional accent usage imports --color-brand-accent explicitly. */
   --pink-50:  var(--color-text-primary);
   --pink-100: var(--color-text-primary);
   --pink-200: var(--color-text-secondary);
   --pink-300: var(--color-text-secondary);
-  --pink-400: var(--color-text-secondary);
+  --pink-400: var(--color-text-muted);
   --pink-500: var(--color-border-strong);
   --pink-600: var(--color-surface-raised);
   --pink-700: var(--color-surface-2);
@@ -136,10 +112,7 @@
   --pink-900: var(--color-canvas);
 }
 
-/* === F12C mobile touch-target utilities (≤767px only — desktop unchanged) ===
-   `.ff-tap`     grows a text control (chip/pill/filter/search) to the 44px touch floor.
-   `.ff-tap-hit` keeps a switch/icon's visual size but expands its HIT AREA to ≥44px via a
-                 transparent overlay — no layout/density change. */
+/* Mobile touch-target utilities. */
 @media (max-width: 767px) {
   .ff-tap {
     min-height: 44px;
@@ -160,9 +133,7 @@
   }
 }
 
-/* === F12F motion / micro-interactions (RESTRAINT) ===
-   A subtle tactile press on the F12C control classes (already applied), reduced-motion-GATED:
-   default users feel a 1px press; reduced-motion users get nothing. */
+/* Restrained tactile press; no movement for reduced-motion users. */
 @media (prefers-reduced-motion: no-preference) {
   .ff-tap,
   .ff-tap-hit {
@@ -174,10 +145,7 @@
   }
 }
 
-/* Global reduced-motion guard — the standard a11y reset. Under `reduce`, the app becomes
-   instant (animations/transitions collapse) so no essential affordance depends on motion.
-   Only affects users who opted into reduced motion; the static visual baselines are unaffected
-   (the visual-regression project disables animations and runs without this preference). */
+/* Global reduced-motion guard. Essential affordances never depend on motion. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

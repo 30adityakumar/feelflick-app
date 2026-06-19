@@ -54,11 +54,6 @@ export const MovieCard = memo(function MovieCard({
   }, [movie])
 
   const handleNavigate = useCallback(() => {
-    // F8B fix: record the click as the 'clicked' OUTCOME. This previously passed
-    // `placement` as the action arg, which matched no branch in updateImpression
-    // (it expects 'clicked'|'skipped'|'watched'|'saved') → the write silently
-    // no-op'd, so carousel clicks were never captured. Gated on `placement`, so
-    // only recommendation-row cards attribute (non-rec cards pass no placement).
     if (placement && user?.id && movie?.id) {
       updateImpression(user.id, movie.id, 'clicked').catch(() => {})
     }
@@ -135,26 +130,24 @@ export const MovieCard = memo(function MovieCard({
           className="h-full w-full object-cover"
           style={{
             opacity: posterLoaded ? 1 : 0,
-            transform: `scale(${hovered && !reducedMotion ? 1.04 : 1})`,
+            transform: `scale(${hovered && !reducedMotion ? 1.025 : 1})`,
             transition: reducedMotion
               ? 'opacity 100ms linear'
-              : 'opacity 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+              : 'opacity 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
           onLoad={() => setPosterLoaded(true)}
         />
         <div
           className="pointer-events-none absolute inset-0"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.22) 100%)',
-          }}
+          style={{ background: 'linear-gradient(to bottom, transparent 58%, rgba(15,16,16,0.28) 100%)' }}
         />
         {movie._seen ? (
           <div
-            className="absolute left-2 top-2 z-10 rounded px-2 py-0.5 text-[0.65rem] font-semibold backdrop-blur-sm"
+            className="absolute left-2 top-2 z-10 rounded-md px-2 py-0.5 text-[0.65rem] font-semibold backdrop-blur-sm"
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: 'rgba(248, 250, 252, 0.85)',
-              border: '1px solid rgba(248, 250, 252, 0.12)',
+              background: 'color-mix(in srgb, var(--color-surface-raised, #2e3135) 84%, transparent)',
+              color: 'var(--color-text-primary, #f5f2eb)',
+              border: '1px solid var(--color-border-subtle, #3a3d41)',
               fontFamily: 'var(--font-body)',
             }}
           >
@@ -164,19 +157,9 @@ export const MovieCard = memo(function MovieCard({
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
           style={{
-            background:
-              'radial-gradient(circle at 50% 110%, rgba(168, 85, 247, 0.42) 0%, rgba(236, 72, 153, 0.18) 35%, transparent 72%)',
-            opacity: hovered ? 1 : 0.25,
-            transition: reducedMotion ? undefined : 'opacity 220ms ease',
-          }}
-        />
-        {/* Dark scrim behind action buttons — same pattern as browse card's from-black/90 gradient */}
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
-          style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+            background: 'linear-gradient(to top, rgba(15,16,16,0.92) 0%, rgba(15,16,16,0.36) 52%, transparent 100%)',
             opacity: hovered ? 1 : 0,
-            transition: reducedMotion ? undefined : 'opacity 200ms ease',
+            transition: reducedMotion ? undefined : 'opacity 180ms ease',
           }}
         />
         {meta.rating != null ? (
@@ -184,13 +167,12 @@ export const MovieCard = memo(function MovieCard({
             <MovieCardRating movie={movie} showGenreBadge size="sm" />
           </div>
         ) : null}
-        {/* Hover action buttons — watchlist + watched, bottom-centre over scrim */}
         {user ? (
           <div
             className={`absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-2 pb-3 ${hovered ? '' : 'pointer-events-none'}`}
             style={{
               opacity: hovered ? 1 : 0,
-              transition: reducedMotion ? undefined : 'opacity 200ms ease',
+              transition: reducedMotion ? undefined : 'opacity 180ms ease',
             }}
           >
             <button
@@ -198,7 +180,7 @@ export const MovieCard = memo(function MovieCard({
               aria-label={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
               onClick={(e) => { e.stopPropagation(); handleToggleWatchlist() }}
               disabled={actionLoading.watchlist}
-              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white/50"
+              className="rounded-full border border-[var(--color-border-subtle,#3a3d41)] bg-[var(--color-surface-raised,#2e3135)]/90 p-2 text-[var(--color-text-primary,#f5f2eb)] transition-colors hover:border-[var(--color-border-strong,#747a82)] hover:bg-[var(--color-surface-2,#222427)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus,#f5f2eb)]"
             >
               {actionLoading.watchlist ? (
                 <span className="skeleton h-4 w-4 rounded-full" aria-hidden="true" />
@@ -213,7 +195,7 @@ export const MovieCard = memo(function MovieCard({
               aria-label={isWatched ? 'Mark unwatched' : 'Mark watched'}
               onClick={(e) => { e.stopPropagation(); toggleWatched() }}
               disabled={actionLoading.watched}
-              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white/50"
+              className="rounded-full border border-[var(--color-border-subtle,#3a3d41)] bg-[var(--color-surface-raised,#2e3135)]/90 p-2 text-[var(--color-text-primary,#f5f2eb)] transition-colors hover:border-[var(--color-border-strong,#747a82)] hover:bg-[var(--color-surface-2,#222427)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus,#f5f2eb)]"
             >
               {actionLoading.watched ? (
                 <span className="skeleton h-4 w-4 rounded-full" aria-hidden="true" />
@@ -228,20 +210,14 @@ export const MovieCard = memo(function MovieCard({
       </Card>
 
       <div className="pointer-events-none mt-3 overflow-hidden px-0.5">
-        <p
-          className="line-clamp-1 text-[0.92rem] font-semibold leading-tight"
-          style={{ color: 'var(--color-text)' }}
-        >
+        <p className="line-clamp-1 text-[0.92rem] font-semibold leading-tight text-[var(--color-text-primary,#f5f2eb)]">
           {movie.title}
         </p>
-        <div
-          className="mt-1 flex items-center gap-1.5 text-[0.82rem]"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
+        <div className="mt-1 flex items-center gap-1.5 text-[0.82rem] text-[var(--color-text-muted,#a5a198)]">
           {meta.year ? <span>{meta.year}</span> : null}
           {meta.year && meta.rating != null ? <span>•</span> : null}
           {meta.rating != null ? (
-            <span className="inline-flex items-center gap-1 font-semibold text-purple-300/80">
+            <span className="inline-flex items-center gap-1 font-semibold text-amber-300">
               {meta.rating}
             </span>
           ) : null}

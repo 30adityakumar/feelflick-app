@@ -11,6 +11,40 @@ paths:
 
 # FeelFlick design-system direction
 
+> ## ⚑ Current visual direction — Adaptive Editorial Cinema (ADR 021)
+>
+> This is the **single operational design-system rule** (it folds in the former
+> `adaptive-editorial-cinema.md`). The current visual language is **Adaptive
+> Editorial Cinema**, recorded in
+> [ADR 021](../../docs/decisions/021-adaptive-editorial-cinema-foundation.md) and
+> detailed in the current design authority
+> [`docs/ui/design-authority-adaptive-editorial-cinema.md`](../../docs/ui/design-authority-adaptive-editorial-cinema.md).
+> Product truth remains [`docs/product-doctrine.md`](../../docs/product-doctrine.md)
+> (ADR 020: personal movie discovery, three modes, bounded choice).
+>
+> **Where the warm-graphite / projection-ivory / rose / universal-radial / single-pick
+> specifics in the body below conflict with the following, the following wins.** The
+> body is retained for its still-valid component, accessibility, and interaction
+> guidance.
+>
+> **Foundation (canonical token values live in `foundations.css` / `tokens.js`):**
+> - **Inter only** — hierarchy via scale, weight, line-height, spacing, measure, composition.
+> - **Deep Neutral Ink** — canvas `#0f1010`, surface-1 `#171819`, surface-2 `#222427`, raised `#2e3135` (neutral; no brown/blue cast). Layers represent function, not decoration; not every section gets a background.
+> - **Paper-White type** — primary `#f5f2eb`, secondary `#c9c5bc`, tertiary `#a5a198` (all AA on every canonical surface).
+> - **Functional boundaries** — decorative `#3a3d41`; functional/interactive `#747a82` (≥3:1 on every surface). Focus is paper-white `#f5f2eb`, offset, forced-colors-safe — never a brand hue.
+> - **Neutral inverse primary action** — fill `#f0ece4`, text `#0f1010`. One dominant primary per local decision region; primary actions never use the accent.
+> - **Cinematic coral-red signature** — `#e5636f` (mark/large), `#ed7a87` (accessible text), `#b83d4f` (strong white-text fill). Allowed: wordmark detail, active-nav indicators, editorial links, progress, small marks, rare expressive labels/filled signatures. **Forbidden:** primary actions, generic selected states, focus, success/warning/error, ratings, confidence/match meaning, mood categories, large atmosphere, card fills, pervasive borders, decorative glows, gradients. Semantic amber/red/green stay independent and load-bearing.
+>
+> **Geometry & composition:**
+> - **Text buttons = restrained rounded rectangles** (`rounded-xl`); **pills only** for genuine compact choices (filters, tags, states, segmented); **circles only** for icon-only controls. Do not make every button a pill.
+> - **Flat-first depth.** Flat ink is the default canvas. `PageDepth` defaults to `none`; radial/linear are opt-in for a *soft stage* (introductions, Discover questions, onboarding, reflective empty states) or *focal cinema* (a genuinely focal recommendation, Film File hero, featured collection, immersive modal). Normally ≤1 dominant backdrop per viewport.
+> - **Selective imagery.** Film posters/backdrops give recognition; FeelFlick's value is personal explanation, ordering, taste evidence, mood/context relevance, history, and trust. Distinct image roles (hero backdrop / editorial poster / recommendation tile / dense thumbnail / personal-memory evidence / collection mosaic / honest fallback). No per-card colored glows, no autoplaying backgrounds, no uncontrolled text over artwork — use semantic scrims.
+> - **Editorial structure with responsive focus.** Spacing/headings/ordering before boxes; finite groups with names + visible stopping points; depth appears on attention/interaction; hover/focus clarify (no glow, no dramatic scale; press = subtle 1px). Avoid generic dark-SaaS glass, universal pills, decorative glow, cards-in-cards, infinite walls, generic-carousel repetition.
+>
+> **Accessibility:** AA normal text on permitted surfaces; 3:1 functional-boundary + focus; offset focus-visible; forced-colors support; ≥44px touch targets; non-color state cues; reduced-motion users get the same information and controls. Motion communicates entry/feedback/progress/reorder/foreground only — never idle decoration or continuous pulse.
+>
+> **Architecture & compatibility:** one canonical semantic theme (CSS `--color-*` + a JS mirror, drift-tested); shared components and feature files consume semantic tokens, not foundation hexes. The root class stays `.theme-thoughtful` **temporarily** (compatibility name only); legacy purple/pink scales, rose token names, `PrimaryAction` styling, font aliases and `VITE_UI_THEME=legacy` are removal-gated debt — neutralised under the theme, never the target identity, never new-consumer surfaces. Historical Thoughtful Seatmate stage/closure docs and ADR 015/016/017/018 concrete values are **superseded** by ADR 021 where they conflict (ADR 014 Inter and ADR 019's single-root-theme architecture are preserved).
+
 ## Purpose
 
 This file guides visual design, branding, interaction, typography, color, layout, motion, and shared-component decisions.
@@ -27,7 +61,7 @@ FeelFlick should feel like:
 
 > A thoughtful seatmate with serious film taste — calm at first glance, intelligent on closer inspection, deep only when invited.
 
-Design for someone **smart but tired**: do the reasoning, hand over one decision worth trusting, and let depth arrive only when asked. The product is a **Compounding Decision Companion**; the full direction, surface roles, and rationale live in [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md).
+Design for **intelligent editorial cinema**: calm enough to choose, clear enough to compare, open enough to explore, personal enough to reflect an evolving taste. "Smart but tired" remains one valid mode (the *Decide* posture) — not the whole product character, which now also serves curiosity and exploration across the four experience modes (Decide / Discover / Explore / Reflect). The full current direction, surface roles, and rationale live in the current authority [`docs/ui/design-authority-adaptive-editorial-cinema.md`](../../docs/ui/design-authority-adaptive-editorial-cinema.md) (ADR 021). The prior [`docs/ui/design-authority-thoughtful-seatmate.md`](../../docs/ui/design-authority-thoughtful-seatmate.md) is historical where it conflicts.
 
 The visual experience should support:
 

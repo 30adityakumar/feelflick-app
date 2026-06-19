@@ -1,17 +1,15 @@
-/* Bounded rose-accent helpers (Stage 1). One restrained solid rose, used sparingly.
-   No animation or transition anywhere: the link underline is an instant (non-animated)
-   state change, so it is inherently reduced-motion-safe. */
+/* Bounded cinematic coral-red signature helpers. */
 
 .ts-brand-mark {
   display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: 9999px;
-  background: var(--ts-brand-rose, #dd4e83);
+  background: var(--ts-brand-accent, #e5636f);
 }
 
 .ts-brand-link {
-  color: var(--ts-brand-rose, #dd4e83);
+  color: var(--ts-brand-accent-text, #ed7a87);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   text-decoration: none;
   cursor: pointer;
@@ -20,10 +18,13 @@
   padding: 0;
 }
 
-.ts-brand-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+.ts-brand-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 .ts-brand-link:focus-visible {
-  outline: 2px solid var(--ts-focus, #f3ecdf);
+  outline: 2px solid var(--ts-focus, #f5f2eb);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -34,15 +35,14 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ts-brand-rose, #dd4e83);
+  color: var(--ts-brand-accent-text, #ed7a87);
 }
 
-/* Rare white-on-rose expressive pill — uses the AA contrast variant. */
 .ts-brand-signature--solid {
   display: inline-block;
   padding: 3px 9px;
   border-radius: 9999px;
-  background: var(--ts-brand-rose-contrast, #c0356c);
+  background: var(--ts-brand-accent-strong, #b83d4f);
   color: #ffffff;
 }
 

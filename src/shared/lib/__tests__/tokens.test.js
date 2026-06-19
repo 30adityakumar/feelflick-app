@@ -56,8 +56,11 @@ describe('design tokens — SHADOW (F11B.1)', () => {
     expect(Object.keys(SHADOW).sort()).toEqual(['card', 'focus', 'hover'])
   })
 
-  it('focus ring uses the brand purple (#A78BFA = rgb 167,139,250)', () => {
-    expect(SHADOW.focus).toContain('167,139,250')
+  it('focus ring uses the neutral paper-white focus token, never a brand hue', () => {
+    // Focus is a neutral, high-contrast paper-white signal — never the coral accent
+    // and never the legacy purple/pink. Locked so focus can never become brand-colored.
+    expect(SHADOW.focus).toContain('--color-focus-ring')
+    expect(SHADOW.focus).not.toMatch(/167,\s*139,\s*250|a78bfa|9333ea|ec4899|e5636f|dd4e83|b83d4f/i)
   })
 })
 

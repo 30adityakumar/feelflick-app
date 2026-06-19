@@ -21,17 +21,24 @@ describe('ThoughtfulRoot', () => {
 })
 
 describe('PageDepth', () => {
-  it('defaults to radial and maps depth → class', () => {
+  // Adaptive Editorial Cinema (ADR 021): flat ink is the DEFAULT composition; the
+  // radial/linear atmosphere recipes are opt-in (soft stage / focal cinema) and
+  // must still be reachable explicitly.
+  it('defaults to flat ink (none) and maps depth → class', () => {
     const { container, rerender } = render(<PageDepth />)
+    expect(container.firstChild.className).toContain('ts-page-depth--none')
+    expect(container.firstChild.className).not.toContain('ts-page-depth--radial')
+    rerender(<PageDepth depth="radial" />)
     expect(container.firstChild.className).toContain('ts-page-depth--radial')
     rerender(<PageDepth depth="linear" />)
     expect(container.firstChild.className).toContain('ts-page-depth--linear')
     rerender(<PageDepth depth="none" />)
     expect(container.firstChild.className).toContain('ts-page-depth--none')
   })
-  it('falls back to radial for an unknown depth (no arbitrary value)', () => {
+  it('falls back to flat ink (none) for an unknown depth (no arbitrary value)', () => {
     const { container } = render(<PageDepth depth="rainbow" />)
-    expect(container.firstChild.className).toContain('ts-page-depth--radial')
+    expect(container.firstChild.className).toContain('ts-page-depth--none')
+    expect(container.firstChild.className).not.toContain('ts-page-depth--radial')
   })
 })
 

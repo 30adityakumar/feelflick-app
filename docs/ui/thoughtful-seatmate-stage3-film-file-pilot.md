@@ -118,6 +118,24 @@ The single primary action — **"Play Trailer"** (hero CTA + the `StickyActionBa
 accessible name, and keyboard behavior are unchanged. Mark Watched / Save / Share remain visibly
 subordinate. No new action hierarchy was invented; there is one ivory primary.
 
+> **Addendum — Slice E (canonical-Button consumer migration, current).** The Stage-3 pilot above adopted the
+> `<PrimaryAction>` wrapper, which is accurate for the pilot. After the Button ↔ PrimaryAction convergence
+> (Slices A/B) and the Watchlist + Home migrations (Slices C/D), **both Film File trailer controls now render
+> the canonical `<Button variant="primary">` directly** (`src/features/movie/sections-top.jsx`) — Movie no
+> longer imports the `PrimaryAction` component, making **production wrapper imports zero**. The exact
+> **size / style / grouping contracts are unchanged**: the hero stays `size="md"` with its route classes
+> (`ff-movie-hero-action-btn ff-movie-hero-action-btn--primary`), `disabled`/`title`/inline `cursor`+`opacity`,
+> and an outer grouping `<span>` holding the original `<svg>` + `Play Trailer`; the sticky bar stays `size="sm"`
+> with its inline `padding`/`borderRadius`(`RADIUS.sm`)/`fontSize`/`fontWeight`/`cursor`/`opacity` and one plain
+> `<span>`. The legacy flat-ivory recipe is preserved via the `ts-action-primary*` compat classes (route-local
+> `MOVIE_PRIMARY_COMPAT_MD` / `MOVIE_PRIMARY_COMPAT_SM`) + Movie's own `PrimaryAction.css` import, so **DOM and
+> visual output are unchanged** (byte-identical across four SSR cases — hero/sticky × enabled/disabled — plus a
+> browser computed-style capture). **Authenticated Movie E2E and all eight Film File visuals pass without
+> baseline regeneration.** Neither control uses `loading`. Compatibility-CSS removal and the final visual
+> convergence remain separate work (only retirement-gate condition 1 is now met — see
+> [`docs/ui/composition-system-ownership.md`](composition-system-ownership.md) → Status — Slice E). The
+> historical record above is unchanged and remains true for the pilot.
+
 ## 12. Committed-state migration
 
 Ivory-only. **Mark Watched** and **Save** (hero + sticky) drop the `FILM_PALETTE`/purple/rose active tint

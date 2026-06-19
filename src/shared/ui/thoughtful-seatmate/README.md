@@ -53,10 +53,12 @@ the whole app.
   pick the semantic element via `as`.
 - **`<PrimaryAction size="sm|md|lg" fullWidth loading disabled type>`** — **COMPATIBILITY WRAPPER** over
   `<Button variant="primary">`. Delegates all semantics/loading/focus/forced-colours to Button;
-  `PrimaryAction.css` only preserves its legacy visual recipe. **Movie is the sole remaining component
-  consumer** — Watchlist (Slice C) and Home (Slice D) have migrated to `<Button variant="primary">`
-  directly, each importing `PrimaryAction.css` for the same recipe via the `ts-action-primary*` compat
-  classes. Kept for Movie — **do not add new adopters; use `Button` directly.**
+  `PrimaryAction.css` only preserves its legacy visual recipe. **It now has ZERO production component
+  consumers** — Watchlist (Slice C), Home (Slice D) and Movie (Slice E) all render `<Button
+  variant="primary">` directly, each importing `PrimaryAction.css` for the same recipe via the
+  `ts-action-primary*` compat classes. The wrapper + barrel export are **retained temporarily** (only
+  retirement-gate condition 1 is met; conditions 2–4 remain) — **do not add new adopters; use `Button`
+  directly.**
 - **`<DecisionMarker active srLabel="…">`** — ivory selected/committed marker. **The owning control MUST
   also supply** the semantic state (`aria-pressed`/`aria-selected`/`checked`/status) **and ≥2 non-colour
   cues** (changed label, icon, neutral fill/border, status text, stable position). The marker alone is not
@@ -98,11 +100,12 @@ Summary of the durable decisions (full record:
 
 - **Primitive adoption status.** All 9 primitive APIs are unit-tested (`__tests__/primitives.test.jsx`) and
   demoed in the dev showcase. Production adoption: `ThoughtfulRoot` / `PageDepth` (home, movie, watchlist),
-  `Surface` (movie / Film File); `PrimaryAction` the wrapper (**Movie only**). **`PrimaryAction` is now a
-  compatibility wrapper over `<Button variant="primary">`** (Slice B) — **Movie is the sole remaining
-  wrapper consumer**; **Watchlist (Slice C) and Home (Slice D) render `<Button variant="primary">`
-  directly** (each importing `PrimaryAction.css` for the same legacy recipe via the `ts-action-primary*`
-  compat classes), pending the final neutral-primary recipe. **None deprecated** — all are retained. `Text`, `DecisionMarker`,
+  `Surface` (movie / Film File); `PrimaryAction` the wrapper (**zero production consumers**). **`PrimaryAction`
+  is now a compatibility wrapper over `<Button variant="primary">`** (Slice B) with **zero production component
+  consumers**: **Watchlist (Slice C), Home (Slice D) and Movie (Slice E) all render `<Button
+  variant="primary">` directly** (each importing `PrimaryAction.css` for the same legacy recipe via the
+  `ts-action-primary*` compat classes), pending the final neutral-primary recipe. The wrapper + barrel export
+  are retained temporarily (retirement-gate condition 1 met; 2–4 pending). **None deprecated** — all are retained. `Text`, `DecisionMarker`,
   `BrandMark`/`BrandLink`/`BrandSignature` are validated by test + showcase; their *production* adoption is
   scheduled, not forced: `Text` is the preferred way to set standard hierarchy on **newly** migrated
   surfaces; `DecisionMarker` is adopted where a supplementary dot helps; the Brand* helpers are for the

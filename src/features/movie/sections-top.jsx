@@ -2,7 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import Tooltip from '@/shared/ui/Tooltip'
 import { SecondaryActionButton } from '@/shared/components/ActionButton'
-import { PrimaryAction } from '@/shared/ui/thoughtful-seatmate'
+import Button from '@/shared/ui/Button'
+// TEMPORARY visual-compatibility import. The two trailer controls (hero + sticky bar)
+// now render the canonical <Button variant="primary"> DIRECTLY — semantic ownership lives
+// in Button; the PrimaryAction *component* is retired from this route (the final
+// production wrapper consumer). This stylesheet still loads HERE so those controls keep
+// their EXACT pre-migration Film File pixels (the legacy flat-ivory recipe applied via the
+// `.ts-action-primary*` compatibility classes — see MOVIE_PRIMARY_COMPAT_* below). Movie
+// must load it itself rather than relying on Home or Watchlist route chunks. The classes +
+// import stay until the final neutral-primary convergence; this migration satisfies ONLY
+// retirement-gate condition 1 (zero production component imports) — conditions 2–4 remain.
+import '@/shared/ui/thoughtful-seatmate/PrimaryAction.css'
 import { HP as HP_BASE, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 
@@ -24,6 +34,14 @@ const HP = {
 
 // F5.7: ≥44×44 touch target (the visible icon stays small).
 const iconBtnStyle = { width:44, height:44, borderRadius:RADIUS.pill, background:'var(--ts-surface-1, #1d1814)', border:`1px solid var(--ts-border-subtle, #302c28)`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
+
+// TEMPORARY compatibility class strings — NOT components, hooks or shared abstractions.
+// They reproduce the retired PrimaryAction wrapper's class output so the migrated trailer
+// <Button variant="primary"> controls keep the legacy flat-ivory recipe (via PrimaryAction.css,
+// imported above): MD for the hero (size="md"), SM for the sticky bar (size="sm"). Removed
+// only at the final neutral-primary convergence.
+const MOVIE_PRIMARY_COMPAT_MD = 'ts-action-primary ts-action-primary--md';
+const MOVIE_PRIMARY_COMPAT_SM = 'ts-action-primary ts-action-primary--sm';
 
 // Reset-button style for wrapping elements that need to be focusable buttons
 // without inheriting the browser's default button chrome.
@@ -207,16 +225,22 @@ function MovieHero({
           )}
 
           <div className="ff-movie-hero-actions" style={{ display:'flex', alignItems:'center', gap:12, marginTop:32, flexWrap:'wrap' }}>
-            <PrimaryAction
-              className="ff-movie-hero-action-btn ff-movie-hero-action-btn--primary"
+            <Button
+              variant="primary"
+              size="md"
+              className={`${MOVIE_PRIMARY_COMPAT_MD} ff-movie-hero-action-btn ff-movie-hero-action-btn--primary`}
               onClick={onPlayTrailer}
               disabled={!hasTrailer}
               title={hasTrailer ? undefined : 'No trailer available'}
               style={{ cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5 }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l16-9z"/></svg>
-              Play Trailer
-            </PrimaryAction>
+              {/* Outer plain span = the wrapper's structural grouping (svg + text flow
+                  inline, without Button's flex gap). Keeps the DOM byte-identical. */}
+              <span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l16-9z"/></svg>
+                Play Trailer
+              </span>
+            </Button>
             <MarkWatchedButton
               isWatched={isWatched}
               onToggleWatched={onToggleWatched}
@@ -397,8 +421,10 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
           </div>
         </div>
       </div>
-      <PrimaryAction
+      <Button
+        variant="primary"
         size="sm"
+        className={MOVIE_PRIMARY_COMPAT_SM}
         onClick={onPlayTrailer}
         disabled={!hasTrailer}
         title={hasTrailer ? undefined : 'No trailer available'}
@@ -408,8 +434,9 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
           cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5,
         }}
       >
-        Play Trailer
-      </PrimaryAction>
+        {/* Plain child span = the wrapper's structural grouping (kept for byte-parity). */}
+        <span>Play Trailer</span>
+      </Button>
       <button
         className="ff-movie-sticky-bar-save"
         onClick={onToggleWatchlist}

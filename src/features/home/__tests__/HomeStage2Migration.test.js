@@ -128,9 +128,12 @@ describe('Stage 2 / Slice D — canonical-Button migration of the primary action
   })
 })
 
-describe('Stage 2 / Slice D — Movie remains the only production PrimaryAction component consumer', () => {
-  // (12) After Home migrates, exactly one production wrapper consumer remains: Movie.
-  it('exactly one production PrimaryAction component import remains, and it is Movie', () => {
+describe('Stage 2 / Slice D — no production PrimaryAction component consumers remain', () => {
+  // (12) Point-in-time guard truth-up: at Slice D, Movie was the sole remaining production
+  // PrimaryAction component consumer. Slice E migrated Movie too, so production component
+  // imports are now ZERO. (Retargeted from the Slice-D snapshot — test-only, no Home
+  // runtime change — when the Movie migration drove imports to zero.)
+  it('zero production PrimaryAction component imports remain', () => {
     const offenders = []
     for (const f of walk(join(ROOT, 'src'))) {
       const r = rel(f)
@@ -139,7 +142,7 @@ describe('Stage 2 / Slice D — Movie remains the only production PrimaryAction 
       if (!/\.jsx?$/.test(r)) continue
       if (/import\s*\{[^}]*\bPrimaryAction\b[^}]*\}\s*from\s*['"]@\/shared\/ui\/thoughtful-seatmate['"]/.test(readFileSync(f, 'utf8'))) offenders.push(r)
     }
-    expect(offenders).toEqual(['src/features/movie/sections-top.jsx'])
+    expect(offenders).toEqual([])
   })
 })
 

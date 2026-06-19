@@ -1,5 +1,15 @@
 # FeelFlick — Home / Briefing vNext (F5 Decision Note)
 
+> ⚠️ **Historical record — superseded product framing.** This note's single-pick /
+> "one justified nightly pick" product framing is **no longer current product
+> authority**. FeelFlick's canonical definition is now **personal movie discovery**
+> through three complementary modes (Made for you · Tuned to the moment · Yours to
+> explore) with bounded choice — see [product-doctrine.md](product-doctrine.md)
+> (rationale: [ADR 020](decisions/020-personal-movie-discovery-and-bounded-choice.md)).
+> It is preserved as an accurate account of what F5 shipped; its body is
+> intentionally not rewritten. The shipped single-pick Briefing remains current
+> runtime, being migrated separately.
+
 > Phase F5 of the rebuild. Makes the authenticated **Home / Tonight / Briefing**
 > feel like the core nightly ritual — one considered, *justified* pick — **without
 > touching the recommendation engine**. Read alongside

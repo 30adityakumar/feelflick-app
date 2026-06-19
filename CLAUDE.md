@@ -17,21 +17,19 @@ Load only the guidance relevant to the current task.
 
 ## Product
 
-FeelFlick helps someone choose a film that fits who they are and how they feel right now.
+FeelFlick is a **personal movie discovery platform**.
 
-Core promise:
+Brand promise:
 
-> A trusted film recommendation for the moment—personalized by mood, context, and taste, with a clear reason it fits.
+> Movies, made personal.
 
-Mood makes the experience approachable. Taste makes it personal. Context makes it useful. Explanation makes it trustworthy.
+FeelFlick helps people discover movies through their **taste**, their **mood**, and their **curiosity** — across three complementary discovery modes: **Made for you** (Home, personalized to taste), **Tuned to the moment** (Discover, mood- and situation-based), and **Yours to explore** (Browse, explicit filters). None is structurally subordinate to the others. Personalization combines taste and context; recommendations are explained from real signals; **Cinematic DNA** is a living, evolving, correctable picture of taste — never fixed, deterministic, or infallible.
 
-FeelFlick is a **Compounding Decision Companion**: it gives one trusted recommendation for the moment, explains why it fits, and becomes meaningfully better through watches, skips, saves, ratings, and corrections. Taste memory is the long-term moat beneath the immediate decision.
+The aim is the **right amount of choice** — bounded, finite, personal selections that make choosing easier while leaving the final choice with the user; not exactly one mandatory pick, and not an endless feed. A prominent singular hero recommendation is permitted but is **not** a universal requirement. Anti-overwhelm holds: resist infinite feeds, unbounded recommendation walls, and generic carousels.
 
-Surface roles: **Tonight** (`/home`) is the immediate value; **Film File** (`/movie/:id`) is evidence and trust; **History / Diary** is taste memory; **Cinematic DNA** makes learning visible; **Discover** is intentional exploration; **Search** is known-intent retrieval; **Watchlist** is deferred intent.
+Current runtime still reflects parts of the former single-pick model (Tonight leads with one pick over an invisible queue; Discover resolves to one film) — that is the baseline being migrated, not the target. Do not document unshipped multi-film UI as if it already exists.
 
-A focused recommendation is the clearest expression of the product. Tonight defaults to **one visible recommendation**, and a rejection normally produces one sequential replacement rather than visible backup cards. “One pick” is a strong default—not a rule; bounded choice may serve explicit exploration or a future couple/group negotiation mode.
-
-For product strategy or experiments, read `.claude/rules/product.md`.
+The canonical product truth is `docs/product-doctrine.md`; `.claude/rules/product.md` operationalizes it for repository work. Read those before product, IA, or recommendation decisions.
 
 ## Baselines can evolve
 

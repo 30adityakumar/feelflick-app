@@ -1,15 +1,24 @@
-# **FeelFlick — A Mood-First Movie Discovery Platform**
+# **FeelFlick — A Personal Movie Discovery Platform**
 
-FeelFlick is a discovery-first movie platform that learns your cinematic identity. It combines a sophisticated multi-signal recommendation engine, a personal taste identity layer, and a structured mood taxonomy no other platform has.
+FeelFlick is a **personal movie discovery platform** that learns your cinematic identity. It combines a sophisticated multi-signal recommendation engine, a personal taste identity layer, and a structured mood taxonomy no other platform has.
 
 The live site is **app.feelflick.com**.
 
-> **Read this as features in service of one job.** Everything below — the moods,
-> the lists, the ratings, the taste identity — exists to deliver FeelFlick's
-> wedge: *mood-first, taste-deep — one justified nightly pick that makes its case.
-> Anti-scroll.* The single pick (the Home **Briefing**) is the product; the rest
-> is supporting depth. See [product-doctrine.md](product-doctrine.md) for the
-> surface hierarchy and the do-not-become list.
+> **Brand promise: _Movies, made personal._** FeelFlick helps people discover
+> movies through their **taste**, their **mood**, and their **curiosity** across
+> three complementary discovery modes — **Made for you** (Home), **Tuned to the
+> moment** (Discover), and **Yours to explore** (Browse). The principle is the
+> *right amount of choice*: bounded, finite, personal selections — not one
+> mandatory pick and not an endless feed. **Cinematic DNA** is a living, evolving
+> picture of taste, never fixed or infallible. See
+> [product-doctrine.md](product-doctrine.md) for the canonical doctrine and the
+> do-not-become list.
+>
+> **Current vs. target.** This overview describes shipped features. Parts of the
+> runtime still reflect the former single-pick model (the Home **Briefing** leads
+> with one pick; Discover resolves to one film); that is the baseline being
+> migrated, not the target. Single-pick framing below is current runtime, not
+> current product authority.
 
 ---
 

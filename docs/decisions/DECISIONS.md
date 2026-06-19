@@ -29,6 +29,7 @@
 | 017 | Thoughtful Seatmate P2C-A — strict contextual-film-color normalization envelope | ✅ Accepted | `docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md` |
 | 018 | Thoughtful Seatmate P2C-B — contextual-film-color aura strength (alpha 0.14) | ✅ Accepted | `docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md` |
 | 019 | Thoughtful Seatmate — website-wide canonical theme (one root boundary + `--color-*` source of truth + compat aliases + `VITE_UI_THEME` rollback; supersedes route-by-route) | ✅ Accepted | `docs/decisions/019-thoughtful-seatmate-website-wide-theme.md` |
+| 020 | Personal movie discovery + bounded-choice doctrine (three complementary modes; one prominent pick allowed but not required; Cinematic DNA living/evolving; anti-scroll = bounded choice; supersedes the universal single-pick wedge; docs-only) | ✅ Accepted | `docs/decisions/020-personal-movie-discovery-and-bounded-choice.md` |
 
 ---
 

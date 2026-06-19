@@ -1,5 +1,15 @@
 # FeelFlick — Information Architecture v2 (Decision Record)
 
+> ⚠️ **Historical record — superseded product framing.** This document's single-pick /
+> "single justified nightly pick" product framing is **no longer current product
+> authority**. FeelFlick's canonical definition is now **personal movie discovery**
+> through three complementary modes (Made for you · Tuned to the moment · Yours to
+> explore) with bounded choice — see [product-doctrine.md](product-doctrine.md)
+> (rationale: [ADR 020](decisions/020-personal-movie-discovery-and-bounded-choice.md)).
+> This record is preserved as an accurate account of the F2 nav decisions as shipped;
+> its body is intentionally not rewritten. Re-leveling navigation around three
+> complementary modes is later, separately-scoped work.
+
 > **Phase F2 of the rebuild.** This is the source of truth for the IA changes made
 > in F2 and the reasoning behind them. Read alongside
 > [product-doctrine.md](product-doctrine.md) (the surface hierarchy this enforces)

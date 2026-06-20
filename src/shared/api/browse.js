@@ -108,6 +108,11 @@ export const TMDB_GENRE_IDS = {
   Documentary: 99, Drama: 18, Family: 10751, Fantasy: 14, History: 36,
   Horror: 27, Music: 10402, Mystery: 9648, Romance: 10749,
   'Science Fiction': 878, Thriller: 53, War: 10752, Western: 37,
+  // Browse's genre filter value for science fiction is the shorthand "Sci-Fi"
+  // (matches the DB primary_genre column). Alias it so a Sci-Fi genre is genuinely
+  // applied in TMDB text-search mode too — otherwise the active genre chip would
+  // read as applied while being silently dropped from the TMDB query.
+  'Sci-Fi': 878,
 }
 
 const SELECT_FIELDS = [

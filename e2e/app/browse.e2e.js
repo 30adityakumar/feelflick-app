@@ -66,6 +66,17 @@ test('Surprise opens a confirmation dialog (not a direct navigation)', async ({ 
   await expect(page).toHaveURL(/\/browse(?:[/?#]|$)/) // still on /browse, not navigated to a film
 })
 
+test('a supported genre is genuinely forwarded to TMDB in text-search mode (Sci-Fi → 878)', async ({ page }) => {
+  // Honesty: a genre chip shown as applied while searching must actually constrain
+  // the TMDB query. "Sci-Fi" (Browse value / DB primary_genre) must map to TMDB's
+  // Science Fiction id 878 in discover.
+  const discoverUrls = []
+  page.on('request', (r) => { const u = r.url(); if (u.includes('api.themoviedb.org') && u.includes('/discover/movie')) discoverUrls.push(u) })
+  await page.goto('/browse?genre=Sci-Fi&q=space')
+  await expect(page.getByRole('heading', { name: 'Follow your curiosity.' })).toBeVisible()
+  await expect.poll(() => discoverUrls.some((u) => /with_genres=878/.test(u)), { timeout: 20_000 }).toBe(true)
+})
+
 test('empty result keeps the honest filter-advice copy', async ({ page }) => {
   await installBrowseFixture(page, { reducedMotion: true, dataState: 'empty' })
   await page.goto('/browse')

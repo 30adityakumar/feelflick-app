@@ -172,15 +172,25 @@ describe('Stage 3 / Slice E — PrimaryAction wrapper retired from production bu
     }
     expect(offenders).toEqual([])
   })
-  // (14) Home + Watchlist still render Button directly with their compat classes + explicit stylesheet imports
-  it('Home and Watchlist still use canonical Button + ts-action-primary* + explicit PrimaryAction.css import', () => {
-    for (const p of ['src/features/home/sections-top.jsx', 'src/features/watchlist/Watchlist.jsx']) {
-      const src = read(p)
-      expect(src, `${p} imports Button`).toMatch(/import\s+Button\s+from\s+['"]@\/shared\/ui\/Button['"]/)
-      expect(src, `${p} imports PrimaryAction.css`).toMatch(/import\s+['"]@\/shared\/ui\/thoughtful-seatmate\/PrimaryAction\.css['"]/)
-      expect(src, `${p} carries ts-action-primary compat classes`).toMatch(/ts-action-primary ts-action-primary--md/)
-      expect(src, `${p} no PrimaryAction component import`).not.toMatch(/import\s*\{[^}]*\bPrimaryAction\b[^}]*\}\s*from\s*['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
-    }
+  // (14) Watchlist still renders Button directly with its compat classes + explicit stylesheet import
+  it('Watchlist still uses canonical Button + ts-action-primary* + explicit PrimaryAction.css import', () => {
+    const p = 'src/features/watchlist/Watchlist.jsx'
+    const src = read(p)
+    expect(src, `${p} imports Button`).toMatch(/import\s+Button\s+from\s+['"]@\/shared\/ui\/Button['"]/)
+    expect(src, `${p} imports PrimaryAction.css`).toMatch(/import\s+['"]@\/shared\/ui\/thoughtful-seatmate\/PrimaryAction\.css['"]/)
+    expect(src, `${p} carries ts-action-primary compat classes`).toMatch(/ts-action-primary ts-action-primary--md/)
+    expect(src, `${p} no PrimaryAction component import`).not.toMatch(/import\s*\{[^}]*\bPrimaryAction\b[^}]*\}\s*from\s*['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
+  })
+  // (14b) Home's redesigned hero uses the canonical Button DIRECTLY and has shed
+  // the temporary ts-action-primary / PrimaryAction.css compat recipe entirely —
+  // the "final neutral-primary recipe" reconciliation the compat layer waited for.
+  it('Home hero uses canonical Button with NO PrimaryAction compat recipe', () => {
+    const p = 'src/features/home/components/HomeHero.jsx'
+    const src = read(p)
+    expect(src, `${p} imports Button`).toMatch(/import\s+Button\s+from\s+['"]@\/shared\/ui\/Button['"]/)
+    expect(src, `${p} no ts-action-primary compat class`).not.toMatch(/ts-action-primary/)
+    expect(src, `${p} no PrimaryAction.css import`).not.toMatch(/PrimaryAction\.css/)
+    expect(src, `${p} no PrimaryAction component import`).not.toMatch(/import\s*\{[^}]*\bPrimaryAction\b[^}]*\}\s*from\s*['"]@\/shared\/ui\/thoughtful-seatmate['"]/)
   })
   // (15) the PrimaryAction barrel export still exists (retained, not removed)
   it('the PrimaryAction barrel export is retained', () => {

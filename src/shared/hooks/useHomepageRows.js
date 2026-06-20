@@ -124,21 +124,33 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   // Shared profile + scoring context — resolved once, passed to all service functions
   const [profile, setProfile] = useState(null)
   const [scoringContext, setScoringContext] = useState(null)
+  // Surfaced so consumers can render an honest top-level error instead of a stuck
+  // skeleton (or a misleading "no recommendations") when the profile/context that
+  // every row depends on cannot be built.
+  const [profileError, setProfileError] = useState(false)
 
   useEffect(() => {
     if (!userId) {
       setProfile(null)
       setScoringContext(null)
+      setProfileError(false)
       return
     }
 
     let cancelled = false
-    computeUserProfileV3(userId).then(async (p) => {
-      if (cancelled) return
-      setProfile(p)
-      const ctx = await precomputeScoringContext(p)
-      if (!cancelled) setScoringContext(ctx)
-    })
+    setProfileError(false)
+    computeUserProfileV3(userId)
+      .then(async (p) => {
+        if (cancelled) return
+        setProfile(p)
+        const ctx = await precomputeScoringContext(p)
+        if (!cancelled) setScoringContext(ctx)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        console.error('[useHomepageRows] profile/context build failed:', err)
+        setProfileError(true)
+      })
     return () => { cancelled = true }
   }, [userId])
 
@@ -241,6 +253,11 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   return {
     tier,
     rotationVariant,
+    // Whether the shared profile + scoring context every row depends on are ready,
+    // and whether building them failed (so Home can show loading vs. error vs.
+    // content honestly rather than flashing an empty/"no recommendations" state).
+    profileReady: (hasProfile && hasContext) || !userId,
+    profileError,
     topOfTaste: { ...topOfTaste, data: deduped.dTopOfTaste },
     criticSplit: { ...criticSplit, data: deduped.dCriticSplit },
     under90: { ...under90, data: deduped.dUnder90 },

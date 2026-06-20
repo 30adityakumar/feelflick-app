@@ -118,8 +118,16 @@ function readFor(table, search, opts) {
   }
 }
 
-// Embedding-neighbour ids the orbit row ("Because you loved …") expands a seed to.
-const SEED_NEIGHBORS = POOL.slice(0, 10).map((m, i) => ({ id: m.id, similarity: 0.95 - i * 0.02 }))
+// Embedding neighbours returned by get_seed_neighbors. precomputeScoringContext
+// reads `matched_seed_id` to look up the seed's weight (drives the embedding
+// dimension that TOP_OF_TASTE / MOOD weight heavily) — without a real seed id it
+// falls back to a weak 0.2 weight and those rows never clear the score floor.
+const SEED_NEIGHBORS = POOL.slice(0, 12).map((m, i) => ({
+  id: m.id,
+  similarity: 0.97 - i * 0.015,
+  matched_seed_id: WATCHED_IDS[i % 6],
+  matched_seed_title: i % 6 === 0 ? SEED.title : `Loved Film ${(i % 6) + 1}`,
+}))
 
 const EXPECTED_WRITE_TABLES = new Set([
   'recommendation_impressions', 'user_interactions', 'user_sessions', 'user_watchlist', 'user_history', 'user_profiles_computed',

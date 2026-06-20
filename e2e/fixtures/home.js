@@ -37,28 +37,53 @@ function movieRow(over) {
 }
 
 const POSTERS = ['one', 'two', 'three', 'four', 'five', 'six']
-const POOL = Array.from({ length: 12 }, (_, i) => movieRow({
+const TOP_DIRECTOR = 'Mara Vance'
+
+// === Candidate pool (the rows' universe) — ids 8001..8024, DISJOINT from the
+// watched set below so nothing gets excluded. Strongly matches the watched
+// taste signature (Drama · tender · prestige_drama · en, ~half by the top
+// director) with high, confident ratings so films clear the engine's personal
+// score floor; a slice is < 90 min for the short-films row.
+const POOL = Array.from({ length: 24 }, (_, i) => movieRow({
   id: 8001 + i,
   tmdb_id: 800001 + i,
   title: `Fixture Film ${i + 1}`,
   poster_path: `/home-poster-${POSTERS[i % POSTERS.length]}.jpg`,
   backdrop_path: `/home-backdrop-${POSTERS[i % POSTERS.length]}.jpg`,
-  director_name: i % 2 === 0 ? 'Mara Vance' : 'Idris Calloway',
-  release_year: 2018 + (i % 6),
-  ff_audience_rating: 92 - i,
-  ff_audience_confidence: 95 - i,
-  mood_tags: i % 2 === 0 ? ['tender', 'romantic'] : ['contemplative', 'meditative'],
-  tone_tags: i % 2 === 0 ? ['warm'] : ['reflective'],
+  director_name: i % 2 === 0 ? TOP_DIRECTOR : 'Idris Calloway',
+  release_year: 2015 + (i % 9),
+  runtime: i % 4 === 0 ? 84 : 104 + (i % 5) * 7,
+  ff_rating: 95 - (i % 9), ff_final_rating: 95 - (i % 9), quality_score: 95 - (i % 9), ff_rating_genre_normalized: 95 - (i % 9),
+  ff_audience_rating: 94 - (i % 9), ff_audience_confidence: 93,
+  ff_critic_rating: 93 - (i % 7), ff_critic_confidence: 90,
+  user_satisfaction_score: 88, user_satisfaction_confidence: 80,
 }))
+const MARA_POOL = POOL.filter(m => m.director_name === TOP_DIRECTOR)
 
-// Light watch history (drives user tier + profile signal) + a couple of loved films.
-const HISTORY = POOL.slice(0, 8).map((m, i) => ({ movie_id: m.id, watched_at: `2026-01-${10 + i}T12:00:00Z` }))
+// === Watch history — ids 9001..9024 (DISJOINT from POOL). Each row carries the
+// nested movie features computeUserProfileV3 reads, so the user lands in the
+// 'engaged' tier with a strong Drama / tender / prestige_drama / Mara-Vance
+// affinity. The first few double as ≥8 "loved" ratings (orbit seed).
+const WATCHED_IDS = Array.from({ length: 24 }, (_, i) => 9001 + i)
+const watchedMovie = (id) => ({
+  id, tmdb_id: 900000 + id, original_language: 'en', runtime: 118, release_year: 2020,
+  primary_genre: 'Drama', director_name: TOP_DIRECTOR, genres: ['Drama'],
+  fit_profile: 'prestige_drama', mood_tags: ['tender', 'romantic'], tone_tags: ['warm'],
+})
+const HISTORY = WATCHED_IDS.map((id, i) => ({
+  movie_id: id, source: 'manual',
+  watched_at: `2026-01-${String(1 + (i % 27)).padStart(2, '0')}T12:00:00Z`,
+  watch_duration_minutes: 112, mood_session_id: null,
+  movies: watchedMovie(id),
+}))
+const SEED = { id: WATCHED_IDS[0], title: 'A Quiet Light' }
+
 const FINGERPRINT = {
   taste_fingerprint: {
-    topMoodTags: [{ key: 'tender', count: 5, share: 0.5 }, { key: 'contemplative', count: 3, share: 0.3 }],
-    topToneTags: [{ key: 'warm', count: 4, share: 0.4 }, { key: 'reflective', count: 3, share: 0.3 }],
-    topFitProfiles: [{ key: 'prestige_drama', count: 6, share: 0.6 }],
-    total: 8,
+    topMoodTags: [{ key: 'tender', count: 14, share: 0.55 }, { key: 'contemplative', count: 6, share: 0.24 }],
+    topToneTags: [{ key: 'warm', count: 12, share: 0.5 }, { key: 'reflective', count: 7, share: 0.29 }],
+    topFitProfiles: [{ key: 'prestige_drama', count: 16, share: 0.66 }],
+    total: 24,
   },
   taste_fingerprint_at: '2026-02-13T00:00:00Z',
 }
@@ -66,14 +91,19 @@ const FINGERPRINT = {
 function readFor(table, search, opts) {
   switch (table) {
     case 'movies':
-      return opts.dataState === 'no_candidates' ? [] : POOL
+      if (opts.dataState === 'no_candidates') return []
+      // The signature-director row narrows to the top director; mirror that so the
+      // row reads as "More from Mara Vance" rather than a mixed set.
+      if (search.includes('director_name')) return MARA_POOL
+      return POOL
     case 'user_history':
       return opts.dataState === 'cold' ? [] : HISTORY
     case 'user_ratings': {
       if (opts.dataState === 'cold') return []
-      // Shape the nested join PostgREST returns for the queries Home issues.
-      if (search.includes('runtime')) return HISTORY.slice(0, 4).map(() => ({ movies: { runtime: 108 } }))
-      return HISTORY.slice(0, 2).map((h, i) => ({ movie_id: h.movie_id, rating: 9, rated_at: `2026-01-2${i}T12:00:00Z`, movies: { id: h.movie_id, title: `Fixture Film ${i + 1}`, poster_path: '/home-poster-one.jpg' } }))
+      // Shape the nested join PostgREST returns per query Home issues.
+      if (search.includes('runtime')) return HISTORY.slice(0, 4).map(() => ({ movies: { runtime: 112 } }))
+      if (search.includes('poster_path')) return [{ movie_id: SEED.id, rating: 9, rated_at: '2026-01-20T12:00:00Z', movies: { id: SEED.id, title: SEED.title, poster_path: '/home-poster-one.jpg' } }]
+      return WATCHED_IDS.slice(0, 6).map((id, i) => ({ movie_id: id, rating: i < 3 ? 9 : 8, rated_at: `2026-01-2${i}T12:00:00Z`, movies: { id, title: i === 0 ? SEED.title : `Loved Film ${i + 1}` } }))
     }
     case 'users': return [{ taste_baseline_moods: [] }]
     case 'user_settings': return [{ settings: { prefs: { avoidGenres: [] } } }]
@@ -87,6 +117,9 @@ function readFor(table, search, opts) {
     default: return []
   }
 }
+
+// Embedding-neighbour ids the orbit row ("Because you loved …") expands a seed to.
+const SEED_NEIGHBORS = POOL.slice(0, 10).map((m, i) => ({ id: m.id, similarity: 0.95 - i * 0.02 }))
 
 const EXPECTED_WRITE_TABLES = new Set([
   'recommendation_impressions', 'user_interactions', 'user_sessions', 'user_watchlist', 'user_history', 'user_profiles_computed',
@@ -142,11 +175,17 @@ export async function installHomeFixture(page, options = {}) {
     return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
   })
 
-  // RPCs the row engine may call (e.g. get_seed_neighbors) — empty so the dependent
-  // row simply hides rather than erroring. Registered before the generic /rest/v1
-  // handler so it wins for /rest/v1/rpc/** paths.
-  await page.route('**/rest/v1/rpc/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }))
+  // RPCs the row engine may call. get_seed_neighbors expands the orbit row's seed
+  // to embedding neighbours (return pool ids so "Because you loved …" populates);
+  // any other RPC returns empty so its dependent row simply hides. Registered
+  // before the generic /rest/v1 handler so it wins for /rest/v1/rpc/** paths.
+  await page.route('**/rest/v1/rpc/**', (route) => {
+    const rpc = new URL(route.request().url()).pathname.split('/rest/v1/rpc/')[1] || ''
+    const body = rpc.startsWith('get_seed_neighbors') && opts.dataState !== 'no_candidates'
+      ? JSON.stringify(SEED_NEIGHBORS)
+      : '[]'
+    return route.fulfill({ status: 200, contentType: 'application/json', body })
+  })
 
   await page.route('**/rest/v1/**', (route) => {
     const req = route.request()

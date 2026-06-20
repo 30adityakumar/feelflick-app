@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { installBrowseFixture } from '../fixtures/browse.js'
 
 // Runtime a11y on the authenticated surfaces (uses the saved session). Diagnostic
 // for now — prints all violations; the blocking assertion excludes color-contrast
@@ -46,6 +47,15 @@ test('a11y — film detail (/movie/:id)', async ({ page }) => {
   await expect(page).toHaveURL(/\/movie\/\d+/, { timeout: 15_000 })
   await page.waitForLoadState('networkidle')
   await audit(page, '/movie/:id')
+})
+
+test('a11y — browse (/browse)', async ({ page }) => {
+  // Offline + deterministic so the audit is stable; exercises masthead, curiosity
+  // paths, sticky filter bar, sort tabs and the poster grid.
+  await installBrowseFixture(page, { reducedMotion: true })
+  await page.goto('/browse')
+  await expect(page.getByRole('button', { name: /Open Film File for Browse Film 1$/ })).toBeVisible({ timeout: 20_000 })
+  await audit(page, '/browse')
 })
 
 test('a11y — taste profile (/profile)', async ({ page }) => {

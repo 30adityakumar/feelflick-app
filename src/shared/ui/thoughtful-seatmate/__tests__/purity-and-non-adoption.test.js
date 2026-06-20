@@ -72,12 +72,13 @@ describe('Stage 1 — production non-adoption', () => {
 
   // Authorized adopters (explicit allowlist — keep it narrow + reviewable, never a
   // broad `src/features/`): the dev-only showcase, the Stage 2 Tonight pilot
-  // (src/features/home), the Stage 3 Film File pilot (src/features/movie), and — as
-  // of Stage 6 — the Library-family Watchlist route (src/features/watchlist). Any
-  // OTHER production surface importing the foundation is still a violation (Diary /
+  // (src/features/home), the Stage 3 Film File pilot (src/features/movie), the
+  // Stage 6 Library-family Watchlist route (src/features/watchlist), and — as of
+  // the Browse explicit-curiosity redesign — the Browse route (src/features/browse).
+  // Any OTHER production surface importing the foundation is still a violation (Diary /
   // Lists / Profile / People / Discover etc. remain unmigrated until their own stage).
-  const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/']
-  it('only the authorized adopters (Tonight + Film File + Watchlist) + the dev-only showcase import the foundation', () => {
+  const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/', 'src/features/browse/']
+  it('only the authorized adopters (Tonight + Film File + Watchlist + Browse) + the dev-only showcase import the foundation', () => {
     const offenders = []
     for (const f of all) {
       const r = rel(f)

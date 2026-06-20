@@ -1,143 +1,155 @@
 // e2e/fixtures/home.js
-// Deterministic Home fixture + Supabase/TMDB interception for authenticated
-// Playwright runs. The dev test user is authenticated for real (Supabase
-// /auth/v1/** passes through), but EVERY Home read/write under /rest/v1/** is
-// intercepted so no Home row ever reaches the backend. Writes are recorded in a
-// ledger; unexpected write-capable requests are aborted + recorded so a test fails
-// loudly if anything escapes. TMDB provider + image requests are mocked too, so
-// /home is fully deterministic and offline.
+// Deterministic Home fixture for the redesigned (bounded personal discovery) Home.
+// The dev test user authenticates for real (/auth/v1/** passes through) but EVERY
+// Home read/write under /rest/v1/** is intercepted, so no Home row ever reaches the
+// backend. TMDB images + provider lookups are mocked. A fixed clock + seeded RNG
+// keep the route reproducible and offline.
+//
+// The redesigned Home draws its hero + rows from the tier-aware homepage row engine
+// (useHomepageRows → computeUserProfileV3 + the homepageRows builders) and its DNA
+// strip from the slimmed HomeDataProvider. This fixture feeds that pipeline a small,
+// well-formed candidate pool + light history so the page settles deterministically;
+// the visual/e2e specs assert STRUCTURE (hero or rows, shortcuts, DNA), not specific
+// engine output, so they stay robust across engine tuning.
 //
 // No secrets or live user data appear here.
 
-// ── Deterministic candidate rows ──────────────────────────────────────────────
-// The Briefing candidate query (overlaps mood_tags) returns FILMS; the QuickLog
-// getSeenCandidates query (ordered by ff_audience_confidence) returns SEEN. Two
-// FILMS share the default 'tender' mood (so Not-tonight promotes the second); the
-// third is 'cozy' only (the deterministic alternate-mood pick, never in the tender
-// Briefing). SEEN films use unrelated moods so they never enter a Briefing pool.
 function movieRow(over) {
   return {
-    id: 0, tmdb_id: 0, title: '', overview: '', release_date: '2019-01-01', release_year: 2019,
-    runtime: 116, director_name: 'Unknown', primary_genre: 'Drama', genres: ['Drama'],
-    poster_path: '/home-poster.jpg', original_language: 'en', trailer_youtube_key: null,
-    mood_tags: ['tender'], tone_tags: [], fit_profile: null,
-    ff_audience_rating: 82, ff_audience_confidence: 90, ff_critic_rating: 82,
-    ff_final_rating: 82, ff_rating: 82, ff_rating_genre_normalized: 82,
-    discovery_potential: 50, polarization_score: 20,
-    llm_pacing: 50, llm_intensity: 40, llm_emotional_depth: 70,
-    llm_dialogue_density: 50, llm_attention_demand: 50,
+    id: 0, tmdb_id: 0, title: '', overview: 'A quiet, well-made film with a clear point of view.',
+    tagline: null, release_date: '2021-01-01', release_year: 2021, runtime: 112,
+    original_language: 'en', poster_path: '/home-poster.jpg', backdrop_path: '/home-backdrop.jpg',
+    trailer_youtube_key: null, director_name: 'Mara Vance', lead_actor_name: 'A. Lead',
+    primary_genre: 'Drama', genres: ['Drama'], keywords: [],
+    mood_tags: ['tender'], tone_tags: ['warm'], fit_profile: 'prestige_drama',
+    ff_rating: 86, ff_final_rating: 86, ff_confidence: 90, quality_score: 86, vote_average: 7.8,
+    ff_critic_rating: 86, ff_critic_confidence: 80, ff_audience_rating: 86, ff_audience_confidence: 90,
+    ff_community_rating: 86, ff_community_confidence: 70, ff_community_votes: 1200, ff_rating_genre_normalized: 86,
+    pacing_score: 50, intensity_score: 40, emotional_depth_score: 70,
+    pacing_score_100: 50, intensity_score_100: 40, emotional_depth_score_100: 70,
+    dialogue_density: 50, attention_demand: 50, vfx_level_score: 20,
+    cult_status_score: 20, popularity: 30, vote_count: 1500, revenue: 0,
+    discovery_potential: 50, accessibility_score: 60, polarization_score: 20, starpower_score: 40,
+    user_satisfaction_score: 80, user_satisfaction_confidence: 70,
     is_valid: true,
     ...over,
   }
 }
 
-// Two tender candidates (One initial / Two promotes) + one cozy alternate (Three).
-const FILMS = [
-  movieRow({
-    id: 8001, tmdb_id: 800001, title: 'Lantern Hill', overview:
-      'A lighthouse keeper hosts the grown daughter she gave up, and one long northern evening becomes a quiet reckoning. Tender, unhurried, and warm.',
-    release_date: '2021-04-01', release_year: 2021, runtime: 114, director_name: 'Mara Vance',
-    primary_genre: 'Drama', genres: ['Drama'], poster_path: '/home-poster-one.jpg',
-    mood_tags: ['tender', 'romantic'], tone_tags: ['warm'],
-    ff_audience_rating: 92, ff_audience_confidence: 95, ff_critic_rating: 90, ff_final_rating: 92, ff_rating: 92,
-  }),
-  movieRow({
-    id: 8002, tmdb_id: 800002, title: 'Paper Boats', overview:
-      'Two pen-pals finally meet in a rain-soft city and spend a day deciding whether a decade of letters can survive a single afternoon.',
-    release_date: '2020-08-01', release_year: 2020, runtime: 108, director_name: 'Idris Calloway',
-    primary_genre: 'Drama', genres: ['Drama'], poster_path: '/home-poster-two.jpg',
-    mood_tags: ['tender'], tone_tags: ['reflective'],
-    ff_audience_rating: 84, ff_audience_confidence: 88, ff_critic_rating: 83, ff_final_rating: 84, ff_rating: 84,
-  }),
-  movieRow({
-    id: 8003, tmdb_id: 800003, title: 'The Long Quiet', overview:
-      'A snowed-in inn, a pot of soup that never empties, and a houseful of strangers learning to like each other before the thaw.',
-    release_date: '2019-11-01', release_year: 2019, runtime: 121, director_name: 'Petra Wolf',
-    primary_genre: 'Drama', genres: ['Drama'], poster_path: '/home-poster-three.jpg',
-    mood_tags: ['cozy', 'heartwarming'], tone_tags: ['warm'],
-    ff_audience_rating: 88, ff_audience_confidence: 91, ff_critic_rating: 86, ff_final_rating: 88, ff_rating: 88,
-  }),
-]
+const POSTERS = ['one', 'two', 'three', 'four', 'five', 'six']
+const TOP_DIRECTOR = 'Mara Vance'
 
-// QuickLog "you probably saw these" candidates — distinct ids/titles/posters.
-const SEEN = [
-  movieRow({ id: 8101, tmdb_id: 800101, title: 'Static Bloom', poster_path: '/home-seen-one.jpg', mood_tags: ['curious'], ff_audience_rating: 81, ff_audience_confidence: 93 }),
-  movieRow({ id: 8102, tmdb_id: 800102, title: 'Glasshouse', poster_path: '/home-seen-two.jpg', mood_tags: ['curious'], ff_audience_rating: 80, ff_audience_confidence: 92 }),
-  movieRow({ id: 8103, tmdb_id: 800103, title: 'Tin Roof', poster_path: '/home-seen-three.jpg', mood_tags: ['witty'], ff_audience_rating: 79, ff_audience_confidence: 90 }),
-]
+// === Candidate pool (the rows' universe) — ids 8001..8024, DISJOINT from the
+// watched set below so nothing gets excluded. Strongly matches the watched
+// taste signature (Drama · tender · prestige_drama · en, ~half by the top
+// director) with high, confident ratings so films clear the engine's personal
+// score floor; a slice is < 90 min for the short-films row.
+const POOL = Array.from({ length: 24 }, (_, i) => movieRow({
+  id: 8001 + i,
+  tmdb_id: 800001 + i,
+  title: `Fixture Film ${i + 1}`,
+  poster_path: `/home-poster-${POSTERS[i % POSTERS.length]}.jpg`,
+  backdrop_path: `/home-backdrop-${POSTERS[i % POSTERS.length]}.jpg`,
+  director_name: i % 2 === 0 ? TOP_DIRECTOR : 'Idris Calloway',
+  release_year: 2015 + (i % 9),
+  runtime: i % 4 === 0 ? 84 : 104 + (i % 5) * 7,
+  // Uniform top-tier quality so ordering is stable and every candidate clears the
+  // quality floor; the tiny ε keeps a deterministic sort without changing tiers.
+  ff_rating: 95, ff_final_rating: 95, quality_score: 95, ff_rating_genre_normalized: 95,
+  ff_audience_rating: 94 - i * 0.01, ff_audience_confidence: 95,
+  ff_critic_rating: 93, ff_critic_confidence: 92,
+  user_satisfaction_score: 90, user_satisfaction_confidence: 85,
+}))
+const MARA_POOL = POOL.filter(m => m.director_name === TOP_DIRECTOR)
 
-// Stable titles exported for the E2E/visual tests (so they never assert a live row).
-export const HOME_FILM_TITLES = { tender: ['Lantern Hill', 'Paper Boats'], cozy: 'The Long Quiet' }
-export const SEEN_TITLES = ['Static Bloom', 'Glasshouse', 'Tin Roof']
+// === Watch history — ids 9001..9024 (DISJOINT from POOL). Each row carries the
+// nested movie features computeUserProfileV3 reads, so the user lands in the
+// 'engaged' tier with a strong Drama / tender / prestige_drama / Mara-Vance
+// affinity. The first few double as ≥8 "loved" ratings (orbit seed).
+const WATCHED_IDS = Array.from({ length: 24 }, (_, i) => 9001 + i)
+const watchedMovie = (id) => ({
+  id, tmdb_id: 900000 + id, original_language: 'en', runtime: 118, release_year: 2020,
+  primary_genre: 'Drama', director_name: TOP_DIRECTOR, genres: ['Drama'],
+  fit_profile: 'prestige_drama', mood_tags: ['tender', 'romantic'], tone_tags: ['warm'],
+})
+const HISTORY = WATCHED_IDS.map((id, i) => ({
+  movie_id: id, source: 'manual',
+  watched_at: `2026-01-${String(1 + (i % 27)).padStart(2, '0')}T12:00:00Z`,
+  watch_duration_minutes: 112, mood_session_id: null,
+  movies: watchedMovie(id),
+}))
+const SEED = { id: WATCHED_IDS[0], title: 'A Quiet Light' }
 
-// Per-table / per-query read fixtures. The default-empty rows keep the removed Home
-// tail (continue-watching / social / lists / DNA) empty + force a cold-start profile
-// compute (so the candidate pick + QuickLog stay deterministic).
+const FINGERPRINT = {
+  taste_fingerprint: {
+    topMoodTags: [{ key: 'tender', count: 14, share: 0.55 }, { key: 'contemplative', count: 6, share: 0.24 }],
+    topToneTags: [{ key: 'warm', count: 12, share: 0.5 }, { key: 'reflective', count: 7, share: 0.29 }],
+    topFitProfiles: [{ key: 'prestige_drama', count: 16, share: 0.66 }],
+    total: 24,
+  },
+  taste_fingerprint_at: '2026-02-13T00:00:00Z',
+}
+
 function readFor(table, search, opts) {
   switch (table) {
-    case 'movies': {
-      // Briefing candidate query overlaps mood_tags; getSeenCandidates orders by
-      // ff_audience_confidence; anything else is a non-rendered tail query → [].
-      if (search.includes('mood_tags=ov')) {
-        return opts.dataState === 'no_candidates' ? [] : FILMS
-      }
-      if (search.includes('order=ff_audience_confidence')) {
-        return opts.quickLogState === 'empty' ? [] : SEEN
-      }
-      return []
+    case 'movies':
+      if (opts.dataState === 'no_candidates') return []
+      // The signature-director row narrows to the top director; mirror that so the
+      // row reads as "More from Mara Vance" rather than a mixed set.
+      if (search.includes('director_name')) return MARA_POOL
+      return POOL
+    case 'user_history':
+      return opts.dataState === 'cold' ? [] : HISTORY
+    case 'user_ratings': {
+      if (opts.dataState === 'cold') return []
+      // Shape the nested join PostgREST returns per query Home issues.
+      if (search.includes('runtime')) return HISTORY.slice(0, 4).map(() => ({ movies: { runtime: 112 } }))
+      if (search.includes('poster_path')) return [{ movie_id: SEED.id, rating: 9, rated_at: '2026-01-20T12:00:00Z', movies: { id: SEED.id, title: SEED.title, poster_path: '/home-poster-one.jpg' } }]
+      return WATCHED_IDS.slice(0, 6).map((id, i) => ({ movie_id: id, rating: i < 3 ? 9 : 8, rated_at: `2026-01-2${i}T12:00:00Z`, movies: { id, title: i === 0 ? SEED.title : `Loved Film ${i + 1}` } }))
     }
-    case 'users': return [{ taste_baseline_moods: [] }]      // baseline → tender first
+    case 'users': return [{ taste_baseline_moods: [] }]
     case 'user_settings': return [{ settings: { prefs: { avoidGenres: [] } } }]
-    case 'user_profiles_computed': return []                  // cold compute (no cache)
+    case 'user_profiles_computed':
+      return opts.dataState === 'cold' ? [] : [FINGERPRINT]
     case 'recommendation_impressions':
-      // updateImpression / recordRecommendationOutcome look up the most-recent
-      // impression row (select=id, order=shown_at) to flip a flag — give them one
-      // so the skipped/outcome PATCH actually fires. The exclusion query
-      // (select=movie_id) stays empty so no candidate is excluded.
       return search.includes('order=shown_at')
         ? [{ id: 9999, shown_at: '2026-02-13T14:59:00Z', clicked: false, skipped: false, marked_watched: false, added_to_watchlist: false }]
         : []
-    default: return []                                        // history/ratings/prefs/similarity/feedback/sessions/watchlist…
+    case 'user_watchlist': return []
+    default: return []
   }
 }
 
-// Tables whose writes are EXPECTED on the Home journey. Anything else write-capable
-// under /rest/v1/** is an escape.
+// Embedding neighbours returned by get_seed_neighbors. precomputeScoringContext
+// reads `matched_seed_id` to look up the seed's weight (drives the embedding
+// dimension that TOP_OF_TASTE / MOOD weight heavily) — without a real seed id it
+// falls back to a weak 0.2 weight and those rows never clear the score floor.
+const SEED_NEIGHBORS = POOL.map((m, i) => ({
+  id: m.id,
+  similarity: Math.max(0.7, 0.97 - i * 0.008),
+  matched_seed_id: WATCHED_IDS[i % 6],
+  matched_seed_title: i % 6 === 0 ? SEED.title : `Loved Film ${(i % 6) + 1}`,
+}))
+
 const EXPECTED_WRITE_TABLES = new Set([
-  'recommendation_impressions', // hero + quick_picks impressions, skipped update, outcome
-  'user_interactions',          // trackInteraction('dismiss')
-  'user_sessions',              // trackInteraction session bookkeeping
-  'user_watchlist',             // Save
-  'user_history',               // Mark Watched + QuickLog
-  'user_profiles_computed',     // computeUserProfile cold-compute cache upsert
+  'recommendation_impressions', 'user_interactions', 'user_sessions', 'user_watchlist', 'user_history', 'user_profiles_computed',
 ])
 const isExpectedWrite = (table) => EXPECTED_WRITE_TABLES.has(table) || table.startsWith('rpc/')
 
-// A targeted write should FAIL (compatible Supabase error) for the failure tests,
-// while still being recorded in the ledger. user_history is shared by Mark-Watched
-// (source 'mood_recommendation') and QuickLog (source 'home_quicklog'), so the body
-// source disambiguates which failure key applies.
 function shouldFailWrite(table, body, writeFailures) {
   if (!writeFailures || writeFailures.length === 0) return false
   const row = Array.isArray(body) ? body[0] : body
   const source = row?.source
   if (table === 'user_watchlist' && writeFailures.includes('watchlist')) return true
-  if (table === 'user_history' && source === 'mood_recommendation' && writeFailures.includes('history')) return true
-  if (table === 'user_history' && source === 'home_quicklog' && writeFailures.includes('quicklog')) return true
+  if (table === 'user_history' && source !== 'home_quicklog' && writeFailures.includes('history')) return true
   return false
 }
 
-// ── SVG placeholder per poster (stable label + tone → visual progression obvious) ─
 function svgFor(url) {
-  const map = [
-    ['home-poster-one', ['Film One', '#3b2f4a']], ['home-poster-two', ['Film Two', '#2f3b4a']],
-    ['home-poster-three', ['Film Three', '#2f4a3b']],
-    ['home-seen-one', ['Seen 1', '#42302a']], ['home-seen-two', ['Seen 2', '#2a3042']],
-    ['home-seen-three', ['Seen 3', '#30422a']], ['mock-logo', ['Logo', '#222']],
-  ]
-  const hit = map.find(([k]) => url.includes(k))
-  const [label, tone] = hit ? hit[1] : ['Poster', '#222']
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450"><rect width="300" height="450" fill="${tone}"/><text x="150" y="225" fill="#fff" font-family="sans-serif" font-size="22" text-anchor="middle">${label}</text></svg>`
+  const tone = url.includes('backdrop') ? '#1b1714' : '#2f2a44'
+  const w = url.includes('backdrop') ? 1280 : 300
+  const h = url.includes('backdrop') ? 720 : 450
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${tone}"/></svg>`
 }
 
 function providerJson(providerState) {
@@ -145,12 +157,8 @@ function providerJson(providerState) {
   return { id: 0, results: { CA: { link: 'https://example.test', flatrate: [{ provider_id: 8, provider_name: 'Mock Stream', logo_path: '/mock-logo.png', display_priority: 1 }] } } }
 }
 
-// ── installer ─────────────────────────────────────────────────────────────────
 export async function installHomeFixture(page, options = {}) {
-  const opts = {
-    dataState: 'ready', providerState: 'found', quickLogState: 'ready',
-    writeFailures: [], reducedMotion: false, ...options,
-  }
+  const opts = { dataState: 'ready', providerState: 'found', writeFailures: [], reducedMotion: false, ...options }
 
   const ledger = {
     reads: [], writes: [], unexpectedRequests: [],
@@ -158,8 +166,6 @@ export async function installHomeFixture(page, options = {}) {
     writesFor(table) { return this.writes.filter(w => w.table === table) },
   }
 
-  // Deterministic clock (mid-UTC-day → todaySeed stable, never crosses midnight) +
-  // seeded RNG, before any app script runs.
   await page.clock.setFixedTime(new Date('2026-02-13T15:00:00Z'))
   await page.addInitScript(() => {
     let seed = 0x2bee5eed
@@ -167,23 +173,30 @@ export async function installHomeFixture(page, options = {}) {
   })
   if (opts.reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' })
 
-  // TMDB poster/logo images → deterministic SVG (no network, no snapshot drift).
   await page.route('**/image.tmdb.org/**', (route) =>
     route.fulfill({ status: 200, contentType: 'image/svg+xml', body: svgFor(route.request().url()) }))
 
-  // TMDB watch-providers API → deterministic provider state (or error).
   await page.route('**/api.themoviedb.org/**', (route) => {
     const url = route.request().url()
     if (url.includes('/watch/providers')) {
-      // 403 is NON-retryable in the TMDB client → getMovieWatchProviders rejects
-      // immediately (no retry delay) → useStreamingProvider's 'error' state.
       if (opts.providerState === 'error') return route.fulfill({ status: 403, contentType: 'application/json', body: '{"status_message":"mock error"}' })
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(providerJson(opts.providerState)) })
     }
     return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
   })
 
-  // All Supabase REST. /auth/v1/** is NOT matched here → real auth passes through.
+  // RPCs the row engine may call. get_seed_neighbors expands the orbit row's seed
+  // to embedding neighbours (return pool ids so "Because you loved …" populates);
+  // any other RPC returns empty so its dependent row simply hides. Registered
+  // before the generic /rest/v1 handler so it wins for /rest/v1/rpc/** paths.
+  await page.route('**/rest/v1/rpc/**', (route) => {
+    const rpc = new URL(route.request().url()).pathname.split('/rest/v1/rpc/')[1] || ''
+    const body = rpc.startsWith('get_seed_neighbors') && opts.dataState !== 'no_candidates'
+      ? JSON.stringify(SEED_NEIGHBORS)
+      : '[]'
+    return route.fulfill({ status: 200, contentType: 'application/json', body })
+  })
+
   await page.route('**/rest/v1/**', (route) => {
     const req = route.request()
     const method = req.method()
@@ -192,10 +205,9 @@ export async function installHomeFixture(page, options = {}) {
 
     if (method === 'GET' || method === 'HEAD') {
       ledger.reads.push({ table, query: url.search })
-      // load_error: return a non-array body for the Briefing candidate query so the
-      // candidate processing throws → useHomeData's catch sets the honest error state.
-      if (opts.dataState === 'load_error' && table === 'movies' && url.search.includes('mood_tags=ov')) {
-        return route.fulfill({ status: 200, contentType: 'application/json', body: '{"_mock":"non-array forces the catch path"}' })
+      // load_error: fail the provider's history read → HomeDataProvider catch → honest error.
+      if (opts.dataState === 'load_error' && table === 'user_history') {
+        return route.fulfill({ status: 500, contentType: 'application/json', body: '{"message":"mock load error"}' })
       }
       const rows = readFor(table, url.search, opts)
       const accept = req.headers()['accept'] || ''
@@ -215,24 +227,15 @@ export async function installHomeFixture(page, options = {}) {
       if (isExpectedWrite(table)) {
         ledger.writes.push(entry)
         if (shouldFailWrite(table, body, opts.writeFailures)) {
-          return route.fulfill({
-            status: 400, contentType: 'application/json',
-            body: JSON.stringify({ code: 'MOCK', message: 'mock write failure', details: null, hint: null }),
-          })
+          return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: 'MOCK', message: 'mock write failure' }) })
         }
         const echo = Array.isArray(body) ? body : body ? [body] : []
-        return route.fulfill({
-          status: method === 'POST' ? 201 : 200, contentType: 'application/json',
-          headers: { 'content-range': '*/*' }, body: JSON.stringify(echo),
-        })
+        return route.fulfill({ status: method === 'POST' ? 201 : 200, contentType: 'application/json', headers: { 'content-range': '*/*' }, body: JSON.stringify(echo) })
       }
-      // Unexpected write-capable request — never reach the backend; record (redacted)
-      // and abort so the test fails loudly.
       ledger.unexpectedRequests.push({ method, table })
       return route.abort()
     }
 
-    // OPTIONS preflight etc. — answer locally, don't hit the network.
     return route.fulfill({ status: 204, body: '' })
   })
 

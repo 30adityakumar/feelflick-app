@@ -4,6 +4,16 @@ A walk-through of every screen a real user touches, in the order they touch them
 
 Last updated to reflect the v2 migration (May 2026) — every authenticated surface listed here is the v2 editorial design at its canonical path. Legacy v1 routes are preserved at `/x-legacy` for emergency rollback.
 
+> **Current runtime vs. target product direction.** This walk-through describes the
+> app **as it exists today**, which still reflects parts of the former single-pick
+> model (Home/Tonight leads with one "Briefing" pick over an invisible queue;
+> Discover resolves to one film). It is a current-runtime description, **not** product
+> authority. The canonical product definition — personal movie discovery across three
+> complementary modes (Made for you · Tuned to the moment · Yours to explore) with
+> bounded choice — lives in [product-doctrine.md](product-doctrine.md) (rationale:
+> [ADR 020](decisions/020-personal-movie-discovery-and-bounded-choice.md)). Single-pick
+> behavior described below is current runtime pending migration, not the target.
+
 ---
 
 ## 0 · Entry point

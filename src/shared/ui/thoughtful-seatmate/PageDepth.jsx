@@ -4,30 +4,17 @@ import './PageDepth.css'
 const DEPTHS = new Set(['radial', 'linear', 'none'])
 
 /**
- * PageDepth — the one neutral background-depth primitive.
+ * PageDepth — optional large-surface staging.
  *
- * Paints a near-black → warm-graphite tonal transition for large page / hero /
- * immersive-modal / large-section backgrounds. This is a NEUTRAL atmospheric
- * treatment, NOT a brand gradient and NOT a replacement for the retired legacy
- * purple→pink gradient. It carries no meaning, has no animation, no glow, and no
- * rose/purple/pink/contextual color. Under forced-colors it collapses to the
- * system Canvas. It does not intercept pointer events (children interact normally).
- *
- * Do NOT use it inside cards, on buttons, chips, nav, selected/semantic states, or
- * as a decorative glow — keep contained surfaces solid (see Surface).
- *
- * @param {object} props
- * @param {'radial'|'linear'|'none'} [props.depth='radial'] radial is preferred;
- *   linear only where geometry requires it; none = solid canvas.
- * @param {React.ElementType} [props.as='div']
- * @param {string} [props.className]
- * @param {object} [props.style]
+ * Flat ink (`none`) is the default. Radial and linear recipes are reserved for
+ * a soft introduction, one focal film, or an immersive modal. They must not be
+ * used inside cards, buttons, chips, navigation, or semantic states.
  */
 const PageDepth = forwardRef(function PageDepth(
-  { depth = 'radial', as: Tag = 'div', className = '', style, children, ...props },
+  { depth = 'none', as: Tag = 'div', className = '', style, children, ...props },
   ref,
 ) {
-  const d = DEPTHS.has(depth) ? depth : 'radial'
+  const d = DEPTHS.has(depth) ? depth : 'none'
   return (
     <Tag
       ref={ref}

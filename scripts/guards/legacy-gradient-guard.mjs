@@ -72,6 +72,65 @@ const PURITY_PATTERNS = [
   [/var\(\s*--context-/gi, 'contextual-color var (deferred — not implemented)'],
 ]
 
+// === Stage 5 — migrated-surface purity + adopter allowlist ===================
+//
+//   C. MIGRATED-SURFACE PURITY — the RENDERED files of each migrated production
+//      surface (Tonight, Film File) must stay free of the legacy editorial font,
+//      purple/pink chrome, and contextual/poster colour, so a migrated surface can
+//      never regress. Zero-tolerance (these files are clean today). Data/hook
+//      modules carry avatar/mood IDENTITY colours that are NOT chrome and are out of
+//      scope; `home/sections-bottom.jsx` mixes rendered + still-deferred non-rendered
+//      components, so its rendered exports are covered by a per-function slice in the
+//      Stage 2 test instead of a whole-file scan here.
+//
+//   D. ADOPTER ALLOWLIST — only the authorized surfaces may import the foundation.
+//      A new production adopter outside the allowlist FAILS (mirrors the foundation
+//      purity test, enforced here too). Grow ADOPTERS + MIGRATED_FILES one stage at
+//      a time as each surface migrates.
+const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/']
+const ADOPTER_EXEMPT = [
+  'src/shared/ui/thoughtful-seatmate', // the foundation itself
+  'src/features/design-lab/thoughtful-seatmate-foundations', // dev-only showcase
+]
+const FOUNDATION_IMPORT = /['"]@\/shared\/ui\/thoughtful-seatmate(['"/]|$)/
+const MIGRATED_FILES = [
+  // Tonight (Stage 2) — rendered presentational files (sections-bottom is excluded:
+  // it mixes rendered exports + deferred non-rendered components; the Stage 2 test
+  // slice-checks its rendered exports).
+  'src/features/home/Home.jsx',
+  'src/features/home/sections-top.jsx',
+  'src/features/home/WhyThisPick.jsx',
+  'src/features/home/atoms.jsx',
+  'src/features/home/home.css',
+  // Film File (Stage 3)
+  'src/features/movie/MovieDetail.jsx',
+  'src/features/movie/sections-top.jsx',
+  'src/features/movie/sections-bottom.jsx',
+  'src/features/movie/PrimaryCaseCard.jsx',
+  'src/features/movie/ViewerNotes.jsx',
+  'src/features/movie/components/DecisionEvidence.jsx',
+  'src/features/movie/components/SocialContext.jsx',
+  'src/features/movie/components/ExplorationTail.jsx',
+  'src/features/movie/components/FilmFileDisclosure.jsx',
+  'src/features/movie/components/AccessibleMediaDialog.jsx',
+  'src/features/movie/movie.css',
+  // Library family (Stage 6) — the Watchlist route. The SHARED LibrarySectionNav
+  // (src/features/library/library.css) is migrated via backward-compatible scoped
+  // `var(--ts-*, <legacy>)` fallbacks so History (no .ts-root) stays byte-identical;
+  // it keeps legacy fallbacks for that reason, so it is intentionally NOT listed here.
+  'src/features/watchlist/Watchlist.jsx',
+  'src/features/watchlist/watchlist.css',
+]
+const MIGRATED_PURITY = [
+  [/var\(\s*--font-editorial\)/gi, 'editorial font var (migrated surfaces are Inter-only)'],
+  [/font-family\s*:[^;}]*(Newsreader|Outfit)/gi, 'legacy font (Newsreader/Outfit)'],
+  [/['"](Newsreader|Outfit)['"]/g, 'legacy font literal (Newsreader/Outfit)'],
+  [/#(9333ea|ec4899|a78bfa|7c3aed)\b/gi, 'purple/pink chrome hex'],
+  [/\bHP\.(purple|pink|purpleDeep)\b/g, 'legacy HP purple/pink chrome'],
+  [/\bFILM_PALETTE\b/g, 'poster/mood contextual colour (deferred — forbidden)'],
+  [/var\(\s*--context-/gi, 'contextual-color var (deferred)'],
+]
+
 async function walk(dir, acc = []) {
   let entries
   try { entries = await readdir(dir, { withFileTypes: true }) } catch { return acc }
@@ -128,6 +187,37 @@ async function scanPurity() {
   return violations
 }
 
+// C. Migrated-surface purity (zero-tolerance over an explicit rendered-file list).
+async function scanMigratedSurfaces() {
+  const violations = []
+  for (const relPath of MIGRATED_FILES) {
+    let text
+    try { text = await readFile(join(ROOT, relPath), 'utf8') } catch { continue }
+    for (const [re, label] of MIGRATED_PURITY) {
+      const m = text.match(re)
+      if (m) violations.push({ file: relPath, label, sample: m[0] })
+    }
+  }
+  return violations
+}
+
+// D. Adopter allowlist — only ADOPTERS (+ the foundation + showcase) may import the
+// Stage 1 foundation. Any other production file importing it FAILS.
+async function scanAdopters() {
+  const files = await walk(join(ROOT, 'src'))
+  const offenders = []
+  for (const f of files) {
+    const r = rel(f)
+    if (!/\.(jsx?)$/.test(r) || r.includes('/__tests__/')) continue
+    if (inAny(r, ADOPTER_EXEMPT)) continue
+    if (ADOPTERS.some((a) => r.startsWith(a))) continue
+    let text
+    try { text = await readFile(f, 'utf8') } catch { continue }
+    if (FOUNDATION_IMPORT.test(text)) offenders.push(r)
+  }
+  return offenders
+}
+
 async function main() {
   const update = process.argv.includes('--update-baseline')
   const current = await scanAppWide()
@@ -155,12 +245,18 @@ async function main() {
   const purity = await scanPurity()
   for (const v of purity) failures.push(`Stage-1 PURITY violation in ${v.file}: ${v.label} ("${v.sample}"). The Thoughtful Seatmate foundation must use only the scoped --ts-* tokens (Inter only; no legacy gradient/purple/pink/Newsreader/Outfit/contextual color).`)
 
+  const migrated = await scanMigratedSurfaces()
+  for (const v of migrated) failures.push(`MIGRATED-SURFACE regression in ${v.file}: ${v.label} ("${v.sample}"). A migrated Thoughtful Seatmate surface must stay Inter-only / ivory / neutral — no editorial font, purple/pink chrome, or contextual/poster colour.`)
+
+  const adopters = await scanAdopters()
+  for (const r of adopters) failures.push(`UNAUTHORIZED foundation adopter: ${r} imports @/shared/ui/thoughtful-seatmate but is not an authorized adopter (${ADOPTERS.join(', ')} + the dev showcase). Migrate it under its own gated stage + add it to the guard's ADOPTERS/MIGRATED_FILES.`)
+
   if (failures.length) {
     console.error('✗ legacy-gradient / Stage-1 purity guard FAILED:\n' + failures.map((f) => '  • ' + f).join('\n'))
     process.exit(1)
   }
   const total = Object.values(current).reduce((a, b) => a + b, 0)
-  console.log(`✓ legacy-gradient guard passed (${Object.keys(current).length} baselined files / ${total} allowlisted occurrences unchanged; Stage-1 namespace pure)`)
+  console.log(`✓ foundation guard passed (legacy-gradient: ${Object.keys(current).length} baselined files / ${total} occ unchanged; Stage-1 namespace pure; ${MIGRATED_FILES.length} migrated-surface files clean; adopter allowlist = ${ADOPTERS.join(' + ')} + showcase)`)
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

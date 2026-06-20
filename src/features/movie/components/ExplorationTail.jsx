@@ -10,7 +10,21 @@
 // + director arrays + their ordering are unchanged (presentation only).
 
 import FilmFileDisclosure from './FilmFileDisclosure'
-import { HP, ROSE, RADIUS } from '../data'
+import { HP as HP_BASE, RADIUS } from '../data'
+
+const HP = {
+  ...HP_BASE,
+  panel: 'var(--ts-surface-1, #1d1814)',
+  border: 'var(--ts-border-subtle, #302c28)',
+  borderStrong: 'var(--ts-border-strong, #46423d)',
+  text: 'var(--ts-text-primary, #f3ecdf)',
+  textSoft: 'var(--ts-text-secondary, #beb8ad)',
+  textMuted: 'var(--ts-text-muted, #8d887f)',
+  textFaint: 'var(--ts-text-muted, #8d887f)',
+  purple: 'var(--ts-text-secondary, #beb8ad)',
+  purpleDeep: 'var(--ts-text-muted, #8d887f)',
+  pink: 'var(--ts-text-secondary, #beb8ad)',
+}
 
 const MAX = 4
 
@@ -43,7 +57,7 @@ function PosterButton({ title, year, dir, why, yourRating, poster, tmdbId, onOpe
 function Subsection({ kicker, children }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: ROSE, margin: '0 0 16px 0' }}>{kicker}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', margin: '0 0 16px 0' }}>{kicker}</div>
       <div className="ff-movie-explore-grid">{children}</div>
     </div>
   )

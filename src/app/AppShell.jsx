@@ -105,9 +105,7 @@ export default function AppShell() {
     <div className="relative min-h-screen text-white">
       {/* Page background */}
       <div aria-hidden className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-black" />
-        <div className="absolute -top-60 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-purple-500/8 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-pink-500/6 blur-[100px] pointer-events-none" />
+        <div className="absolute inset-0" style={{ background: 'var(--color-canvas, #15120f)' }} />
       </div>
 
       {/* Header - Fixed at top with smart hide */}
@@ -169,7 +167,7 @@ function PendingDeletionBanner() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 16,
-        fontFamily: 'Outfit, Inter, sans-serif',
+        fontFamily: 'Inter, sans-serif',
         fontSize: 13,
         flexWrap: 'wrap',
         backdropFilter: 'blur(8px)',
@@ -188,7 +186,7 @@ function PendingDeletionBanner() {
           background: '#fff',
           color: '#b91c1c',
           border: 'none',
-          fontFamily: 'Outfit, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           fontSize: 12,
           fontWeight: 700,
           letterSpacing: '0.04em',
@@ -247,13 +245,13 @@ function MobileNavLink({ to, icon: Icon, label, onClick }) {
       <div className={`relative flex items-center justify-center transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
         <Icon
           className={`h-5 w-5 transition duration-200 ${
-            isActive ? 'stroke-[2.5] drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'stroke-[1.8]'
+            isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'
           }`}
-          style={isActive ? { color: 'var(--purple-400)' } : {}}
+          style={isActive ? { color: 'var(--color-text-primary, #f3ecdf)' } : {}}
         />
       </div>
       <span className={`text-[10px] leading-none font-medium transition-colors duration-200 ${
-        isActive ? 'text-purple-300' : ''
+        isActive ? 'text-white' : ''
       }`}>
         {label}
       </span>
@@ -303,7 +301,7 @@ function RouteLoadingIndicator() {
       role="progressbar"
       aria-label="Loading page"
     >
-      <div className="feelflick-route-progress h-full bg-linear-to-r from-purple-600 to-pink-500" />
+      <div className="feelflick-route-progress h-full" style={{ background: 'var(--color-brand-rose, #dd4e83)' }} />
     </div>
   )
 }

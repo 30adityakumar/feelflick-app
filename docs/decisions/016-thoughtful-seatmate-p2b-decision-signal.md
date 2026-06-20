@@ -1,6 +1,11 @@
 # ADR 016 — Thoughtful Seatmate P2B: Ivory-Only Decision Signal
 
-**Status:** Accepted
+> ✅ **Principle preserved, value refined by [ADR 021](021-adaptive-editorial-cinema-foundation.md).**
+> The decision/selection signal remains **neutral paper-white + redundant non-color cues —
+> never the brand accent**. Only the exact ivory hex is refreshed to the Adaptive Editorial
+> Cinema paper-white (`#f5f2eb`).
+
+**Status:** Accepted (neutral-signal principle preserved; ivory value refined by ADR 021)
 **Date:** 2026-06-15
 **Decided by:** Aditya Kumar, informed by one completed AI-assisted blind review of the anonymized **v2** P2B evidence bundle, followed by objective reconciliation. The v2 blind scorecard was locked **before** the v2 objective evidence was opened, and the authoritative v2 variant→treatment mapping was revealed **only after** reconciliation.
 

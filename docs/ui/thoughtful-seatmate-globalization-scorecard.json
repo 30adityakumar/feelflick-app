@@ -1,0 +1,53 @@
+{
+  "_comment": "Stage 4 globalization-readiness scorecard. Evidence-derived (direct repository inspection at main e91cb1b4). Not authorization; gates token globalization. See thoughtful-seatmate-stage4-globalization-readiness.md.",
+  "decision": "READY WITH BLOCKERS",
+  "reviewedMainSha": "e91cb1b4987f2cdc14916ec9217f10315d5a2a63",
+  "pilots": ["src/features/home", "src/features/movie"],
+  "authorizedAdopters": ["src/features/home/", "src/features/movie/", "src/features/design-lab/thoughtful-seatmate-foundations"],
+  "guardBaseline": { "files": 6, "occurrences": 16 },
+  "primitives": {
+    "validatedByBothPilots": ["ThoughtfulRoot", "PageDepth", "PrimaryAction"],
+    "validatedByOnePilot": ["Surface"],
+    "unvalidated": ["Text", "DecisionMarker", "BrandMark", "BrandLink", "BrandSignature"]
+  },
+  "tokensUnused": ["surface-raised", "brand-rose", "brand-rose-contrast", "decision", "page-depth-linear"],
+  "criteria": [
+    { "id": 1, "name": "both pilots use same values without override", "score": "PASS" },
+    { "id": 2, "name": "no repeated accessibility workaround", "score": "FAIL" },
+    { "id": 3, "name": "no primitive API defect", "score": "PARTIAL" },
+    { "id": 4, "name": "no unresolved naming ambiguity", "score": "PARTIAL" },
+    { "id": 5, "name": "no repeated surface-local token duplication", "score": "PARTIAL" },
+    { "id": 6, "name": "stable visual baselines", "score": "PARTIAL" },
+    { "id": 7, "name": "deterministic CI", "score": "PARTIAL" },
+    { "id": 8, "name": "rollback plan", "score": "PASS" },
+    { "id": 9, "name": "migration map", "score": "PASS" },
+    { "id": 10, "name": "global shell audit", "score": "NOT TESTED" },
+    { "id": 11, "name": "global contrast audit", "score": "PARTIAL" },
+    { "id": 12, "name": "legacy debt inventory", "score": "PASS" },
+    { "id": 13, "name": "no contextual-colour dependency", "score": "PASS" },
+    { "id": 14, "name": "no poster-derived styling dependency", "score": "PASS" },
+    { "id": 15, "name": "no route-specific token semantics behind generic names", "score": "PARTIAL" }
+  ],
+  "blockers": [
+    "B1 repeated accessibility workarounds (rose-small-text removal + muted->secondary promotion) need central resolution",
+    "B2 five primitives unvalidated by production (Text, DecisionMarker, BrandMark, BrandLink, BrandSignature)",
+    "B3 token-name collision with existing global --brand-*/--bg-*/--font-*/--purple-*/--pink- system",
+    "B4 guard does not detect editorial-font / general purple chrome / contextual colour",
+    "B5 under-exercised tokens (surface-raised, brand-rose, brand-rose-contrast, decision, page-depth linear)"
+  ],
+  "nonBlockingFollowups": [
+    "F1 refresh stale Darwin baselines for Tonight + Film File",
+    "F2 isolated de-flake of e2e/app/discover.e2e.js:211 (watch home-focus.e2e.js:42)",
+    "F3 add authenticated visual coverage to uncovered low-risk surfaces before migrating them"
+  ],
+  "safestNextStage": "foundation-hardening (resolve B1-B5; no surface migration; no :root change), then the Library local pilot",
+  "globalizationLevelRecommendation": "stay at Level 1-2 (foundation availability + per-route local adoption); do not do Level 3 (shell), 4 (:root promotion), or 5 (legacy retirement) next",
+  "prohibitedNext": [
+    "direct :root promotion of --ts-* tokens",
+    "shell-wide palette rewrite",
+    "deleting legacy tokens",
+    "contextual-colour / poster-derived rollout",
+    "simultaneous migration of multiple large routes",
+    "token globalization while any blocker is open"
+  ]
+}

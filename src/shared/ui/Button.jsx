@@ -1,44 +1,22 @@
 import { forwardRef } from 'react'
+import './Button.css'
 
 const VARIANTS = {
-  primary: 'rounded-full bg-linear-to-r from-purple-600 to-pink-500 text-white shadow-lg shadow-purple-500/20 hover:brightness-110 motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.97]',
-  secondary: 'rounded-full bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white hover:border-white/20',
-  ghost: 'rounded-full border border-purple-500/30 text-purple-400 hover:border-purple-400/50 hover:text-purple-300',
-  icon: 'rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-white/80 hover:bg-white/10 hover:text-white motion-safe:hover:scale-105 motion-safe:active:scale-95 flex items-center justify-center',
-  destructive: 'rounded-full bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40',
+  primary: 'rounded-xl border border-transparent bg-[var(--color-action-primary-fill,#f0ece4)] text-[var(--color-action-primary-text,#0f1010)] shadow-sm hover:brightness-95 motion-safe:active:translate-y-px',
+  secondary: 'rounded-xl border border-[var(--color-border-subtle,#3a3d41)] bg-[var(--color-surface-1,#171819)] text-[var(--color-text-secondary,#c9c5bc)] hover:border-[var(--color-border-strong,#747a82)] hover:bg-[var(--color-surface-2,#222427)] hover:text-[var(--color-text-primary,#f5f2eb)]',
+  ghost: 'rounded-xl border border-transparent bg-transparent text-[var(--color-text-secondary,#c9c5bc)] hover:border-[var(--color-border-subtle,#3a3d41)] hover:bg-[var(--color-surface-1,#171819)] hover:text-[var(--color-text-primary,#f5f2eb)]',
+  icon: 'rounded-full border border-[var(--color-border-subtle,#3a3d41)] bg-[var(--color-surface-1,#171819)] text-[var(--color-text-secondary,#c9c5bc)] hover:border-[var(--color-border-strong,#747a82)] hover:bg-[var(--color-surface-2,#222427)] hover:text-[var(--color-text-primary,#f5f2eb)] motion-safe:active:translate-y-px flex items-center justify-center',
+  destructive: 'rounded-xl border border-red-500/30 bg-red-500/10 text-red-300 hover:border-red-400/60 hover:bg-red-500/20',
 }
 
-// F12D: even, touch-comfortable height floor via min-height — sm 40 / md 44 / lg 48
-// (4px steps). `lg` was already 48px, so min-h-12 is a no-op floor → the /about lg
-// CTA stays render-identical (no visual-baseline change). Icon sizes match the floor.
 const SIZES = {
-  sm: { base: 'min-h-10 px-4 py-1.5 text-xs font-semibold', icon: 'h-10 w-10' },
+  sm: { base: 'min-h-11 px-4 py-2 text-xs font-semibold', icon: 'h-11 w-11' },
   md: { base: 'min-h-11 px-6 py-2.5 text-sm font-semibold', icon: 'h-11 w-11' },
   lg: { base: 'min-h-12 px-8 py-3 text-base font-bold', icon: 'h-12 w-12' },
 }
 
-const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50'
+const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transition-[background-color,border-color,color,filter,transform,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
 
-/**
- * Canonical button primitive — the one button system (F11B.1 pins this contract).
- *
- * Variants: `primary` (the one brand-gradient pill), `secondary`, `ghost`, `icon`,
- * `destructive` (alias of "danger"). Sizes: `sm` | `md` | `lg`. All variants are
- * fully-rounded (`rounded-full` ≈ RADIUS.pill), share the focus-visible purple ring,
- * the disabled (opacity) state, and the in-button micro-spinner (`loading`) — the one
- * sanctioned spinner per CLAUDE.md.
- *
- * Font: the base font is inherited Inter, which is correct under the F4 direction —
- * buttons are interface controls (Inter), not editorial voice (Newsreader). The old
- * "buttons should be Outfit" follow-up is retired with the rest of the Outfit system.
- *
- * @param {object} props
- * @param {'primary'|'secondary'|'ghost'|'icon'|'destructive'} [props.variant='secondary']
- * @param {'sm'|'md'|'lg'} [props.size='md']
- * @param {boolean} [props.fullWidth=false]
- * @param {boolean} [props.loading=false]  Shows the in-button spinner + disables.
- * @param {boolean} [props.disabled=false]
- */
 const Button = forwardRef(function Button({
   variant = 'secondary',
   size = 'md',
@@ -46,22 +24,30 @@ const Button = forwardRef(function Button({
   fullWidth = false,
   loading = false,
   disabled = false,
+  type,
   children,
   ...props
 }, ref) {
   const variantClass = VARIANTS[variant] || VARIANTS.secondary
-  const sizeClass = variant === 'icon' ? SIZES[size].icon : SIZES[size].base
+  const sizeKey = SIZES[size] ? size : 'md'
+  const sizeClass = variant === 'icon' ? SIZES[sizeKey].icon : SIZES[sizeKey].base
   const widthClass = fullWidth ? 'w-full' : ''
 
   return (
     <button
       ref={ref}
-      disabled={disabled || loading}
-      className={`${BASE} ${variantClass} ${sizeClass} ${widthClass} ${className}`.trim()}
+      type={type || 'button'}
       {...props}
+      disabled={disabled || loading}
+      aria-busy={loading ? true : props['aria-busy']}
+      data-loading={loading ? 'true' : undefined}
+      className={`ff-btn ${BASE} ${variantClass} ${sizeClass} ${widthClass} ${className}`.trim()}
     >
       {loading ? (
-        <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+        <>
+          <span className="ff-btn__spinner" aria-hidden="true" />
+          <span className="ff-btn__label" data-loading-label="true">{children}</span>
+        </>
       ) : children}
     </button>
   )

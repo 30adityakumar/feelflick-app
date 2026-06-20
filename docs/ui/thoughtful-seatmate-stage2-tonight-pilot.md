@@ -2,20 +2,19 @@
 
 ## 1. Status
 
-**Implemented. Behavior verified locally; authenticated visuals verified in CI. Not merged, not deployed.**
+**Implemented and visually validated. Behavior verified locally; authenticated visuals reviewed +
+baselines regenerated in CI; all required PR checks green. Not merged, not deployed.**
 The first production-surface pilot using the Stage 1 foundation (PR #308). Tonight (`/home`) is migrated to
 the consolidated Thoughtful Seatmate visual system **locally** (a scoped `<ThoughtfulRoot>` boundary — no
 global token change). All recommendation logic, analytics, routing, navigation, and product copy are
 preserved; only the visual layer changed. Film File and every other surface are untouched.
 
-> **Visual verification boundary:** the authenticated Tonight surface cannot be rendered without Supabase
-> test credentials, which are not available in the implementation environment. Per the agreed approach,
-> behavior is verified locally (the 10 Home unit suites + the full suite) and the **authenticated visual
-> evidence, the responsive visual matrix, and the visual-regression baseline regeneration happen in CI**
-> on the PR (the `visual-app` / `home.visual.js` project, which has the secrets). Because this is an
-> intentional visual change, the **existing committed home visual baselines will mismatch and the
-> "Visual Regression — Authenticated App" check will fail until the baselines are regenerated**
-> (`npm run test:visual:home:update`) in an environment with the auth state — this is expected.
+> **Visual verification (resolved — see §16):** the authenticated Tonight surface needs Supabase test
+> credentials (CI-only here), so the authenticated visual evidence + baseline regeneration ran in CI. The
+> intended change was reviewed against the `visual-diff-app` artifact (8/8 captures = intended migration),
+> the Linux authenticated Home baselines were regenerated via the repo's `visual-baselines/home-f47` flow
+> (`npm run test:visual:home:update`), and the **`Visual Regression — Authenticated App` check is now
+> green** (it failed first only because the committed baselines pre-dated this intended change).
 
 ## 2. Starting main SHA
 
@@ -89,6 +88,21 @@ fill `#efe7d7` / dark text `#221b13`). Its `onClick` (`handleOpen` → `recordRe
 keyboard behavior are unchanged. Secondary actions (Mark Watched / Save / Not tonight) remain the
 subordinate `SecondaryActionButton`s.
 
+> **Addendum — Slice D (canonical-Button consumer migration, current).** The Stage-2 pilot above adopted the
+> `<PrimaryAction>` wrapper, which is accurate for the pilot. After the Button ↔ PrimaryAction convergence
+> (Slices A/B) and the Watchlist migration (Slice C), **Home's *Open Film File* now renders the canonical
+> `<Button variant="primary">` directly** (`src/features/home/sections-top.jsx`) instead of the wrapper —
+> Home no longer imports the `PrimaryAction` component. The **exact compat structure is retained**:
+> `<Button variant="primary" size="md" className="ts-action-primary ts-action-primary--md flex-1
+> lg:flex-none …focus-ring…"><span><span>Open Film File</span><ChevronRight aria-hidden/></span></Button>`,
+> with `PrimaryAction.css` imported by Home itself, so the **DOM and visual output are unchanged**
+> (byte-identical, proven via Vite-SSR `renderToStaticMarkup` + a browser computed-style capture of the flat
+> recipe). The **authenticated Home visual suite passes without baseline regeneration** (zero-pixel). `onClick`
+> / outcome recording / navigation / accessible name / chevron / focus ring / responsive width are all
+> preserved. **Movie remains the final `PrimaryAction` wrapper consumer** (see
+> [`docs/ui/composition-system-ownership.md`](composition-system-ownership.md) → Status — Slice D). The
+> historical record above is unchanged and remains true for the pilot.
+
 ## 11. Decision-state migration
 
 Ivory-only. The MoodReactor pills' selected state drops the mood-hex tint/glow for an ivory keyline + ivory
@@ -139,13 +153,48 @@ wordmark. Every ivory text/border tone clears AA on canvas/surface-1/surface-2 (
 computation run during review). Full keyboard/SR/forced-colours/zoom/touch-target verification runs in CI
 on the authenticated surface.
 
-## 16. Visual evidence
+## 16. Visual evidence — authenticated baseline validation (CI close-out)
 
-The repository's authenticated visual harness (`e2e/visual-auth/home.visual.js`, `npm run test:visual:home`)
-captures the before/after + breakpoint states (briefing / adjusted-mood / quicklog / tail / provider-empty,
-desktop+mobile). These run **in CI on the PR** (secrets available). Locally, the authenticated surface is
-not renderable (no creds), so before/after PNGs are produced by that CI job, and the committed baselines
-must be regenerated as part of accepting this intended visual change.
+The authenticated harness (`e2e/visual-auth/home.visual.js`, `--project=visual-app`) captures eight
+deterministic Tonight states — briefing, adjusted-mood, provider-empty, and the QuickLog/Discover tail —
+across desktop (1280×720) and mobile (390×844), under a fixed clock + seeded RNG + reduced motion + a full
+read/write/TMDB interception fixture (`installHomeFixture`), so the route is offline and reproducible.
+
+**Reviewed run:** `27703431903` ("Visual & A11y Regression", PR #309, head `29ab3eee`) — the
+`Visual Regression — Authenticated App` job failed as expected on the intended visual change. **Artifact:**
+`visual-diff-app` (id `7701448696`, digest
+`sha256:9fdd8bb8f9e75db09e4d9966dc8c87749794c04f72d99588e567ac12880c0ce3`), confirmed to belong to
+`29ab3eee`. Every diff was inspected against its `expected` / `actual` (8 distinct captures = 4 desktop +
+4 mobile; 24 core PNGs reviewed; the artifact held 96 PNGs incl. retries / `test-failed` / `trace.zip`).
+
+**Classification:** 8 / 8 = **intended Tonight visual migration** (Newsreader→Inter reflow; rose/mood→ivory
+eyebrows + ivory-only selected pill; mood/rose canvas→neutral PageDepth; rose CTA border→graphite; the
+`HP.border` keyline→graphite; the one bounded rose `em` preserved). **0** unintended regressions, **0**
+unrelated / non-Tonight changes, **0** fixture/data instability, **0** capture instability. In every diff
+the global shell (wordmark + nav + search + avatar) and the fixture poster / SeenTile plates render
+unchanged (faded); honest copy ("Mock Stream", "Availability not found") is preserved; nothing is clipped
+at either width; the recommendation stays dominant; the primary CTA is projection-ivory; decisions are
+ivory-only; rose appears only as the large editorial `em`.
+
+**Regeneration (Linux):** via the repository's sanctioned `visual-baselines/home-f47` CI flow —
+`npm run test:visual:home:update` on the Linux runner with the configured secrets (run `27710655211`,
+both jobs green). The bot commit `5a0cea79` ("test(visual): regenerate Linux authenticated baselines")
+changed **only** the 8 `e2e/visual-auth/home.visual.js-snapshots/*-visual-app-linux.png` files — no source,
+config, Darwin, or other-surface baseline. Those 8 files were brought into the PR as commit `e69aed0d`.
+
+**Two-pass determinism:** PR run `27710930934` (compare mode, all authenticated surfaces) passed on
+attempt 1 **and** attempt 2 against the committed baselines, with the branch head unchanged (`e69aed0d`) —
+compare mode wrote nothing; the suite is deterministic, not threshold-masked, and no diff tolerance was
+relaxed.
+
+**Final result:** all required PR checks green on `e69aed0d` — Visual Regression, **Visual Regression —
+Authenticated App**, quality-gate (App Quality), CodeQL / Analyze, GitGuardian, E2E (Playwright),
+Lighthouse, Cloudflare Pages, Vercel (preview). PR #309 remains **OPEN / MERGEABLE / not merged**.
+
+**Darwin baselines are intentionally not regenerated here:** the local environment has no Supabase creds
+(the premise of this pilot) and macOS renders can only be produced locally — the CI gate is Linux, so the
+`*-visual-app-darwin.png` files remain at their pre-Stage-2 render and should be refreshed in a credentialed
+local run. This affects no CI gate.
 
 ## 17. Tests
 
@@ -180,9 +229,10 @@ foundation only locally via its own `<ThoughtfulRoot>` boundary.
 
 ## 20. Known limitations
 
-- Authenticated visual evidence + responsive visual matrix + a11y axe pass + baseline regeneration are
-  CI-only here (no local Supabase creds); the authenticated visual-regression check will fail on the PR
-  until baselines are regenerated for the intended change.
+- Authenticated visual evidence + baseline regeneration are CI-only here (no local Supabase creds).
+  **Resolved (§16):** the Linux authenticated Home baselines were regenerated in CI and the
+  `Visual Regression — Authenticated App` check is green. The `*-visual-app-darwin.png` baselines remain
+  at the pre-Stage-2 render (macOS-only, gated by no CI) pending a credentialed local refresh.
 - The non-rendered `sections-bottom.jsx` components — `ContinueWatching`, `CinematicDNA`, `TasteMatch`,
   `TasteTwinPulse`, `CuratedLists` — retain legacy styling (out of rendered scope; they migrate with their
   own routes). The rendered exports in that file (`SeenTile`/`QuickLog`/`PageEndCard`) are fully migrated

@@ -1,6 +1,11 @@
 # ADR 015 — Thoughtful Seatmate P2A: P1-Control Warm Graphite Foundation
 
-**Status:** Accepted
+> ⚠️ **Superseded in part by [ADR 021](021-adaptive-editorial-cinema-foundation.md).** The
+> concrete warm-graphite / projection-ivory foundation *values* accepted here are replaced
+> by Adaptive Editorial Cinema's deep-neutral-ink + paper-white palette. Method and rationale
+> preserved as history. ADR 014 (Inter) is unaffected.
+
+**Status:** Accepted (foundation values superseded by ADR 021)
 **Date:** 2026-06-14
 **Decided by:** Aditya Kumar, informed by one completed AI-assisted blind review of the anonymized P2A evidence bundle followed by objective reconciliation. The blind scorecard and objective reconciliation were completed and locked **before** the variant→candidate mapping was revealed.
 

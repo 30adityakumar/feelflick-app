@@ -83,7 +83,7 @@
 .ff-people-hidebtn:focus-visible,
 .ff-people-invite-btn:focus-visible,
 .ff-people-clear-btn:focus-visible {
-  outline: 2px solid #A78BFA;
+  outline: 2px solid var(--color-focus, #f3ecdf);
   outline-offset: 2px;
   border-radius: 999px;
 }
@@ -91,9 +91,9 @@
 
 /* F8.7 — the search input had outline:none inline; give it an explicit, branded focus ring + border. */
 .ff-people-search-input:focus-visible {
-  outline: 2px solid #A78BFA;
+  outline: 2px solid var(--color-focus, #f3ecdf);
   outline-offset: 1px;
-  border-color: rgba(167, 139, 250, 0.6);
+  border-color: var(--color-border-strong, #46423d);
 }
 
 /* F8.7 — reduced motion: People adds NO JS animation. The only motion is the button hover-brightness

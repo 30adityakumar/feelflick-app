@@ -1,5 +1,15 @@
 # `/discover` — Private-Beta Readiness (F3.12)
 
+> ⚠️ **Historical record — superseded product framing.** This note's "one
+> evidence-backed recommendation" / "no visible alternates" Discover product framing
+> is **no longer current product authority**. Discover's target is now a **small,
+> focused, finite selection** (Tuned to the moment), not exactly one film — see
+> [../product-doctrine.md](../product-doctrine.md) (rationale:
+> [ADR 020](../decisions/020-personal-movie-discovery-and-bounded-choice.md)). This
+> document is preserved as an accurate account of the F3.12 state as shipped; its body
+> is intentionally not rewritten. The shipped one-pick result remains current runtime,
+> being migrated separately.
+
 **Status:** READY FOR PRIVATE/BETA TESTING — no P0, no functional P1 blocker.
 **Not yet:** unrestricted public-production readiness — the browser-evidence gate (a real intercepted-backend e2e + authenticated visuals) is now **met** (F3.13, see below); the remaining public-production work is operational (beta feedback + monitoring), not test coverage.
 **Date:** 2026-06 · supersedes nothing; closes the F3.2–F3.12 `/discover` redesign arc.

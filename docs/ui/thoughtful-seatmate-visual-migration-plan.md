@@ -1,5 +1,13 @@
 # FeelFlick — Thoughtful Seatmate Visual Migration Plan
 
+> **SUPERSEDED (2026-06-18).** The staged, surface-by-surface migration described below was replaced by a
+> single **website-wide globalization** (one canonical `.theme-thoughtful` root + `--color-*` source of
+> truth + compatibility aliases + `VITE_UI_THEME` rollback) — see
+> [ADR 019](../decisions/019-thoughtful-seatmate-website-wide-theme.md) and
+> [`thoughtful-seatmate-website-wide-migration.md`](thoughtful-seatmate-website-wide-migration.md). The
+> "one surface group at a time" sequencing and per-surface gates below are now **historical**; the Target
+> section still describes the (now-shipped) visual system accurately.
+
 > **This is a plan. It is not executed here, and it authorizes no production change.**
 > It stages the eventual surface migration toward the system consolidated in
 > [`thoughtful-seatmate-visual-system-closure.md`](thoughtful-seatmate-visual-system-closure.md).
@@ -123,6 +131,18 @@ confirm intentional; review desktop + mobile; re-baseline deliberately, never to
 
 ## Stage 4 — Film File (pilot B)
 
+> **Status: IMPLEMENTED (the "Stage 3 — Film File pilot"), not merged.** Branch
+> `migration/thoughtful-seatmate-film-file-pilot` off `origin/main` `3c0c561f` (main after the Tonight
+> pilot #309). Film File (`/movie/:id`) activates the foundation locally via `<ThoughtfulRoot>` +
+> `<PageDepth>`; Inter-only, neutral ivory `PrimaryAction` ("Play Trailer"), `Surface` for the leading case
+> card (the `AccentPanel` purple gradient is retired), ivory-only committed states, bounded rose, and the
+> poster/mood-derived `FILM_PALETTE` colour fully removed from the chrome (no contextual aura). Behavior
+> preserved (full Film File suites green; 1582 tests). Authenticated visual evidence + baseline
+> regeneration are verified in CI. Details:
+> [`thoughtful-seatmate-stage3-film-file-pilot.md`](thoughtful-seatmate-stage3-film-file-pilot.md). Both
+> pilots (Tonight + Film File) now validate; **token globalization is still deferred** to its own later
+> stage (gate 5) — implemented in **no** pilot PR.
+
 - **Current typography:** Inter body + Newsreader headings; long-form prose already Inter (P2D).
 - **Current background:** warm dark; PrimaryCaseCard uses a tone-driven gradient surface.
 - **Current accent/gradient:** AccentPanel `gradient` variant (tone wash), match-badge, chips.
@@ -134,10 +154,27 @@ confirm intentional; review desktop + mobile; re-baseline deliberately, never to
 - **Expected affected files:** `src/features/movie/*` (PrimaryCaseCard, AccentPanel usage, DnaConfidence).
 - **Must not change functionally:** Film File data, critic-quote→ViewerNotes mapping, DnaConfidence formula.
 
-> **Promotion checkpoint:** after Stages 3 and 4 both validate (visual + a11y, desktop + mobile),
-> promote the Stage 1 token/primitive layer to global defaults. Stages 5–12 consume the promoted layer.
+> **Promotion checkpoint — STATUS: REVIEWED, verdict READY WITH BLOCKERS (not merged).** The
+> two-pilot consolidation & globalization-readiness review (branch
+> `migration/thoughtful-seatmate-globalization-readiness`, off `origin/main` `e91cb1b4`) is **IMPLEMENTED
+> (docs-only), not merged**. Both pilots validated for *local* adoption (same `--ts-*` values, no override,
+> no primitive redesign, live + CI-green), but token globalization is **gated** on five blockers (repeated
+> a11y workarounds; 5/9 primitives unvalidated; a `--ts-*` ↔ `--brand-*/--bg-*/--font-*` collision; an
+> insufficient guard; under-exercised tokens). **Do not promote tokens to `:root` yet.** Safest next:
+> a foundation-hardening stage, then the **Library** local pilot. Details +
+> scorecard: [`thoughtful-seatmate-stage4-globalization-readiness.md`](thoughtful-seatmate-stage4-globalization-readiness.md).
+> Stages 5–12 continue as **scoped/local** per-route adoption (Level 1–2) until the blockers close.
 
 ## Stage 5 — Library / Browse
+
+> **Status: Library family PARTIALLY IMPLEMENTED (the program's "Stage 6 — Watchlist"), not merged.** The
+> authenticated **Watchlist** route (`/watchlist`, `src/features/watchlist`) is migrated on branch
+> `migration/thoughtful-seatmate-stage6-library` (off `origin/main` `85fa89c8`) via a local `<ThoughtfulRoot>`
+> boundary; the shared `LibrarySectionNav`/`library.css` is migrated through backward-compatible scoped
+> fallbacks (History stays byte-identical). **Browse** + saved-film **collections** (`collection/:id`, which
+> are browse-owned) remain unmigrated. Details:
+> [`thoughtful-seatmate-stage6-library.md`](thoughtful-seatmate-stage6-library.md). Token globalization still
+> deferred (Stage 13).
 
 - **Current typography:** Inter-dominant with residual legacy styling.
 - **Current background:** legacy base; grid/rail surfaces.

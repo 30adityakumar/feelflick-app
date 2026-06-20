@@ -22,8 +22,8 @@
     <link rel="terms-of-service" href="https://app.feelflick.com/terms" />
     <meta name="keywords" content="movies, mood-based recommendations, movie discovery, watchlist, film finder, what to watch" />
     <meta name="author" content="FeelFlick" />
-    <meta name="theme-color" content="#a855f7" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#ec4899" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15120f" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#15120f" media="(prefers-color-scheme: light)" />
 
     <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="mx9Z6Q3XxD92mxS8GWHERBFrb8WdwWLv3WJj_R1AePg" />
@@ -56,14 +56,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <!-- crossorigin="anonymous" is mandatory: woff2 fetches are CORS and must reuse this connection -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <!-- Google Fonts — loaded via <link> (faster than CSS @import).
-         Inter = body/UI; Outfit = the existing display face (--font-display);
-         Newsreader = the editorial "curator" voice (real italics + optical sizes),
-         introduced for the /home Briefing (F1) per design-system.md. One request,
-         all three families. Newsreader is scoped to editorial moments (Briefing
-         title + the case) via --font-editorial — it is NOT a global default. -->
+    <!-- Google Fonts — Inter only. The Thoughtful Seatmate website theme is
+         Inter-everywhere; the legacy editorial display faces are retired site-wide
+         (--font-editorial / --font-display now resolve to Inter), so they are no
+         longer loaded. -->
     <link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Outfit:wght@200;300;400;500;600;700&display=swap" />
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
 
     <!-- Structured Data (JSON-LD) for SEO -->
     <script type="application/ld+json">
@@ -104,16 +102,16 @@
   </head>
   <body>
     <!-- App Root -->
-    <div id="root" style="background:#06060a;min-height:100vh">
+    <div id="root" style="background:#15120f;min-height:100vh">
   <!-- Pre-hydration content for crawlers. React replaces this on mount. -->
   <div id="prerender-content" style="position:absolute;left:-99999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none" aria-hidden="true">
-    <h1 style="font-size:2.25rem;font-weight:700;margin-bottom:1rem;background:linear-gradient(135deg,#9333ea,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">FeelFlick — The right film. Right now.</h1>
+    <h1 style="font-size:2.25rem;font-weight:700;margin-bottom:1rem;color:#f3ecdf">FeelFlick — The right film. Right now.</h1>
     <p style="font-size:1.125rem;color:#cbd5e1;margin-bottom:1.5rem">Films that know you. Tuned to your mood, your taste, and everything you've ever loved on screen. FeelFlick is a free mood-first movie discovery platform — one pick a night, with the article that makes its case. No ads, no upsells, no algorithm tax.</p>
     <p style="font-size:1rem;color:#94a3b8;margin-bottom:2rem">FeelFlick requires JavaScript. Please enable it to continue, or use one of the links below.</p>
     <nav style="font-size:0.95rem">
-      <a href="https://app.feelflick.com/about" style="color:#c4b5fd;margin-right:1.5rem">About FeelFlick</a>
-      <a href="https://app.feelflick.com/privacy" style="color:#c4b5fd;margin-right:1.5rem">Privacy Policy</a>
-      <a href="https://app.feelflick.com/terms" style="color:#c4b5fd">Terms of Service</a>
+      <a href="https://app.feelflick.com/about" style="color:#beb8ad;margin-right:1.5rem">About FeelFlick</a>
+      <a href="https://app.feelflick.com/privacy" style="color:#beb8ad;margin-right:1.5rem">Privacy Policy</a>
+      <a href="https://app.feelflick.com/terms" style="color:#beb8ad">Terms of Service</a>
     </nav>
   </div>
 </div>
@@ -123,14 +121,14 @@
     
     <!-- Fallback for No JavaScript -->
     <noscript>
-  <div style="max-width:720px;margin:0 auto;padding:4rem 1.5rem;background:#06060a;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6">
-    <h1 style="font-size:2.25rem;font-weight:700;margin-bottom:1rem;background:linear-gradient(135deg,#9333ea,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">FeelFlick — The right film. Right now.</h1>
+  <div style="max-width:720px;margin:0 auto;padding:4rem 1.5rem;background:#15120f;color:#f3ecdf;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6">
+    <h1 style="font-size:2.25rem;font-weight:700;margin-bottom:1rem;color:#f3ecdf">FeelFlick — The right film. Right now.</h1>
     <p style="font-size:1.125rem;color:#cbd5e1;margin-bottom:1.5rem">Films that know you. Tuned to your mood, your taste, and everything you've ever loved on screen. FeelFlick is a free mood-first movie discovery platform — one pick a night, with the article that makes its case.</p>
     <p style="font-size:1rem;color:#94a3b8;margin-bottom:2rem">FeelFlick requires JavaScript. Please enable it to continue.</p>
     <nav style="font-size:0.95rem">
-      <a href="https://app.feelflick.com/about" style="color:#c4b5fd;margin-right:1.5rem">About</a>
-      <a href="https://app.feelflick.com/privacy" style="color:#c4b5fd;margin-right:1.5rem">Privacy Policy</a>
-      <a href="https://app.feelflick.com/terms" style="color:#c4b5fd">Terms of Service</a>
+      <a href="https://app.feelflick.com/about" style="color:#beb8ad;margin-right:1.5rem">About</a>
+      <a href="https://app.feelflick.com/privacy" style="color:#beb8ad;margin-right:1.5rem">Privacy Policy</a>
+      <a href="https://app.feelflick.com/terms" style="color:#beb8ad">Terms of Service</a>
     </nav>
   </div>
 </noscript>

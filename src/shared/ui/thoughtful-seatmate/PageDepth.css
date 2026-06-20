@@ -1,29 +1,25 @@
-/* PageDepth — neutral background-depth primitive (Stage 1).
-   Near-black → warm-graphite tonal transition over the scoped surface tokens.
-   Neutral atmosphere only — NOT a brand gradient. No animation, no glow.
-   `var(--ts-*, <fallback>)` keeps it correct even outside a .ts-root. */
+/* Optional page staging. Flat ink is the default; atmosphere is opt-in. */
 
 .ts-page-depth {
   box-sizing: border-box;
-  background-color: var(--ts-canvas, #15120f);
+  background-color: var(--ts-canvas, #0f1010);
 }
 
 .ts-page-depth--radial {
   background-image: radial-gradient(
     circle at 50% 0%,
-    var(--ts-surface-2, #241e19) 0%,
-    var(--ts-surface-1, #1d1814) 38%,
-    var(--ts-canvas, #15120f) 100%
+    var(--ts-surface-2, #222427) 0%,
+    var(--ts-surface-1, #171819) 34%,
+    var(--ts-canvas, #0f1010) 78%
   );
 }
 
-/* Linear only where the surface geometry requires it. */
 .ts-page-depth--linear {
   background-image: linear-gradient(
     180deg,
-    var(--ts-surface-2, #241e19) 0%,
-    var(--ts-surface-1, #1d1814) 42%,
-    var(--ts-canvas, #15120f) 100%
+    var(--ts-surface-2, #222427) 0%,
+    var(--ts-surface-1, #171819) 38%,
+    var(--ts-canvas, #0f1010) 82%
   );
 }
 
@@ -31,8 +27,6 @@
   background-image: none;
 }
 
-/* The depth treatment carries no meaning — collapse to the system Canvas so it
-   never competes with forced-colors / high-contrast palettes. */
 @media (forced-colors: active) {
   .ts-page-depth {
     background-image: none;

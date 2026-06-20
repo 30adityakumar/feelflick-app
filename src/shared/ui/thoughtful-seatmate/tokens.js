@@ -1,66 +1,64 @@
-// === Thoughtful Seatmate — Stage 1 scoped foundation tokens =================
+// === FeelFlick — canonical Adaptive Editorial Cinema tokens =================
 //
-// SCOPED + ISOLATED. These are the accepted Thoughtful Seatmate target-system
-// values (visual-system closure: docs/ui/thoughtful-seatmate-visual-system-closure.md),
-// exported here as a feature-scoped token object following the repo's established
-// token pattern (named const exports, like HP / WARM / RADIUS in
-// src/shared/lib/tokens.js). They are NOT global, do NOT replace any existing
-// token, and are NOT imported by any production surface — only by the Stage 1
-// primitives in this directory and the dev-only showcase. They mirror, 1:1, the
-// `--ts-*` CSS custom properties declared in `./foundations.css` (scoped to the
-// `.ts-root` class, never `:root`).
+// CSS mirror: ./foundations.css. The website applies the theme once at the app
+// root; changing this contract and its CSS mirror propagates to every route.
 //
-// Stage 1 is foundations only: nothing here is adopted into a production page.
-// A future pilot (Tonight, then Film File) opts in by importing these primitives.
-//
-// HARD CONSTRAINTS (do not change in Stage 1):
-//   • exactly one restrained solid rose accent (`brandRose`); `brandRoseContrast`
-//     is ONLY the white-on-rose AA contrast variant, not a second accent identity
-//   • NO gradient token, NO decision-signal color token, NO contextual-film-color
-//     token, NO purple/plum target tokens
+// HARD CONSTRAINTS:
+//   • Inter is the single core typeface
+//   • deep neutral ink + paper-white text
+//   • neutral inverse primary action
+//   • one cinematic coral-red signature family, separate from semantic colors
+//   • no purple/plum target tokens and no brand-gradient token
+//   • flat canvas is the default; atmospheric depth is opt-in
 
-/**
- * Stage 1 (Thoughtful Seatmate) foundation tokens. Mirrors `.ts-root` in
- * `./foundations.css`. Consumed in JS inline styles; CSS consumers use `var(--ts-*)`.
- * @type {{
- *   canvas:string, surface1:string, surface2:string, surfaceRaised:string,
- *   textPrimary:string, textSecondary:string, textMuted:string,
- *   borderSubtle:string, borderStrong:string,
- *   actionPrimaryFill:string, actionPrimaryText:string, focus:string,
- *   brandRose:string, brandRoseContrast:string
- * }}
- */
-export const TS_TOKENS = {
-  // — Background depth + solid graphite surfaces (near-black → warm graphite) —
-  canvas: '#15120f',
-  surface1: '#1d1814',
-  surface2: '#241e19',
-  surfaceRaised: '#2d2621',
-  // — Projection-ivory text hierarchy —
-  textPrimary: '#f3ecdf',
-  textSecondary: '#beb8ad',
-  textMuted: '#8d887f',
-  // — Subtle graphite borders —
-  borderSubtle: '#302c28',
-  borderStrong: '#46423d',
-  // — Neutral primary action (projection-ivory fill, dark warm text) —
-  actionPrimaryFill: '#efe7d7',
-  actionPrimaryText: '#221b13',
-  // — Focus (projection ivory) —
-  focus: '#f3ecdf',
-  // — One restrained solid rose accent (+ white-on-rose contrast variant only) —
-  brandRose: '#dd4e83',
-  brandRoseContrast: '#c0356c',
+export const CANONICAL_THEME = {
+  colorCanvas: '#0f1010',
+  colorSurface1: '#171819',
+  colorSurface2: '#222427',
+  colorSurfaceRaised: '#2e3135',
+  colorTextPrimary: '#f5f2eb',
+  colorTextSecondary: '#c9c5bc',
+  colorTextMuted: '#a5a198',
+  colorBorderSubtle: '#3a3d41',
+  colorBorderStrong: '#747a82',
+  colorActionPrimaryFill: '#f0ece4',
+  colorActionPrimaryText: '#0f1010',
+  colorFocus: '#f5f2eb',
+  colorDecision: '#f5f2eb',
+  colorBrandAccent: '#e5636f',
+  colorBrandAccentText: '#ed7a87',
+  colorBrandAccentStrong: '#b83d4f',
+  fontUi: "'Inter', system-ui, -apple-system, sans-serif",
+  fontDisplay: "'Inter', system-ui, -apple-system, sans-serif",
 }
 
 /**
- * The neutral background-depth recipes (CSS strings), expressed over the scoped
- * surface tokens. This is a NEUTRAL atmospheric treatment, NOT a brand gradient
- * and NOT a replacement for the retired legacy purple→pink gradient. Radial is
- * preferred; linear is permitted only where the surface geometry requires it.
+ * Composition-scoped aliases consumed by the Thoughtful Seatmate primitives.
+ * The historical TS_TOKENS name remains to avoid a disruptive API rename.
+ */
+export const TS_TOKENS = {
+  canvas: CANONICAL_THEME.colorCanvas,
+  surface1: CANONICAL_THEME.colorSurface1,
+  surface2: CANONICAL_THEME.colorSurface2,
+  surfaceRaised: CANONICAL_THEME.colorSurfaceRaised,
+  textPrimary: CANONICAL_THEME.colorTextPrimary,
+  textSecondary: CANONICAL_THEME.colorTextSecondary,
+  textMuted: CANONICAL_THEME.colorTextMuted,
+  borderSubtle: CANONICAL_THEME.colorBorderSubtle,
+  borderStrong: CANONICAL_THEME.colorBorderStrong,
+  actionPrimaryFill: CANONICAL_THEME.colorActionPrimaryFill,
+  actionPrimaryText: CANONICAL_THEME.colorActionPrimaryText,
+  focus: CANONICAL_THEME.colorFocus,
+  brandAccent: CANONICAL_THEME.colorBrandAccent,
+  brandAccentText: CANONICAL_THEME.colorBrandAccentText,
+  brandAccentStrong: CANONICAL_THEME.colorBrandAccentStrong,
+}
+
+/**
+ * Opt-in soft-stage recipes. `none` is the default composition state.
  */
 export const TS_PAGE_DEPTH = {
-  radial: `radial-gradient(circle at 50% 0%, ${TS_TOKENS.surface2} 0%, ${TS_TOKENS.surface1} 38%, ${TS_TOKENS.canvas} 100%)`,
-  linear: `linear-gradient(180deg, ${TS_TOKENS.surface2} 0%, ${TS_TOKENS.surface1} 42%, ${TS_TOKENS.canvas} 100%)`,
+  radial: `radial-gradient(circle at 50% 0%, ${TS_TOKENS.surface2} 0%, ${TS_TOKENS.surface1} 34%, ${TS_TOKENS.canvas} 78%)`,
+  linear: `linear-gradient(180deg, ${TS_TOKENS.surface2} 0%, ${TS_TOKENS.surface1} 38%, ${TS_TOKENS.canvas} 82%)`,
   none: TS_TOKENS.canvas,
 }

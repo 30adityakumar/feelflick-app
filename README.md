@@ -1,19 +1,35 @@
 # FeelFlick
 
-**Mood-first, taste-deep movie discovery — one justified film for tonight, with the case for why it's the one.**
+**Movies, made personal.**
 
-FeelFlick turns *how you feel* into a single considered film for tonight — tuned
-to your mood and everything you've ever loved on screen — and it tells you *why*
-it's the pick. A recommendation you can trust, not a feed to scroll.
+FeelFlick is a **personal movie discovery platform** — it helps people discover
+movies through their **taste**, their **mood**, and their **curiosity**, and tells
+them *why* a film fits. The right amount of choice: not one mandatory pick, and not
+an endless feed to scroll.
 
-> **North Star / the wedge:**
-> *Mood-first, taste-deep — a single justified nightly pick that makes its case. Anti-scroll.*
+Three complementary ways to find a movie:
 
-Mood is the front door; your taste (your "Cinematic DNA") is the house; the
-editorial case for each pick is the moat. One film a night — made for the
-patient, not the scrollers.
+- **Made for you** (Home) understands the person — personalized to taste, history,
+  ratings, saves, skips, and Cinematic DNA. It may lead with a prominent hero
+  recommendation, but it isn't restricted to one movie.
+- **Tuned to the moment** (Discover) understands the moment — mood- and
+  situation-based, returning a small, focused, finite selection.
+- **Yours to explore** (Browse) follows explicit curiosity — direct filters
+  (genre, language, year, runtime, rating, people, availability, collections).
 
-The full product doctrine lives in [docs/product-doctrine.md](docs/product-doctrine.md).
+Personalization combines taste and context; every recommendation is explained from
+real signals; **Cinematic DNA** is a living, evolving picture of your taste — never
+fixed or infallible. Anti-scroll still holds, redefined as *bounded, intentional
+choice* — not a mandatory single pick.
+
+> **Target direction vs. current runtime.** The above is the approved target
+> direction. Parts of the shipped app still reflect the former single-pick model
+> (Home leads with one "Briefing" pick over an invisible queue; Discover resolves
+> to one film). That is the current baseline being migrated, not the target — this
+> README does not claim multi-film interfaces that aren't shipped yet.
+
+The full product doctrine lives in [docs/product-doctrine.md](docs/product-doctrine.md)
+(rationale: [docs/decisions/020-personal-movie-discovery-and-bounded-choice.md](docs/decisions/020-personal-movie-discovery-and-bounded-choice.md)).
 For how to work in this repo (conventions, guardrails, workflows), the source of
 truth is [CLAUDE.md](CLAUDE.md).
 
@@ -26,9 +42,10 @@ These are anti-goals, not missing features. Building toward any of them is drift
 - **Not a Letterboxd clone** — we don't lead with the diary/social feed; logging
   is a signal substrate, not the product.
 - **Not a TMDB wrapper** — TMDB is our metadata source, not our value.
-- **Not a Netflix-style endless grid** — a wall of carousels betrays the single pick.
-- **Not a JustWatch replacement** — where-to-watch is a convenience, not the loop.
-- **Not a generic movie tracker** — the value is the *justified pick*, not the ledger.
+- **Not a Netflix-style endless grid** — discovery is bounded, intentional, and
+  explained, not an infinite wall of generic carousels.
+- **Not a JustWatch replacement** — where-to-watch is a convenience, not the central value.
+- **Not a generic movie tracker** — the value is personally relevant, explained discovery, not the ledger.
 
 ---
 
@@ -67,29 +84,32 @@ Functions.
 
 ## Key surfaces / routes
 
-Defined in [src/app/router.jsx](src/app/router.jsx). Grouped by role in the wedge
+Defined in [src/app/router.jsx](src/app/router.jsx). Grouped by product role
 (full rationale in [docs/product-doctrine.md](docs/product-doctrine.md)):
 
-**Core** (the wedge itself)
+**Discovery modes** (complementary — none subordinate by doctrine)
 - `/` — Landing (anonymous) / redirect to `/home` (authenticated)
-- `/home` — **The Briefing**: tonight's single justified pick + watch/save/skip (labeled **Tonight** in nav)
-- `/movie/:id` — **Film File**: the editorial case for a film
-- `/onboarding` — cold-start taste seeding
+- `/home` — **Made for you**: personalized recommendations (labeled **Tonight** in nav). Currently leads with a single "Briefing" pick — see the runtime note above.
+- `/discover` — **Tuned to the moment**: mood- and situation-based discovery (natural-language mood input)
+- `/browse`, `/mood/:tag`, `/tone/:tag`, `/browse/fit/:profile`, `/collection/:id` — **Yours to explore**: direct filters + catalog navigation
 
-**Supporting** (make the pick land / build trust)
-- `/discover` — mood-driven discovery (natural-language mood input)
+**Supporting surfaces** (evidence, trust, control, memory)
+- `/movie/:id` — **Film File**: the editorial case for a film
 - `/profile`, `/profile/:userId` — Cinematic DNA (taste made visible)
 - `/preferences` — engine dials
-- `/watchlist` — The Queue · `/history` (+ `/watched`) — The Diary
-
-**Utility / catalog**
-- `/browse`, `/mood/:tag`, `/tone/:tag`, `/browse/fit/:profile`, `/collection/:id`
-- `/lists`, `/lists/curated/:slug`, `/lists/personal/:type`, `/lists/:listId`
+- `/watchlist` — saved intent · `/history` (+ `/watched`) — the Diary (taste memory)
+- `/lists`, `/lists/curated/:slug`, `/lists/personal/:type`, `/lists/:listId` — editorial collections
 - `/people` — taste twins (a *later* compounding lever; thin pre-scale)
-- `/about`, `/privacy`, `/terms` — legal
-- `/admin/cache-monitoring` — email-allowlisted ops tool
+- `/onboarding` — cold-start taste seeding
+- `/about`, `/privacy`, `/terms` — legal · `/admin/cache-monitoring` — email-allowlisted ops tool
 
 **Parked** (built but unrouted) — `/feed`, `/challenges` redirect to `/home`.
+
+> **Nav note (current runtime).** The shipped navigation still centers **Tonight**
+> and routes Browse/Discover as secondary, reflecting the former surface hierarchy
+> ([docs/ia-v2-decision-record.md](docs/ia-v2-decision-record.md), now a historical
+> record). Re-leveling navigation around three complementary modes is a separate,
+> later change — not part of this documentation update.
 
 ---
 
@@ -97,9 +117,12 @@ Defined in [src/app/router.jsx](src/app/router.jsx). Grouped by role in the wedg
 
 The engine ([src/shared/services/recommendations.js](src/shared/services/recommendations.js)
 + satellites) is a **blend**, not one signal. It builds a cached user profile,
-then scores candidate films against it to produce the Briefing's single pick
-(weighted-random over top candidates; #1 wins ~65%) shipped with a generated
-"why this is the one" line ([heroReason.js](src/shared/services/heroReason.js)).
+then scores candidate films against it. Today it produces the current Briefing's
+single visible pick (weighted-random over top candidates; #1 wins ~65%) shipped
+with a generated "why this is the one" line
+([heroReason.js](src/shared/services/heroReason.js)). The single-pick *presentation*
+is current runtime, not a permanent product rule — the product direction is bounded,
+finite, personal selections (see [docs/product-doctrine.md](docs/product-doctrine.md)).
 
 Signals:
 - **Taste** — genre/director/actor affinity + pgvector cosine similarity over
@@ -203,11 +226,11 @@ Start here, in order, depending on your task:
 | Doc | Read it for |
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | Working conventions, guardrails, design language — **read first** |
-| [docs/product-doctrine.md](docs/product-doctrine.md) | The wedge, anti-drift rules, surface hierarchy, the feature decision test |
+| [docs/product-doctrine.md](docs/product-doctrine.md) | Canonical product doctrine — personal movie discovery, the three modes, bounded choice, Cinematic DNA, anti-drift rules, the decision test |
 | [docs/feelflick-foundation-readiness-audit.md](docs/feelflick-foundation-readiness-audit.md) | The F0 ground-truth audit + the F1–F10 rebuild roadmap |
 | [docs/architecture.md](docs/architecture.md) | Current system architecture |
 | [docs/FeelFlick_Overview.md](docs/FeelFlick_Overview.md) | Product overview (features + engine, prose) |
-| [docs/product-research-patterns.md](docs/product-research-patterns.md) | Competitive patterns to borrow / refuse, mapped to the wedge |
+| [docs/product-research-patterns.md](docs/product-research-patterns.md) | Competitive patterns to borrow / refuse (research memo; predates ADR 020) |
 | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | World-class design patterns reference |
 | [docs/PLANNING.md](docs/PLANNING.md) | Active sprint backlog |
 | [CLAUDE-REFERENCE.md](CLAUDE-REFERENCE.md) | Tuneable engine constants + dev-env detail |

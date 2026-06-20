@@ -1,176 +1,217 @@
-// FeelFlick — Home (the Briefing edition). Mounted at /home.
+// FeelFlick — Home (bounded personal discovery). Mounted at /home.
 //
-// AppShell owns the global TopNav. All data flows through the HomeDataProvider
-// (live Supabase reads for user/films/recent/DNA/friends/lists). Action handlers
-// write to real tables and navigate to /movie/:tmdbId, /profile/:userId,
-// /lists/curated/:slug.
+// AppShell owns the global Header / SearchBar / BottomNav. Home composes, inside
+// the scoped Thoughtful-Seatmate foundation (<ThoughtfulRoot> + neutral
+// <PageDepth> canvas), four things:
+//
+//   1. HomeHero            — a full-bleed cinematic backdrop carousel of ≤3
+//                            personally-grounded standouts (grounded reason only).
+//   2. HomeShortcutStrip   — Discover / Browse / Log shortcuts, after the hero.
+//   3. HomeRecommendationSection[] — bounded, poster-led groups.
+//   4. HomeDnaStrip        — a compact, honest Cinematic-DNA close.
+//
+// Hero + rows come from the dedicated, tier-aware row engine (useHomepageRows);
+// the DNA strip + greeting come from the slimmed HomeDataProvider. The legacy
+// single-pick Briefing + its supporting tail (and their recommendation pipeline)
+// are retired — see useHomeData.jsx for the provider scope change.
 
-import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo } from 'react'
 
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
-import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import { trackInteraction } from '@/shared/services/interactions'
-import { updateImpression } from '@/shared/services/recommendations'
-
-import { MOOD_META } from './data'
-import { MoodReactor, TheBriefing } from './sections-top'
-import { QuickLog, PageEndCard } from './sections-bottom'
-import { HomeDataProvider, useHomeData } from './useHomeData'
-// Stage 2 — Thoughtful Seatmate pilot: Tonight activates the Stage 1 foundation
-// LOCALLY via <ThoughtfulRoot> (scoped .ts-root, never global) and paints the page
-// canvas with the neutral near-black→warm-graphite <PageDepth> (replacing the prior
-// mood-tuned ambient gradient). No behavior/recommendation/analytics change.
+import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
+import { useHomepageRows } from '@/shared/hooks/useHomepageRows'
 import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
+
+import { HomeDataProvider, useHomeData } from './useHomeData'
+import HomeHero from './components/HomeHero'
+import HomeShortcutStrip from './components/HomeShortcutStrip'
+import HomeRecommendationSection from './components/HomeRecommendationSection'
+import HomeDnaStrip from './components/HomeDnaStrip'
 import './home.css'
 
-// Calm, honest top-level error when the home briefing data fails to load. No raw
-// Supabase error, no stack trace, no auto-reload — just a clear message and a
-// gentle suggestion to refresh.
+const HERO_MAX = 3
+
+// A row's films, regardless of whether the builder returns an array (critics /
+// under-90) or an object with a `films` field (top-of-taste / mood / orbit / …).
+function filmsOf(rowData) {
+  if (!rowData) return []
+  if (Array.isArray(rowData)) return rowData
+  return Array.isArray(rowData.films) ? rowData.films : []
+}
+
+// A hero standout MUST carry a specific, grounded engine reason — generic
+// "Picked for you" candidates are excluded (per the locked decision: the hero
+// never shows a generic fallback as its visible explanation).
+function isGroundedHero(f) {
+  const r = f?._reason
+  return Boolean(r && r.type && r.type !== 'generic' && typeof r.text === 'string' && r.text.trim())
+}
+
+// Calm, honest top-level failure — no raw error, no stack trace, no auto-reload.
 function HomeLoadError() {
   return (
-    <div role="alert" className="flex flex-col items-center gap-2 px-6 py-24 text-center">
-      <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--ts-text-primary, #f3ecdf)', fontFamily: 'Inter, sans-serif', margin: 0 }}>
-        We couldn&rsquo;t load your home briefing.
-      </p>
-      <p style={{ fontSize: 14, color: 'var(--ts-text-muted, #8d887f)', fontFamily: 'Inter, sans-serif', margin: 0 }}>
-        Try refreshing in a moment.
-      </p>
+    <div role="alert" className="ff-home__notice">
+      <p className="ff-home__notice-title">We couldn’t load your home.</p>
+      <p className="ff-home__notice-sub">Try refreshing in a moment.</p>
+    </div>
+  )
+}
+
+// Content-shaped loading — a hero block + two row skeletons (no spinner).
+function HomeSkeleton() {
+  return (
+    <div role="status" aria-label="Preparing your home" className="ff-home__skeleton">
+      <div className="ff-home__skel-hero" aria-hidden="true" />
+      <div className="ff-home__body">
+        {[0, 1].map(i => (
+          <div className="ff-home__skel-section" key={i} aria-hidden="true">
+            <div className="ff-home__skel-head" />
+            <div className="ff-home__skel-row">
+              {[0, 1, 2, 3, 4].map(j => <div className="ff-home__skel-card" key={j} />)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Honest cold/empty state — never a misleading "no recommendations" after an
+// error (errors are handled separately above). Offers a real way forward.
+function HomeEmpty() {
+  return (
+    <div className="ff-home__empty">
+      <p className="ff-home__empty-title">Your recommendations are still warming up.</p>
+      <p className="ff-home__empty-sub">Log or rate a few films and your personalized picks will fill in here.</p>
     </div>
   )
 }
 
 function HomeBody() {
   usePageMeta({ title: 'Home — FeelFlick' })
-  const navigate = useNavigate()
   const { user: authUser } = useAuthSession()
-  const { loading, error, moods: liveMoods } = useHomeData()
-  const [currentMood, setMood] = useState(MOOD_META[0])
-  const [userPickedMood, setUserPickedMood] = useState(false)
-  useEffect(() => { trackEvent(EVENTS.home_opened, { surface: 'home' }) }, []) // B1.3 funnel entry
+  const userId = authUser?.id
 
-  // When the data hook finishes, snap the initial mood tab to the user's first
-  // baseline pick from Onboarding Step 1 (useHomeData reorders `moods` so the
-  // baseline mood sits at index 0). Skipped once the user manually picks a tab.
-  useEffect(() => {
-    if (loading || userPickedMood) return
-    const firstMoodId = liveMoods?.[0]?.id
-    if (!firstMoodId || firstMoodId === currentMood.id) return
-    const next = MOOD_META.find(m => m.id === firstMoodId)
-    if (next) setMood(next)
-  }, [loading, liveMoods, userPickedMood, currentMood.id])
+  const { loading: dnaLoading, error: dnaError, dna } = useHomeData()
+  const rows = useHomepageRows(userId)
+  const { tier, rotationVariant, profileReady, profileError } = rows
 
-  const handleSetMood = useCallback((m) => {
-    setUserPickedMood(true)
-    setMood(m)
-  }, [])
+  useEffect(() => { trackEvent(EVENTS.home_opened, { surface: 'home' }) }, []) // funnel entry (preserved)
 
-  // === Handlers ============================================================
-  const onWatch = useCallback((film) => {
-    if (film?.tmdbId) navigate(`/movie/${film.tmdbId}`)
-  }, [navigate])
+  // === Hero — grounded top-of-taste standouts, deduped from the rows below ===
+  const heroFilms = useMemo(
+    () => filmsOf(rows.topOfTaste.data).filter(isGroundedHero).slice(0, HERO_MAX),
+    [rows.topOfTaste.data],
+  )
+  const heroIds = useMemo(() => new Set(heroFilms.map(f => f.id)), [heroFilms])
 
-  // Watchlist + watched are handled per-card by useUserMovieStatus (icon
-  // state change is the feedback). Skip writes a dismiss row + the card
-  // disappears via TheBriefing's hiddenIds — that's also the feedback.
-  // No toasts: the card-level state changes are the strongest possible
-  // acknowledgement, and the previous toast copy ("we'll learn from this
-  // for tomorrow") overstated what the engine actually does with skips.
-  const onSkip = useCallback((film) => {
-    if (!film?.id) return
-    // Skip is a LEARNING SIGNAL, not just analytics — so both writes matter, but
-    // neither blocks the user moving on (the visible pick advances in
-    // TheBriefing.handleSkip right after this returns). Explicit F4.3 sequence,
-    // each write failure-contained (consistent with Discover's non-blocking skip):
-    //
-    //   1. recommendation_impressions.skipped = true — flips the most-recent
-    //      impression row for (user, movie) so the engine's negative-signal model
-    //      picks it up (computeNegativeSignals → skippedDirectors / skippedGenres /
-    //      skippedFitProfiles / skippedMoodTags → scoreMovieForUser next visit).
-    //      The briefing's per-active-slide impression effect already logged the
-    //      `placement: 'hero'` row for this film, so updateImpression finds + flips
-    //      THAT row. Without this write, skips only hide-in-session.
-    //   2. user_interactions ('dismiss') — product-analytics log. The
-    //      interaction_type CHECK allows {view,hover,click,search,filter,scroll,
-    //      play_trailer,share,dismiss}; 'skip' isn't in the set, so 'dismiss' is
-    //      the closest semantic, with the concrete action in metadata.action.
-    //   3. advance — handled by the caller (hide the slide → next pick).
-    //
-    // Payloads/tables/events are unchanged; both are best-effort (.catch) so a
-    // failed tracking write never leaves an unhandled promise or blocks the user.
-    if (authUser?.id) {
-      updateImpression(authUser.id, film.id, 'skipped').catch(() => { /* non-fatal */ })
-    }
-    trackInteraction('dismiss', {
-      movieId: film.id,
-      source: 'briefing',
-      metadata: { action: 'skip', mood: currentMood?.id ?? null },
-    }).catch(() => { /* non-fatal */ })
-  }, [currentMood, authUser?.id])
+  // === Rows — personal first, broad/editorial only as honest fallbacks ===
+  // The row engine already cross-deduped films across rows (in its own priority
+  // order); here we additionally remove the hero films and hide any row that has
+  // no title or no remaining films. Order is deliberately personal-first.
+  const isPeoples = tier === 'engaged' && rotationVariant === 'B'
+  const sections = useMemo(() => {
+    const defs = [
+      {
+        key: 'top_of_taste',
+        title: 'Top of your taste',
+        subtitle: rows.topOfTaste.data?.subtitle || null,
+        note: 'The films, filmmakers, and tones your ratings and saves reward most — scored for you.',
+        films: filmsOf(rows.topOfTaste.data),
+      },
+      {
+        key: 'still_in_orbit',
+        title: rows.orbit.data?.seed?.title ? `Because you loved ${rows.orbit.data.seed.title}` : null,
+        note: 'Films that share the DNA of one you rated highly.',
+        films: filmsOf(rows.orbit.data),
+      },
+      {
+        key: 'mood_row',
+        title: rows.mood.data?.title || null,
+        subtitle: rows.mood.data?.subtitle || null,
+        note: 'Drawn from the emotional tones your highly-rated films keep returning to.',
+        films: filmsOf(rows.mood.data),
+      },
+      {
+        key: 'signature_director',
+        title: rows.director.data?.director?.name ? `More from ${rows.director.data.director.name}` : null,
+        subtitle: rows.director.data?.subtitle || null,
+        note: 'A filmmaker your ratings keep rewarding.',
+        films: filmsOf(rows.director.data),
+      },
+      {
+        key: 'watchlist',
+        title: 'Still on your watchlist',
+        note: 'Saved a while ago and still waiting — worth another look.',
+        films: filmsOf(rows.watchlist.data),
+      },
+      // Broad / editorial — honest fallbacks, deliberately AFTER the personal rows.
+      {
+        key: isPeoples ? 'peoples_champions' : 'critics_swooned',
+        title: isPeoples ? 'Loved by audiences' : 'Critics swooned',
+        note: isPeoples
+          ? 'Widely loved by viewers — a broader pick, lighter on personalization.'
+          : 'Critically adored titles — a broader pick, lighter on personalization.',
+        films: filmsOf(rows.criticSplit.data),
+      },
+      {
+        key: 'under_90',
+        title: 'Under 90 minutes',
+        note: 'For when you want something shorter tonight.',
+        films: filmsOf(rows.under90.data),
+      },
+    ]
+    return defs
+      .map(d => ({ ...d, films: (d.films || []).filter(f => f && !heroIds.has(f.id)) }))
+      .filter(d => d.title && d.films.length > 0)
+  }, [rows, heroIds, isPeoples])
 
-  // QuickLog's "Open Browse" pill routes to /browse (the catalog).
-  // Distinct from the page-end card's "Discover by mood" CTA — that
-  // goes to /discover (the mood-driven engine). Two different exits
-  // serving different intents.
-  const onLog = useCallback(() => {
-    navigate('/browse')
-  }, [navigate])
-
-  // NOTE: onOpenList (curated/personal lists → /lists) and onOpenFriend
-  // (taste twins → /profile|/people) were removed in F4.5 along with the
-  // CuratedLists / TasteMatch sections they wired. Those components + their
-  // useHomeData logic remain intact; re-add the handlers when the sections
-  // are surfaced on their proper routes (/browse, /lists, /people).
+  // === States ===
+  const isError = Boolean(dnaError || profileError)
+  const anyRowLoading = [
+    rows.topOfTaste, rows.orbit, rows.mood, rows.director, rows.watchlist, rows.criticSplit, rows.under90,
+  ].some(r => r.loading)
+  const loading = !isError && (dnaLoading || !profileReady || anyRowLoading)
+  const hasContent = heroFilms.length > 0 || sections.length > 0
+  const isEmpty = !loading && !isError && !hasContent
 
   return (
-    // Neutral near-black→warm-graphite page canvas (Stage 1 PageDepth). Replaces the
-    // prior mood-tuned ambient gradient: the background is neutral depth, never a
-    // recommendation/mood signal. minHeight + canvas fill keep it correct on short,
-    // tall, loading, and error content.
-    <PageDepth depth="radial" className="ff-home" style={{ minHeight: '100vh', color: 'var(--ts-text-primary, #f3ecdf)', position: 'relative', overflowX: 'hidden' }}>
+    <PageDepth
+      depth="radial"
+      className="ff-home"
+      style={{ minHeight: '100vh', color: 'var(--ts-text-primary, #f3ecdf)', position: 'relative', overflowX: 'hidden' }}
+    >
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* a11y landmark (F12B): the visual masthead is the Briefing hero; an sr-only h1 gives the page its heading without competing with the pick. */}
-        <h1 className="sr-only">Tonight — your nightly pick</h1>
-        {error ? (
-          // F4.3 — honest top-level load failure. Without this, a data error left
-          // `loading` false with empty moods, so the Briefing showed a misleading
-          // "no picks for this mood" state forever. Calm message, no raw error, no
-          // auto-reload; rendering this (not the Briefing) also means no impression
-          // is logged on an errored load.
+        {/* One stable, meaningful page heading across every state (the visual
+            masthead is the hero film title, an h2). */}
+        <h1 className="sr-only">Home — your picks for tonight</h1>
+
+        {isError ? (
           <HomeLoadError />
+        ) : loading ? (
+          <HomeSkeleton />
         ) : (
           <>
-            {/* F4.4 — pick-first. Home leads with tonight's one pick; the mood
-                control strip sits BELOW it as an optional "adjust mood", not the
-                route's front door (that's Discover's deliberate session). */}
-            <TheBriefing
-              currentMood={currentMood}
-              user={authUser}
-              onWatch={onWatch}
-              onSkip={onSkip}
-            />
-            <MoodReactor currentMood={currentMood} setMood={handleSetMood} />
-            {/* F4.5 — restrained, pick-supporting tail. The one nightly pick leads;
-                the tail stays a quiet trail back into the user's film life, not a
-                dashboard / browse wall / social feed:
-                  • QuickLog — the one concrete repeat-value utility (log films you've
-                    already seen → sharpen tomorrow's pick).
-                  • PageEndCard — a quiet, role-clear close to Discover.
-                Intentionally NOT rendered on Home (components + their useHomeData
-                data logic are preserved for their proper homes / a future return):
-                  • ContinueWatching — has NO real resume-progress data source yet
-                    (continueItem is always null); it should return only once real
-                    watch-progress exists, not as an empty placeholder.
-                  • CuratedLists — a catalog browse wall; belongs to /browse + /lists.
-                  • TasteMatch + TasteTwinPulse — early social; belong to /people once
-                    the similarity data is mature, not a social feed under the pick.
-                  • CinematicDNA — a reflective taste portrait that lives on /profile;
-                    it should not dominate or duplicate Profile on every Home visit. */}
-            <QuickLog onLog={onLog} />
-            <PageEndCard
-              onDiscover={() => navigate('/discover')}
-            />
+            {heroFilms.length > 0 ? <HomeHero films={heroFilms} user={authUser} /> : null}
+            <div className="ff-home__body">
+              <HomeShortcutStrip />
+              {isEmpty ? (
+                <HomeEmpty />
+              ) : (
+                sections.map(d => (
+                  <HomeRecommendationSection
+                    key={d.key}
+                    rowKey={d.key}
+                    title={d.title}
+                    subtitle={d.subtitle}
+                    note={d.note}
+                    films={d.films}
+                  />
+                ))
+              )}
+              <HomeDnaStrip dna={dna} />
+            </div>
           </>
         )}
       </div>
@@ -181,9 +222,8 @@ function HomeBody() {
 export default function Home() {
   return (
     <HomeDataProvider>
-      {/* Local Stage 1 activation boundary — scopes the --ts-* foundation to the
-          Tonight surface only (inside HomeDataProvider so hooks work, inside the
-          shared AppShell so Header/BottomNav stay outside the visual system). */}
+      {/* Local Stage-2 activation boundary — scopes the --ts-* foundation to Home
+          only (Header/BottomNav stay outside the scoped visual system). */}
       <ThoughtfulRoot>
         <HomeBody />
       </ThoughtfulRoot>

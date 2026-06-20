@@ -14,6 +14,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackShare, trackTrailerPlay } from '@/shared/services/interactions'
+import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
 
 import { deriveWhyHeader, deriveWhyReasons } from './derive/whyForYou'
 import { useTasteFingerprint } from './hooks/useTasteFingerprint'
@@ -263,9 +264,14 @@ export default function MovieDetail() {
 
   return (
     <MovieDataProvider value={data}>
-      <div className="ff-movie" style={{
-        minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
-        fontFamily: 'Inter, sans-serif', overflow: 'hidden', position: 'relative',
+      {/* Stage 3 — Thoughtful Seatmate: the Film File body activates the foundation
+          LOCALLY (scoped .ts-root, never global) and paints the neutral near-black→
+          warm-graphite page canvas with <PageDepth> (replacing the prior flat
+          #06060a). Inter only; projection-ivory text. */}
+      <ThoughtfulRoot>
+      <PageDepth depth="radial" className="ff-movie" style={{
+        minHeight: '100vh', color: 'var(--ts-text-primary, #f3ecdf)',
+        fontFamily: 'Inter, system-ui, sans-serif', overflow: 'hidden', position: 'relative',
       }}>
         {/* F5.7: first focusable element — lets keyboard users skip the cinematic
             Hero controls and jump straight into the decision dossier. */}
@@ -387,7 +393,8 @@ export default function MovieDetail() {
           loading={actionLoading}
           canAct={Boolean(user)}
         />
-      </div>
+      </PageDepth>
+      </ThoughtfulRoot>
     </MovieDataProvider>
   )
 }
@@ -395,12 +402,14 @@ export default function MovieDetail() {
 function PageSkeleton() {
   const pulse = { background: 'rgba(255,255,255,0.04)' };
   return (
-    <div
+    <ThoughtfulRoot>
+    <PageDepth
+      depth="radial"
       className="ff-movie"
       role="status"
       aria-live="polite"
       aria-busy="true"
-      style={{ minHeight: '100vh', background: '#06060a', color: '#FAFAFA', fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}
+      style={{ minHeight: '100vh', color: 'var(--ts-text-primary, #f3ecdf)', fontFamily: 'Inter, system-ui, sans-serif', overflow: 'hidden' }}
     >
       <span className="sr-only">Loading Film File…</span>
       <div aria-hidden="true" style={{ maxWidth: 1440, margin: '0 auto' }}>
@@ -419,7 +428,8 @@ function PageSkeleton() {
           </div>
         </div>
       </div>
-    </div>
+      </PageDepth>
+    </ThoughtfulRoot>
   );
 }
 
@@ -428,19 +438,20 @@ function PageError({ routeState, onBack, onHome }) {
   // endpoints, or status messages reach the user.
   const { eyebrow, title, message } = routeState;
   return (
-    <div className="ff-movie" style={{
-      minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
+    <ThoughtfulRoot>
+    <PageDepth depth="radial" className="ff-movie" style={{
+      minHeight: '100vh', color: 'var(--ts-text-primary, #f3ecdf)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'Inter, system-ui, sans-serif',
     }}>
       <div role="alert" style={{ textAlign: 'center', maxWidth: 520 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#DD4E83', marginBottom: 18 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom: 18 }}>
           {eyebrow}
         </div>
-        <h1 style={{ fontFamily: 'var(--font-editorial)', fontSize: 'clamp(30px, 6vw, 48px)', fontWeight: 400, color: '#FAFAFA', margin: '0 0 18px 0', letterSpacing: '-0.025em', textWrap: 'balance' }}>
+        <h1 style={{ fontFamily: 'Inter, system-ui, sans-serif', fontSize: 'clamp(30px, 6vw, 48px)', fontWeight: 600, color: 'var(--ts-text-primary, #f3ecdf)', margin: '0 0 18px 0', letterSpacing: '-0.025em', textWrap: 'balance' }}>
           {title}
         </h1>
-        <p style={{ margin: '0 0 28px 0', color: 'rgba(250,250,250,0.6)', fontSize: 15, lineHeight: 1.6 }}>
+        <p style={{ margin: '0 0 28px 0', color: 'var(--ts-text-muted, #8d887f)', fontSize: 15, lineHeight: 1.6 }}>
           {message}
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -448,7 +459,7 @@ function PageError({ routeState, onBack, onHome }) {
             type="button"
             onClick={onBack}
             className="ff-movie-error-btn"
-            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: '#DD4E83', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600 }}
+            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 4, background: 'var(--ts-action-primary-fill, #efe7d7)', color: 'var(--ts-action-primary-text, #221b13)', border: 'none', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 14, fontWeight: 600 }}
           >
             Go back
           </button>
@@ -456,12 +467,13 @@ function PageError({ routeState, onBack, onHome }) {
             type="button"
             onClick={onHome}
             className="ff-movie-error-btn"
-            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: 'transparent', color: 'rgba(250,250,250,0.85)', border: '1px solid rgba(250,250,250,0.2)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600 }}
+            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 4, background: 'transparent', color: 'var(--ts-text-secondary, #beb8ad)', border: '1px solid var(--ts-border-strong, #46423d)', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 14, fontWeight: 600 }}
           >
             Go to Home
           </button>
         </div>
       </div>
-    </div>
+      </PageDepth>
+    </ThoughtfulRoot>
   );
 }

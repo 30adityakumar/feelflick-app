@@ -1,0 +1,14 @@
+debt,location,count_or_note,classification
+legacy purple-pink gradient (HP_GRAD/--brand-gradient/9333ea/ec4899),"index.html, app/header/Header.jsx, app/header/components/BottomNav.jsx, index.css, shared/lib/tokens.js, shared/lib/__tests__/tokens.test.js",6 files / 16 occ (guard baseline),ACTIVE-PRODUCTION-DEBT
+legacy purple-pink gradient,src/features/onboarding,1,ACTIVE-PRODUCTION-DEBT
+--purple-* / --pink-* token scales,src/index.css :root,global legacy scale,ACTIVE-PRODUCTION-DEBT
+HP.purple / HP.pink inline,"account, people, preferences, profile, home(non-rendered)",5 dirs,ACTIVE-PRODUCTION-DEBT
+Newsreader (var(--font-editorial)),"discover(3), lists(4), profile(2), account/history/landing/onboarding/people/preferences/share/watchlist(1 each)",~16 files,ACTIVE-PRODUCTION-DEBT
+Outfit,src/features/onboarding,1 (last holdout),ACTIVE-PRODUCTION-DEBT
+glassmorphism / backdrop-blur,"discover(4), landing(5), profile(2), account/browse/legal/lists/people/share/home/movie",many,ACTIVE (some intentional e.g. movie dialog scrim)
+coloured glow,legacy surfaces (removed in both pilots),n/a,ACTIVE-elsewhere
+contextual / per-film colour,none in production (removed from Film File FILM_PALETTE),0,RESOLVED (DEFERRED in spec)
+unused --ts-* tokens,"surface-raised, brand-rose, brand-rose-contrast, decision, page-depth linear",5,DEAD-ISH (unexercised by pilots)
+legacy --brand-* / --bg-* / --font-* :root system,src/index.css :root,parallel to --ts-*,ACTIVE (collision risk for globalization)
+design-lab showcase --ts-* + legacy,src/features/design-lab,dev-only,DEV-ONLY
+gradient pattern strings in tests,shared/lib/__tests__/tokens.test.js,3,TEST-ONLY

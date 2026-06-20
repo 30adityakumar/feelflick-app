@@ -24,10 +24,13 @@
 | 012 | Hybrid recommendation scoring — multi-signal, not single algorithm | ✅ Accepted | Inline below |
 | 013 | Single palette source: purple/pink only | ⛔ Superseded | `docs/decisions/013-single-palette-source.md` |
 | 014 | Thoughtful Seatmate P1 — Inter as the single core Latin sans-serif voice | ✅ Accepted | `docs/decisions/014-thoughtful-seatmate-p1-core-voice.md` |
-| 015 | Thoughtful Seatmate P2A — P1-control warm graphite foundation (prototype/pilot-scoped) | ✅ Accepted | `docs/decisions/015-thoughtful-seatmate-p2a-foundation.md` |
-| 016 | Thoughtful Seatmate P2B — ivory-only decision signal; no warm-cue token | ✅ Accepted | `docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md` |
-| 017 | Thoughtful Seatmate P2C-A — strict contextual-film-color normalization envelope | ✅ Accepted | `docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md` |
-| 018 | Thoughtful Seatmate P2C-B — contextual-film-color aura strength (alpha 0.14) | ✅ Accepted | `docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md` |
+| 015 | Thoughtful Seatmate P2A — P1-control warm graphite foundation (prototype/pilot-scoped) | ⛔ Superseded by 021 (values) | `docs/decisions/015-thoughtful-seatmate-p2a-foundation.md` |
+| 016 | Thoughtful Seatmate P2B — ivory-only decision signal; no warm-cue token | ✅ Accepted (value refined by 021; neutral-signal principle kept) | `docs/decisions/016-thoughtful-seatmate-p2b-decision-signal.md` |
+| 017 | Thoughtful Seatmate P2C-A — strict contextual-film-color normalization envelope | ⛔ Superseded by 021 (deferred/unimplemented) | `docs/decisions/017-thoughtful-seatmate-p2c-a-contextual-color-envelope.md` |
+| 018 | Thoughtful Seatmate P2C-B — contextual-film-color aura strength (alpha 0.14) | ⛔ Superseded by 021 (deferred/unimplemented) | `docs/decisions/018-thoughtful-seatmate-p2c-b-aura-strength.md` |
+| 019 | Thoughtful Seatmate — website-wide canonical theme (one root boundary + `--color-*` source of truth + compat aliases + `VITE_UI_THEME` rollback; supersedes route-by-route) | ✅ Accepted (architecture in force; values superseded by 021) | `docs/decisions/019-thoughtful-seatmate-website-wide-theme.md` |
+| 020 | Personal movie discovery + bounded-choice doctrine (three complementary modes; one prominent pick allowed but not required; Cinematic DNA living/evolving; anti-scroll = bounded choice; supersedes the universal single-pick wedge; docs-only) | ✅ Accepted | `docs/decisions/020-personal-movie-discovery-and-bounded-choice.md` |
+| 021 | Adaptive Editorial Cinema visual foundation (deep neutral ink + paper-white type + cinematic coral-red signature + neutral inverse actions + flat-first composition; keeps Inter/ADR 014 + single-root architecture/ADR 019; supersedes the warm-graphite/rose values of ADR 015–018) | ✅ Accepted | `docs/decisions/021-adaptive-editorial-cinema-foundation.md` |
 
 ---
 

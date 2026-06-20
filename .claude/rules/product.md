@@ -13,9 +13,9 @@ paths:
 
 This file defines FeelFlick’s durable product intent.
 
-> This rule operationalizes [`docs/product-doctrine.md`](../../docs/product-doctrine.md) — the canonical concise doctrine. Update both together when the durable product strategy changes.
+> This rule operationalizes [`docs/product-doctrine.md`](../../docs/product-doctrine.md) — the canonical concise doctrine, which it must not override or contradict. Update both together when the durable product strategy changes.
 
-FeelFlick is a **Compounding Decision Companion**: it delivers immediate decision value — one trusted recommendation for the moment, with the reason it fits — supported by compounding taste memory that improves future decisions.
+FeelFlick is a **personal movie discovery platform**. Its brand promise is **“Movies, made personal.”** — it helps people discover movies through their **taste** (Made for you / Home), their **mood** (Tuned to the moment / Discover), and their **curiosity** (Yours to explore / Browse). Immediate decision value is supported by compounding taste memory that makes future recommendations more specific over time.
 
 It should guide product strategy, feature design, information architecture, recommendation presentation, onboarding, retention work, and significant UX decisions.
 
@@ -23,21 +23,33 @@ It is not a fixed roadmap or permanent feature hierarchy. Current routes, labels
 
 ## Product promise
 
-FeelFlick helps someone choose a film that fits who they are and how they feel right now.
+FeelFlick helps people discover movies that fit who they are, how they feel, and what they're curious about.
 
-The core promise is:
+The brand promise is:
 
-> A trusted film recommendation for the moment—personalized by mood, context, and taste, with a clear reason it fits.
+> Movies, made personal.
 
-Mood makes the experience approachable.
+The supporting promise is a trusted recommendation for the moment — personalized by taste, mood, and context, with a clear reason it fits.
 
 Taste makes it personal.
 
-Context makes it useful tonight.
+Mood makes the experience approachable and timely.
+
+Curiosity gives the user direct control to explore.
 
 Explanation makes it trustworthy.
 
-The product should reduce decision fatigue without removing meaningful agency.
+The product should reduce decision fatigue without removing meaningful agency — the **right amount of choice**, with the final choice left to the user.
+
+## The three discovery modes
+
+Discovery happens across three complementary modes, none structurally subordinate to the others:
+
+* **Made for you (Home)** understands the person — personalized recommendations from taste, history, ratings, saves, skips, favorite genres, filmmakers, actors, loved films, emerging interests, and Cinematic DNA. Home may lead with a prominent hero recommendation, but is not restricted to one visible movie; it may include small personalized groups.
+* **Tuned to the moment (Discover)** understands the moment — mood- and situation-based discovery (mood, company, time, occasion, energy, emotional boundaries, subtitles, familiarity vs. surprise) returning a small, focused, finite selection.
+* **Yours to explore (Browse)** follows explicit curiosity — transparent filter-and-navigation control (genre, language, year, runtime, rating, people, availability, collections). Browse is first-class, not a fallback.
+
+Do not state or assume that Browse or Discover must always be subordinate to Home.
 
 ## Primary user problem
 
@@ -103,17 +115,21 @@ The recommendation should feel selected, not merely ranked.
 
 Its presentation should communicate confidence without pretending certainty.
 
-The primary Tonight experience **defaults to one visible recommendation**. When the user rejects it (“Not tonight”), the normal behavior is **one sequential replacement** — the next single pick — not a stack of visible backup cards. Visible backups are not the default recovery model.
+A prominent, singular hero recommendation is permitted and is often a strong default — especially where a confident, well-explained pick lowers decision cost. But **exactly one visible recommendation is not a universal requirement.** Small, finite, personalized selections are allowed and encouraged where they improve discovery. The principle is the **right amount of choice**, not a fixed cardinality of one.
 
-“One pick” is a powerful default and an important differentiator. It is not a universal requirement that every route, state, or experiment display exactly one film. Alternative structures are allowed when evidence suggests they improve the decision — but the default solo recovery remains sequential replacement.
+Do **not** treat a finite, bounded, personalized multi-film selection as product drift. Drift is an *unbounded* or *purpose-free* surface — see [Choice and anti-scroll](#choice-and-anti-scroll). A finite selection with a clear job, meaningful ordering, and a visible stopping point is in-doctrine.
 
 Bounded choice is appropriate for explicit jobs, including:
 
+* personalized groups on Home (for example "Because you loved…", "Genres for you", "Hidden gems") alongside an optional hero
+* a small, focused finite selection in Discover, tuned to the moment
+* intentional exploration in Browse for users with strong pre-existing intent
 * a bounded shortlist or negotiation flow for an explicit couple/group decision (mechanics provisional)
-* intentional exploration in Discover or browse for users with strong pre-existing intent
 * a comparison between meaningfully different directions, where evidence shows it improves the decision
 * editorial collections that teach or inspire rather than merely add volume
 * controlled experiments that measure whether limited alternatives help or harm confidence
+
+**Current runtime note (not the target).** The shipped Tonight (Home) experience still defaults to one visible pick over an invisible sequential queue — a "Not tonight" yields one sequential replacement — and Discover still resolves to one visible film with an internal ranked fallback. That is the **current baseline**, being migrated separately; describe it as current runtime, not as the product rule, and do not flag the planned move to bounded, finite selections as drift.
 
 ## Choice and anti-scroll
 
@@ -134,9 +150,9 @@ Evaluate a choice surface by asking:
 * Does the surface support action, learning, or exploration?
 * Does it compete with or support the primary experience?
 
-Avoid endless or engagement-maximizing surfaces whose main purpose is to keep the user consuming options.
+FeelFlick must still resist infinite feeds, endless scrolling, unbounded recommendation walls, repetitive or generic carousels, low-quality catalog dumping, and surfaces that push all curation work back onto the user. Avoid endless or engagement-maximizing surfaces whose main purpose is to keep the user consuming options.
 
-A grid or feed is acceptable when it serves a defined task better than a single recommendation.
+A grid, row, or finite selection is acceptable when it serves a defined task better than a single recommendation would. Anti-scroll means **bounded and intentional choice — not a mandatory cardinality of one.** A finite, bounded, personalized selection is not drift; an unbounded or purpose-free one is.
 
 ## Supporting experiences
 
@@ -158,6 +174,14 @@ Examples:
 Do not subordinate a useful feature merely because it is not the primary recommendation.
 
 Do ensure that each feature contributes a distinct value rather than duplicating generic movie-database functionality.
+
+## Cinematic DNA
+
+Cinematic DNA is a flagship concept: a living picture of the stories, moods, filmmakers, genres, and styles a person responds to. It evolves through watches, ratings, saves, skips, re-watches, changing interests, and explicit corrections.
+
+Frame it as **living, evolving, evidence-based, correctable, and still developing.**
+
+Never describe or present Cinematic DNA as biologically fixed, permanently complete, deterministic, infallible, a universal match score, or a complete definition of the person. Where a confidence or overlap number is shown, present it as evidence with honest uncertainty — never as certainty about the person or a guarantee of enjoyment.
 
 ## Explanations and trust
 
@@ -313,6 +337,22 @@ For a meaningful experiment:
 8. document the result before converting it into doctrine
 
 Do not label an unmeasured preference as a proven product principle.
+
+## Doctrine versus surface hypotheses
+
+Distinguish durable doctrine from surface-level hypotheses. Doctrine (in [`docs/product-doctrine.md`](../../docs/product-doctrine.md)): FeelFlick is personal movie discovery across three complementary modes; bounded, finite choice; one prominent pick allowed but not required; Cinematic DNA is living and evolving; anti-overwhelm holds.
+
+The following are **hypotheses**, owned by their design/implementation records and changeable without amending doctrine — do not encode them as rules here:
+
+* the exact number of Home sections and which groups ship
+* the exact Discover result count (the ~10–15 working number is **not** doctrine)
+* final Home visual hierarchy and whether a hero stays singular
+* final Discover layout
+* skip / remove / refill behavior inside a multi-film result
+* impression-grouping and placement-aware outcome-attribution implementation
+* card-level match-score presentation
+* daily-briefing email contents
+* final navigation wording, and whether "The Briefing" remains an internal module name
 
 ## Product decision test
 

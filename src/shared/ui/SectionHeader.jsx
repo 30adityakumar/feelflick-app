@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react'
 
 /**
  * Canonical section header for carousel rows and grouped content.
- * Pattern: purple bar + title + optional "See all" link.
+ * Pattern: ivory accent bar + title + optional "See all" link.
  *
  * @param {string} title
  * @param {string} [subtitle]
@@ -15,12 +15,12 @@ export default function SectionHeader({ title, subtitle, seeAllTo, eyebrow, clas
     <div className={`flex items-end justify-between gap-4 mb-3 ${className}`}>
       <div className="min-w-0 flex-1">
         {eyebrow && (
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-purple-400/60 mb-1">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-text-secondary,#beb8ad)] mb-1">
             {eyebrow}
           </p>
         )}
         <div className="flex items-center gap-2.5">
-          <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500 shrink-0" />
+          <div className="w-[3px] h-5 rounded-full bg-[var(--color-text-secondary,#beb8ad)] shrink-0" />
           <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight truncate">{title}</h2>
         </div>
         {subtitle && (

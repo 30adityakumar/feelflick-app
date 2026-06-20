@@ -11,15 +11,17 @@ describe('Eyebrow', () => {
     expect(getByText('Mood weights')).toBeInTheDocument()
   })
 
-  it('section tone (default) is Inter 700, uppercase, purple accent', () => {
+  it('section tone (default) is Inter 700, uppercase, neutral ivory accent (NOT purple/pink) (§16)', () => {
     const { container } = render(<Eyebrow>Section</Eyebrow>)
     const el = container.firstChild
     const s = styleOf(el).toLowerCase()
     expect(s).toContain('font-weight:700')
     expect(s).toContain('inter')
     expect(s).toContain('text-transform:uppercase')
-    // purple accent (#A78BFA → jsdom may serialize as rgb(167, 139, 250))
-    expect(s).toMatch(/a78bfa|rgb\(167,139,250\)/)
+    // Canonical neutral default — the ivory-secondary token, and provably NOT a
+    // purple/pink hue (the shared default can never regress to purple/pink).
+    expect(s).toContain('color:var(--color-text-secondary')
+    expect(s).not.toMatch(/a78bfa|rgb\(167,139,250\)|ec4899|rgb\(236,72,153\)/)
   })
 
   it('rule prop renders the 22px accent rule', () => {

@@ -19,8 +19,8 @@ import { clearDraft } from '@/features/onboarding/draft'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 
-// Mood-tinted accent. Wire to a context later (see notes in README).
-const AMBIENT_HEX = '#A78BFA'
+// Ambient accent — ivory secondary (neutral chrome, not a brand colour).
+const AMBIENT_HEX = '#beb8ad'
 
 // IA v2 (F2): the primary pills encode the doctrine's surface hierarchy —
 // Core + Supporting only. "Tonight" (/home, the Briefing) is the primary
@@ -92,7 +92,7 @@ function MorphNav({ items }) {
               ? 'text-white font-semibold'
               : 'text-white/45 hover:text-white/80 font-medium'
           }`}
-          style={{ fontFamily: '"Outfit", "Inter", sans-serif' }}
+          style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
         >
           {n.label}
         </Link>
@@ -113,16 +113,16 @@ function CenterSearch({ onOpen }) {
       aria-label="Search films"
       className="hidden lg:flex w-full max-w-[440px] items-center gap-3 px-3.5 py-2.5 rounded-[10px] border transition-all duration-200"
       style={{
-        background: focused ? 'rgba(167,139,250,0.06)' : 'rgba(255,255,255,0.04)',
+        background: focused ? 'rgba(190,184,173,0.06)' : 'rgba(255,255,255,0.04)',
         borderColor: focused ? `${AMBIENT_HEX}66` : 'rgba(255,255,255,0.08)',
-        boxShadow: focused ? '0 0 0 4px rgba(167,139,250,0.12)' : 'none',
+        boxShadow: focused ? '0 0 0 4px rgba(190,184,173,0.12)' : 'none',
       }}
     >
       <SearchIcon className="h-4 w-4 shrink-0" style={{ color: focused ? AMBIENT_HEX : 'rgba(248,250,252,0.45)' }} />
-      <span className="flex-1 text-left text-[13.5px] text-white/45 truncate" style={{ fontFamily: '"Outfit", "Inter", sans-serif' }}>
-        Search films, directors, moods, or ask M…
+      <span className="flex-1 text-left text-[13.5px] text-white/45 truncate" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
+        Search films, directors, moods…
       </span>
-      <span className="inline-flex items-center gap-1 text-[10px] text-white/30 shrink-0" style={{ fontFamily: '"Outfit", sans-serif' }}>
+      <span className="inline-flex items-center gap-1 text-[10px] text-white/30 shrink-0" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
         <kbd className="px-1.5 py-0.5 rounded border border-white/10 bg-white/6 leading-none">⌘</kbd>
         <kbd className="px-1.5 py-0.5 rounded border border-white/10 bg-white/6 leading-none">K</kbd>
       </span>
@@ -154,19 +154,19 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
         className="flex items-center p-0 bg-transparent border-0 cursor-pointer"
       >
         <span className="relative w-[34px] h-[34px]">
-          {/* Conic ring */}
+          {/* Ivory ring (flat, neutral chrome — no brand gradient) */}
           <span
             aria-hidden="true"
             className="absolute inset-[-3px] rounded-full opacity-75"
-            style={{ background: `conic-gradient(${AMBIENT_HEX}, #EC4899, ${AMBIENT_HEX})` }}
+            style={{ background: 'var(--color-surface-raised, #2d2621)' }}
           />
-          <span className="relative block w-full h-full rounded-full p-[2px]" style={{ background: '#06060a' }}>
+          <span className="relative block w-full h-full rounded-full p-[2px]" style={{ background: 'var(--color-canvas, #15120f)' }}>
             {userAvatar ? (
               <img src={userAvatar} alt={userName} className="w-full h-full rounded-full object-cover" />
             ) : (
               <span
-                className="w-full h-full rounded-full flex items-center justify-center text-white text-[13px] font-semibold"
-                style={{ background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)', fontFamily: '"Outfit", sans-serif' }}
+                className="w-full h-full rounded-full flex items-center justify-center text-[13px] font-semibold"
+                style={{ background: 'var(--color-surface-raised, #2d2621)', color: 'var(--color-text-primary, #f3ecdf)', fontFamily: '"Inter", system-ui, sans-serif' }}
               >
                 {userInitial}
               </span>
@@ -189,13 +189,13 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
 
           <div className="px-4 py-3.5 border-b border-white/5 flex items-center gap-3">
             <div className="relative w-9 h-9 shrink-0">
-              <div className="absolute inset-[-2px] rounded-full opacity-40 blur-md" style={{ background: 'linear-gradient(135deg,#9333ea,#ec4899)' }} />
+              <div className="absolute inset-[-2px] rounded-full opacity-40 blur-md" style={{ background: 'var(--color-surface-raised, #2d2621)' }} />
               {userAvatar ? (
                 <img src={userAvatar} alt={userName} className="relative h-9 w-9 rounded-full object-cover" />
               ) : (
                 <div
-                  className="relative h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                  style={{ background: 'linear-gradient(135deg,#9333ea,#ec4899)' }}
+                  className="relative h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{ background: 'var(--color-surface-raised, #2d2621)', color: 'var(--color-text-primary, #f3ecdf)' }}
                 >{userInitial}</div>
               )}
             </div>
@@ -317,7 +317,8 @@ export default function Header({ onOpenSearch }) {
           <div className="flex items-center gap-6 lg:gap-8 min-w-0">
             <Link
               to={isAuthenticated ? '/home' : '/'}
-              className="shrink-0 text-xl sm:text-2xl font-black bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:opacity-85 transition-opacity duration-200"
+              className="shrink-0 text-xl sm:text-2xl font-black hover:opacity-85 transition-opacity duration-200"
+              style={{ color: 'var(--color-text-primary, #f3ecdf)', fontFamily: '"Inter", system-ui, sans-serif' }}
             >
               FEELFLICK
             </Link>
@@ -353,7 +354,7 @@ export default function Header({ onOpenSearch }) {
                 type="button"
                 onClick={signInWithGoogle}
                 disabled={isAuthenticating}
-                className="hidden md:flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition-all duration-200 hover:border-purple-500/40 hover:bg-white/10 hover:text-white active:scale-95 disabled:opacity-50"
+                className="hidden md:flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:text-white active:scale-95 disabled:opacity-50"
                 aria-label="Sign in with Google"
               >
                 <LogIn className="h-4 w-4" />

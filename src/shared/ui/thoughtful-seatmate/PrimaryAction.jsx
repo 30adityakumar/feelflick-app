@@ -1,25 +1,45 @@
 import { forwardRef } from 'react'
+import Button from '@/shared/ui/Button'
 import './PrimaryAction.css'
 
+const SIZE_CLASS = {
+  sm: 'ts-action-primary--sm',
+  md: 'ts-action-primary--md',
+  lg: 'ts-action-primary--lg',
+}
+
 /**
- * PrimaryAction — the neutral projection-ivory primary action (Stage 1).
+ * PrimaryAction — COMPATIBILITY WRAPPER over the canonical `<Button variant="primary">`.
  *
- * Solid ivory fill (`--ts-action-primary-fill` #efe7d7) + dark warm text
- * (`--ts-action-primary-text` #221b13). Calm, high-contrast, obvious. NO rose,
- * purple, gradient, glow, or contextual color. Follows the established Button
- * architecture (forwardRef, sm/md/lg touch-target floors 44/44/48, in-button micro-spinner
- * for `loading`, disabled state, focus-visible ring, reduced-motion-gated press) as
- * an opt-in scoped primitive — it does not fork or modify the production Button, and
- * is excluded from the production bundle until a pilot imports it.
+ * Status: COMPATIBILITY (Slice B). PrimaryAction no longer maintains its own button
+ * semantics or loading implementation — it delegates everything to the canonical
+ * Button, which owns: native button + default `type="button"` (callers may pass
+ * `type="submit"`), the `disabled`/`loading` precedence, `aria-busy`, `data-loading`,
+ * the loading DOM (`.ff-btn__label` / `.ff-btn__spinner`), accessible-name preservation
+ * and loading width-stability, the 2px offset `--color-focus` focus-visible outline,
+ * forced-colours support, the reduced-motion-safe spinner, and invalid-size fallback.
  *
- * States carry no layout shift: hover dims via filter, press translates, loading
- * overlays a centered spinner while the label reserves its width.
+ * This wrapper now has ZERO production *component* consumers: Watchlist (Slice C), Home
+ * (Slice D) and Movie (Slice E) all render the canonical `<Button variant="primary">`
+ * directly and import `./PrimaryAction.css` themselves for the same legacy recipe via the
+ * `ts-action-primary*` compat classes. The wrapper + its barrel export are RETAINED
+ * temporarily (only retirement-gate condition 1 — zero component imports — is now met;
+ * conditions 2–4 remain). It still adds the legacy `ts-action-primary*` compatibility
+ * classes; the legacy *visual recipe* (flat ivory, legacy size metrics, darken-on-hover,
+ * 1px press translate) is preserved by `./PrimaryAction.css`. Do NOT add new adopters —
+ * use `<Button variant="primary">`.
+ * Retirement follows the complete four-condition gate in
+ * docs/ui/composition-system-ownership.md: zero production component imports, zero
+ * `ts-action-primary*` compatibility-class consumers, zero `PrimaryAction.css` imports,
+ * and the final neutral-primary Button recipe approved + implemented. Removal happens in
+ * a dedicated PR.
  *
  * @param {object} props
- * @param {'sm'|'md'|'lg'} [props.size='md'] touch-target floors 44 / 44 / 48 px
+ * @param {'sm'|'md'|'lg'} [props.size='md']
  * @param {boolean} [props.fullWidth=false]
- * @param {boolean} [props.loading=false] shows the in-button spinner + disables
+ * @param {boolean} [props.loading=false]
  * @param {boolean} [props.disabled=false]
+ * @param {'button'|'submit'|'reset'} [props.type='button']
  * @param {string} [props.className]
  */
 const PrimaryAction = forwardRef(function PrimaryAction({
@@ -28,22 +48,38 @@ const PrimaryAction = forwardRef(function PrimaryAction({
   loading = false,
   disabled = false,
   className = '',
+  type = 'button',
   children,
   ...props
 }, ref) {
+  // Invalid size → md compat class (mirrors Button's own md size fallback).
+  const compatClass = [
+    'ts-action-primary',
+    SIZE_CLASS[size] || SIZE_CLASS.md,
+    fullWidth ? 'ts-action-primary--full' : '',
+    className,
+  ].filter(Boolean).join(' ')
+
   return (
-    <button
+    <Button
       ref={ref}
-      type="button"
-      disabled={disabled || loading}
-      aria-busy={loading || undefined}
-      data-loading={loading ? 'true' : undefined}
-      className={`ts-action-primary ts-action-primary--${size}${fullWidth ? ' ts-action-primary--full' : ''}${className ? ` ${className}` : ''}`}
+      variant="primary"
+      size={size}
+      fullWidth={fullWidth}
+      loading={loading}
+      disabled={disabled}
+      type={type}
+      className={compatClass}
       {...props}
     >
-      {loading && <span className="ts-action-primary__spinner" aria-hidden="true" />}
-      <span className="ts-action-primary__label">{children}</span>
-    </button>
+      {/* Legacy structural grouping: the old PrimaryAction always wrapped children in a
+          single inline span, so multi-child content (icon + text) flowed inline WITHOUT
+          Button's flex `gap` and with the legacy box metrics. Reproducing that single
+          wrapper keeps home/movie icon+label buttons byte-identical (Button would
+          otherwise lay the children out as gap-separated flex items). It is a plain
+          span — NOT the retired `ts-action-primary__label` class (it carries no class). */}
+      <span>{children}</span>
+    </Button>
   )
 })
 

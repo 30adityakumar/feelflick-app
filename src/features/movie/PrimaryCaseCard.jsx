@@ -11,10 +11,24 @@
 //     no confidence meter — the precise integer was removed in F5.3.
 // EXISTING DATA ONLY · NEVER FABRICATES. Self-hides when nothing useful exists.
 
-import AccentPanel from '@/shared/ui/AccentPanel'
+import { Surface } from '@/shared/ui/thoughtful-seatmate'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, ROSE, RADIUS, SPACE } from './data'
+import { HP as HP_BASE, RADIUS, SPACE } from './data'
 import { derivePrimaryCase } from './derive/primaryCase'
+
+const HP = {
+  ...HP_BASE,
+  panel: 'var(--ts-surface-1, #1d1814)',
+  border: 'var(--ts-border-subtle, #302c28)',
+  borderStrong: 'var(--ts-border-strong, #46423d)',
+  text: 'var(--ts-text-primary, #f3ecdf)',
+  textSoft: 'var(--ts-text-secondary, #beb8ad)',
+  textMuted: 'var(--ts-text-muted, #8d887f)',
+  textFaint: 'var(--ts-text-muted, #8d887f)',
+  purple: 'var(--ts-text-secondary, #beb8ad)',
+  purpleDeep: 'var(--ts-text-muted, #8d887f)',
+  pink: 'var(--ts-text-secondary, #beb8ad)',
+}
 
 /**
  * @param {object}  props
@@ -49,15 +63,15 @@ export default function PrimaryCaseCard({
       className="ff-movie-section ff-movie-primary-case"
       style={{ padding: `${SPACE.sectionSm}px ${SPACE.gutter}px 8px`, borderTop: `1px solid ${HP.border}` }}
     >
-      <AccentPanel
-        variant="gradient"
-        tone="purple"
+      <Surface
+        level={1}
+        border="subtle"
         radius="lg"
         style={{ maxWidth: 880, padding: '26px 30px' }}
       >
         {(showPrimaryHeader || fitBand) && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: primaryLead ? 12 : 0 }}>
-            {showPrimaryHeader ? <Eyebrow color={ROSE}>{primaryLabel}</Eyebrow> : <span />}
+            {showPrimaryHeader ? <Eyebrow color="var(--ts-text-secondary, #beb8ad)">{primaryLabel}</Eyebrow> : <span />}
             {fitBand && (
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 7 }}>
                 <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, color: HP.text, letterSpacing: '0.01em' }}>{fitBand}</span>
@@ -73,7 +87,7 @@ export default function PrimaryCaseCard({
           <p
             style={{
               margin: 0,
-              fontFamily: 'var(--font-editorial)',
+              fontFamily: 'Inter, system-ui, sans-serif',
               fontSize: 'clamp(17px, 1.5vw, 21px)',
               lineHeight: 1.5,
               color: HP.text,
@@ -94,7 +108,7 @@ export default function PrimaryCaseCard({
             }}
           >
             <Eyebrow color={HP.textMuted} style={{ marginBottom: 8 }}>{editorialLabel}</Eyebrow>
-            <p style={{ margin: 0, fontFamily: 'var(--font-editorial)', fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.5, color: HP.textSoft, letterSpacing: '-0.005em', textWrap: 'pretty' }}>
+            <p style={{ margin: 0, fontFamily: 'Inter, system-ui, sans-serif', fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.5, color: HP.textSoft, letterSpacing: '-0.005em', textWrap: 'pretty' }}>
               {editorialImpression}
             </p>
             <p style={{ margin: '10px 0 0 0', fontSize: 11.5, lineHeight: 1.5, color: HP.textMuted, fontFamily: 'Inter, sans-serif' }}>
@@ -116,7 +130,7 @@ export default function PrimaryCaseCard({
             Sign in and rate a few films to make this fit personal.
           </p>
         )}
-      </AccentPanel>
+      </Surface>
     </section>
   )
 }

@@ -6,13 +6,27 @@ description: Run a read-only synthetic persona feedback audit for FeelFlick. Use
 
 Synthetic UX inspection — not real-user validation.
 
-Run a read-only synthetic persona feedback audit for FeelFlick. This skill reviews existing safe persona QA artifacts and turns them into product feedback about trust, clarity, felt personalization, and the one-pick movie decision experience.
+Run a read-only synthetic persona feedback audit for FeelFlick. This skill reviews existing safe persona QA artifacts and turns them into product feedback about trust, clarity, felt personalization, and the quality of personal movie discovery across taste, mood, and curiosity.
 
 Core product lens:
 
 ```text
-Does FeelFlick help a tired or taste-curious person trust one good film tonight?
+Does FeelFlick help a person discover movies that feel personally relevant — through
+their taste, their mood, and their curiosity — with the right amount of bounded
+choice, honest explanations, and an accurate, evolving Cinematic DNA?
 ```
+
+Evaluate whether FeelFlick:
+
+- makes discovery feel **personally relevant** (taste + context, not generic);
+- **understands mood and situation** when the user signals them;
+- **supports intentional exploration** (direct filters / browse) for users with their own intent;
+- offers an **appropriate, bounded amount of choice** — not exactly one mandatory film, and not an overwhelming wall;
+- **explains recommendations honestly**, grounded in real signals, clear about uncertainty;
+- **prevents choice fatigue** without removing agency;
+- reflects an **accurate, evolving Cinematic DNA** (living and correctable — never fixed or infallible).
+
+Do **not** require every surface to present exactly one film. A finite, bounded, personalized selection is in-doctrine; treat single-pick framing in older artifacts as current-runtime context, not the evaluation standard. (Canonical doctrine: [`docs/product-doctrine.md`](../../../docs/product-doctrine.md).)
 
 ## Default Mode
 

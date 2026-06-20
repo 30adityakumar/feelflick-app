@@ -1,0 +1,49 @@
+/* Canonical Button cross-cutting accessibility behaviour. */
+.ff-btn {
+  position: relative;
+}
+
+.ff-btn:focus-visible {
+  outline: 2px solid var(--color-focus, #f5f2eb);
+  outline-offset: 2px;
+}
+
+.ff-btn__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+}
+
+.ff-btn__spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in oklab, currentColor 40%, transparent);
+  border-top-color: currentColor;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ff-btn__spinner {
+    animation: ff-btn-spin 0.7s linear infinite;
+  }
+}
+
+@keyframes ff-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (forced-colors: active) {
+  .ff-btn {
+    border: 1px solid ButtonText;
+  }
+  .ff-btn:focus-visible {
+    outline-color: Highlight;
+  }
+}

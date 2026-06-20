@@ -130,14 +130,19 @@ every page `lazy()`-loaded behind a `RouteSkeleton` Suspense fallback. Three she
 `/movies`, `/trending` → `/browse`; `/feed`, `/challenges` → `/home`; `/app`,
 `/app/*` → de-prefixed alias; `*` → live 404.
 
-**Navigation hierarchy (IA v2 / F2).** The nav encodes the doctrine's surface
-hierarchy rather than treating routes as co-equal: the desktop header pills are
-**Tonight** (`/home`, the Briefing) · **Discover** · **DNA** (`/profile`), with
-Utility surfaces (Browse, Watchlist, History, Lists) + parked People in the
+**Navigation hierarchy (current runtime — IA v2 / F2).** The shipped nav still
+encodes the **former** surface hierarchy rather than treating routes as co-equal:
+the desktop header pills are **Tonight** (`/home`, the Briefing) · **Discover** ·
+**DNA** (`/profile`), with Browse, Watchlist, History, Lists + parked People in the
 account menu; the authed mobile bottom nav makes **Tonight** the centered hero
-(prime action) with Browse · Discover · DNA · Account around it. `/home` is
-labeled "Tonight" in nav only — the route is unchanged. Source of truth:
-[ia-v2-decision-record.md](ia-v2-decision-record.md).
+(prime action) with Browse · Discover · DNA · Account around it. `/home` is labeled
+"Tonight" in nav only — the route is unchanged. This describes **current runtime,
+not current product authority**: the canonical doctrine
+([product-doctrine.md](product-doctrine.md),
+[ADR 020](decisions/020-personal-movie-discovery-and-bounded-choice.md)) now treats
+Home, Discover, and Browse as **three complementary discovery modes**, and
+re-leveling the nav is later, separately-scoped work. Implementation record
+(historical): [ia-v2-decision-record.md](ia-v2-decision-record.md).
 
 ---
 
@@ -276,8 +281,11 @@ detail. Headline items:
 - **Case-making layer is thin** — the rich `movies_editorial_overlay` is seeded for
   a single film (Parasite); most picks fall back to short generated reasons. The
   moat is the least-built part (F6).
-- **Surface sprawl vs. the single pick** — the IA doesn't yet visibly subordinate
-  browse/lists/discover to the Briefing (F2).
+- **Surface sprawl vs. discovery modes** — historically framed as "the IA doesn't
+  visibly subordinate browse/lists/discover to the Briefing (F2)." Under the current
+  doctrine ([ADR 020](decisions/020-personal-movie-discovery-and-bounded-choice.md))
+  Home/Discover/Browse are **complementary discovery modes**; the open work is
+  coherent leveling of these surfaces, not subordinating them to a single pick.
 - **Minor design drift** — amber/orange ambient gradients + a couple of inline `HP`
   redeclarations persist against the "purple + pink only" rule (F3).
 

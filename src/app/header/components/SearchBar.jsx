@@ -314,10 +314,10 @@ export default function SearchBar({ open, onClose }) {
             <div className="px-6 py-4 space-y-1" aria-live="polite">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex items-center gap-3 px-2 py-2">
-                  <div className="h-20 w-14 shrink-0 rounded-lg animate-pulse bg-purple-500/4" />
+                  <div className="h-20 w-14 shrink-0 rounded-lg animate-pulse bg-white/5" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3 rounded-full animate-pulse bg-purple-500/4" />
-                    <div className="h-3 w-2/3 rounded-full animate-pulse bg-purple-500/4" />
+                    <div className="h-3 rounded-full animate-pulse bg-white/5" />
+                    <div className="h-3 w-2/3 rounded-full animate-pulse bg-white/5" />
                   </div>
                 </div>
               ))}
@@ -398,7 +398,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <h4 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-purple-400 md:text-base">
+        <h4 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-white md:text-base">
           {movie.title}
         </h4>
         <div className="mt-1 flex items-center gap-2 text-xs text-white/60 md:text-sm">

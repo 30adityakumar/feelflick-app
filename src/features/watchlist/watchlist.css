@@ -20,7 +20,7 @@
 .ff-wl-filter-pill:focus-visible,
 .ff-wl-cta:focus-visible,
 .ff-wl-card button:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #f3ecdf);
   outline-offset: 2px;
 }
 
@@ -45,7 +45,7 @@
 /* F6.3 — sanitized error recovery buttons + the data-library-fallback focus target
    should not paint a visible ring (focus is moved programmatically, not highlighted). */
 .ff-wl-error-btn:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #f3ecdf);
   outline-offset: 3px;
 }
 [data-library-fallback]:focus {
@@ -57,7 +57,7 @@
 .ff-wl-card__title { overflow-wrap: anywhere; }            /* long titles wrap, never clip */
 .ff-wl-card__link:focus-visible,
 .ff-wl-card__remove:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--ts-focus, #f3ecdf);
   outline-offset: 3px;
   border-radius: 6px;
 }

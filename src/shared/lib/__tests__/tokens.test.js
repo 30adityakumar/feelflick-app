@@ -11,10 +11,13 @@ describe('design tokens — brand vs semantic contract', () => {
     expect(HP_GRAD).toBe('linear-gradient(135deg, #9333ea 0%, #ec4899 100%)')
   })
 
-  it('keeps the brand identity hues (purple + pink)', () => {
-    expect(HP.purple).toBeTruthy()
-    expect(HP.pink).toBe('#EC4899')
-    expect(HP.purpleDeep).toBeTruthy()
+  it('neutralises the legacy purple/pink hues to canonical theme tokens (with legacy fallback)', () => {
+    // Website-wide globalization: the legacy brand hues no longer carry purple/pink —
+    // they resolve to the canonical ivory tiers under .theme-thoughtful, reverting to
+    // the historical hue only when the theme class is removed (rollback fallback).
+    expect(HP.purple).toMatch(/^var\(--color-text-secondary,/)
+    expect(HP.pink).toMatch(/^var\(--color-text-secondary,/)
+    expect(HP.purpleDeep).toMatch(/^var\(--color-text-muted,/)
   })
 
   it('keeps the load-bearing semantic accents (amber / red / green)', () => {
@@ -53,8 +56,11 @@ describe('design tokens — SHADOW (F11B.1)', () => {
     expect(Object.keys(SHADOW).sort()).toEqual(['card', 'focus', 'hover'])
   })
 
-  it('focus ring uses the brand purple (#A78BFA = rgb 167,139,250)', () => {
-    expect(SHADOW.focus).toContain('167,139,250')
+  it('focus ring uses the neutral paper-white focus token, never a brand hue', () => {
+    // Focus is a neutral, high-contrast paper-white signal — never the coral accent
+    // and never the legacy purple/pink. Locked so focus can never become brand-colored.
+    expect(SHADOW.focus).toContain('--color-focus-ring')
+    expect(SHADOW.focus).not.toMatch(/167,\s*139,\s*250|a78bfa|9333ea|ec4899|e5636f|dd4e83|b83d4f/i)
   })
 })
 

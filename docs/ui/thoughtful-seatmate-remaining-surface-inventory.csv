@@ -1,0 +1,21 @@
+surface,dir,status,visual_baseline,legacy_font_editorial,outfit,hp_purple_pink,legacy_gradient,backdrop_blur,risk_tier,recommended_stage
+Tonight,src/features/home,MIGRATED,yes,non-rendered-only,0,non-rendered-only,0,2,DONE,done
+Film File,src/features/movie,MIGRATED,yes,0,0,0,0,1(dialog scrim),DONE,done
+Library,src/features/library,legacy,yes,0,0,0,0,0,LOW-RISK-LOCAL,next-local-pilot
+Browse,src/features/browse,legacy,no,0,0,0,0,2,LOW-RISK-LOCAL,low
+History/Diary,src/features/history,legacy,no,1,0,0,0,0,LOW-RISK-LOCAL,low
+Watchlist,src/features/watchlist,legacy,no,1,0,0,0,0,LOW-RISK-LOCAL,low
+Lists,src/features/lists,legacy,no,4,0,0,0,1,LOW-RISK-LOCAL,low
+Discover,src/features/discover,legacy,yes,3,0,0,0,4,MEDIUM-RISK-SHARED,medium
+Profile,src/features/profile,legacy,yes,2,0,2,0,2,MEDIUM-RISK-SHARED,medium
+Account,src/features/account,legacy,no,1,0,1,0,2,MEDIUM-RISK-SHARED,medium
+People,src/features/people,legacy,yes,1,0,1,0,1,MEDIUM-RISK-SHARED,medium
+Preferences,src/features/preferences,legacy,no,1,0,1,0,0,MEDIUM-RISK-SHARED,medium
+Onboarding,src/features/onboarding,legacy,no,1,1,0,1,2,MEDIUM-RISK-SHARED,medium(last-outfit-and-hpgrad)
+Landing/About,src/features/landing,legacy,public-visual-baselined,1,0,0,0,5,MEDIUM-RISK-SHARED,medium
+Legal,src/features/legal,legacy,no,0,0,0,0,2,LOW-RISK-LOCAL,low
+Auth,src/features/auth,legacy-minimal,no,0,0,0,0,0,LOW-RISK-LOCAL,low
+Challenges,src/features/challenges,legacy-minimal,no,0,0,0,0,0,LOW-RISK-LOCAL,low
+Share artifacts,src/features/share,legacy,no,1,0,0,0,1,DEFERRED-ARTIFACT,deferred
+Global shell/header/nav,src/app,legacy,n/a,n/a,n/a,n/a,gradient-wordmark(guard-baseline),n/a,HIGH-RISK-SHELL,after-all-route-risks
+Non-rendered Home sections,src/features/home/sections-bottom,legacy,n/a,1,0,1,0,n/a,DEFERRED,with-their-routes

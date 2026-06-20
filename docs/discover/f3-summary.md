@@ -1,5 +1,15 @@
 # F3 — `/discover` Redesign: Final Initiative Summary
 
+> ⚠️ **Historical record — superseded product framing.** This summary's "one-pick"
+> Discover product framing is **no longer current product authority**. FeelFlick's
+> canonical definition is now **personal movie discovery** through three complementary
+> modes, and Discover's target is a **small, focused, finite selection** (Tuned to the
+> moment), not exactly one film — see [../product-doctrine.md](../product-doctrine.md)
+> (rationale: [ADR 020](../decisions/020-personal-movie-discovery-and-bounded-choice.md)).
+> This document is preserved as an accurate account of what F3 shipped; its body is
+> intentionally not rewritten. The shipped one-pick `/discover` result remains current
+> runtime, being migrated separately.
+
 **Status:** COMPLETE · **Route verdict:** READY FOR PRIVATE / BETA TESTING
 **Span:** F3.1 → F3.14 · **Final `main` lineage:** the F3.13 coverage merge `c74c856e` + the F3.13 beta-readiness note `fcb91a7a`
 **Companion docs:** [`beta-readiness-f312.md`](beta-readiness-f312.md) (the F3.11 verdict + F3.12 hardening + the F3.13 evidence append).

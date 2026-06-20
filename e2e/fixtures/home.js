@@ -91,17 +91,20 @@ const FINGERPRINT = {
 }
 
 function readFor(table, search, opts) {
+  // 'empty' (alias 'no_candidates'): zero EVERYTHING so the route settles into the
+  // honest cold-start / "warming up" empty state (no profile, no candidates).
+  const isEmpty = opts.dataState === 'no_candidates' || opts.dataState === 'empty' || opts.dataState === 'cold'
   switch (table) {
     case 'movies':
-      if (opts.dataState === 'no_candidates') return []
+      if (isEmpty) return []
       // The signature-director row narrows to the top director; mirror that so the
       // row reads as "More from Mara Vance" rather than a mixed set.
       if (search.includes('director_name')) return MARA_POOL
       return POOL
     case 'user_history':
-      return opts.dataState === 'cold' ? [] : HISTORY
+      return isEmpty ? [] : HISTORY
     case 'user_ratings': {
-      if (opts.dataState === 'cold') return []
+      if (isEmpty) return []
       // Shape the nested join PostgREST returns per query Home issues.
       if (search.includes('runtime')) return HISTORY.slice(0, 4).map(() => ({ movies: { runtime: 112 } }))
       if (search.includes('poster_path')) return [{ movie_id: SEED.id, rating: 9, rated_at: '2026-01-20T12:00:00Z', movies: { id: SEED.id, title: SEED.title, poster_path: '/home-poster-one.jpg' } }]
@@ -110,7 +113,7 @@ function readFor(table, search, opts) {
     case 'users': return [{ taste_baseline_moods: [] }]
     case 'user_settings': return [{ settings: { prefs: { avoidGenres: [] } } }]
     case 'user_profiles_computed':
-      return opts.dataState === 'cold' ? [] : [FINGERPRINT]
+      return isEmpty ? [] : [FINGERPRINT]
     case 'recommendation_impressions':
       return search.includes('order=shown_at')
         ? [{ id: 9999, shown_at: '2026-02-13T14:59:00Z', clicked: false, skipped: false, marked_watched: false, added_to_watchlist: false }]
@@ -191,7 +194,8 @@ export async function installHomeFixture(page, options = {}) {
   // before the generic /rest/v1 handler so it wins for /rest/v1/rpc/** paths.
   await page.route('**/rest/v1/rpc/**', (route) => {
     const rpc = new URL(route.request().url()).pathname.split('/rest/v1/rpc/')[1] || ''
-    const body = rpc.startsWith('get_seed_neighbors') && opts.dataState !== 'no_candidates'
+    const emptyState = ['no_candidates', 'empty', 'cold'].includes(opts.dataState)
+    const body = rpc.startsWith('get_seed_neighbors') && !emptyState
       ? JSON.stringify(SEED_NEIGHBORS)
       : '[]'
     return route.fulfill({ status: 200, contentType: 'application/json', body })

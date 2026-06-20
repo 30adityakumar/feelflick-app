@@ -8,9 +8,20 @@ import { installHomeFixture } from '../fixtures/home.js'
 // Platform-specific baselines: Darwin generated locally, Linux via the
 // visual-baselines/** CI flow.
 //
-// The composition is engine-driven (hero + bounded rows OR an honest cold state),
-// so we anchor on the always-present shortcut strip rather than specific films, then
-// capture the full page for human review.
+// WHAT THESE CAPTURE — and what they intentionally don't:
+//   The fixture drives the REAL v3 homepage row engine offline, which
+//   deterministically produces the poster-led recommendation rows (e.g. "More
+//   from <director>", "Because you loved <seed>") + the Cinematic DNA strip, plus
+//   the honest cold-start state. These baselines lock that composition + the
+//   shared-chrome integration + responsive grid↔carousel behaviour.
+//
+//   The full-bleed HERO + the embedding-heavy TOP_OF_TASTE / mood rows are NOT
+//   asserted here: the v3 hero/TOP_OF_TASTE scoring depends on live embedding /
+//   seed-similarity context that cannot be faithfully synthesised from an offline
+//   Supabase fixture. The hero is covered by unit tests (HomeHero.test.jsx — nav,
+//   active-film update, impressions, Save/Watched/Not-tonight/Open Film File) and
+//   was visually validated across all eight viewports via a dev-only preview. See
+//   docs/home/home-bounded-discovery-redesign.md.
 
 const DESKTOP = { width: 1280, height: 720 }
 const MOBILE = { width: 390, height: 844 }
@@ -33,18 +44,18 @@ async function freeze(page) {
 }
 
 test.describe('Home — authenticated visual baselines (redesign)', () => {
-  test('desktop — full Home composition', async ({ page }) => {
+  test('desktop — personalized rows + Cinematic DNA', async ({ page }) => {
     await page.setViewportSize(DESKTOP)
     await gotoHome(page)
     await freeze(page)
-    await expect(page).toHaveScreenshot('home-desktop.png', { fullPage: true })
+    await expect(page).toHaveScreenshot('home-rows-desktop.png', { fullPage: true })
   })
 
-  test('mobile — full Home composition', async ({ page }) => {
+  test('mobile — personalized rows + Cinematic DNA', async ({ page }) => {
     await page.setViewportSize(MOBILE)
     await gotoHome(page)
     await freeze(page)
-    await expect(page).toHaveScreenshot('home-mobile.png', { fullPage: true })
+    await expect(page).toHaveScreenshot('home-rows-mobile.png', { fullPage: true })
   })
 
   test('desktop — honest cold-start state', async ({ page }) => {

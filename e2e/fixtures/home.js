@@ -53,10 +53,12 @@ const POOL = Array.from({ length: 24 }, (_, i) => movieRow({
   director_name: i % 2 === 0 ? TOP_DIRECTOR : 'Idris Calloway',
   release_year: 2015 + (i % 9),
   runtime: i % 4 === 0 ? 84 : 104 + (i % 5) * 7,
-  ff_rating: 95 - (i % 9), ff_final_rating: 95 - (i % 9), quality_score: 95 - (i % 9), ff_rating_genre_normalized: 95 - (i % 9),
-  ff_audience_rating: 94 - (i % 9), ff_audience_confidence: 93,
-  ff_critic_rating: 93 - (i % 7), ff_critic_confidence: 90,
-  user_satisfaction_score: 88, user_satisfaction_confidence: 80,
+  // Uniform top-tier quality so ordering is stable and every candidate clears the
+  // quality floor; the tiny ε keeps a deterministic sort without changing tiers.
+  ff_rating: 95, ff_final_rating: 95, quality_score: 95, ff_rating_genre_normalized: 95,
+  ff_audience_rating: 94 - i * 0.01, ff_audience_confidence: 95,
+  ff_critic_rating: 93, ff_critic_confidence: 92,
+  user_satisfaction_score: 90, user_satisfaction_confidence: 85,
 }))
 const MARA_POOL = POOL.filter(m => m.director_name === TOP_DIRECTOR)
 
@@ -122,9 +124,9 @@ function readFor(table, search, opts) {
 // reads `matched_seed_id` to look up the seed's weight (drives the embedding
 // dimension that TOP_OF_TASTE / MOOD weight heavily) — without a real seed id it
 // falls back to a weak 0.2 weight and those rows never clear the score floor.
-const SEED_NEIGHBORS = POOL.slice(0, 12).map((m, i) => ({
+const SEED_NEIGHBORS = POOL.map((m, i) => ({
   id: m.id,
-  similarity: 0.97 - i * 0.015,
+  similarity: Math.max(0.7, 0.97 - i * 0.008),
   matched_seed_id: WATCHED_IDS[i % 6],
   matched_seed_title: i % 6 === 0 ? SEED.title : `Loved Film ${(i % 6) + 1}`,
 }))

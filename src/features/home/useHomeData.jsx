@@ -108,6 +108,13 @@ export function HomeDataProvider({ children }) {
         ])
         if (abort) return
 
+        // Surface a real read failure as the honest top-level error rather than
+        // silently treating it as "0 films logged" (supabase-js resolves with
+        // { data: null, error } instead of throwing). user_history is the load-
+        // bearing read; a failed runtimes/fingerprint read is non-fatal (the DNA
+        // strip degrades to its forming/"—" states).
+        if (historyRes.error) throw historyRes.error
+
         const filmsLogged = (historyRes.data || []).length
         const dna = deriveDna(fingerprint, filmsLogged, ratingsRes.data)
 

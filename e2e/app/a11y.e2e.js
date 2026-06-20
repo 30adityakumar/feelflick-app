@@ -37,10 +37,12 @@ test('a11y — home (/home)', async ({ page }) => {
 
 test('a11y — film detail (/movie/:id)', async ({ page }) => {
   await page.goto('/home')
-  // Cards navigate on click (onClick, not <a href>) — match the recommendations e2e.
-  const poster = page.locator('img[src*="image.tmdb.org"]').first()
-  await expect(poster).toBeVisible({ timeout: 20_000 })
-  await poster.click()
+  // Open a film via the redesigned Home's "Open Film File" control (hero primary
+  // or a card overlay). The first image.tmdb.org element is now the decorative
+  // hero backdrop, which is intentionally not a navigation target.
+  const opener = page.getByRole('button', { name: /Open Film File/i }).first()
+  await expect(opener).toBeVisible({ timeout: 20_000 })
+  await opener.click()
   await expect(page).toHaveURL(/\/movie\/\d+/, { timeout: 15_000 })
   await page.waitForLoadState('networkidle')
   await audit(page, '/movie/:id')

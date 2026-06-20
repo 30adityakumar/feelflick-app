@@ -120,7 +120,7 @@ function CenterSearch({ onOpen }) {
     >
       <SearchIcon className="h-4 w-4 shrink-0" style={{ color: focused ? AMBIENT_HEX : 'rgba(248,250,252,0.45)' }} />
       <span className="flex-1 text-left text-[13.5px] text-white/45 truncate" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
-        Search films, directors, moods, or ask M…
+        Search films, directors, moods…
       </span>
       <span className="inline-flex items-center gap-1 text-[10px] text-white/30 shrink-0" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
         <kbd className="px-1.5 py-0.5 rounded border border-white/10 bg-white/6 leading-none">⌘</kbd>

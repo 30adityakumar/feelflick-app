@@ -15,10 +15,12 @@ test('home surfaces recommendation posters', async ({ page }) => {
 
 test('a recommended poster opens its film detail page', async ({ page }) => {
   await page.goto('/home')
-  const poster = page.locator('img[src*="image.tmdb.org"]').first()
-  await expect(poster).toBeVisible({ timeout: 20_000 })
-
-  // Clicking a card navigates to /movie/:tmdbId (cards navigate on click).
-  await poster.click()
+  // The redesigned Home opens a film via an "Open Film File" control — the hero
+  // primary ("Open Film File") or a card overlay ("Open Film File for <title>").
+  // (The first image.tmdb.org element is now the decorative hero backdrop, which
+  // is intentionally NOT a navigation target.)
+  const opener = page.getByRole('button', { name: /Open Film File/i }).first()
+  await expect(opener).toBeVisible({ timeout: 20_000 })
+  await opener.click()
   await expect(page).toHaveURL(/\/movie\/\d+/, { timeout: 15_000 })
 })

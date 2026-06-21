@@ -46,8 +46,12 @@ describe('useDiscoverImpressions — viewport (IntersectionObserver) gating', ()
   let cbs
   beforeEach(() => {
     cbs = []
+    // Mirror the real IntersectionObserver(callback, options) two-arg signature so
+    // the production `new IntersectionObserver(cb, { threshold })` call has no
+    // superfluous argument (clears CodeQL js/superfluous-trailing-arguments, which
+    // resolves the global to this mock).
     globalThis.IntersectionObserver = class {
-      constructor(cb) { this.cb = cb; cbs.push(cb) }
+      constructor(cb, options) { this.cb = cb; this.options = options; cbs.push(cb) }
       observe() {}
       disconnect() {}
     }

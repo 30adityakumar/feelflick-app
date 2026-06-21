@@ -87,7 +87,7 @@ const PURITY_PATTERNS = [
 //      A new production adopter outside the allowlist FAILS (mirrors the foundation
 //      purity test, enforced here too). Grow ADOPTERS + MIGRATED_FILES one stage at
 //      a time as each surface migrates.
-const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/', 'src/features/browse/']
+const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/', 'src/features/browse/', 'src/features/discover/']
 const ADOPTER_EXEMPT = [
   'src/shared/ui/thoughtful-seatmate', // the foundation itself
   'src/features/design-lab/thoughtful-seatmate-foundations', // dev-only showcase
@@ -137,6 +137,28 @@ const MIGRATED_FILES = [
   'src/features/browse/components/BrowseFilmGrid.jsx',
   'src/features/browse/components/BrowseFilmCard.jsx',
   'src/features/browse/components/BrowseSurpriseDialog.jsx',
+  // Discover (tuned-to-the-moment redesign) — Inter-only, flat Ink canvas, neutral
+  // ivory primary actions; mood colour is local accent only (the mood-hex palette
+  // lives in derive.js data and is applied dynamically, never as a chrome literal).
+  'src/features/discover/Discover.jsx',
+  'src/features/discover/discover.css',
+  'src/features/discover/discoverDirections.js',
+  'src/features/discover/discoverSession.js',
+  'src/features/discover/resultPresentation.js',
+  'src/features/discover/sections/DiscoverMoodStage.jsx',
+  'src/features/discover/sections/MoodConstellation.jsx',
+  'src/features/discover/sections/SelectedMoodSummary.jsx',
+  'src/features/discover/sections/DiscoverContextStage.jsx',
+  'src/features/discover/sections/ContextEditor.jsx',
+  'src/features/discover/sections/DiscoverResolveStage.jsx',
+  'src/features/discover/sections/DiscoverResultStage.jsx',
+  'src/features/discover/sections/DiscoverLeadFilm.jsx',
+  'src/features/discover/sections/DiscoverReason.jsx',
+  'src/features/discover/sections/DiscoverContextChips.jsx',
+  'src/features/discover/sections/DiscoverDirectionDock.jsx',
+  'src/features/discover/sections/DiscoverDirectionCard.jsx',
+  'src/features/discover/sections/DiscoverExhaustedState.jsx',
+  'src/features/discover/sections/DiscoverProgress.jsx',
 ]
 const MIGRATED_PURITY = [
   [/var\(\s*--font-editorial\)/gi, 'editorial font var (migrated surfaces are Inter-only)'],

@@ -57,6 +57,10 @@ const EVENT_NAMES = new Set(Object.values(EVENTS))
 // ── Payload key allow-list (everything else is dropped). All non-PII, non-freeform. ───────────
 export const ALLOWED_KEYS = new Set([
   'event_version', 'surface', 'source', 'step_key', 'reaction', 'placement',
+  // Discover redesign — non-PII enum-ish dimensions for the moment-tuned result:
+  // which semantic direction a film occupied + why a session ended. Short fixed
+  // vocabularies (closest/gentler/bolder/promoted; pool/cap; skip/watched).
+  'direction', 'exhaustion_reason', 'promotion_reason',
   'result_count', 'result_kind', 'has_results', 'from_cache',
   'movie_id', // catalog id — safe + useful
   'genre_count_bucket', 'movie_count_bucket', 'rating_count_bucket', 'mood_count_bucket', 'count_bucket',

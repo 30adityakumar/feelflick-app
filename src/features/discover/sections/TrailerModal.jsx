@@ -76,11 +76,14 @@ export default function TrailerModal({ open, youtubeKey, title, onClose }) {
       }
     };
     window.addEventListener('keydown', onKey);
-    const t = setTimeout(() => closeBtnRef.current?.focus(), 0);
+    // Focus the close button SYNCHRONOUSLY now that the portal content is mounted
+    // (this effect runs after commit). The previous setTimeout(0) raced both the
+    // test's focus assertion and the async YouTube iframe insertion — the direct
+    // call removes that timing flake while keeping the trap + restore contract.
+    closeBtnRef.current?.focus();
     return () => {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
-      clearTimeout(t);
       const opener = openerRef.current;
       if (opener && typeof opener.focus === 'function' && document.contains(opener)) {
         opener.focus();

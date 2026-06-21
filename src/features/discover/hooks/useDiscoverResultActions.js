@@ -1,9 +1,18 @@
 // src/features/discover/hooks/useDiscoverResultActions.js
-// F3.4 — result-stage write/action handlers extracted VERBATIM from StagePick. Owns
-// savedState/watchedState + the mark-watched timer; queue setters, navigate, user, and
-// Stage-2 context arrive as params. Table names, event names, source values, metadata
-// keys, 23505 idempotency, and optimistic transitions unchanged. handleNotTonight is
-// exposed as handleSkip (rename only).
+// Result-stage write/action handlers. Every action targets the currently FOCUSED
+// film and carries its exact attribution context — direction + placement — so an
+// outcome can never be mis-credited to another direction, session, or surface.
+//
+// Attribution (release-blocking): updateImpression is called WITH the focused
+// film's placement, constraining the flag update to that exact impression row
+// (see recommendations.js). trackInteraction additionally records direction +
+// placement in user_interactions (session-aware, the per-session source of truth).
+//
+// Fallback honesty: when the result is example (fallback) data we perform NO
+// recommendation-impression/outcome writes and NO watchlist/history writes (the
+// example ids are not guaranteed real catalogue rows) — only the real-tmdbId
+// Film File navigation + trailer remain. The result stage hides save/watched/skip
+// in fallback; these guards are belt-and-braces.
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -11,141 +20,83 @@ import { updateImpression } from '@/shared/services/recommendations'
 import { trackInteraction } from '@/shared/services/interactions'
 import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
 
-export function useDiscoverResultActions({ top, user, selected, intention, energy, who, setHiddenTopIds, setSelectedTopId, navigate }) {
-  const [savedState, setSavedState] = useState('idle'); // idle | saving | saved | error
-  const [watchedState, setWatchedState] = useState('idle'); // idle | saving | watched | error
-  // Per-film Saved + Watched state — when the user clicks Save or Mark
-  // Watched, the button confirms success ("Saved", "Watched"). On
-  // auto-advance to a new film, both reset to idle so the new top can be
-  // saved/marked too.
-  useEffect(() => { setSavedState('idle'); setWatchedState('idle'); }, [top?.id]);
+export function useDiscoverResultActions({ focused, user, selected, intention, energy, who, onRemove, navigate, isFallback = false }) {
+  const [savedState, setSavedState] = useState('idle')   // idle | saving | saved | error
+  const [watchedState, setWatchedState] = useState('idle') // idle | saving | watched | error
+  const focusedId = focused?.id
+  // Reset per-film confirmation state when focus/lead changes.
+  useEffect(() => { setSavedState('idle'); setWatchedState('idle') }, [focusedId])
 
-  // === Action handlers ===
-  // Stage 2 context shared across all interaction logs so the engine can
-  // learn from POSITIVE actions (save, watch, click), not just negative
-  // ones (skip). Previously Skip was the only handler writing
-  // user_interactions with mood/intention/energy/who — the engine had a
-  // negative bias because positive signals lost their full context.
+  // Shared interaction context — direction + placement + the Stage-2 context so the
+  // engine learns from positive AND negative actions with full attribution.
   const interactionContext = (action) => ({
-    movieId: top?.id,
+    movieId: focused?.id,
     source: 'discover',
-    metadata: { action, moods: selected, intention, energy, who },
-  });
+    metadata: { action, direction: focused?._direction, placement: focused?._placement, moods: selected, intention, energy, who },
+  })
+  const placementMeta = { placement: focused?._placement }
 
-  // "See more" navigates to the deep film page (/movie/:tmdbId) where the
-  // user finds extended synopsis, providers, similar films, etc. Fires
-  // updateImpression('clicked') so the engine learns conversion AND
-  // trackInteraction('click', …) so the engine sees the full Stage 2
-  // context that drove the click — same metadata shape as Skip uses.
   const handleSeeMore = () => {
-    if (!top?.tmdbId) return;
-    if (user?.id && top?.id) {
-      updateImpression(user.id, top.id, 'clicked').catch(() => {})
+    if (!focused?.tmdbId) return
+    if (!isFallback && user?.id && focused?.id) {
+      updateImpression(user.id, focused.id, 'clicked', placementMeta).catch(() => {})
       trackInteraction('click', interactionContext('see_more')).catch(() => {})
+      trackEvent(EVENTS.recommendation_opened, { surface: 'discover', movie_id: focused.id, placement: focused._placement, direction: focused._direction })
     }
-    // B1.4b: minimal PostHog funnel bridge (movie_id is catalog-safe; no title/context text).
-    trackEvent(EVENTS.recommendation_opened, { surface: 'discover', movie_id: top.id })
-    navigate(`/movie/${top.tmdbId}`);
-  };
+    navigate(`/movie/${focused.tmdbId}`)
+  }
+
   const handleSaveForLater = async () => {
-    if (!user?.id || !top?.id || savedState !== 'idle') return;
-    const filmId = top.id;
-    setSavedState('saving');
+    if (isFallback || !user?.id || !focused?.id || savedState !== 'idle') return
+    const filmId = focused.id
+    setSavedState('saving')
     try {
-      const { error } = await supabase
-        .from('user_watchlist')
-        .insert({ user_id: user.id, movie_id: filmId });
-      if (error && error.code !== '23505') throw error; // 23505 = unique violation (already in list)
-      setSavedState('saved');
-      // Engine learning: flip the impression's added_to_watchlist flag
-      // AND log the interaction with Stage 2 context. Both fire after
-      // the watchlist write succeeds so we don't credit a failed save.
-      updateImpression(user.id, filmId, 'saved').catch(() => {})
+      const { error } = await supabase.from('user_watchlist').insert({ user_id: user.id, movie_id: filmId })
+      if (error && error.code !== '23505') throw error // 23505 = already in list
+      setSavedState('saved')
+      updateImpression(user.id, filmId, 'saved', placementMeta).catch(() => {})
       trackInteraction('save', interactionContext('save_for_later')).catch(() => {})
-      trackEvent(EVENTS.recommendation_saved, { surface: 'discover', movie_id: filmId })
+      trackEvent(EVENTS.recommendation_saved, { surface: 'discover', movie_id: filmId, placement: focused._placement, direction: focused._direction })
     } catch (e) {
-      console.error('[Discover.saveForLater]', e);
-      setSavedState('error');
+      console.error('[Discover.saveForLater]', e)
+      setSavedState('error')
       trackEvent(EVENTS.recommendation_error, { surface: 'discover', source: 'save', error_kind: errorKind(e) })
     }
-  };
-  // Skip Tonight — auto-advances to the next pick instead of bouncing home.
-  // The page now behaves as a 3-pick swiper: skip the top → alternate #1
-  // becomes top → alternate #2 becomes top → exhausted state. Each skip
-  // still fires:
-  //   1. user_interactions ('dismiss', source 'discover') — analytics log
-  //   2. recommendation_impressions.skipped = true → engine's negative-
-  //      signal model penalises matching directors/genres next /discover run
-  // The skipped film also lands in hiddenTopIds for the rest of this
-  // session AND gets a 30-day hard exclusion via useDiscoverData's
-  // recent-skip query.
-  const handleSkip = () => {
-    if (!top?.id) return;
-    trackInteraction('dismiss', {
-      movieId: top.id,
-      source: 'discover',
-      metadata: {
-        action: 'not_tonight',
-        moods: selected,
-        intention,
-        energy,
-        who,
-      },
-    }).catch(() => {})
-    if (user?.id) {
-      updateImpression(user.id, top.id, 'skipped').catch(() => {})
-    }
-    setHiddenTopIds(prev => new Set([...prev, top.id]));
-    setSelectedTopId(null);
-  };
-  // Mark Watched — user has already seen this film. Closes the loop both
-  // for the recommendation engine (don't surface this again) and the
-  // user's own library. The button flips to "Watched" for a beat of
-  // confirmation, then auto-advances to the next pick. Capture top.id in
-  // a closure so the setTimeout still fires against the right film even
-  // after the state change starts swapping in the next pick.
-  const markWatchedTimeoutRef = useRef(null);
-  useEffect(() => () => {
-    if (markWatchedTimeoutRef.current) clearTimeout(markWatchedTimeoutRef.current);
-  }, []);
-  const handleMarkWatched = async () => {
-    // Re-entrant only from 'idle' or 'error' (retry); blocked while saving or
-    // already confirmed. Payload + impression/interaction shapes are unchanged.
-    if (!top?.id || !user?.id || watchedState === 'saving' || watchedState === 'watched') return;
-    const filmId = top.id;
-    setWatchedState('saving');
-    try {
-      // 23505 (unique violation) = already in history; treat as success.
-      // F6.5: write watched_at explicitly (the base table has no proven default and
-      // the Diary filters out rows without it) so Discover-marked films appear in the
-      // Diary like every other watched-entry path. Payload-completeness only — every
-      // other field, source, and the success/failure behavior are unchanged.
-      const { error } = await supabase
-        .from('user_history')
-        .insert({ user_id: user.id, movie_id: filmId, source: 'discover_marked', watched_at: new Date().toISOString() });
-      if (error && error.code !== '23505') throw error;
-    } catch (e) {
-      console.error('[Discover.markWatched]', e);
-      // A real write failure must NOT falsely confirm "Watched" or advance —
-      // surface a retryable error instead (F3.9 honesty).
-      setWatchedState('error');
-      return;
-    }
-    setWatchedState('watched');
-    // Engine learning fires only after the history write succeeds, so a failed
-    // mark-watched isn't credited.
-    updateImpression(user.id, filmId, 'watched').catch(() => {});
-    trackInteraction('watch', interactionContext('mark_watched')).catch(() => {});
-    // 600ms holds "Watched ✓" long enough to register as confirmation
-    // before the crossfade swap (180ms) carries the next pick in. Cleared
-    // on unmount so a quick Adjust tonight / Start over click during the
-    // hold doesn't fire a setState on an unmounted component.
-    markWatchedTimeoutRef.current = setTimeout(() => {
-      setHiddenTopIds(prev => new Set([...prev, filmId]));
-      setSelectedTopId(null);
-      markWatchedTimeoutRef.current = null;
-    }, 600);
-  };
+  }
 
-  return { savedState, watchedState, handleSeeMore, handleSaveForLater, handleMarkWatched, handleSkip };
+  // Not tonight — record the skip against the focused film + direction, then ask
+  // the session to remove it (promote / refill happens in the session machine).
+  const handleSkip = () => {
+    if (!focused?.id) return
+    if (!isFallback && user?.id) {
+      trackInteraction('dismiss', interactionContext('not_tonight')).catch(() => {})
+      updateImpression(user.id, focused.id, 'skipped', placementMeta).catch(() => {})
+    }
+    onRemove?.(focused.id)
+  }
+
+  const markWatchedTimeoutRef = useRef(null)
+  useEffect(() => () => { if (markWatchedTimeoutRef.current) clearTimeout(markWatchedTimeoutRef.current) }, [])
+  const handleMarkWatched = async () => {
+    if (isFallback || !focused?.id || !user?.id || watchedState === 'saving' || watchedState === 'watched') return
+    const filmId = focused.id
+    setWatchedState('saving')
+    try {
+      const { error } = await supabase.from('user_history').insert({ user_id: user.id, movie_id: filmId, source: 'discover_marked', watched_at: new Date().toISOString() })
+      if (error && error.code !== '23505') throw error
+    } catch (e) {
+      console.error('[Discover.markWatched]', e)
+      setWatchedState('error')
+      return
+    }
+    setWatchedState('watched')
+    updateImpression(user.id, filmId, 'watched', placementMeta).catch(() => {})
+    trackInteraction('watch', interactionContext('mark_watched')).catch(() => {})
+    markWatchedTimeoutRef.current = setTimeout(() => {
+      onRemove?.(filmId)
+      markWatchedTimeoutRef.current = null
+    }, 600)
+  }
+
+  return { savedState, watchedState, handleSeeMore, handleSaveForLater, handleMarkWatched, handleSkip }
 }

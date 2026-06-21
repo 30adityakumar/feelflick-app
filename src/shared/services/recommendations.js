@@ -3876,11 +3876,22 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
 
 export async function updateImpression(userId, movieId, action, metadata = {}) {
   try {
-    const { data: impression } = await supabase
+    // Attribution precision: when the caller knows the exact placement the user
+    // acted on (e.g. /discover's discover_lead vs discover_gentler vs
+    // discover_bolder), constrain the update to that placement's row so an action
+    // can never flip a flag on an UNRELATED earlier impression of the same film
+    // (a different direction, an older session, or another surface the same day).
+    // Omitting `metadata.placement` preserves the legacy "most recent row" behaviour
+    // for every existing caller.
+    let q = supabase
       .from('recommendation_impressions')
       .select('id')
       .eq('user_id', userId)
       .eq('movie_id', movieId)
+    if (metadata && typeof metadata.placement === 'string' && metadata.placement) {
+      q = q.eq('placement', metadata.placement)
+    }
+    const { data: impression } = await q
       .order('shown_at', { ascending: false })
       .limit(1)
       .maybeSingle()

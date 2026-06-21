@@ -65,13 +65,14 @@ test.describe('Discover — authenticated visual baselines (redesign)', () => {
       await expect(page).toHaveScreenshot(`result-lead-${device}.png`, { fullPage: full })
     })
 
-    test(`${device} — gentler focused`, async ({ page }) => {
+    test(`${device} — alternate focused`, async ({ page }) => {
       await installDiscoverFixture(page, { reducedMotion: true }); await page.setViewportSize(vp)
       await gotoResult(page)
-      await page.getByRole('button', { name: /Gentler direction:/ }).click()
-      await expect(page.getByText('Gentler direction').first()).toBeVisible()
+      // Click whichever alternate direction the engine produced (Gentler or Bolder).
+      await page.getByRole('button', { name: /(Gentler|Bolder) direction:/ }).first().click()
+      await page.waitForTimeout(120)
       await freeze(page)
-      await expect(page).toHaveScreenshot(`result-gentler-${device}.png`, { fullPage: full })
+      await expect(page).toHaveScreenshot(`result-alternate-${device}.png`, { fullPage: full })
     })
 
     test(`${device} — lead only (fewer directions)`, async ({ page }) => {

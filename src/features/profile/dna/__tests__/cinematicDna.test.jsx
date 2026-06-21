@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, within, act } from '@testing-library/react'
 import { resolveDnaIdentity } from '../identity'
 import { deriveRatingLanguage } from '../../derive/ratingLanguage'
 import { deriveTasteJourney } from '../../derive/tasteJourney'
@@ -10,6 +10,7 @@ import RatingLanguage from '../RatingLanguage'
 import TasteJourney from '../TasteJourney'
 import DirectorInfluence from '../DirectorInfluence'
 import DnaEvidenceSheet from '../DnaEvidenceSheet'
+import DnaSectionNav from '../DnaSectionNav'
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 const film = (iso, ...moods) => ({ watched_at: iso, movies: { mood_tags: moods } })
@@ -178,12 +179,17 @@ describe('TasteJourney', () => {
 
 // ── Directors ─────────────────────────────────────────────────────────────────
 describe('DirectorInfluence', () => {
-  it('names "directors", uses factual counts, and shows no 0–100 influence score', () => {
+  it('uses the locked "The voices you trust." headline with explicit director evidence scope', () => {
     const { container } = render(<DirectorInfluence directors={establishedData().directors} />)
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/directors you return to/i)
+    // exact locked headline restored
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('The voices you trust.')
+    // supporting copy is truthful: it explicitly names directors as the available evidence source
+    expect(container.textContent).toMatch(/directors you return to most/i)
+    // no writer/actor/cinematographer claim is introduced
+    expect(container.textContent).not.toMatch(/writer|actor|cinematographer|composer/i)
     expect(screen.getAllByText('Agnès Varda').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText(/6 films/).length).toBeGreaterThanOrEqual(1)
-    expect(container.textContent).not.toMatch(/influence score|\b92\b|\/100/)
+    expect(container.textContent).not.toMatch(/influence score|\b92\b|\/100|%/)
   })
   it('renders nothing without eligible directors', () => {
     const { container } = render(<DirectorInfluence directors={[]} />)
@@ -218,5 +224,58 @@ describe('DnaEvidenceSheet', () => {
     render(<DnaEvidenceSheet open identity={id} editorialStatus="current" refreshStatus="idle" onClose={onClose} onRefresh={() => {}} />)
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onClose).toHaveBeenCalled()
+  })
+})
+
+// ── Section nav: Portrait-first + scrollspy ───────────────────────────────────
+describe('DnaSectionNav — Portrait IA + scrollspy', () => {
+  let ioCb
+  beforeEach(() => {
+    ioCb = null
+    // capture the IntersectionObserver callback so the scrollspy can be driven deterministically
+    globalThis.IntersectionObserver = class {
+      constructor(cb) { ioCb = cb }
+      observe() {}
+      disconnect() {}
+    }
+    // section targets must exist for getElementById
+    for (const id of ['dna-portrait', 'dna-response', 'dna-journey', 'dna-voices', 'dna-passport']) {
+      const el = document.createElement('section'); el.id = id; document.body.appendChild(el)
+    }
+  })
+  afterEach(() => { document.querySelectorAll('section[id^="dna-"]').forEach((n) => n.remove()) })
+
+  const ITEMS = [
+    { id: 'dna-portrait', label: 'Portrait' }, { id: 'dna-response', label: 'Response' },
+    { id: 'dna-journey', label: 'Journey' }, { id: 'dna-voices', label: 'Voices' }, { id: 'dna-passport', label: 'Passport' },
+  ]
+  const fire = (id) => act(() => { ioCb([{ target: document.getElementById(id), isIntersecting: true, intersectionRatio: 0.9 }]) })
+  const current = () => document.querySelector('.ff-dna-nav a[aria-current="true"]')
+
+  it('begins with Portrait, Portrait initially active, Response not active; label is Voices not Directors', () => {
+    render(<DnaSectionNav items={ITEMS} />)
+    const links = screen.getAllByRole('link')
+    expect(links[0]).toHaveTextContent('Portrait')
+    expect(links[0]).toHaveAttribute('href', '#dna-portrait')
+    expect(current()).toHaveTextContent('Portrait')
+    expect(screen.getByRole('link', { name: 'Response' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('link', { name: 'Voices' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Directors' })).not.toBeInTheDocument()
+    expect(document.querySelectorAll('.ff-dna-nav a[aria-current="true"]').length).toBe(1)
+  })
+
+  it('scrollspy: Response becomes active on scroll, Portrait restores on return; exactly one aria-current', () => {
+    render(<DnaSectionNav items={ITEMS} />)
+    fire('dna-response')
+    expect(current()).toHaveTextContent('Response')
+    expect(document.querySelectorAll('.ff-dna-nav a[aria-current="true"]').length).toBe(1)
+    fire('dna-portrait')
+    expect(current()).toHaveTextContent('Portrait')
+    expect(document.querySelectorAll('.ff-dna-nav a[aria-current="true"]').length).toBe(1)
+  })
+
+  it('renders nothing when fewer than two items (sparse / hidden)', () => {
+    const { container } = render(<DnaSectionNav items={[{ id: 'dna-portrait', label: 'Portrait' }]} />)
+    expect(container).toBeEmptyDOMElement()
   })
 })

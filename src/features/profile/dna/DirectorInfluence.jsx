@@ -15,9 +15,9 @@ export default function DirectorInfluence({ directors = [] }) {
         <div className="ff-dna-section__head">
           <div>
             <p className="ff-dna-eyebrow">Creative influence</p>
-            <h2 id="ff-dna-voices-h2">The directors you return to.</h2>
+            <h2 id="ff-dna-voices-h2">The voices you trust.</h2>
           </div>
-          <p>Ranked by how often you come back, among directors with at least two films.</p>
+          <p>Shown through the directors you return to most, among filmmakers with at least two films of evidence.</p>
         </div>
         <div className="ff-dna-influence">
           <div className="ff-dna-influence__panel">

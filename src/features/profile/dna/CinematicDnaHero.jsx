@@ -8,7 +8,7 @@ import CinematicPassport from './CinematicPassport'
 export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, onEvidence, onScrollTo }) {
   const { title, line, provenance, updated, facts, takingShape } = identity
   return (
-    <section className="ff-dna-hero" aria-labelledby="ff-dna-h1">
+    <section className="ff-dna-hero" id="dna-portrait" aria-labelledby="ff-dna-h1">
       <CinematicArtworkSlices mixtape={mixtape} />
       <div className="ff-dna-hero__scrim" aria-hidden="true" />
       <div className="ff-dna-grain" aria-hidden="true" />

@@ -64,12 +64,15 @@ function SelfProfile({ authUser }) {
   if (data.error) return <PageError onRetry={data.retry} />
 
   const identity = resolveDnaIdentity(data)
-  const navItems = [
+  // Downstream sections are eligibility-driven; the hero "Portrait" entry is prepended whenever any
+  // downstream section is shown (so the nav always starts at the portrait, matching the locked IA).
+  const downstream = [
     data.ratingLanguage ? { id: 'dna-response', label: 'Response' } : null,
     Array.isArray(data.journey) && data.journey.length >= 2 ? { id: 'dna-journey', label: 'Journey' } : null,
-    Array.isArray(data.directors) && data.directors.length > 0 ? { id: 'dna-voices', label: 'Directors' } : null,
+    Array.isArray(data.directors) && data.directors.length > 0 ? { id: 'dna-voices', label: 'Voices' } : null,
     !identity.forming ? { id: 'dna-passport', label: 'Passport' } : null,
   ].filter(Boolean)
+  const navItems = downstream.length > 0 ? [{ id: 'dna-portrait', label: 'Portrait' }, ...downstream] : []
 
   return (
     <ThoughtfulRoot
@@ -79,8 +82,8 @@ function SelfProfile({ authUser }) {
       role="region"
       aria-label="Cinematic DNA"
     >
-      {navItems.length > 0 ? (
-        <a className="ff-dna__skip" href={`#${navItems[0].id}`} onClick={(e) => { e.preventDefault(); scrollToSection(navItems[0].id) }}>
+      {downstream.length > 0 ? (
+        <a className="ff-dna__skip" href={`#${downstream[0].id}`} onClick={(e) => { e.preventDefault(); scrollToSection(downstream[0].id) }}>
           Skip to your Cinematic DNA
         </a>
       ) : null}

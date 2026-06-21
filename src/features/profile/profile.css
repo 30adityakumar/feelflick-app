@@ -89,7 +89,11 @@
 .ff-dna-nav__inner { height: 56px; display: flex; align-items: center; justify-content: center; gap: 4px; }
 .ff-dna-nav a { min-height: 38px; padding: 0 16px; border-radius: 999px; display: flex; align-items: center; color: var(--text-3); font-size: .8rem; font-weight: 650; }
 .ff-dna-nav a:hover, .ff-dna-nav a.is-active { background: rgba(255,255,255,.065); color: var(--text); }
+/* Active is conveyed by MORE than colour: a filled pill + heavier weight (+ aria-current in JS). */
+.ff-dna-nav a.is-active { font-weight: 800; }
 .ff-dna-nav a:focus-visible { outline: 2px solid var(--rose); outline-offset: -2px; }
+/* Anchored scroll targets clear the fixed Header + sticky section nav so focus isn't hidden. */
+.ff-dna-hero, .ff-dna-section, .ff-dna-share { scroll-margin-top: calc(var(--hdr-h, 56px) + var(--dna-nav-h) + 8px); }
 
 /* ── Sections ─────────────────────────────────────────────────────────────── */
 .ff-dna-section { padding: 96px 0; border-bottom: 1px solid var(--line); }

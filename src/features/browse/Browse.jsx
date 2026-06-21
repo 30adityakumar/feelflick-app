@@ -24,7 +24,7 @@ import { updateImpression } from '@/shared/services/recommendations'
 import Pagination from '@/shared/components/Pagination'
 import { ThoughtfulRoot } from '@/shared/ui/thoughtful-seatmate'
 
-import { MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS } from './data'
+import { MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
 import { useCuriosityPaths } from './useCuriosityPaths'
 import BrowseMasthead from './components/BrowseMasthead'
 import BrowseCuriosityPaths from './components/BrowseCuriosityPaths'
@@ -156,22 +156,43 @@ export default function Browse() {
   const director    = getStr(searchParams, 'director')
   const vibe        = useMemo(() => getList(searchParams, 'vibe'), [searchParams])
   const twinsLoved  = getBool(searchParams, 'twins')
-  const preset      = getStr(searchParams, 'preset') || null
 
   const [draftQuery, setDraftQ] = useState(query)
   useEffect(() => setDraftQ(query), [query])
 
-  // ── Legacy URL migration ────────────────────────────────────────────────────
-  // `avTonight` was an unwired "available tonight" toggle — there is NO reliable
-  // region-aware availability data, so it is normalized OUT of the canonical URL
-  // (no chip, no filter, no claim). `view=list` is normalized away too: the
-  // redesign presents a single dense poster grid. Both are stripped once on mount;
-  // all other params are preserved exactly.
+  // ── Legacy URL migration (idempotent; runs on mount and never re-runs once the
+  //    legacy markers are gone) ─────────────────────────────────────────────────
+  // - `avTonight`: an unwired "available tonight" toggle — there is NO reliable
+  //   region-aware availability data, so it is normalized OUT of the canonical URL
+  //   (no chip, no filter, no claim).
+  // - `view=list`: the redesign presents a single dense poster grid, so it is
+  //   normalized away.
+  // - `preset`: the legacy editorial bundles are EXPANDED into their explicit
+  //   filter params (for any key not already set), then the now-redundant marker is
+  //   dropped — so an old `?preset=cozy_night` URL still genuinely activates its
+  //   filters and the canonical URL carries the real, removable scope.
+  // All other params are preserved exactly.
   useEffect(() => {
-    if (!searchParams.has('avTonight') && !searchParams.has('view')) return
+    if (!searchParams.has('avTonight') && !searchParams.has('view') && !searchParams.has('preset')) return
     const next = new URLSearchParams(searchParams)
     next.delete('avTonight')
     next.delete('view')
+    const presetId = next.get('preset')
+    if (presetId) {
+      const p = PRESETS.find((x) => x.id === presetId)
+      if (p) {
+        const setIfAbsent = (k, v) => { if (v && !next.has(k)) next.set(k, v) }
+        setIfAbsent('sort', p.filters.sortBy)
+        setIfAbsent('lang', p.filters.language)
+        setIfAbsent('runtime', p.filters.runtime)
+        setIfAbsent('pacing', p.filters.pacing)
+        setIfAbsent('intensity', p.filters.intensity)
+        setIfAbsent('depth', p.filters.depth)
+        setIfAbsent('attention', p.filters.attention)
+        if (Array.isArray(p.filters.vibe) && p.filters.vibe.length && !next.has('vibe')) next.set('vibe', p.filters.vibe.join(','))
+      }
+      next.delete('preset')
+    }
     setSearchParams(next, { replace: true })
   }, [searchParams, setSearchParams])
 
@@ -575,11 +596,6 @@ export default function Browse() {
         scopeReason={buildScopeReason({ genre, decade, lang, runtime, director, mood })}
         onOpenFilm={onSurpriseOpenFilm} onAnother={drawSurprise}
       />
-
-      {/* `preset` (legacy editorial bundle) + `mood` remain honored from the URL: their
-          derived filters drive the query and surface as removable chips; the redesign
-          surfaces entry via the curiosity paths instead of a presets row. */}
-      {preset ? <span hidden data-legacy-preset={preset} /> : null}
     </ThoughtfulRoot>
   )
 }

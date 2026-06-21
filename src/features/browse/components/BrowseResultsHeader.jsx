@@ -44,7 +44,7 @@ export default function BrowseResultsHeader({
 
       <div id="browse-ranking-note" role="region" className={`ff-browse-ranking-note${infoOpen ? ' is-open' : ''}`} hidden={!infoOpen}>
         {isSearchMode
-          ? 'Text search matches film titles across the wider catalogue. Genre, era, language, runtime and rating still apply; engine filters (mood, pacing, intensity, quality lenses, filmmaker) are paused until you clear the search.'
+          ? 'Text search matches film titles across the wider catalogue. Genre, era, language, runtime and rating still apply; engine filters (mood, pacing, intensity, quality lenses, filmmaker) and the sort options are paused until you clear the search.'
           : rankingCopy(sort)}
       </div>
     </div>

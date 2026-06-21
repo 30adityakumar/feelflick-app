@@ -45,6 +45,16 @@ test('legacy avTonight + view params are normalized out of the canonical URL', a
   await expect(page).toHaveURL(/genre=Drama/) // unrelated params preserved
 })
 
+test('legacy preset bundle is expanded into explicit filter params, marker dropped', async ({ page }) => {
+  await page.goto('/browse?preset=cozy_night')
+  await expect(page.getByRole('heading', { name: 'Follow your curiosity.' })).toBeVisible()
+  // cozy_night = { intensity: chill, depth: surface, runtime: medium }
+  await expect(page).toHaveURL(/intensity=chill/)
+  await expect(page).toHaveURL(/depth=surface/)
+  await expect(page).toHaveURL(/runtime=medium/)
+  await expect(page).not.toHaveURL(/preset=/)
+})
+
 test('More filters opens an accessible drawer; Apply commits to the URL', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/browse')
@@ -71,7 +81,12 @@ test('a supported genre is genuinely forwarded to TMDB in text-search mode (Sci-
   // the TMDB query. "Sci-Fi" (Browse value / DB primary_genre) must map to TMDB's
   // Science Fiction id 878 in discover.
   const discoverUrls = []
-  page.on('request', (r) => { const u = r.url(); if (u.includes('api.themoviedb.org') && u.includes('/discover/movie')) discoverUrls.push(u) })
+  page.on('request', (r) => {
+    const u = r.url()
+    let host = ''
+    try { host = new URL(u).hostname } catch { host = '' }
+    if (host === 'api.themoviedb.org' && u.includes('/discover/movie')) discoverUrls.push(u)
+  })
   await page.goto('/browse?genre=Sci-Fi&q=space')
   await expect(page.getByRole('heading', { name: 'Follow your curiosity.' })).toBeVisible()
   await expect.poll(() => discoverUrls.some((u) => /with_genres=878/.test(u)), { timeout: 20_000 }).toBe(true)

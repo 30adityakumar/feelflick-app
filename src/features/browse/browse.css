@@ -191,7 +191,7 @@
 .ff-browse-results-head__main { flex: 1 1 auto; min-width: 0; }
 .ff-browse-results-title-line { display: flex; align-items: center; gap: 8px; }
 .ff-browse-results-title { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--ff-tp); }
-.ff-info-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid var(--ff-bd); border-radius: 999px; background: transparent; color: var(--ff-tm); font: italic 600 12px 'Inter', serif; cursor: pointer; }
+.ff-info-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid var(--ff-bd); border-radius: 999px; background: transparent; color: var(--ff-tm); font: italic 600 12px 'Inter', sans-serif; cursor: pointer; }
 .ff-info-btn:hover, .ff-info-btn[aria-expanded="true"] { color: var(--ff-tp); border-color: var(--ff-bs); }
 .ff-info-btn:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
 .ff-browse-results-summary { margin-top: 5px; font-size: 13px; color: var(--ff-tm); }

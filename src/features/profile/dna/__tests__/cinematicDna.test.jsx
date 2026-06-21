@@ -46,10 +46,27 @@ describe('resolveDnaIdentity — honest states', () => {
     expect(id.line).toMatch(/Tenderness pursued/)
     expect(id.provenance).toMatch(/verified taste patterns/)
     expect(id.updated).toBe('Updated today')
-    // facts carry counts + band label, NEVER a raw confidence percentage
-    expect(id.facts.join(' ')).toMatch(/41 watched/)
-    expect(id.facts.join(' ')).not.toMatch(/78%|78 %|confidence/i)
+    // facts are structured pills carrying counts + evidence-maturity label, NEVER a raw % or
+    // the unqualified band label beside the archetype.
+    const factText = id.facts.map((f) => f.text).join(' ')
+    expect(factText).toMatch(/41 watched/)
+    expect(factText).not.toMatch(/78%|78 %|confidence/i)
+    expect(factText).not.toMatch(/\bStill forming\b|\bWell established\b|\bTaking shape\b/) // unqualified band labels never shown
     expect(id.tags.length).toBeLessThanOrEqual(4)
+  })
+
+  it('evidence-maturity label is QUALIFIED (established identity + low band → "Evidence still growing"), formulas untouched', () => {
+    // established maturity (16 watched ≥15, 6 rated ≥5) but low confidence (23 < 40 → band "Still forming")
+    const id = resolveDnaIdentity(establishedData({ stats: { filmsLogged: 16, filmsRated: 6, dnaConfidence: 23 } }))
+    expect(id.established).toBe(true)
+    expect(id.band.label).toBe('Still forming') // the SHARED formula's band is unchanged
+    const band = id.facts.find((f) => f.kind === 'band')
+    expect(band.text).toBe('Evidence still growing')            // hero shows the qualified evidence label
+    expect(band.aria).toBe('Taste evidence maturity: still growing') // SR identifies the evidence axis
+    expect(id.facts.map((f) => f.text).join(' ')).not.toMatch(/^.*\bStill forming\b/) // never the bare phrase
+    // well-established + taking-shape map correctly too
+    expect(resolveDnaIdentity(establishedData({ stats: { filmsLogged: 41, filmsRated: 26, dnaConfidence: 82 } })).facts.find((f) => f.kind === 'band').text).toBe('Evidence well established')
+    expect(resolveDnaIdentity(establishedData({ stats: { filmsLogged: 12, filmsRated: 4, dnaConfidence: 55 } })).facts.find((f) => f.kind === 'band').text).toBe('Evidence taking shape')
   })
 
   it('forming: no archetype, honest line, no fabricated identity', () => {
@@ -103,6 +120,17 @@ describe('CinematicDnaHero', () => {
     expect(screen.getByRole('button', { name: /why this read/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /share portrait/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /doesn.?t feel like me/i })).not.toBeInTheDocument()
+  })
+  it('exposes the responsive DOM hooks the mobile-density CSS relies on (fact kinds, updated pill, band aria)', () => {
+    const { container } = renderHero()
+    // each fact pill carries its kind class so ≤420px can hide rated + band while keeping watched
+    expect(container.querySelector('.ff-dna-fact--watched')).toBeTruthy()
+    expect(container.querySelector('.ff-dna-fact--rated')).toBeTruthy()
+    const band = container.querySelector('.ff-dna-fact--band')
+    expect(band).toBeTruthy()
+    expect(band.getAttribute('aria-label')).toMatch(/Taste evidence maturity:/)
+    // the optional "Updated…" pill is class-tagged so it can be hidden on the compact hero
+    expect(container.querySelector('.ff-dna-pill--updated')).toBeTruthy()
   })
 })
 

@@ -7,6 +7,8 @@
 .ff-dna {
   --dna-pad: 18px;
   --dna-max: 1380px;
+  --dna-nav-h: 58px;            /* sticky DNA section nav (56px + 1px top/bottom borders) */
+  --dna-bottomnav-clear: 104px;  /* AppShell mobile BottomNav (~88px) + breathing room */
   --ink: var(--color-canvas, #0f1010);
   --surface: var(--color-surface-1, #171819);
   --surface-2: var(--color-surface-2, #202225);
@@ -47,7 +49,10 @@
 .ff-dna-private-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint-h); }
 
 /* ── Hero ─────────────────────────────────────────────────────────────────── */
-.ff-dna-hero { position: relative; min-height: calc(100svh - var(--hdr-h, 56px)); overflow: clip; }
+/* Hero height is aware of BOTH the AppShell header (--hdr-h, set live by Header.jsx) AND the
+   sticky DNA section nav that follows it, so the section nav sits at the bottom of the first
+   viewport (matching the prototype) instead of being pushed below the fold with an empty band. */
+.ff-dna-hero { position: relative; min-height: calc(100svh - var(--hdr-h, 56px) - var(--dna-nav-h)); overflow: clip; }
 .ff-dna-hero__art { position: absolute; inset: 0; }
 .ff-dna-slice { position: absolute; top: -5%; bottom: -5%; width: 24%; background-position: center; background-size: cover; filter: saturate(.44) brightness(.52); opacity: .33; transform: skewX(-5deg) scale(1.08); }
 .ff-dna-slice:nth-child(1) { left: 52%; } .ff-dna-slice:nth-child(2) { left: 71%; } .ff-dna-slice:nth-child(3) { left: 90%; }
@@ -56,7 +61,7 @@
   radial-gradient(ellipse 48% 62% at 78% 45%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 72%),
   linear-gradient(0deg, var(--ink) 0%, transparent 35%); }
 .ff-dna-grain { position: absolute; inset: 0; pointer-events: none; opacity: .02; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
-.ff-dna-hero__inner { position: relative; z-index: 3; min-height: calc(100svh - var(--hdr-h, 56px)); display: grid; grid-template-columns: minmax(0,1fr) 500px; gap: 66px; align-items: center; padding: 48px 0 60px; }
+.ff-dna-hero__inner { position: relative; z-index: 3; min-height: calc(100svh - var(--hdr-h, 56px) - var(--dna-nav-h)); display: grid; grid-template-columns: minmax(0,1fr) 500px; gap: 66px; align-items: center; padding: 28px 0 32px; }
 .ff-dna-hero__copy { max-width: 710px; }
 .ff-dna-hero__status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ff-dna-hero__title { margin: 20px 0 0; font-size: clamp(3.2rem, 7vw, 8.2rem); line-height: .87; letter-spacing: -.078em; font-weight: 640; text-wrap: balance; }
@@ -194,9 +199,23 @@
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 1120px) { .ff-dna-hero__inner { grid-template-columns: minmax(0,1fr) 430px; } .ff-dna-passport { width: 430px; min-height: 560px; } }
+/* Short desktop viewports (e.g. 1366×650): compact the hero so every primary action AND the full
+   passport (title/signature/tags) stay on the first screen — no clipping, legible type retained. */
+@media (min-width: 1021px) and (max-height: 760px) {
+  .ff-dna-hero__inner { padding: 16px 0; gap: 40px; align-items: center; }
+  .ff-dna-passport { min-height: 0; padding: 22px; }
+  .ff-dna-barcode { height: 150px; margin: 16px 0 14px; }
+  .ff-dna-hero__title { margin-top: 12px; font-size: clamp(2.4rem, 4.6vw, 4rem); }
+  .ff-dna-hero__line { margin-top: 12px; font-size: 1.05rem; }
+  .ff-dna-hero__prov { margin-top: 8px; }
+  .ff-dna-hero__facts { margin-top: 14px; }
+  .ff-dna-hero__actions { margin-top: 16px; }
+}
 @media (max-width: 1020px) {
   .ff-dna-hero__inner { grid-template-columns: 1fr; }
-  .ff-dna-passport { position: absolute; right: -160px; top: 50%; transform: translateY(-50%); opacity: .5; }
+  /* ONLY the hero preview goes decorative/off-canvas — scoped so the SHARE passport stays in
+     normal document flow inside its own section (never floats over Journey/Directors). */
+  .ff-dna-hero__inner .ff-dna-passport { position: absolute; right: -160px; top: 50%; transform: translateY(-50%); opacity: .5; }
   .ff-dna-rating, .ff-dna-influence, .ff-dna-share__layout { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
@@ -214,7 +233,8 @@
   .ff-dna-hero__actions { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .ff-dna-hero__actions .ff-dna-btn { min-width: 0; min-height: 46px; padding: 0 11px; font-size: .81rem; white-space: normal; }
   .ff-dna-hero__actions .ff-dna-btn--primary { grid-column: 1 / -1; }
-  .ff-dna-passport { display: none; }
+  /* Hide ONLY the hero preview on mobile (hero-scoped). The share passport remains in flow. */
+  .ff-dna-hero__inner .ff-dna-passport { display: none; }
   .ff-dna-section { padding: 64px 0; }
   .ff-dna-section__head { display: block; }
   .ff-dna-section__head p { margin-top: 13px; max-width: none; font-size: .91rem; }
@@ -227,10 +247,13 @@
   .ff-dna-rating__big { font-size: 4.6rem; }
   .ff-dna-influence__row { grid-template-columns: minmax(0,1fr); gap: 8px; }
   .ff-dna-share { padding: 64px 0; }
-  .ff-dna-share .ff-dna-passport { display: flex; }
+  /* Share passport: explicitly in normal flow, full width, contained by the Passport section. */
+  .ff-dna-share .ff-dna-passport { display: flex; position: static; transform: none; opacity: 1; width: 100%; min-width: 0; min-height: 0; justify-self: stretch; }
   .ff-dna-barcode { height: 150px; gap: 2px; }
   .ff-dna-bar { width: 0; flex: 1 1 0; }
-  .ff-dna-sheet { width: 100%; max-height: 92svh; align-self: flex-end; border-left: 0; border-top: 1px solid var(--line-strong); border-radius: 22px 22px 0 0; padding: 20px 16px; }
+  /* Sheet reserves BottomNav clearance INSIDE itself so its action row is never painted under
+     the fixed BottomNav; scroll-to-end leaves Done / Generate fully visible + touchable. */
+  .ff-dna-sheet { width: 100%; max-height: 92svh; align-self: flex-end; border-left: 0; border-top: 1px solid var(--line-strong); border-radius: 22px 22px 0 0; padding: 20px 16px calc(var(--dna-bottomnav-clear) + env(safe-area-inset-bottom)); }
   .ff-dna-overlay { align-items: flex-end; }
   .ff-dna-layer { grid-template-columns: 1fr; gap: 8px; }
 }
@@ -238,5 +261,9 @@
   .ff-dna-hero__title { font-size: clamp(2.7rem, 13vw, 3.6rem); }
   .ff-dna-rating__facts { grid-template-columns: 1fr; }
   .ff-dna-barcode { height: 120px; }
+  /* Compact mobile hero density (matches the locked prototype): keep Private + the primary
+     watched-count only; the optional "Updated…" pill and the rated-count + evidence-band facts
+     are presentation-hidden here (still shown in the Evidence sheet + Response/sections). */
+  .ff-dna-pill--updated, .ff-dna-fact--rated, .ff-dna-fact--band { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .ff-dna *, .ff-dna *::before, .ff-dna *::after { transition: none !important; animation: none !important; } }

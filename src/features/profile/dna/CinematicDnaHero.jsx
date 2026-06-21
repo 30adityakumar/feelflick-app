@@ -17,7 +17,7 @@ export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, o
           <div className="ff-dna-hero__status">
             <p className="ff-dna-eyebrow">Cinematic DNA</p>
             <span className="ff-dna-pill"><i className="ff-dna-private-dot" aria-hidden="true" />Private</span>
-            {updated ? <span className="ff-dna-pill">{updated}</span> : null}
+            {updated ? <span className="ff-dna-pill ff-dna-pill--updated">{updated}</span> : null}
           </div>
           <h1 id="ff-dna-h1" className="ff-dna-hero__title">
             {title.lead}{title.em ? <em>{title.em}</em> : null}
@@ -27,7 +27,9 @@ export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, o
           {provenance ? <p className="ff-dna-hero__prov"><b>FeelFlick reflection</b> · {provenance}</p> : null}
           {facts.length > 0 ? (
             <div className="ff-dna-hero__facts">
-              {facts.map((f) => <span key={f} className="ff-dna-pill">{f}</span>)}
+              {facts.map((f) => (
+                <span key={f.kind} className={`ff-dna-pill ff-dna-fact ff-dna-fact--${f.kind}`} aria-label={f.aria}>{f.text}</span>
+              ))}
             </div>
           ) : null}
           <div className="ff-dna-hero__actions">

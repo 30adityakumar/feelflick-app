@@ -19,7 +19,7 @@ export default function DnaFormingState({ identity }) {
           <p>Log and rate a few films, and FeelFlick starts reading your taste — the moods you return to, the filmmakers you trust, and how strongly you respond.</p>
           {facts.length > 0 ? (
             <div className="ff-dna-forming__facts">
-              {facts.map((f) => <span key={f} className="ff-dna-pill">{f}</span>)}
+              {facts.map((f) => <span key={f.kind} className="ff-dna-pill" aria-label={f.aria}>{f.text}</span>)}
             </div>
           ) : null}
           <div className="ff-dna-forming__need">

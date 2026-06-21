@@ -7,6 +7,15 @@
 
 import { classifyProfileMaturity, MATURITY, deriveConfidenceBand } from '../derive/profilePresentation'
 
+// Presentation-only map from the shared confidence-band labels (deriveConfidenceBand, UNCHANGED)
+// to evidence-maturity vocabulary for the hero. Qualifies the band as evidence richness, never the
+// identity. Thresholds/values are untouched; Account keeps the same number via deriveConfidenceBand.
+const EVIDENCE_LABEL = {
+  'Well established': { display: 'Evidence well established', aria: 'well established' },
+  'Taking shape': { display: 'Evidence taking shape', aria: 'taking shape' },
+  'Still forming': { display: 'Evidence still growing', aria: 'still growing' },
+}
+
 // Deterministic relative-date label off a timestamp (uses the fixed clock under tests).
 function relativeUpdated(iso) {
   if (!iso) return null
@@ -51,10 +60,15 @@ export function resolveDnaIdentity(data) {
   if (reflectionCurrent && ed.generatedAt) updated = relativeUpdated(ed.generatedAt)
   else if (status === 'stale') updated = 'Reflection needs refreshing'
 
+  // Hero facts as structured pills. The confidence band is shown with an EVIDENCE-MATURITY
+  // vocabulary so a specific archetype is never juxtaposed with the unqualified phrase
+  // "Still forming" (which reads as if the identity itself is unformed). This is presentation
+  // only — deriveConfidenceBand / computeDnaConfidence and Account's shared number are unchanged.
+  const ev = EVIDENCE_LABEL[band?.label] || null
   const facts = [
-    Number.isFinite(stats.filmsLogged) && stats.filmsLogged > 0 ? `${stats.filmsLogged} watched` : null,
-    Number.isFinite(stats.filmsRated) && stats.filmsRated > 0 ? `${stats.filmsRated} rated` : null,
-    band?.label || null,
+    Number.isFinite(stats.filmsLogged) && stats.filmsLogged > 0 ? { text: `${stats.filmsLogged} watched`, kind: 'watched' } : null,
+    Number.isFinite(stats.filmsRated) && stats.filmsRated > 0 ? { text: `${stats.filmsRated} rated`, kind: 'rated' } : null,
+    ev ? { text: ev.display, kind: 'band', aria: `Taste evidence maturity: ${ev.aria}` } : null,
   ].filter(Boolean)
 
   // Passport tags — top moods (grounded, non-sensitive), ≤4.

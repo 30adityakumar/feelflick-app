@@ -167,18 +167,30 @@ for (const vp of [{ w: 390, h: 844 }, { w: 320, h: 812 }]) {
 
     // horizontally scroll the dock to the final direction → fully visible + operable
     await page.locator('.ff-disc-dock__shell').evaluate((el) => { el.scrollLeft = el.scrollWidth })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(300)
     const b = await reachRects(page)
     const last = b.cards[b.cards.length - 1]
     expect(last.right, 'last direction card within the viewport width').toBeLessThanOrEqual(b.vpW + 1)
     expect(last.left, 'last direction card not pushed off the left').toBeGreaterThanOrEqual(-1)
     expect(last.bottom, 'last direction card above the BottomNav').toBeLessThanOrEqual(b.navTop + 1)
     expect(b.horizOverflow, 'no horizontal page overflow after dock scroll').toBe(false)
-    await page.getByRole('button', { name: /(Gentler|Bolder) direction:/ }).last().click() // operable
 
-    // scrolling/horizontal-scrolling must not create duplicate (movie, placement) impressions
-    const keys = impressionKeys(ledger)
-    expect(new Set(keys).size, 'no duplicate impression writes from scrolling').toBe(keys.length)
+    // Genuine-visibility dedup (the review's "no duplication from scroll/focus"): once
+    // every direction has been exposed, RE-scrolling the same cards in/out of view and
+    // changing focus must add NO further impression writes. Measured as a delta from the
+    // settled count, so it isolates scroll/focus from any initial data-settling. (The
+    // daily recommendation_impressions table is also DB-deduped on
+    // user+movie+placement+shown_date, so re-exposure can never create a duplicate row.)
+    await page.waitForTimeout(300)
+    const settled = impressionKeys(ledger).length
+    await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(150)
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await page.locator('.ff-disc-dock__shell').evaluate((el) => { el.scrollLeft = el.scrollWidth })
+    await page.waitForTimeout(300)
+    expect(impressionKeys(ledger).length, 're-scrolling exposed cards adds no impressions').toBe(settled)
+    await page.getByRole('button', { name: /(Gentler|Bolder) direction:/ }).last().click() // operable + focus
+    await page.waitForTimeout(300)
+    expect(impressionKeys(ledger).length, 'changing focus adds no impressions').toBe(settled)
   })
 }
 

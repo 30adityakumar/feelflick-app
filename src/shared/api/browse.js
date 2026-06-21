@@ -75,7 +75,10 @@ export async function fetchUserSubscriptions(userId) {
   return Object.keys(subs).filter(k => subs[k])
 }
 
-export const PAGE_SIZE = 24
+// 18 = a clean 6×3 grid at wide desktop (the locked Browse page rhythm). This is
+// the Supabase catalogue page size; TMDB text-search mode keeps TMDB's own native
+// page boundaries (≈20) — see Browse.jsx — so results are never silently dropped.
+export const PAGE_SIZE = 18
 
 // Mood-pill labels surfaced on /browse map to one or more underlying
 // `mood_tags` strings (Supabase ARRAY column). The mapping is opinionated —
@@ -105,6 +108,11 @@ export const TMDB_GENRE_IDS = {
   Documentary: 99, Drama: 18, Family: 10751, Fantasy: 14, History: 36,
   Horror: 27, Music: 10402, Mystery: 9648, Romance: 10749,
   'Science Fiction': 878, Thriller: 53, War: 10752, Western: 37,
+  // Browse's genre filter value for science fiction is the shorthand "Sci-Fi"
+  // (matches the DB primary_genre column). Alias it so a Sci-Fi genre is genuinely
+  // applied in TMDB text-search mode too — otherwise the active genre chip would
+  // read as applied while being silently dropped from the TMDB query.
+  'Sci-Fi': 878,
 }
 
 const SELECT_FIELDS = [
@@ -156,6 +164,12 @@ function sortToOrder(sortBy) {
     case 'release_date.desc':         return { column: 'release_year', ascending: false }
     case 'release_date.asc':          return { column: 'release_year', ascending: true }
     case 'discovery_potential.desc':  return { column: 'discovery_potential', ascending: false }
+    // Critics sort ORDERS the user's chosen territory by critic rating; it does
+    // NOT narrow it. Films with no/low critic evidence simply sort last (the
+    // browseMovies .order uses nullsFirst:false). Critic CONFIDENCE only gates the
+    // visible critic badge/evidence on the card, never the result set — so genre /
+    // era / language / runtime scope and the result count stay honest.
+    case 'ff_critic_rating.desc':     return { column: 'ff_critic_rating', ascending: false }
     case 'cult_status_score.desc':    return { column: 'cult_status_score', ascending: false }
     case 'accessibility_score.desc':  return { column: 'accessibility_score', ascending: false }
     case 'popularity.desc':
@@ -377,6 +391,54 @@ export async function browseMovies({
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   return { movies: data ?? [], totalCount, totalPages }
+}
+
+/**
+ * Lightweight "does this territory have enough films, and what does it look like?"
+ * probe for the /browse "Start somewhere" curiosity paths. Applies ONLY the
+ * scope filters a path can set (genre / language / decade / runtime / director),
+ * so the returned count is the honest size of the territory the path opens, and
+ * the posters are real catalogue artwork from inside it.
+ *
+ * Cheap by design: selects 3 columns, count: 'exact', limit a handful. Callers
+ * (useCuriosityPaths) run these once per user, batched + cached — never per render.
+ *
+ * @param {object} opts  { genre, lang, decade, runtime, director, limit }
+ * @returns {Promise<{ count: number, posters: string[] }>}
+ */
+export async function peekTerritory({ genre = '', lang = '', decade = '', runtime = '', director = '', limit = 5 } = {}) {
+  let q = supabase
+    .from('movies')
+    .select('id, poster_path, title', { count: 'exact' })
+    .eq('is_valid', true)
+    .not('poster_path', 'is', null)
+
+  if (genre) q = q.eq('primary_genre', genre)
+  if (lang) q = q.eq('original_language', lang)
+  const yearRange = decadeToYearRange(decade)
+  if (yearRange) {
+    if (yearRange.gte !== undefined) q = q.gte('release_year', yearRange.gte)
+    if (yearRange.lte !== undefined) q = q.lte('release_year', yearRange.lte)
+  }
+  const rt = runtimeRange(runtime)
+  if (rt) {
+    if (rt.lt !== undefined) q = q.lt('runtime', rt.lt)
+    if (rt.lte !== undefined) q = q.lte('runtime', rt.lte)
+    if (rt.gte !== undefined) q = q.gte('runtime', rt.gte)
+    if (rt.gt !== undefined) q = q.gt('runtime', rt.gt)
+    q = q.not('runtime', 'is', null).gt('runtime', 0)
+  }
+  if (director) q = q.ilike('director_name', `%${director}%`)
+
+  // Highest FeelFlick-rated first → representative, not random, artwork.
+  const { data, count, error } = await q
+    .order('ff_audience_rating', { ascending: false, nullsFirst: false })
+    .range(0, Math.max(0, limit - 1))
+  if (error) throw error
+  return {
+    count: count ?? 0,
+    posters: (data ?? []).map(r => r.poster_path).filter(Boolean),
+  }
 }
 
 /**

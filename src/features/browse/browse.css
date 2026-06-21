@@ -1,258 +1,298 @@
-/* src/features/browse/browse.css
- * Responsive overrides for the /browse v5 surface. Mirrors the class-hooks
- * pattern used in src/features/movie-v2/movie-v2.css: components ship desktop
- * sizing inline on the JSX; this stylesheet flips them at narrow widths via
- * `!important` so we don't have to thread media queries through every prop.
- */
+/* browse.css — /browse "explicit curiosity" redesign.
+   Rebuilt cleanly for the locked Browse reference. Everything is scoped to
+   .ff-browse so nothing leaks to other routes. Adaptive Editorial Cinema:
+   Inter-only, flat near-black Ink canvas (Browse is a dense result surface, NOT a
+   focal/immersive one — so no radial PageDepth), paper-white text, neutral ivory
+   primary actions + graphite controls, coral reserved as a faint signature only
+   (never a control/decision colour). */
 
-/* ── Refine modal: leave ~110px bottom on mobile for the fixed AppShell
- * nav (Home / Browse / Discover / DNA / Account). On screens that don't
- * ship the bottom nav (md+ per the AppShell `md:hidden` class), drop the
- * extra bottom padding so the modal isn't floating high on the page. */
-@media (min-width: 768px) {
-  .ff-browse-refine-backdrop {
-    padding: 24px !important;
-  }
-  .ff-browse-refine-panel {
-    max-height: calc(100vh - 48px) !important;
-  }
+.ff-browse {
+  --ff-pad: 18px;
+  --ff-ink: var(--color-canvas, #0f1010);
+  --ff-s1: var(--color-surface-1, #171819);
+  --ff-s2: var(--color-surface-2, #222427);
+  --ff-sr: var(--color-surface-raised, #2e3135);
+  --ff-tp: var(--color-text-primary, #f5f2eb);
+  --ff-ts: var(--color-text-secondary, #c9c5bc);
+  --ff-tm: var(--color-text-muted, #a5a198);
+  --ff-bd: var(--color-border-subtle, #3a3d41);
+  --ff-bs: var(--color-border-strong, #747a82);
+  --ff-coral: var(--color-brand-accent, #e5636f);
+  --ff-coral-text: var(--color-brand-accent-text, #ed7a87);
+  position: relative;
+  min-height: 100vh;
+  background: var(--ff-ink);
+  color: var(--ff-tp);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+@media (min-width: 768px)  { .ff-browse { --ff-pad: 32px; } }
+@media (min-width: 1200px) { .ff-browse { --ff-pad: 56px; } }
+
+.ff-browse ::selection { background: color-mix(in srgb, var(--ff-coral) 32%, transparent); color: #fff; }
+
+.ff-browse .ff-eyebrow {
+  margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.26em;
+  text-transform: uppercase; color: var(--ff-tm);
 }
 
-/* ── Native filter pickers on touch devices ────────────────────────────────
- * Each FilterPill / PresetsDropdown renders a hidden <select> overlay. On
- * `pointer: fine` (mouse) it's display:none so the custom dropdown wins.
- * On `pointer: coarse` (phones/tablets) the select covers the chip and
- * intercepts taps — the OS picker handles selection with its built-in
- * Done/Cancel buttons. This sidesteps the well-known bug where an
- * absolutely-positioned dropdown gets clipped by the toolbar's
- * `overflow-x: auto` (browsers force overflow-y: auto in tandem). */
-.ff-browse-filter-pill-native {
-  display: none;
+/* ── Buttons (Browse-scoped; distinct from the shared <Button> primitive) ── */
+.ff-browse .ffb-btn, .ff-browse-drawer-root .ffb-btn, .ff-browse-surprise .ffb-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 42px; padding: 0 18px; border-radius: 999px;
+  font: 600 13px/1 'Inter', sans-serif; cursor: pointer;
+  border: 1px solid transparent; transition: background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease;
 }
-@media (pointer: coarse) {
-  .ff-browse-filter-pill-native {
-    display: block;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    /* iOS Safari needs `appearance: none` to flatten the system styling. */
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    border: 0;
-    font: inherit;
-  }
-  /* And the custom dropdown stays hidden on touch — the native picker is
-     the source of truth. */
-  .ff-browse-filter-pill-menu {
-    display: none !important;
-  }
+.ffb-btn--primary { background: var(--ff-tp, #f5f2eb); color: #16110d; }
+.ffb-btn--primary:hover { background: #fffdf8; }
+.ffb-btn--ghost { background: transparent; color: var(--ff-ts, #c9c5bc); border-color: var(--ff-bd, #3a3d41); }
+.ffb-btn--ghost:hover { background: var(--ff-s2, #222427); border-color: var(--ff-bs, #747a82); color: var(--ff-tp, #f5f2eb); }
+.ffb-btn:disabled { opacity: .45; cursor: not-allowed; }
+.ffb-btn:focus-visible { outline: 2px solid var(--ff-coral-text, #ed7a87); outline-offset: 2px; }
+
+/* ── Masthead ──────────────────────────────────────────────────────────── */
+.ff-browse-masthead {
+  position: relative; overflow: hidden;
+  min-height: 300px; display: flex; align-items: flex-end;
+  padding: 0 var(--ff-pad) 26px;
+  border-bottom: 1px solid var(--ff-bd);
+}
+@media (min-width: 768px) { .ff-browse-masthead { min-height: 340px; padding-bottom: 30px; } }
+.ff-browse-masthead__atmosphere {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 80% at 88% 0%, color-mix(in srgb, var(--ff-coral) 9%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--ff-s1), var(--ff-ink));
+}
+.ff-browse-ribbon {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 62%;
+  display: flex; gap: 12px; align-items: center; justify-content: flex-end;
+  padding-right: var(--ff-pad); transform: rotate(-4deg) translateX(6%);
+  opacity: .42; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 55%);
+  mask-image: linear-gradient(90deg, transparent, #000 55%);
+}
+.ff-browse-ribbon__poster { flex: 0 0 auto; width: 120px; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; box-shadow: 0 14px 30px rgba(0,0,0,.5); }
+.ff-browse-ribbon__poster img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 640px) { .ff-browse-ribbon { width: 100%; opacity: .22; } }
+.ff-browse-masthead__scrim { position: absolute; inset: 0; background: linear-gradient(90deg, var(--ff-ink) 30%, color-mix(in srgb, var(--ff-ink) 50%, transparent) 70%, transparent); }
+.ff-browse-masthead__content { position: relative; z-index: 1; width: 100%; max-width: 720px; }
+.ff-browse-masthead__title { margin: 8px 0 0; font-size: clamp(30px, 5vw, 46px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.02; color: var(--ff-tp); }
+.ff-browse-masthead__line { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--ff-ts); max-width: 46ch; }
+.ff-browse-masthead__actions { margin-top: 16px; }
+
+/* Scoped search */
+.ff-browse-scoped-search {
+  margin-top: 18px; display: flex; align-items: center; gap: 8px;
+  background: var(--ff-s1); border: 1px solid var(--ff-bd); border-radius: 999px;
+  padding: 5px 5px 5px 16px; max-width: 540px;
+}
+.ff-browse-scoped-search:focus-within { border-color: var(--ff-bs); }
+.ff-browse-scoped-search__icon { width: 17px; height: 17px; color: var(--ff-tm); flex: 0 0 auto; }
+.ff-browse-scoped-search input { flex: 1 1 auto; min-width: 0; background: transparent; border: 0; outline: none; color: var(--ff-tp); font: 400 14px 'Inter', sans-serif; }
+.ff-browse-scoped-search input::placeholder { color: var(--ff-tm); }
+.ff-browse-scoped-search__btn-icon { display: none; width: 16px; height: 16px; }
+@media (max-width: 520px) {
+  .ff-browse-scoped-search__label { display: none; }
+  .ff-browse-scoped-search__btn-icon { display: block; }
+  .ff-browse-scoped-search .ffb-btn { padding: 0 14px; }
 }
 
-/* ── Base grid: minmax(0, 1fr) instead of 1fr ─────────────────────────────
-   The cards contain a `white-space: nowrap` title (for the ellipsis effect),
-   and CSS Grid resolves `1fr` against each column's min-content — which for
-   nowrap titles is the FULL unwrapped text width. Result: long titles push
-   their column wider than its sibling, breaking the "same-size cards"
-   guarantee. `minmax(0, 1fr)` clamps each column's lower bound to 0, so
-   columns are forced equal regardless of content. */
-.ff-browse-grid {
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-}
-.ff-browse-card { min-width: 0; }
-.ff-browse-card-title,
-.ff-browse-card-meta { min-width: 0; }
+/* ── Body ──────────────────────────────────────────────────────────────── */
+.ff-browse__body { max-width: 1440px; margin: 0 auto; padding: 0 var(--ff-pad) 64px; }
 
-/* Card text block: fixed height so every card lands at the same total
-   height regardless of whether the title fits in one line or two, or
-   whether the director is one word or four. Two-line title clamp +
-   one-line director + one-line year/runtime line. */
-.ff-browse-card-textblock {
-  min-height: 72px;
-}
+.ff-browse-section-head { padding: 28px 0 14px; }
+.ff-browse-section-head h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--ff-tp); }
+.ff-browse-section-head p { margin: 4px 0 0; font-size: 13px; color: var(--ff-tm); }
 
-/* ── xl ≥ 1280 → 6 columns ──────────────────────────────────────────────── */
-@media (min-width: 1281px) {
-  .ff-browse-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  }
+/* Curiosity paths */
+.ff-browse-path-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+@media (min-width: 768px) { .ff-browse-path-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
+.ff-browse-path-card {
+  position: relative; overflow: hidden; text-align: left; cursor: pointer;
+  min-height: 132px; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
+  padding: 14px; border-radius: 12px; border: 1px solid var(--ff-bd);
+  background: var(--ff-s1); color: var(--ff-tp); isolation: isolate;
+  transition: border-color .18s ease, transform .18s ease;
 }
+.ff-browse-path-card:hover { border-color: var(--ff-bs); transform: translateY(-2px); }
+.ff-browse-path-card.is-active { border-color: var(--ff-coral); }
+.ff-browse-path-card:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
+.ff-browse-path-card__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.ff-browse-path-card__scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, color-mix(in srgb, var(--ff-ink) 35%, transparent), var(--ff-ink) 92%); }
+.ff-browse-path-card__kicker { font-size: 10.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ff-coral-text); }
+.ff-browse-path-card__title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; }
+.ff-browse-path-card__sub { font-size: 12px; color: var(--ff-ts); line-height: 1.35; }
+.ff-browse-path-card.is-skeleton { background: var(--ff-s1); border-color: var(--ff-bd); animation: ffb-pulse 1.4s ease-in-out infinite; }
 
-/* ── lg 1024-1280 → 5 columns ──────────────────────────────────────────── */
-@media (max-width: 1280px) {
-  .ff-browse-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 16px !important;
-  }
+/* ── Sticky filter bar ─────────────────────────────────────────────────── */
+.ff-browse-filterbar {
+  position: sticky; top: var(--hdr-h, 56px); z-index: 20;
+  margin-top: 18px; padding: 12px 0; background: color-mix(in srgb, var(--ff-ink) 92%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--ff-bd);
 }
+.ff-browse-filterbar__row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ff-browse-filterbar__filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1 1 auto; }
 
-/* ── md 768-1024 → 4 columns ───────────────────────────────────────────── */
-@media (max-width: 1023px) {
-  .ff-browse-results {
-    padding-left: clamp(20px, 3.5vw, 40px) !important;
-    padding-right: clamp(20px, 3.5vw, 40px) !important;
-  }
-  .ff-browse-toolbar {
-    padding-left: clamp(20px, 3.5vw, 40px) !important;
-    padding-right: clamp(20px, 3.5vw, 40px) !important;
-  }
-  .ff-browse-mood-row {
-    padding-left: clamp(20px, 3.5vw, 40px) !important;
-    padding-right: clamp(20px, 3.5vw, 40px) !important;
-  }
-  .ff-browse-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 14px !important;
-  }
+.ff-filter-wrap { position: relative; }
+.ff-filter-button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px;
+  border-radius: 999px; border: 1px solid var(--ff-bd); background: var(--ff-s1);
+  color: var(--ff-ts); font: 500 13px 'Inter', sans-serif; cursor: pointer; white-space: nowrap;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
 }
+.ff-filter-button:hover { border-color: var(--ff-bs); color: var(--ff-tp); }
+.ff-filter-button.is-active { border-color: var(--ff-bs); color: var(--ff-tp); background: var(--ff-s2); }
+.ff-filter-button:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
+.ff-filter-button__value { color: var(--ff-tp); }
+.ff-filter-button--more .ff-filter-button__count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 2px; border-radius: 999px; background: var(--ff-tp); color: #16110d; font-size: 11px; font-weight: 700; }
+.ff-chevron { width: 15px; height: 15px; opacity: .7; }
 
-/* ── sm 640-768 → 3 columns + toolbar form wraps ───────────────────────── */
+.ff-popover {
+  position: absolute; top: calc(100% + 6px); min-width: 196px; max-width: min(280px, 90vw);
+  max-height: min(60vh, 360px); overflow-y: auto; padding: 6px; z-index: 40;
+  background: var(--ff-sr); border: 1px solid var(--ff-bd); border-radius: 12px;
+  box-shadow: 0 20px 44px rgba(0,0,0,.55);
+}
+.ff-popover--left { left: 0; } .ff-popover--right { right: 0; }
+.ff-popover__item { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ff-ts); font: 500 13px 'Inter', sans-serif; text-align: left; cursor: pointer; }
+.ff-popover__item:hover { background: var(--ff-s2); color: var(--ff-tp); }
+.ff-popover__item.is-selected { color: var(--ff-tp); }
+.ff-popover__check { color: var(--ff-coral-text); }
+
+/* Sort */
+.ff-browse-sorttabs { display: inline-flex; gap: 2px; padding: 3px; background: var(--ff-s1); border: 1px solid var(--ff-bd); border-radius: 999px; flex: 0 0 auto; }
+.ff-browse-sorttab { padding: 7px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--ff-tm); font: 600 12.5px 'Inter', sans-serif; cursor: pointer; white-space: nowrap; transition: background .15s ease, color .15s ease; }
+.ff-browse-sorttab:hover:not(:disabled) { color: var(--ff-tp); }
+.ff-browse-sorttab.is-active { background: var(--ff-s2); color: var(--ff-tp); }
+.ff-browse-sorttab:disabled { opacity: .4; cursor: not-allowed; }
+.ff-browse-sorttab:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
+
+.ff-browse-filterbar__mobile-filters, .ff-browse-sort-mobile { display: none; }
 @media (max-width: 767px) {
-  .ff-browse-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 12px !important;
-  }
-  /* Stack the search input row over the Search/Surprise buttons so the
-     input isn't crushed to ~40px between the two buttons. */
-  .ff-browse-toolbar-form {
-    flex-wrap: wrap !important;
-  }
-  .ff-browse-toolbar-form > div:first-child {
-    flex-basis: 100% !important;
-  }
+  .ff-browse-filterbar__filters, .ff-browse-sorttabs { display: none; }
+  .ff-browse-filterbar__mobile-filters { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--ff-bd); background: var(--ff-s1); color: var(--ff-tp); font: 600 13px 'Inter', sans-serif; cursor: pointer; flex: 1 1 auto; }
+  .ff-browse-sort-mobile { display: block; flex: 0 0 auto; }
 }
 
-/* ── xs <640 → 2 columns + horizontal mood scroll + tight padding ──────── */
-@media (max-width: 639px) {
-  .ff-browse-toolbar {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-  }
-  /* Mobile filter pattern (JustWatch / Letterboxd / TMDB):
-     - Search button stays but collapses to an icon-only tap target — Enter
-       on the input still submits; the icon button gives a thumb-reachable
-       fallback the user explicitly asked for.
-     - Drop "Surprise me" + toggles from the visible toolbar (they live in
-       the Filters panel).
-     - The remaining chips + Filters button + Clear-all become ONE
-       horizontally scrolling row. Discoverable, compact, native-feeling. */
-  .ff-browse-surprise-btn,
-  .ff-browse-quick-toggles {
-    display: none !important;
-  }
-  .ff-browse-search-btn {
-    padding: 0 14px !important;
-    flex: 0 0 auto !important;
-  }
-  .ff-browse-search-btn-icon {
-    display: inline-flex !important;
-  }
-  .ff-browse-search-btn-label {
-    display: none !important;
-  }
-  /* Keep input + Search icon on the same row at <640 — at 640-767 the form
-     wraps (Surprise me is too wide), but here it isn't shipping. */
-  .ff-browse-toolbar-form {
-    flex-wrap: nowrap !important;
-  }
-  .ff-browse-toolbar-form > div:first-child {
-    flex-basis: auto !important;
-    flex: 1 1 auto !important;
-  }
-  .ff-browse-toolbar-row2 {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    /* Bleed the row to the edges so chips look like they scroll under the
-       screen — the iOS pattern. Padding restored inside. */
-    margin: 11px -16px 0 !important;
-    padding: 0 16px 4px !important;
-    gap: 8px !important;
-  }
-  .ff-browse-toolbar-row2::-webkit-scrollbar { display: none; }
-  .ff-browse-toolbar-row2 { scrollbar-width: none; }
-  .ff-browse-quick-chips {
-    flex-wrap: nowrap !important;
-    flex-shrink: 0 !important;
-  }
-  /* The vertical divider between chips and toggles isn't useful when
-     everything's a horizontal scroll row — hide it. */
-  .ff-browse-quick-chips > div:last-child {
-    display: none !important;
-  }
-  .ff-browse-refine-btn,
-  .ff-browse-clear-all {
-    flex-shrink: 0 !important;
-  }
-  /* Refine panel laid out for phones — single-column grids, less padding,
-     reachable Surprise me. */
-  .ff-browse-refine-basics {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-  .ff-browse-refine-toggles .ff-browse-refine-surprise {
-    margin-left: 0 !important;
-    width: 100% !important;
-    justify-content: center !important;
-  }
-  .ff-browse-mood-row {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-  }
-  /* Mood pills become a single-row horizontal scroller — was wrapping into
-     a 6-row vertical stack at this width. Explicit `width: 100%` clamps
-     the container to its parent (the alternative — relying on
-     align-items: stretch — fails because the pills' nowrap min-content
-     is wider than the parent, and flex stretch can't shrink BELOW
-     min-content). With width pinned, overflow-x: auto kicks in. */
-  .ff-browse-mood-pills {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    padding-bottom: 6px !important;
-    margin: 0 -4px !important;
-    padding-left: 4px !important;
-    padding-right: 4px !important;
-  }
-  /* Each pill keeps its own width (don't shrink them — they'd become
-     unreadable). The container scrolls instead. */
-  .ff-browse-mood-pills > button {
-    flex-shrink: 0 !important;
-  }
-  /* Hide the horizontal scrollbar visually on WebKit / Firefox. */
-  .ff-browse-mood-pills::-webkit-scrollbar { display: none; }
-  .ff-browse-mood-pills { scrollbar-width: none; }
-  .ff-browse-mood-controls {
-    align-self: flex-end !important;
-  }
-  .ff-browse-results {
-    padding: 14px 16px 96px !important; /* bottom padding clears the fixed nav */
-  }
-  .ff-browse-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 12px !important;
-  }
+/* Active chips */
+.ff-browse-chips-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.ff-browse-chips { display: flex; gap: 7px; overflow-x: auto; flex: 1 1 auto; padding-bottom: 2px; scrollbar-width: thin; }
+.ff-browse-chip { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 5px 6px 5px 11px; border-radius: 999px; border: 1px solid var(--ff-bd); background: var(--ff-s1); color: var(--ff-ts); font-size: 12.5px; white-space: nowrap; }
+.ff-browse-chip.is-paused { opacity: .55; }
+.ff-browse-chip__tag { font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ff-tm); border: 1px solid var(--ff-bd); border-radius: 4px; padding: 1px 4px; }
+.ff-browse-chip button { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 0; border-radius: 999px; background: transparent; color: var(--ff-tm); font-size: 15px; line-height: 1; cursor: pointer; }
+.ff-browse-chip button:hover { background: var(--ff-s2); color: var(--ff-tp); }
+.ff-browse-clear { flex: 0 0 auto; border: 0; background: transparent; color: var(--ff-tm); font-size: 12.5px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.ff-browse-clear:hover { color: var(--ff-tp); }
+
+/* ── Results header ────────────────────────────────────────────────────── */
+.ff-browse-results { padding-top: 24px; }
+.ff-browse-results-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 18px; }
+.ff-browse-results-head__main { flex: 1 1 auto; min-width: 0; }
+.ff-browse-results-title-line { display: flex; align-items: center; gap: 8px; }
+.ff-browse-results-title { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--ff-tp); }
+.ff-info-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid var(--ff-bd); border-radius: 999px; background: transparent; color: var(--ff-tm); font: italic 600 12px 'Inter', sans-serif; cursor: pointer; }
+.ff-info-btn:hover, .ff-info-btn[aria-expanded="true"] { color: var(--ff-tp); border-color: var(--ff-bs); }
+.ff-info-btn:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
+.ff-browse-results-summary { margin-top: 5px; font-size: 13px; color: var(--ff-tm); }
+.ff-browse-results-count { color: var(--ff-tp); font-weight: 600; }
+.ff-browse-results-summary__em, .ff-browse-results-summary__muted { color: var(--ff-ts); }
+.ff-browse-view-note { font-size: 12px; color: var(--ff-tm); }
+.ff-browse-ranking-note { flex-basis: 100%; margin-top: 2px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--ff-bd); background: var(--ff-s1); color: var(--ff-ts); font-size: 13px; line-height: 1.5; max-width: 70ch; }
+
+/* ── Results grid + card ───────────────────────────────────────────────── */
+.ff-browse-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (min-width: 560px)  { .ff-browse-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 768px)  { .ff-browse-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; } }
+@media (min-width: 1024px) { .ff-browse-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (min-width: 1280px) { .ff-browse-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+.ff-bcard { display: flex; flex-direction: column; gap: 8px; }
+.ff-bcard__poster { position: relative; aspect-ratio: 2/3; border-radius: 10px; overflow: hidden; background: var(--ff-s1); isolation: isolate; }
+.ff-bcard__poster.is-skeleton { animation: ffb-pulse 1.4s ease-in-out infinite; }
+.ff-bcard__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ff-bcard__fallback { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 12px; text-align: center; color: var(--ff-tm); font-size: 13px; }
+.ff-bcard__scrim { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.6)); opacity: 0; transition: opacity .2s ease; }
+.ff-bcard:hover .ff-bcard__scrim, .ff-bcard:focus-within .ff-bcard__scrim { opacity: 1; }
+.ff-bcard__open { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; cursor: pointer; z-index: 1; }
+.ff-bcard__open:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: -2px; }
+.ff-bcard__badge { position: absolute; top: 8px; left: 8px; z-index: 2; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ff-ink) 78%, transparent); border: 1px solid var(--ff-bd); color: var(--ff-tp); font-size: 10.5px; font-weight: 600; letter-spacing: .02em; backdrop-filter: blur(4px); }
+.ff-bcard__actions { position: absolute; top: 8px; right: 8px; z-index: 2; display: flex; flex-direction: column; gap: 6px; opacity: 0; transition: opacity .18s ease; }
+.ff-bcard:hover .ff-bcard__actions, .ff-bcard:focus-within .ff-bcard__actions { opacity: 1; }
+.ff-bcard__action { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--ff-bd); background: color-mix(in srgb, var(--ff-ink) 72%, transparent); color: var(--ff-tp); cursor: pointer; backdrop-filter: blur(4px); }
+.ff-bcard__action:hover { border-color: var(--ff-bs); }
+.ff-bcard__action.is-active { background: var(--ff-tp); color: #16110d; border-color: var(--ff-tp); }
+.ff-bcard__action:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
+.ff-bcard__evidence { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 2; display: flex; flex-direction: column; gap: 1px; opacity: 0; transform: translateY(4px); transition: opacity .18s ease, transform .18s ease; }
+.ff-bcard:hover .ff-bcard__evidence, .ff-bcard:focus-within .ff-bcard__evidence { opacity: 1; transform: none; }
+.ff-bcard__evidence strong { font-size: 11.5px; font-weight: 600; color: var(--ff-tp); }
+.ff-bcard__evidence span { font-size: 10.5px; color: var(--ff-ts); line-height: 1.3; }
+.ff-bcard__copy { display: flex; flex-direction: column; gap: 2px; }
+.ff-bcard__titleline { display: flex; align-items: baseline; gap: 6px; }
+.ff-bcard__title { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.25; color: var(--ff-tp); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ff-bcard__year { flex: 0 0 auto; font-size: 12px; color: var(--ff-tm); }
+.ff-bcard__meta { font-size: 11.5px; color: var(--ff-tm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Touch / coarse pointers: actions + evidence always visible (no hover). */
+@media (hover: none) {
+  .ff-bcard__actions, .ff-bcard__evidence { opacity: 1; transform: none; }
 }
 
-/* ── List view: also benefit from min-width:0 to keep names from
-   pushing the row layout wider than the parent. */
-.ff-browse-list-row { min-width: 0; }
-@media (max-width: 639px) {
-  /* On phones the list-row template (poster · title · match · ratings ·
-     actions = 5 columns) is too crowded. Drop the ratings column and the
-     action buttons (the QuickLook still has them) to give the title room. */
-  .ff-browse-list-row {
-    grid-template-columns: auto 1fr auto !important;
-    padding: 12px 14px !important;
-    gap: 12px !important;
-  }
-  .ff-browse-list-row > .ff-browse-list-extras,
-  .ff-browse-list-row > .ff-browse-list-actions {
-    display: none !important;
-  }
+/* ── States ────────────────────────────────────────────────────────────── */
+.ff-browse-state { padding: 80px 16px; text-align: center; }
+.ff-browse-state h2 { margin: 0; font-size: 24px; font-weight: 300; letter-spacing: -0.015em; color: var(--ff-ts); }
+.ff-browse-state p { margin: 8px 0 0; font-size: 13.5px; color: var(--ff-tm); }
+.ff-browse-state .ffb-btn { margin-top: 18px; }
+
+/* ── Advanced drawer / bottom sheet ────────────────────────────────────── */
+.ff-browse-drawer-root { position: fixed; inset: 0; z-index: 80; }
+.ff-browse-drawer__backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: rgba(0,0,0,.6); cursor: pointer; }
+.ff-browse-drawer {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 92vw);
+  display: flex; flex-direction: column; background: var(--ff-s1, #171819); border-left: 1px solid var(--ff-bd);
+  box-shadow: -24px 0 60px rgba(0,0,0,.5); color: var(--ff-tp, #f5f2eb);
+}
+@media (max-width: 640px) {
+  .ff-browse-drawer { top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 86vh; border-left: 0; border-top: 1px solid var(--ff-bd); border-radius: 18px 18px 0 0; box-shadow: 0 -24px 60px rgba(0,0,0,.5); }
+}
+.ff-browse-drawer__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 18px 12px; border-bottom: 1px solid var(--ff-bd); }
+.ff-browse-drawer__head h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.ff-browse-drawer__close { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: var(--ff-tm); cursor: pointer; }
+.ff-browse-drawer__close:hover { background: var(--ff-s2); color: var(--ff-tp); }
+.ff-browse-drawer__body { flex: 1 1 auto; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 18px; }
+.ff-browse-drawer__note { margin: 0; font-size: 12.5px; color: var(--ff-tm); line-height: 1.45; }
+.ff-drawer-field { border: 0; margin: 0; padding: 0; }
+.ff-drawer-field legend { padding: 0; margin-bottom: 8px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ff-ts); }
+.ff-drawer-field__hint { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ff-tm); }
+.ff-drawer-seg, .ff-drawer-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.ff-drawer-seg__btn, .ff-drawer-chip { min-height: 38px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--ff-bd); background: var(--ff-s2); color: var(--ff-ts); font: 500 12.5px 'Inter', sans-serif; cursor: pointer; }
+.ff-drawer-seg__btn:hover, .ff-drawer-chip:hover { border-color: var(--ff-bs); color: var(--ff-tp); }
+.ff-drawer-seg__btn.is-active, .ff-drawer-chip.is-active { background: var(--ff-tp); color: #16110d; border-color: var(--ff-tp); }
+.ff-drawer-seg__btn:focus-visible, .ff-drawer-chip:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
+.ff-drawer-toggle { display: flex; align-items: center; gap: 10px; padding: 9px 0; font-size: 13.5px; color: var(--ff-ts); cursor: pointer; }
+.ff-drawer-toggle input { width: 18px; height: 18px; accent-color: var(--ff-coral); }
+.ff-drawer-toggle.is-disabled { opacity: .5; cursor: not-allowed; }
+.ff-browse-drawer__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--ff-bd); }
+.ff-browse-drawer__foot-right { display: flex; gap: 10px; }
+
+/* ── Surprise dialog (rendered inside the shared Modal) ─────────────────── */
+.ff-browse-surprise { padding: 20px; color: var(--ff-tp, #f5f2eb); }
+.ff-browse-surprise__head { margin-bottom: 14px; }
+.ff-browse-surprise .ff-eyebrow { color: var(--ff-coral-text, #ed7a87); }
+.ff-browse-surprise__scope { margin: 6px 0 0; font-size: 14px; line-height: 1.45; color: var(--ff-ts, #c9c5bc); }
+.ff-browse-surprise__body { display: flex; gap: 14px; align-items: center; min-height: 132px; }
+.ff-browse-surprise__poster { flex: 0 0 auto; width: 92px; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; background: var(--ff-s2, #222427); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; color: var(--ff-tm, #a5a198); }
+.ff-browse-surprise__poster.is-skeleton { animation: ffb-pulse 1.4s ease-in-out infinite; }
+.ff-browse-surprise__poster img { width: 100%; height: 100%; object-fit: cover; }
+.ff-browse-surprise__meta h3 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.ff-browse-surprise__meta p { margin: 4px 0 0; font-size: 13px; color: var(--ff-ts, #c9c5bc); }
+.ff-browse-surprise__genre { color: var(--ff-tm, #a5a198) !important; }
+.ff-browse-surprise__empty { font-size: 14px; color: var(--ff-tm, #a5a198); }
+.ff-browse-surprise__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+@keyframes ffb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-browse *, .ff-browse-drawer-root * { transition: none !important; animation: none !important; }
+  .ff-browse-path-card:hover { transform: none; }
 }

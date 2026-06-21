@@ -1,62 +1,49 @@
-// FeelFlick — Browse page entry. Mount at /browse.
+// FeelFlick — Browse. Mount at /browse.
 //
-// Wires the /browse visual surface to real Supabase data: URL-driven state,
-// browseMovies fetch with pagination, user_history + user_watchlist for the
-// watched / saved badges, and live toggles that persist to Supabase.
+// Browse is the "explicit curiosity" surface: the USER chooses the territory
+// (genre, era, language, runtime, filmmaker, qualities, or a text search) and
+// FeelFlick helps them understand, order and navigate what exists inside it. It is
+// deliberately distinct from Home ("Made for you") and Discover ("Tuned to the
+// moment") — Browse never claims a per-film personal match.
+//
+// This container owns all URL-driven state, the Supabase/TMDB fetch, the real
+// save/watched writes, scroll restoration, and the scoped surprise draw. Every
+// presentational piece (masthead, curiosity paths, filter bar, drawer, results
+// grid, surprise dialog) is a sibling component fed from here.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { browseMovies, PAGE_SIZE, TMDB_GENRE_IDS, fetchTwinsLovedMovieIds, fetchUserSubscriptions } from '@/shared/api/browse'
+import { browseMovies, PAGE_SIZE, TMDB_GENRE_IDS, fetchTwinsLovedMovieIds } from '@/shared/api/browse'
 import { tmdbImg, discoverMovies } from '@/shared/api/tmdb'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { recommendationCache } from '@/shared/lib/cache'
+import { track } from '@/shared/services/analytics'
+import { updateImpression } from '@/shared/services/recommendations'
 import Pagination from '@/shared/components/Pagination'
+import { ThoughtfulRoot } from '@/shared/ui/thoughtful-seatmate'
 
-import { HP, ROSE, ROSE_DEEP, MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS } from './data'
-import { MoodRow, Toolbar, RefinePanel, GridCard, ListRow } from './components'
-import { MoodBackdrop } from './immersive'
+import { MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
+import { useCuriosityPaths } from './useCuriosityPaths'
+import BrowseMasthead from './components/BrowseMasthead'
+import BrowseCuriosityPaths from './components/BrowseCuriosityPaths'
+import BrowseFilterBar from './components/BrowseFilterBar'
+import BrowseFilterDrawer from './components/BrowseFilterDrawer'
+import BrowseResultsHeader from './components/BrowseResultsHeader'
+import BrowseFilmGrid from './components/BrowseFilmGrid'
+import BrowseSurpriseDialog from './components/BrowseSurpriseDialog'
 import './browse.css'
-
-// /browse v5 — production wiring. Replaces the FILMS mock that shipped with
-// the v5 visual prototype.
 
 const DEFAULT_SORT = 'ff_rating.desc'
 
-// Map a Supabase movies row → the shape GridCard / ListRow / QuickLook expect.
-// The card components were built against the original FILMS mock shape, so
-// we shim the field names here instead of touching every consumer.
+// Filters TMDB Discover can honour in text-search mode. Anything else is "paused"
+// while a text query is active (shown dimmed, never silently applied as truth).
+const TMDB_SUPPORTED_KEYS = new Set(['genre', 'decade', 'lang', 'runtime', 'rating'])
+
+// Map a Supabase movies row → the card shape. Objective catalogue facts only —
+// no synthesized per-mood "fit", no fabricated reason, no fake availability.
 function mapRowToFilm(row) {
-  const tags = new Set(row.mood_tags || [])
-  // pacing/intensity/depth on the mock were 1-10 scale; Supabase has 0-100
-  // scores. Divide so per-card surfaces (RefinePanel, ListRow) read the
-  // right magnitude.
-  const pacing10 = Math.round((row.pacing_score || 0) / 10)
-  const intensity10 = Math.round((row.intensity_score || 0) / 10)
-  const depth10 = Math.round((row.emotional_depth_score || 0) / 10)
-  // Synthesise fit + rationale per mood pill. The mock had hand-authored
-  // per-mood fit numbers (0-1); we derive a coarser version from mood_tags
-  // membership + the engine columns so the mood-weighted score on cards
-  // doesn't render NaN.
-  // Keys MUST match data.js MOODS[].id so GridCard / ListRow / QuickLook
-  // can look up `f.fit[mood]` by the URL param value (which is the pill id).
-  const fit = {
-    tense:      tags.has('tense') || tags.has('suspenseful') ? 0.85 : (intensity10 >= 7 ? 0.65 : 0.25),
-    slow:       tags.has('meditative') || tags.has('somber') ? 0.85 : (pacing10 <= 4 ? 0.6 : 0.25),
-    tender:     tags.has('tender') || tags.has('heartwarming') ? 0.85 : 0.25,
-    cerebral:   tags.has('mysterious') ? 0.8 : (depth10 >= 7 ? 0.65 : 0.3),
-    cozy:       tags.has('heartwarming') || tags.has('lighthearted') || tags.has('whimsical') ? 0.85 : 0.25,
-    melancholy: tags.has('melancholic') || tags.has('bittersweet') ? 0.85 : 0.25,
-  }
-  const rationale = {
-    tense:      tags.has('tense') ? 'Mood signature · tense' : 'Tense register',
-    slow:       tags.has('meditative') ? 'Patient build · meditative' : 'Slow build',
-    tender:     tags.has('tender') ? 'Tender beat · tender' : 'Tender register',
-    cerebral:   tags.has('mysterious') ? 'Cerebral lean · mysterious' : 'Cerebral register',
-    cozy:       tags.has('heartwarming') ? 'Cozy beat · heartwarming' : 'Cozy register',
-    melancholy: tags.has('melancholic') ? 'Melancholic register' : 'Bittersweet undertow',
-  }
   return {
     id: row.id,
     tmdbId: row.tmdb_id,
@@ -67,33 +54,22 @@ function mapRowToFilm(row) {
     genre: row.primary_genre || '',
     lang: row.original_language || '',
     poster: row.poster_path ? tmdbImg(row.poster_path, 'w342') : '',
-    ff: Math.round(row.ff_audience_rating || row.vote_average * 10 || 0),
+    ff: Math.round(row.ff_audience_rating || (row.vote_average || 0) * 10 || 0),
     vote: row.vote_average || 0,
     critic: Math.round(row.ff_critic_rating || 0),
+    criticConfidence: Math.round(row.ff_critic_confidence || 0),
     audience: Math.round(row.ff_audience_rating || 0),
     cult: Math.round(row.cult_status_score || 0),
     hidden: Math.round(row.discovery_potential || 0),
-    pacing: pacing10,
-    intensity: intensity10,
-    depth: depth10,
-    dialogue: row.dialogue_density >= 65 ? 'heavy' : 'light',
-    attention: row.attention_demand >= 65 ? 'high' : 'low',
-    fit,
-    rationale,
-    vibes: [],
-    available: true,
-    twinsLoved: false,
+    exceptional: (row.ff_rating_genre_normalized || 0) >= 8.0,
   }
 }
 
-// TMDB → card-shape adapter. Used only in search mode (text query). TMDB
-// rows lack our engine columns, so the synthetic fit/rationale collapses
-// to "no signal" defaults — match score becomes a derived score from
-// vote_average. The card still renders cleanly.
+// TMDB → card shape (text-search rows only). No engine columns exist, so there is
+// nothing objective to claim beyond title/year/poster — evidence + badges resolve
+// to null for these (see browsePresentation isTmdbOnly).
 function mapTmdbToFilm(r) {
   const yr = r.release_date ? new Date(r.release_date).getFullYear() : ''
-  // Treat TMDB id as the "internal" id surrogate (negative-tagged to avoid
-  // collisions with real movies.id values). Card click navigates via tmdbId.
   return {
     id: -Math.abs(r.id),
     tmdbId: r.id,
@@ -106,19 +82,11 @@ function mapTmdbToFilm(r) {
     poster: r.poster_path ? tmdbImg(r.poster_path, 'w342') : '',
     ff: Math.round((r.vote_average || 0) * 10),
     vote: r.vote_average || 0,
-    critic: 0,
-    audience: Math.round((r.vote_average || 0) * 10),
-    cult: 0, hidden: 0, pacing: 5, intensity: 5, depth: 5,
-    dialogue: 'light', attention: 'low',
-    fit: { tense:0.4, slow:0.4, tender:0.4, cerebral:0.4, cozy:0.4, melancholy:0.4 },
-    rationale: { tense:'TMDB match', slow:'TMDB match', tender:'TMDB match', cerebral:'TMDB match', cozy:'TMDB match', melancholy:'TMDB match' },
-    vibes: [],
-    available: true,
-    twinsLoved: false,
+    critic: 0, criticConfidence: 0, audience: Math.round((r.vote_average || 0) * 10),
+    cult: 0, hidden: 0, exceptional: false,
   }
 }
 
-// Decade param → TMDB date range for the discover endpoint.
 function decadeToTmdbRange(decade) {
   if (!decade) return {}
   if (decade === 'pre1970') return { releaseDateLte: '1969-12-31' }
@@ -126,79 +94,109 @@ function decadeToTmdbRange(decade) {
   if (!Number.isFinite(start)) return {}
   return { releaseDateGte: `${start}-01-01`, releaseDateLte: `${start + 9}-12-31` }
 }
-
-// Runtime bucket → TMDB minute ranges.
 const TMDB_RUNTIME_RANGES = {
-  short:  { runtimeLte: 89 },
-  medium: { runtimeGte: 90, runtimeLte: 130 },
-  long:   { runtimeGte: 131, runtimeLte: 180 },
-  epic:   { runtimeGte: 181 },
+  short: { runtimeLte: 89 }, medium: { runtimeGte: 90, runtimeLte: 130 },
+  long: { runtimeGte: 131, runtimeLte: 180 }, epic: { runtimeGte: 181 },
 }
-
-// Supabase-only sort keys that TMDB Discover doesn't support. When the
-// user has one of these active and switches to text search, fall back to
-// popularity.desc so the request doesn't 400.
 const SUPABASE_ONLY_SORTS = new Set([
-  'ff_rating.desc', 'discovery_potential.desc',
+  'ff_rating.desc', 'discovery_potential.desc', 'ff_critic_rating.desc',
   'cult_status_score.desc', 'accessibility_score.desc',
 ])
 
-// URL helpers — coerce a search param to a usable value.
-function getStr(sp, key, fallback = '') {
-  return sp.get(key) || fallback
-}
-function getNum(sp, key, fallback = 1) {
-  const v = Number(sp.get(key) || fallback)
-  return Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback
-}
-function getBool(sp, key) {
-  return sp.get(key) === '1'
-}
-function getList(sp, key) {
-  const raw = sp.get(key)
-  return raw ? raw.split(',').filter(Boolean) : []
+const getStr = (sp, key, fb = '') => sp.get(key) || fb
+const getNum = (sp, key, fb = 1) => { const v = Number(sp.get(key) || fb); return Number.isFinite(v) && v > 0 ? Math.floor(v) : fb }
+const getBool = (sp, key) => sp.get(key) === '1'
+const getList = (sp, key) => { const r = sp.get(key); return r ? r.split(',').filter(Boolean) : [] }
+
+// Honest scope sentence for the surprise dialog — describes WHERE the pick came
+// from, never a personal certainty.
+function buildScopeReason({ genre, decade, lang, runtime, director, mood }) {
+  const langLabel = lang ? LANG_OPTIONS.find(o => o.value === lang)?.label : null
+  const decadeLabel = decade ? DECADE_OPTIONS.find(o => o.value === decade)?.label : null
+  const rtLabel = runtime ? RUNTIME_OPTIONS.find(o => o.value === runtime)?.label : null
+  const lead = [langLabel, genre ? genre.toLowerCase() : null].filter(Boolean).join(' ')
+  let phrase = lead ? `A ${lead} film` : 'A film'
+  if (decadeLabel) phrase += ` from the ${decadeLabel.toLowerCase()}`
+  if (director) phrase += ` by ${director}`
+  const tail = []
+  if (rtLabel) tail.push(rtLabel.toLowerCase())
+  if (mood && mood !== 'all') tail.push(`${MOODS.find(m => m.id === mood)?.label.toLowerCase()} register`)
+  const hasScope = lead || decadeLabel || director || rtLabel || (mood && mood !== 'all')
+  return hasScope
+    ? `${phrase}${tail.length ? ` · ${tail.join(', ')}` : ''}, drawn from within your current filters.`
+    : 'A film drawn from across the whole catalogue — set a filter to narrow where the surprise comes from.'
 }
 
 export default function Browse() {
   usePageMeta({ title: 'Browse — FeelFlick' })
-
   const { user } = useAuthSession()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // ── URL-derived state ────────────────────────────────────────────────────
-  const page         = getNum(searchParams, 'page', 1)
-  const mood         = getStr(searchParams, 'mood', 'all')
-  const query        = getStr(searchParams, 'q')
-  const genre        = getStr(searchParams, 'genre')
-  const decade       = getStr(searchParams, 'decade')
-  const lang         = getStr(searchParams, 'lang')
-  const sortBy       = getStr(searchParams, 'sort', DEFAULT_SORT)
-  const hideWatched  = getBool(searchParams, 'hideWatched')
-  const minRating    = getStr(searchParams, 'rating')
-  const runtime      = getStr(searchParams, 'runtime')
-  const pacing       = getStr(searchParams, 'pacing')
-  const intensity    = getStr(searchParams, 'intensity')
-  const depth        = getStr(searchParams, 'depth')
-  const dialogue     = getStr(searchParams, 'dialogue')
-  const attention    = getStr(searchParams, 'attention')
-  const minCritic    = getStr(searchParams, 'minCritic')
-  const minAudience  = getStr(searchParams, 'minAudience')
-  const gap          = getStr(searchParams, 'gap')
-  const genreTop     = getBool(searchParams, 'genreTop')
-  const director     = getStr(searchParams, 'director')
-  const vibe         = useMemo(() => getList(searchParams, 'vibe'), [searchParams])
-  const view         = getStr(searchParams, 'view', 'grid')
-  const preset       = getStr(searchParams, 'preset') || null
+  // ── URL-derived state ──────────────────────────────────────────────────────
+  const page        = getNum(searchParams, 'page', 1)
+  const mood        = getStr(searchParams, 'mood', 'all')
+  const query       = getStr(searchParams, 'q')
+  const genre       = getStr(searchParams, 'genre')
+  const decade      = getStr(searchParams, 'decade')
+  const lang        = getStr(searchParams, 'lang')
+  const sortBy      = getStr(searchParams, 'sort', DEFAULT_SORT)
+  const hideWatched = getBool(searchParams, 'hideWatched')
+  const minRating   = getStr(searchParams, 'rating')
+  const runtime     = getStr(searchParams, 'runtime')
+  const pacing      = getStr(searchParams, 'pacing')
+  const intensity   = getStr(searchParams, 'intensity')
+  const depth       = getStr(searchParams, 'depth')
+  const dialogue    = getStr(searchParams, 'dialogue')
+  const attention   = getStr(searchParams, 'attention')
+  const minCritic   = getStr(searchParams, 'minCritic')
+  const minAudience = getStr(searchParams, 'minAudience')
+  const gap         = getStr(searchParams, 'gap')
+  const genreTop    = getBool(searchParams, 'genreTop')
+  const director    = getStr(searchParams, 'director')
+  const vibe        = useMemo(() => getList(searchParams, 'vibe'), [searchParams])
+  const twinsLoved  = getBool(searchParams, 'twins')
 
-  // Draft state for inputs that shouldn't update the URL on every keystroke.
-  const [draftQuery, setDraftQ]    = useState(query)
-  const [draftDirector, setDraftDir] = useState(director)
+  const [draftQuery, setDraftQ] = useState(query)
   useEffect(() => setDraftQ(query), [query])
-  useEffect(() => setDraftDir(director), [director])
 
-  // ── Setters that mutate the URL ──────────────────────────────────────────
-  // Helper: write a single key, dropping it when value is empty/default.
+  // ── Legacy URL migration (idempotent; runs on mount and never re-runs once the
+  //    legacy markers are gone) ─────────────────────────────────────────────────
+  // - `avTonight`: an unwired "available tonight" toggle — there is NO reliable
+  //   region-aware availability data, so it is normalized OUT of the canonical URL
+  //   (no chip, no filter, no claim).
+  // - `view=list`: the redesign presents a single dense poster grid, so it is
+  //   normalized away.
+  // - `preset`: the legacy editorial bundles are EXPANDED into their explicit
+  //   filter params (for any key not already set), then the now-redundant marker is
+  //   dropped — so an old `?preset=cozy_night` URL still genuinely activates its
+  //   filters and the canonical URL carries the real, removable scope.
+  // All other params are preserved exactly.
+  useEffect(() => {
+    if (!searchParams.has('avTonight') && !searchParams.has('view') && !searchParams.has('preset')) return
+    const next = new URLSearchParams(searchParams)
+    next.delete('avTonight')
+    next.delete('view')
+    const presetId = next.get('preset')
+    if (presetId) {
+      const p = PRESETS.find((x) => x.id === presetId)
+      if (p) {
+        const setIfAbsent = (k, v) => { if (v && !next.has(k)) next.set(k, v) }
+        setIfAbsent('sort', p.filters.sortBy)
+        setIfAbsent('lang', p.filters.language)
+        setIfAbsent('runtime', p.filters.runtime)
+        setIfAbsent('pacing', p.filters.pacing)
+        setIfAbsent('intensity', p.filters.intensity)
+        setIfAbsent('depth', p.filters.depth)
+        setIfAbsent('attention', p.filters.attention)
+        if (Array.isArray(p.filters.vibe) && p.filters.vibe.length && !next.has('vibe')) next.set('vibe', p.filters.vibe.join(','))
+      }
+      next.delete('preset')
+    }
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  // ── URL writers ──────────────────────────────────────────────────────────────
   const writeParams = useCallback((updates, opts = {}) => {
     const next = new URLSearchParams(searchParams)
     const writeOne = (key, value, fallback = '') => {
@@ -206,73 +204,34 @@ export default function Browse() {
       const v = typeof value === 'string' ? value.trim() : value
       const empty = v === '' || v === null || v === undefined || v === false || v === fallback
       if (empty) next.delete(key)
-      else if (Array.isArray(v)) {
-        if (v.length === 0) next.delete(key)
-        else next.set(key, v.join(','))
-      } else next.set(key, String(v))
+      else if (Array.isArray(v)) { if (v.length === 0) next.delete(key); else next.set(key, v.join(',')) }
+      else next.set(key, String(v))
     }
     for (const [k, v] of Object.entries(updates)) {
-      const fallback =
-        k === 'sort' ? DEFAULT_SORT
-        : k === 'view' ? 'grid'
-        : k === 'mood' ? 'all'
-        : k === 'page' ? 1
-        : ''
+      const fallback = k === 'sort' ? DEFAULT_SORT : k === 'mood' ? 'all' : k === 'page' ? 1 : ''
       writeOne(k, v, fallback)
     }
-    // Filter changes reset page to 1 unless the caller explicitly set it.
     if (!('page' in updates) && opts.resetPage !== false) next.delete('page')
     setSearchParams(next, { replace: opts.replace ?? false })
   }, [searchParams, setSearchParams])
 
-  const setMood        = (v) => writeParams({ mood: v })
-  const setGenre       = (v) => writeParams({ genre: v })
-  const setDecade      = (v) => writeParams({ decade: v })
-  const setLang        = (v) => writeParams({ lang: v })
-  const setSortBy      = (v) => writeParams({ sort: v })
-  const setHide        = (v) => writeParams({ hideWatched: v ? '1' : '' })
-  const setMinRating   = (v) => writeParams({ rating: v })
-  const setRuntime     = (v) => writeParams({ runtime: v })
-  const setPacing      = (v) => writeParams({ pacing: v })
-  const setIntensity   = (v) => writeParams({ intensity: v })
-  const setDepth       = (v) => writeParams({ depth: v })
-  const setDialogue    = (v) => writeParams({ dialogue: v })
-  const setAttention   = (v) => writeParams({ attention: v })
-  const setMinCritic   = (v) => writeParams({ minCritic: v })
-  const setMinAudience = (v) => writeParams({ minAudience: v })
-  const setGap         = (v) => writeParams({ gap: v })
-  const setGenreTop    = (v) => writeParams({ genreTop: v ? '1' : '' })
-  const setDirector    = (v) => writeParams({ director: v })
-  const setVibe        = (v) => writeParams({ vibe: v })
-  const setView        = (v) => writeParams({ view: v }, { resetPage: false })
-  const setQuery       = (v) => writeParams({ q: v })
+  const setFilter = useCallback((key, value) => writeParams({ [key]: value }), [writeParams])
+  const setSortBy = useCallback((v) => writeParams({ sort: v }), [writeParams])
+  const setQuery  = useCallback((v) => writeParams({ q: v }), [writeParams])
 
-  // "Tonight" and the unwired "available tonight / twins loved" toggles are
-  // left as local state — they're not yet backed by a real signal (we'd need
-  // a streaming-providers column or a user_similarity join). UI stays so the
-  // surface doesn't regress, but the toggles are persisted to URL with no
-  // effect on the query for now.
-  const availableTonight = getBool(searchParams, 'avTonight')
-  const twinsLoved       = getBool(searchParams, 'twins')
-  const setAvailableTonight = (v) => writeParams({ avTonight: v ? '1' : '' })
-  const setTwinsLoved       = (v) => writeParams({ twins: v ? '1' : '' })
+  // Curiosity path → a CLEAN territory (its filters only). Resets everything else.
+  const selectPath = useCallback((path) => {
+    const next = new URLSearchParams()
+    for (const [k, v] of Object.entries(path.filters)) {
+      if (Array.isArray(v)) { if (v.length) next.set(k, v.join(',')) }
+      else if (v) next.set(k, String(v))
+    }
+    setSearchParams(next, { replace: false })
+    setDraftQ('')
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }, [setSearchParams])
 
-  // ── Refine panel open/close (local-only — not URL-persisted) ─────────────
-  const [panelOpen, setPanel] = useState(false)
-
-  // Card clicks navigate straight to /movie/:tmdbId — the Film File is the
-  // destination and the QuickLook side-panel that used to open here was a
-  // halfway state. Browser back returns to the same /browse view because
-  // every filter lives in the URL.
-  const openFilm = useCallback((film) => {
-    if (film?.tmdbId) navigate(`/movie/${film.tmdbId}`)
-  }, [navigate])
-
-  // ── Scroll restoration ──────────────────────────────────────────────────
-  // React Router's BrowserRouter doesn't restore scroll on back. Save the
-  // current scrollY against the full URL key whenever the user scrolls,
-  // then restore it once the grid has rendered (after the loading flip
-  // from true → false so the document is tall enough to scroll to).
+  // ── Scroll restoration ────────────────────────────────────────────────────
   const scrollKey = `browse:scroll:${searchParams.toString()}`
   const pendingScrollRef = useRef(null)
   useEffect(() => {
@@ -281,82 +240,67 @@ export default function Browse() {
     let raf = null
     const onScroll = () => {
       if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = null
-        sessionStorage.setItem(scrollKey, String(window.scrollY))
-      })
+      raf = requestAnimationFrame(() => { raf = null; sessionStorage.setItem(scrollKey, String(window.scrollY)) })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (raf) cancelAnimationFrame(raf)
-    }
+    return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
   }, [scrollKey])
 
-  // ── Watched + watchlist IDs (cached, used for hideWatched + card badges) ─
+  // ── Watched / watchlist / twins ─────────────────────────────────────────────
   const [watchedIds, setWatchedIds] = useState([])
   const [watchlistIds, setWatchlistIds] = useState([])
-  // Twins-loved + subscriptions fetched once per session — twin set and
-  // user prefs change slowly. Re-fetch on user change. Empty subscriptions
-  // makes the "Streaming I have" toggle render disabled in the toolbar.
-  const [twinsLovedIds, setTwinsLovedIds] = useState(null)  // null = not fetched yet
-  const [userSubscriptions, setUserSubscriptions] = useState([])
+  const [twinsLovedIds, setTwinsLovedIds] = useState(null) // null = not fetched
   useEffect(() => {
-    if (!user?.id) {
-      setWatchedIds([])
-      setWatchlistIds([])
-      setTwinsLovedIds(null)
-      setUserSubscriptions([])
-      return
-    }
+    if (!user?.id) { setWatchedIds([]); setWatchlistIds([]); setTwinsLovedIds(null); return undefined }
     let abort = false
     Promise.all([
       supabase.from('user_history').select('movie_id').eq('user_id', user.id),
       supabase.from('user_watchlist').select('movie_id').eq('user_id', user.id),
       fetchTwinsLovedMovieIds(user.id),
-      fetchUserSubscriptions(user.id),
-    ]).then(([h, w, twins, subs]) => {
+    ]).then(([h, w, twins]) => {
       if (abort) return
       setWatchedIds(h.data?.map(r => r.movie_id) ?? [])
       setWatchlistIds(w.data?.map(r => r.movie_id) ?? [])
       setTwinsLovedIds(twins)
-      setUserSubscriptions(subs)
-    }).catch(() => { /* keep empty arrays on error */ })
+    }).catch(() => { /* keep empty on error */ })
     return () => { abort = true }
   }, [user?.id])
 
   const watchedSet = useMemo(() => new Set(watchedIds), [watchedIds])
   const watchlistSet = useMemo(() => new Set(watchlistIds), [watchlistIds])
-  const hasSubscriptions = userSubscriptions.length > 0
+  const twinsAvailable = Array.isArray(twinsLovedIds) && twinsLovedIds.length > 0
 
-  // ── Fetch movies on filter/page change ───────────────────────────────────
+  // ── Curiosity paths (bounded, cached, deterministic — see useCuriosityPaths) ──
+  const { paths, loading: pathsLoading } = useCuriosityPaths(user?.id || null)
+  const ribbonPosters = useMemo(() => paths.map(p => p.poster).filter(Boolean), [paths])
+  const activePathKey = useMemo(() => {
+    for (const p of paths) {
+      const f = p.filters
+      const ok =
+        (f.genre === undefined || f.genre === genre) &&
+        (f.lang === undefined || f.lang === lang) &&
+        (f.decade === undefined || f.decade === decade) &&
+        (f.runtime === undefined || f.runtime === runtime) &&
+        (f.director === undefined || f.director === director) &&
+        (f.sort === undefined || f.sort === sortBy)
+      if (ok) return p.key
+    }
+    return null
+  }, [paths, genre, lang, decade, runtime, director, sortBy])
+
+  // ── Fetch ───────────────────────────────────────────────────────────────────
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
-  // F2-A: a failed catalog fetch is NOT "zero matches" — track it separately
-  // so the UI never shows the filter-advice empty state for a server failure.
   const [loadFailed, setLoadFailed] = useState(false)
-  // Bumped by the error state's "Try again" — listed in the fetch effect's
-  // deps, so incrementing it re-runs the exact same fetch path.
   const [retryNonce, setRetryNonce] = useState(0)
 
-  // Stringify watchedIds for stable dependency — array ref changes shouldn't
-  // re-trigger the fetch unless the contents changed.
-  const watchedIdsKey = useMemo(() => watchedIds.slice().sort((a,b)=>a-b).join(','), [watchedIds])
-
-  // Search only fires for queries of 2+ characters. Single-char queries
-  // make TMDB Discover return ~100k matches (anything with that letter)
-  // and aren't useful — silently fall through to Supabase browse instead.
-  // The toolbar shows a quiet hint when the user has typed 1 character.
+  const watchedIdsKey = useMemo(() => watchedIds.slice().sort((a, b) => a - b).join(','), [watchedIds])
   const trimmedQuery = query.trim()
   const isSearchMode = trimmedQuery.length >= 2
   const shortQueryHint = trimmedQuery.length === 1
 
-  // Apply the pending scroll restoration after loading finishes — that
-  // way the document is tall enough for the scrollTo to land where the
-  // user left off. `behavior: 'instant'` avoids the user seeing the page
-  // animate from top to their previous position.
   useEffect(() => {
     if (loading) return
     if (pendingScrollRef.current == null) return
@@ -367,62 +311,40 @@ export default function Browse() {
 
   useEffect(() => {
     let abort = false
-    setLoading(true)
-    setLoadFailed(false)
+    setLoading(true); setLoadFailed(false)
     ;(async () => {
       try {
-        // ── Text search: route to TMDB Discover. Real text matching needs a
-        //    tsvector on movies.title which we don't have; TMDB's catalog is
-        //    broader and supports `with_text_query` natively.
         if (isSearchMode) {
+          // Text search → TMDB Discover (title-oriented `with_text_query`). Keeps
+          // TMDB's NATIVE page boundaries + totals (no result is dropped to force
+          // an 18-item page). Only TMDB-supported filters are forwarded.
           const tmdbSort = SUPABASE_ONLY_SORTS.has(sortBy) ? 'popularity.desc' : sortBy
-          const tmdbRuntime = TMDB_RUNTIME_RANGES[runtime] || {}
-          const tmdbDecade = decadeToTmdbRange(decade)
           const data = await discoverMovies({
-            withTextQuery: query.trim(),
-            page,
-            sortBy: tmdbSort,
+            withTextQuery: trimmedQuery, page, sortBy: tmdbSort,
             genreIds: genre && TMDB_GENRE_IDS[genre] ? [TMDB_GENRE_IDS[genre]] : undefined,
             language: lang || undefined,
             voteAverageGte: minRating ? Number(minRating) : undefined,
-            ...tmdbDecade,
-            ...tmdbRuntime,
+            ...decadeToTmdbRange(decade), ...(TMDB_RUNTIME_RANGES[runtime] || {}),
           })
           if (abort) return
-          let mapped = (data.results || []).map(mapTmdbToFilm)
-          // Apply mood / engine-only filters client-side. TMDB Discover
-          // can't filter by mood_tags, intensity, etc., so the result is a
-          // best-effort intersection: text-matched films, post-filtered.
-          if (mood !== 'all') {
-            // We can't tell from TMDB alone — leave the result as-is. The
-            // count label calls out search mode so the user knows mood is
-            // bypassed.
-          }
-          setMovies(mapped)
+          setMovies((data.results || []).map(mapTmdbToFilm))
           setTotalPages(Math.min(data.total_pages || 1, 500))
           setTotalResults(data.total_results || 0)
           return
         }
 
-        // ── Browse mode: Supabase, with Twins-loved restriction when set ──
         let restrictToIds = null
         if (twinsLoved) {
-          // When twinsLovedIds is null we're still loading the twin set;
-          // wait it out (initial mount race). Empty array = no twins, so
-          // browseMovies short-circuits to an empty result honestly.
-          if (twinsLovedIds === null) return
+          if (twinsLovedIds === null) return // twin set still loading
           restrictToIds = twinsLovedIds
         }
-
         const data = await browseMovies({
           page, mood, genre, sortBy, decade, lang,
           rating: minRating, runtime, pacing, intensity, depth,
           vibe, director, hideWatched, watchedIds, dialogue, attention,
           minCritic: minCritic ? Number(minCritic) : 0,
           minAudience: minAudience ? Number(minAudience) : 0,
-          criticAudienceGap: gap,
-          exceptionalGenre: genreTop,
-          restrictToIds,
+          criticAudienceGap: gap, exceptionalGenre: genreTop, restrictToIds,
         })
         if (abort) return
         setMovies((data.movies || []).map(mapRowToFilm))
@@ -439,34 +361,24 @@ export default function Browse() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, mood, query, isSearchMode, genre, sortBy, decade, lang, minRating, runtime, pacing, intensity, depth, dialogue, attention, minCritic, minAudience, gap, genreTop, director, vibe.join(','), hideWatched, watchedIdsKey, twinsLoved, twinsLovedIds, retryNonce])
 
-  // ── Watched / Watchlist toggles (real DB writes) ─────────────────────────
-  // Optimistic update: mutate the Set locally first, fire the DB write, and
-  // roll back on error. Cache is invalidated so /home + recommendations pick
-  // up the change without a refresh.
-  const toggleW = useCallback(async (filmId, tmdbId) => {
+  // ── Real save / watched writes (optimistic + rollback) ───────────────────────
+  const toggleW = useCallback(async (filmId) => {
     if (!user?.id) { navigate('/'); return }
     const wasWatched = watchedSet.has(filmId)
     setWatchedIds(prev => wasWatched ? prev.filter(id => id !== filmId) : [...prev, filmId])
-    if (wasWatched) setWatchlistIds(prev => prev)  // no-op
-    else setWatchlistIds(prev => prev.filter(id => id !== filmId))
+    if (!wasWatched) setWatchlistIds(prev => prev.filter(id => id !== filmId))
     try {
       if (wasWatched) {
         await supabase.from('user_history').delete().eq('user_id', user.id).eq('movie_id', filmId)
       } else {
-        await supabase.from('user_history').insert({
-          user_id: user.id, movie_id: filmId,
-          watched_at: new Date().toISOString(), source: 'browse',
-          watch_duration_minutes: null, mood_session_id: null,
-        })
+        await supabase.from('user_history').insert({ user_id: user.id, movie_id: filmId, watched_at: new Date().toISOString(), source: 'browse', watch_duration_minutes: null, mood_session_id: null })
         await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', filmId)
       }
       recommendationCache.invalidateUser(user.id)
     } catch (err) {
       console.error('[Browse.toggleW] error:', err)
-      // Revert
       setWatchedIds(prev => wasWatched ? [...prev, filmId] : prev.filter(id => id !== filmId))
     }
-    void tmdbId
   }, [user?.id, watchedSet, navigate])
 
   const toggleWL = useCallback(async (filmId) => {
@@ -478,11 +390,7 @@ export default function Browse() {
       if (wasIn) {
         await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', filmId)
       } else {
-        await supabase.from('user_watchlist').upsert({
-          user_id: user.id, movie_id: filmId,
-          added_at: new Date().toISOString(),
-          status: 'want_to_watch', source: 'browse',
-        }, { onConflict: 'user_id,movie_id' })
+        await supabase.from('user_watchlist').upsert({ user_id: user.id, movie_id: filmId, added_at: new Date().toISOString(), status: 'want_to_watch', source: 'browse' }, { onConflict: 'user_id,movie_id' })
         await supabase.from('user_history').delete().eq('user_id', user.id).eq('movie_id', filmId)
       }
       recommendationCache.invalidateUser(user.id)
@@ -492,289 +400,202 @@ export default function Browse() {
     }
   }, [user?.id, watchlistSet, navigate])
 
-  // ── Surprise me — random pick that opens the Film File directly ─────────
-  // Pulls from a random page in the current filter pool (capped at 50) so
-  // the surprise isn't limited to the 24 visible cards. Same pattern the
-  // legacy MoviesTab uses. When in TMDB text-search mode we sample from
-  // the already-loaded `movies` array since we can't easily query a random
-  // TMDB Discover page mid-search.
+  const openFilm = useCallback((film) => {
+    if (!film?.tmdbId) return
+    if (film.id > 0 && user?.id) updateImpression(user.id, film.id, 'clicked').catch(() => {})
+    track('card_clicked', { movie_id: film.tmdbId, movie_title: film.title, source: 'browse' })
+    navigate(`/movie/${film.tmdbId}`)
+  }, [navigate, user?.id])
+
+  // TMDB-only rows have no internal movies row yet — route their actions through
+  // /movie/:tmdbId where the row is created before any write.
+  const onToggleWatched = useCallback((film) => { if (film.id < 0) navigate(`/movie/${film.tmdbId}`); else toggleW(film.id) }, [navigate, toggleW])
+  const onToggleWatchlist = useCallback((film) => { if (film.id < 0) navigate(`/movie/${film.tmdbId}`); else toggleWL(film.id) }, [navigate, toggleWL])
+
+  // ── Scoped surprise (weighted-from-pool, confirmation dialog) ─────────────────
+  const [surpriseOpen, setSurpriseOpen] = useState(false)
   const [surpriseLoading, setSurpriseLoading] = useState(false)
-  const onSurprise = useCallback(async () => {
-    if (surpriseLoading) return
-    if (isSearchMode) {
-      if (movies.length === 0) return
-      const pick = movies[Math.floor(Math.random() * movies.length)]
-      if (pick?.tmdbId) navigate(`/movie/${pick.tmdbId}`)
-      return
-    }
+  const [surpriseFilm, setSurpriseFilm] = useState(null)
+  const lastSurpriseRef = useRef(null)
+
+  const drawSurprise = useCallback(async () => {
     setSurpriseLoading(true)
     try {
+      // Search mode: draw from the loaded, title-matched results.
+      if (isSearchMode) {
+        const pool = movies.filter(m => m && m.title && m.id !== lastSurpriseRef.current)
+        const pick = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null
+        if (pick) lastSurpriseRef.current = pick.id
+        setSurpriseFilm(pick)
+        return
+      }
+      // Browse mode: sample a random page in the qualified pool (respects every
+      // active filter + Hide watched via browseMovies), exclude invalid records +
+      // the immediately-previous pick, then choose uniformly to preserve surprise.
       const maxPage = Math.min(totalPages || 1, 50)
       const randomPage = Math.floor(Math.random() * maxPage) + 1
       let restrictToIds = null
       if (twinsLoved && Array.isArray(twinsLovedIds)) restrictToIds = twinsLovedIds
-      const data = await browseMovies({
-        page: randomPage, mood, genre, sortBy, decade, lang,
-        rating: minRating, runtime, pacing, intensity, depth,
+      const fetchPage = (p) => browseMovies({
+        page: p, mood, genre, sortBy, decade, lang, rating: minRating, runtime, pacing, intensity, depth,
         vibe, director, hideWatched, watchedIds, dialogue, attention,
-        minCritic: minCritic ? Number(minCritic) : 0,
-        minAudience: minAudience ? Number(minAudience) : 0,
-        criticAudienceGap: gap,
-        exceptionalGenre: genreTop,
-        restrictToIds,
+        minCritic: minCritic ? Number(minCritic) : 0, minAudience: minAudience ? Number(minAudience) : 0,
+        criticAudienceGap: gap, exceptionalGenre: genreTop, restrictToIds,
       })
-      const candidates = data.movies || []
-      if (candidates.length === 0) return
-      const pick = candidates[Math.floor(Math.random() * candidates.length)]
-      if (pick?.tmdb_id) navigate(`/movie/${pick.tmdb_id}`)
+      let data = await fetchPage(randomPage)
+      let candidates = (data.movies || []).filter(r => r && r.poster_path && r.title)
+      if (candidates.length === 0 && randomPage !== 1) { data = await fetchPage(1); candidates = (data.movies || []).filter(r => r && r.poster_path && r.title) }
+      const fresh = candidates.filter(r => r.id !== lastSurpriseRef.current)
+      const pool = fresh.length ? fresh : candidates
+      const pick = pool.length ? mapRowToFilm(pool[Math.floor(Math.random() * pool.length)]) : null
+      if (pick) lastSurpriseRef.current = pick.id
+      setSurpriseFilm(pick)
     } catch (err) {
       console.error('[Browse.surprise] error:', err)
+      setSurpriseFilm(null)
     } finally {
       setSurpriseLoading(false)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [surpriseLoading, isSearchMode, movies, totalPages, mood, genre, sortBy, decade, lang, minRating, runtime, pacing, intensity, depth, dialogue, attention, minCritic, minAudience, gap, genreTop, director, vibe.join(','), hideWatched, watchedIdsKey, twinsLoved, twinsLovedIds])
+  }, [isSearchMode, movies, totalPages, mood, genre, sortBy, decade, lang, minRating, runtime, pacing, intensity, depth, dialogue, attention, minCritic, minAudience, gap, genreTop, director, vibe.join(','), hideWatched, watchedIdsKey, twinsLoved, twinsLovedIds])
 
-  // ── Active filters chips + clear all ─────────────────────────────────────
-  // Badge count on the Filters button now reflects EVERY active filter —
-  // basics (genre/decade/lang/runtime/mood/preset) + advanced (refine
-  // panel). Was previously advanced-only, which made the badge silently
-  // ignore the most-common picks.
-  const basicsCount = [
-    mood !== 'all' ? 'mood' : '',
-    genre, decade, lang, runtime, preset || '',
-    hideWatched ? 'hw' : '',
-    availableTonight ? 'av' : '',
-    twinsLoved ? 'tw' : '',
-  ].filter(Boolean).length
-  const advancedCount = [minRating, pacing, intensity, depth, director, dialogue, attention, minCritic, minAudience, gap, genreTop ? 'on' : '', ...vibe].filter(Boolean).length
-  const totalFilterCount = basicsCount + advancedCount
-  const hasAnyFilter = !!(query || genre || decade || lang || hideWatched || availableTonight || twinsLoved || sortBy !== DEFAULT_SORT || advancedCount > 0 || mood !== 'all')
+  const openSurprise = useCallback(() => {
+    setSurpriseOpen(true)
+    drawSurprise()
+  }, [drawSurprise])
 
-  const clearAll = () => {
-    setSearchParams(new URLSearchParams(), { replace: false })
-    setDraftQ('')
-    setDraftDir('')
-  }
+  const onSurpriseOpenFilm = useCallback((film) => { setSurpriseOpen(false); openFilm(film) }, [openFilm])
 
-  const applyPreset = (p) => {
-    if (preset === p.id) {
-      setSearchParams(new URLSearchParams(), { replace: false })
-      return
-    }
-    const next = new URLSearchParams()
-    next.set('preset', p.id)
-    if (p.filters.language) next.set('lang', p.filters.language)
-    if (p.filters.sortBy && p.filters.sortBy !== DEFAULT_SORT) next.set('sort', p.filters.sortBy)
-    if (p.filters.runtime) next.set('runtime', p.filters.runtime)
-    if (p.filters.pacing) next.set('pacing', p.filters.pacing)
-    if (p.filters.intensity) next.set('intensity', p.filters.intensity)
-    if (p.filters.depth) next.set('depth', p.filters.depth)
-    if (p.filters.attention) next.set('attention', p.filters.attention)
-    if (Array.isArray(p.filters.vibe) && p.filters.vibe.length) next.set('vibe', p.filters.vibe.join(','))
-    setSearchParams(next, { replace: false })
-  }
+  // ── Filters: chips + counts + drawer ─────────────────────────────────────────
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
 
-  const activeFilters = [
-    // Mood is an active filter too — show it as a removable chip so users
-    // who picked the wrong mood from the scrolling pill row can clear it
-    // without hunting for the "All moods" pill.
-    mood !== 'all' && { k:'mood', l:MOODS.find(m=>m.id===mood)?.label, c:()=>setMood('all') },
-    genre && { k:'genre', l:genre, c:()=>setGenre('') },
-    decade && { k:'decade', l:DECADE_OPTIONS.find(d=>d.value===decade)?.label, c:()=>setDecade('') },
-    lang && { k:'lang', l:LANG_OPTIONS.find(l=>l.value===lang)?.label, c:()=>setLang('') },
-    runtime && { k:'rt', l:RUNTIME_OPTIONS.find(r=>r.value===runtime)?.label, c:()=>setRuntime('') },
-    minRating && { k:'rating', l:`${minRating}+ rating`, c:()=>setMinRating('') },
-    director && { k:'dir', l:`Dir: ${director}`, c:()=>{setDirector(''); setDraftDir('')} },
-    pacing && { k:'pacing', l: pacing==='slow' ? 'Slow burn' : 'Fast-paced', c:()=>setPacing('') },
-    intensity && { k:'intensity', l: intensity==='chill' ? 'Chill' : 'Intense', c:()=>setIntensity('') },
-    depth && { k:'depth', l: depth==='deep' ? 'Thought-provoking' : 'Easy watch', c:()=>setDepth('') },
-    dialogue && { k:'dialogue', l: DIALOGUE_OPTIONS.find(d=>d.value===dialogue)?.label, c:()=>setDialogue('') },
-    attention && { k:'attention', l: ATTENTION_OPTIONS.find(a=>a.value===attention)?.label, c:()=>setAttention('') },
-    minCritic && { k:'mc', l:`Critics ≥ ${minCritic}`, c:()=>setMinCritic('') },
-    minAudience && { k:'ma', l:`Audience ≥ ${minAudience}`, c:()=>setMinAudience('') },
-    gap && { k:'gap', l: GAP_OPTIONS.find(g=>g.value===gap)?.label, c:()=>setGap('') },
-    genreTop && { k:'gt', l:'Exceptional for genre', c:()=>setGenreTop(false) },
-    hideWatched && { k:'hw', l:'Hide watched', c:()=>setHide(false) },
-    availableTonight && { k:'av', l:'Streaming I have', c:()=>setAvailableTonight(false) },
-    twinsLoved && { k:'tw', l:'Twins loved', c:()=>setTwinsLoved(false) },
-    ...vibe.map(v => ({ k:'vibe-'+v, l:VIBE_OPTIONS.find(o=>o.value===v)?.label, c:()=>setVibe(vibe.filter(x=>x!==v)) })),
-  ].filter(Boolean)
+  const advancedCount = [minRating, pacing, intensity, depth, director, dialogue, attention, minCritic, minAudience, gap, genreTop ? 'on' : '', hideWatched ? 'hw' : '', twinsLoved ? 'tw' : '', mood !== 'all' ? 'mood' : '', ...vibe].filter(Boolean).length
+  const hasAnyFilter = !!(query || genre || decade || lang || runtime || hideWatched || twinsLoved || sortBy !== DEFAULT_SORT || advancedCount > 0)
 
-  // ── Pagination ───────────────────────────────────────────────────────────
+  const clearAll = () => { setSearchParams(new URLSearchParams(), { replace: false }); setDraftQ('') }
+
+  // Active-scope chips. In search mode, filters TMDB can't apply are marked paused.
+  const chips = useMemo(() => {
+    const mk = (key, label, onRemove) => label ? { key, label, onRemove, paused: isSearchMode && !TMDB_SUPPORTED_KEYS.has(key) } : null
+    return [
+      mk('mood', mood !== 'all' ? MOODS.find(m => m.id === mood)?.label : '', () => writeParams({ mood: 'all' })),
+      mk('genre', genre, () => setFilter('genre', '')),
+      mk('decade', decade ? DECADE_OPTIONS.find(d => d.value === decade)?.label : '', () => setFilter('decade', '')),
+      mk('lang', lang ? LANG_OPTIONS.find(l => l.value === lang)?.label : '', () => setFilter('lang', '')),
+      mk('runtime', runtime ? RUNTIME_OPTIONS.find(r => r.value === runtime)?.label : '', () => setFilter('runtime', '')),
+      mk('rating', minRating ? `${minRating}+ rating` : '', () => setFilter('rating', '')),
+      mk('director', director ? `Dir: ${director}` : '', () => setFilter('director', '')),
+      mk('pacing', pacing ? (pacing === 'slow' ? 'Leans slow-burn' : 'Leans fast') : '', () => setFilter('pacing', '')),
+      mk('intensity', intensity ? (intensity === 'chill' ? 'Leans chill' : 'Often intense') : '', () => setFilter('intensity', '')),
+      mk('depth', depth ? (depth === 'deep' ? 'Often thought-provoking' : 'Easy watch') : '', () => setFilter('depth', '')),
+      mk('dialogue', dialogue ? DIALOGUE_OPTIONS.find(d => d.value === dialogue)?.label : '', () => setFilter('dialogue', '')),
+      mk('attention', attention ? ATTENTION_OPTIONS.find(a => a.value === attention)?.label : '', () => setFilter('attention', '')),
+      mk('minCritic', minCritic ? `Critics ≥ ${minCritic}` : '', () => setFilter('minCritic', '')),
+      mk('minAudience', minAudience ? `Audience ≥ ${minAudience}` : '', () => setFilter('minAudience', '')),
+      mk('gap', gap ? GAP_OPTIONS.find(g => g.value === gap)?.label : '', () => setFilter('gap', '')),
+      mk('genreTop', genreTop ? 'Exceptional for genre' : '', () => writeParams({ genreTop: '' })),
+      mk('hideWatched', hideWatched ? 'Hide watched' : '', () => writeParams({ hideWatched: '' })),
+      mk('twins', twinsLoved ? 'Taste twins loved' : '', () => writeParams({ twins: '' })),
+      ...vibe.map(v => mk(`vibe-${v}`, VIBE_OPTIONS.find(o => o.value === v)?.label, () => setFilter('vibe', vibe.filter(x => x !== v)))),
+    ].filter(Boolean)
+  }, [isSearchMode, mood, genre, decade, lang, runtime, minRating, director, pacing, intensity, depth, dialogue, attention, minCritic, minAudience, gap, genreTop, hideWatched, twinsLoved, vibe, writeParams, setFilter])
+
+  const drawerInitial = useMemo(() => ({ pacing, intensity, depth, dialogue, attention, gap, vibe, hideWatched, twins: twinsLoved }), [pacing, intensity, depth, dialogue, attention, gap, vibe, hideWatched, twinsLoved])
+  const applyDrawer = useCallback((draft) => {
+    writeParams({
+      pacing: draft.pacing, intensity: draft.intensity, depth: draft.depth,
+      dialogue: draft.dialogue, attention: draft.attention, gap: draft.gap, vibe: draft.vibe,
+      hideWatched: draft.hideWatched ? '1' : '', twins: draft.twins ? '1' : '',
+    })
+    setDrawerOpen(false)
+  }, [writeParams])
+
+  // ── Pagination ────────────────────────────────────────────────────────────
   const handlePageChange = (next) => {
     writeParams({ page: next }, { resetPage: false })
-    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
   }
 
+  const resultsTitle = isSearchMode ? 'Search results' : (hasAnyFilter ? 'In this catalogue' : 'The whole catalogue')
+  const pageSizeNote = !isSearchMode && totalPages > 1 ? '18 films at a time' : null
+
   return (
-    <div style={{ minHeight:'100vh', background:HP.bg, color:HP.text, fontFamily:'Inter, sans-serif', position:'relative' }}>
-      <MoodBackdrop tint={MOODS.find(m=>m.id===mood)?.hex || ROSE} />
-      <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
-        {/* a11y landmark (F12B): Browse leads with the filter toolbar; sr-only h1 supplies the page heading. */}
-        <h1 className="sr-only">Browse films</h1>
-        <Toolbar
-          query={draftQuery} setQuery={setQuery} draftQuery={draftQuery} setDraftQuery={setDraftQ}
-          hideWatched={hideWatched} setHide={setHide}
-          availableTonight={availableTonight} setAvailableTonight={setAvailableTonight}
-          availableTonightDisabled={!hasSubscriptions}
-          availableTonightTitle={!hasSubscriptions ? 'Add your streaming services in Account first' : undefined}
-          twinsLoved={twinsLoved} setTwinsLoved={setTwinsLoved}
-          twinsLovedDisabled={Array.isArray(twinsLovedIds) && twinsLovedIds.length === 0}
-          twinsLovedTitle={Array.isArray(twinsLovedIds) && twinsLovedIds.length === 0 ? 'Rate more films so the engine can find your taste twins' : undefined}
-          onSurprise={onSurprise}
-          panelOpen={panelOpen} setPanel={setPanel} advancedCount={totalFilterCount}
-          preset={preset} applyPreset={applyPreset}
-          genre={genre} setGenre={setGenre}
-          decade={decade} setDecade={setDecade}
-          lang={lang} setLang={setLang}
-          runtime={runtime} setRuntime={setRuntime}
-          hasAnyFilter={hasAnyFilter} clearAll={clearAll}
-          activeFilters={activeFilters}
+    <ThoughtfulRoot className="ff-browse">
+      <BrowseMasthead
+        ribbonPosters={ribbonPosters}
+        draftQuery={draftQuery}
+        setDraftQuery={setDraftQ}
+        onSearch={setQuery}
+        onSurprise={openSurprise}
+      />
+
+      <div className="ff-browse__body">
+        {!isSearchMode ? (
+          <BrowseCuriosityPaths paths={paths} loading={pathsLoading} activeKey={activePathKey} onSelect={selectPath} />
+        ) : null}
+
+        <BrowseFilterBar
+          genre={genre} decade={decade} lang={lang} runtime={runtime}
+          onSetFilter={setFilter}
+          sort={sortBy} onSetSort={setSortBy}
+          advancedCount={advancedCount} onOpenDrawer={() => setDrawerOpen(true)}
+          chips={chips} onClearAll={clearAll}
+          isSearchMode={isSearchMode}
         />
 
-        <RefinePanel
-          open={panelOpen} onClose={()=>setPanel(false)}
-          totalResults={totalResults}
-          hasAnyFilter={hasAnyFilter}
-          clearAll={clearAll}
-          onClearAdvanced={()=>{
-            const next = new URLSearchParams(searchParams)
-            ;['rating','runtime','pacing','intensity','depth','dialogue','attention','minCritic','minAudience','gap','genreTop','director','vibe'].forEach(k => next.delete(k))
-            next.delete('page')
-            setSearchParams(next, { replace: false })
-            setDraftDir('')
-          }}
-          // Quick filters (also visible in the toolbar on desktop; mobile
-          // hides the toolbar chips and routes users here instead).
-          genre={genre} setGenre={setGenre}
-          decade={decade} setDecade={setDecade}
-          lang={lang} setLang={setLang}
-          runtime={runtime} setRuntime={setRuntime}
-          hideWatched={hideWatched} setHide={setHide}
-          availableTonight={availableTonight} setAvailableTonight={setAvailableTonight}
-          availableTonightDisabled={!hasSubscriptions}
-          availableTonightTitle={!hasSubscriptions ? 'Add your streaming services in Account first' : undefined}
-          twinsLoved={twinsLoved} setTwinsLoved={setTwinsLoved}
-          twinsLovedDisabled={Array.isArray(twinsLovedIds) && twinsLovedIds.length === 0}
-          twinsLovedTitle={Array.isArray(twinsLovedIds) && twinsLovedIds.length === 0 ? 'Rate more films so the engine can find your taste twins' : undefined}
-          onSurprise={onSurprise}
-          // Advanced fields
-          minRating={minRating} setMinRating={setMinRating}
-          pacing={pacing} setPacing={setPacing}
-          intensity={intensity} setIntensity={setIntensity}
-          depth={depth} setDepth={setDepth}
-          dialogue={dialogue} setDialogue={setDialogue}
-          attention={attention} setAttention={setAttention}
-          minCritic={minCritic} setMinCritic={setMinCritic}
-          minAudience={minAudience} setMinAudience={setMinAudience}
-          gap={gap} setGap={setGap}
-          genreTop={genreTop} setGenreTop={setGenreTop}
-          director={director} setDirector={setDirector}
-          draftDirector={draftDirector} setDraftDir={setDraftDir}
-          vibe={vibe} setVibe={setVibe}
-        />
-
-        <MoodRow mood={mood} setMood={setMood} sortBy={sortBy} setSortBy={setSortBy} view={view} setView={setView} />
-
-        {/* Results */}
-        <section className="ff-browse-results" style={{ padding:'18px 56px 56px' }}>
-          {/* F2-A: no count line in the failed state — "0 films" would present
-              a server failure as a result count. The error block below owns
-              that slot's messaging instead. */}
-          {!loadFailed && (
-          <div style={{ marginBottom:16, fontFamily:'Inter', fontSize:13, color:HP.textLow }}>
-            {loading ? (
-              <span style={{ color:HP.textFaint }}>Loading…</span>
-            ) : (
-              <>
-                <span style={{ color:HP.textMid, fontWeight:500 }}>{totalResults.toLocaleString()}</span> {totalResults===1?'film':'films'}
-                {mood !== 'all' && <span style={{ color:HP.textFaint }}> · ranked for <span style={{ color:HP.textMid }}>{MOODS.find(m=>m.id===mood)?.label.toLowerCase()}</span></span>}
-                {isSearchMode && <span style={{ color:HP.textFaint }}> · matching <span style={{ color:HP.textMid }}>“{query}”</span></span>}
-                {shortQueryHint && <span style={{ color:HP.textFaint }}> · type one more character to search</span>}
-              </>
-            )}
-          </div>
-          )}
+        <section className="ff-browse-results" aria-live="polite">
+          {!loadFailed ? (
+            <BrowseResultsHeader
+              title={resultsTitle} count={totalResults} loading={loading}
+              sort={sortBy} isSearchMode={isSearchMode} query={trimmedQuery}
+              shortQueryHint={shortQueryHint} infoOpen={infoOpen}
+              onToggleInfo={() => setInfoOpen(o => !o)} pageSizeNote={pageSizeNote}
+            />
+          ) : null}
 
           {loading ? (
-            // Skeleton reuses the grid wrapper so it matches the responsive
-            // column count (2 / 3 / 4 / 5 / 6 at each breakpoint).
-            <div className="ff-browse-grid" style={{ display:'grid', gridTemplateColumns:'repeat(6, minmax(0, 1fr))', gap:18 }}>
-              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <div key={i} className="animate-pulse" style={{ aspectRatio:'2/3', borderRadius:10, background:'rgba(255,255,255,0.06)' }} />
-              ))}
+            <div className="ff-browse-grid" aria-hidden="true">
+              {Array.from({ length: PAGE_SIZE }).map((_, i) => <div key={i} className="ff-browse-grid__cell"><div className="ff-bcard__poster is-skeleton" /></div>)}
             </div>
           ) : loadFailed ? (
-            // F2-A: FETCH FAILED — distinct from genuine zero matches. The
-            // catalog request threw (see the fetch effect's catch); filter
-            // advice would be a lie here. Same voice as the Watchlist error
-            // state. Tailwind classes by design (no new inline-style objects);
-            // no focus:outline-none — the global :focus-visible outline applies.
-            <div role="alert" className="py-20 text-center">
-              <h2 className="font-[Inter] text-2xl font-light tracking-[-0.015em] text-white/75">The catalog didn’t load.</h2>
-              <p className="mt-2 text-[13.5px] text-white/40">Your filters are fine — this is on our side. Try again in a moment.</p>
-              <button
-                type="button"
-                onClick={() => setRetryNonce(n => n + 1)}
-                className="mt-[18px] inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 text-[13px] font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
-              >
-                Try again
-              </button>
+            <div role="alert" className="ff-browse-state ff-browse-state--error">
+              <h2>The catalog didn’t load.</h2>
+              <p>Your filters are fine — this is on our side. Try again in a moment.</p>
+              <button type="button" className="ffb-btn ffb-btn--ghost" onClick={() => setRetryNonce(n => n + 1)}>Try again</button>
             </div>
           ) : movies.length === 0 ? (
-            <div style={{ padding:'80px 0', textAlign:'center' }}>
-              <div style={{ fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:300, color:HP.textMid, letterSpacing:'-0.015em' }}>Nothing matches.</div>
-              <div style={{ marginTop:8, fontFamily:'Inter', fontSize:13.5, color:HP.textLow }}>Loosen a filter, or clear them all.</div>
-              {hasAnyFilter && <button onClick={clearAll} style={{ marginTop:18, padding:'10px 20px', borderRadius:999, background:ROSE_DEEP, color:'#fff', border:'none', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer' }}>Clear filters →</button>}
-            </div>
-          ) : view === 'grid' ? (
-            // Inline grid template is the desktop default; browse.css overrides it
-            // responsively. `minmax(0, 1fr)` is the bit that keeps long titles
-            // from making one column wider than its siblings.
-            <div className="ff-browse-grid" style={{ display:'grid', gridTemplateColumns:'repeat(6, minmax(0, 1fr))', gap:18 }}>
-              {movies.map(f => {
-                // TMDB-only rows (from text search) don't have an internal
-                // movies row yet — Save/Watched actions can't write to
-                // user_history / user_watchlist without one. For those,
-                // route the action buttons to /movie/:tmdbId where
-                // ensureMovieInDb creates the row before any DB write.
-                const isTmdbOnly = f.id < 0
-                return (
-                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
-                  <div key={f.id} id={`film-${f.id}`} onClick={() => openFilm(f)} style={{ borderRadius: 12, cursor:'pointer' }}>
-                    <GridCard f={f} mood={mood}
-                      watched={watchedSet.has(f.id)} inWatchlist={watchlistSet.has(f.id)}
-                      onTW={isTmdbOnly ? () => navigate(`/movie/${f.tmdbId}`) : () => toggleW(f.id, f.tmdbId)}
-                      onTWL={isTmdbOnly ? () => navigate(`/movie/${f.tmdbId}`) : () => toggleWL(f.id)} />
-                  </div>
-                )
-              })}
+            <div className="ff-browse-state ff-browse-state--empty">
+              <h2>Nothing matches.</h2>
+              <p>Loosen a filter, or clear them all.</p>
+              {hasAnyFilter ? <button type="button" className="ffb-btn ffb-btn--primary" onClick={clearAll}>Clear filters →</button> : null}
             </div>
           ) : (
-            <div style={{ borderRadius:12, border:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.015)', overflow:'hidden' }}>
-              {movies.map(f => {
-                const isTmdbOnly = f.id < 0
-                return (
-                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
-                  <div key={f.id} id={`film-${f.id}`} onClick={() => openFilm(f)} style={{ cursor:'pointer' }}>
-                    <ListRow f={f} mood={mood}
-                      watched={watchedSet.has(f.id)} inWatchlist={watchlistSet.has(f.id)}
-                      onTW={isTmdbOnly ? () => navigate(`/movie/${f.tmdbId}`) : () => toggleW(f.id, f.tmdbId)}
-                      onTWL={isTmdbOnly ? () => navigate(`/movie/${f.tmdbId}`) : () => toggleWL(f.id)} />
-                  </div>
-                )
-              })}
-            </div>
+            <BrowseFilmGrid
+              films={movies} sort={sortBy} qualityLens={vibe}
+              watchedSet={watchedSet} watchlistSet={watchlistSet}
+              onOpen={openFilm} onToggleWatched={onToggleWatched} onToggleWatchlist={onToggleWatchlist}
+            />
           )}
 
-          {!loading && movies.length > 0 && totalPages > 1 && (
+          {!loading && movies.length > 0 && totalPages > 1 ? (
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
-          )}
+          ) : null}
         </section>
       </div>
 
-    </div>
+      <BrowseFilterDrawer
+        open={drawerOpen} initial={drawerInitial} twinsAvailable={twinsAvailable}
+        onClose={() => setDrawerOpen(false)} onApply={applyDrawer}
+      />
+
+      <BrowseSurpriseDialog
+        open={surpriseOpen} onClose={() => setSurpriseOpen(false)}
+        film={surpriseFilm} loading={surpriseLoading}
+        scopeReason={buildScopeReason({ genre, decade, lang, runtime, director, mood })}
+        onOpenFilm={onSurpriseOpenFilm} onAnother={drawSurprise}
+      />
+    </ThoughtfulRoot>
   )
 }

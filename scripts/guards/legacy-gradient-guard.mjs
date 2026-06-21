@@ -87,7 +87,7 @@ const PURITY_PATTERNS = [
 //      A new production adopter outside the allowlist FAILS (mirrors the foundation
 //      purity test, enforced here too). Grow ADOPTERS + MIGRATED_FILES one stage at
 //      a time as each surface migrates.
-const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/']
+const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/', 'src/features/browse/']
 const ADOPTER_EXEMPT = [
   'src/shared/ui/thoughtful-seatmate', // the foundation itself
   'src/features/design-lab/thoughtful-seatmate-foundations', // dev-only showcase
@@ -120,6 +120,23 @@ const MIGRATED_FILES = [
   // it keeps legacy fallbacks for that reason, so it is intentionally NOT listed here.
   'src/features/watchlist/Watchlist.jsx',
   'src/features/watchlist/watchlist.css',
+  // Browse (explicit-curiosity redesign) — Inter-only, flat Ink canvas, neutral
+  // controls + coral signature only; no editorial font / purple-pink / contextual colour.
+  'src/features/browse/Browse.jsx',
+  'src/features/browse/browse.css',
+  'src/features/browse/browsePresentation.js',
+  'src/features/browse/useCuriosityPaths.js',
+  'src/features/browse/components/BrowseMasthead.jsx',
+  'src/features/browse/components/BrowseScopedSearch.jsx',
+  'src/features/browse/components/BrowseCuriosityPaths.jsx',
+  'src/features/browse/components/BrowseFilterBar.jsx',
+  'src/features/browse/components/BrowseFilterPopover.jsx',
+  'src/features/browse/components/BrowseFilterDrawer.jsx',
+  'src/features/browse/components/BrowseActiveFilters.jsx',
+  'src/features/browse/components/BrowseResultsHeader.jsx',
+  'src/features/browse/components/BrowseFilmGrid.jsx',
+  'src/features/browse/components/BrowseFilmCard.jsx',
+  'src/features/browse/components/BrowseSurpriseDialog.jsx',
 ]
 const MIGRATED_PURITY = [
   [/var\(\s*--font-editorial\)/gi, 'editorial font var (migrated surfaces are Inter-only)'],

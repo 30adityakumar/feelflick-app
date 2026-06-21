@@ -175,6 +175,9 @@ jobs:
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/people-* ]]; then
             echo "Regenerating Linux authenticated People baselines only…"
             npm run test:visual:people:update
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/browse-* ]]; then
+            echo "Regenerating Linux authenticated Browse baselines only…"
+            npm run test:visual:browse:update
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/* ]]; then
             echo "Regenerating Linux authenticated app baselines (Discover + Home + Movie + Library)…"
             npm run test:visual:app:update
@@ -199,6 +202,8 @@ jobs:
             git add 'e2e/visual-auth/profile.visual.js-snapshots'
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/people-* ]]; then
             git add 'e2e/visual-auth/people.visual.js-snapshots'
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/browse-* ]]; then
+            git add 'e2e/visual-auth/browse.visual.js-snapshots'
           else
             git add 'e2e/visual-auth'
           fi

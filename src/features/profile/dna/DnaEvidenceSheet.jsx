@@ -67,6 +67,7 @@ export default function DnaEvidenceSheet({ open, onClose, identity, editorialSta
           ) : null}
         </div>
         {refreshStatus === 'error' ? <p className="ff-dna-share__note" role="status">Couldn’t refresh the reflection just now. Your last reflection is unchanged.</p> : null}
+        {refreshStatus === 'success' ? <p className="ff-dna-share__note" role="status">Your FeelFlick reflection is updated.</p> : null}
       </div>
     </div>
   )

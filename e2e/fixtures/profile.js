@@ -39,6 +39,28 @@ export const FILMS = Array.from({ length: 16 }, (_, i) => ({
   movies: pMovie({ id: 9300 + i, tmdb_id: 930000 + i, title: `Lantern ${i + 1}`, director_name: DIR[i], release_date: REL[i], runtime: RUN[i], mood_tags: [MOOD[i]], tone_tags: [TONE[i]], fit_profile: FIT[i], poster_path: `/p${i}.jpg` }),
 }))
 
+// ── Rich established (capture/demo only) ────────────────────────────────────
+// 28 films across ~27 months in three mood eras (tender → reflective → tense) so the
+// taste-journey segmentation yields THREE evidenced chapters, with 9 repeated directors and a
+// 12-rating distribution that is eligible for the rating-language interpretation (warm-selective:
+// many 4★, a rare 5★). Used by the Cinematic DNA visual-review capture to show full-composition
+// parity with the locked prototype alongside the honest medium-evidence `established_current`.
+const RICH_DIRS = ['Mara Vance', 'Mara Vance', 'Mara Vance', 'Cole Park', 'Cole Park', 'Idris Bell', 'Lena Cho', 'Priya Raman', 'Sora Ito']
+const RICH_ERAS = ['tender', 'reflective', 'tense']
+const RICH_TONES = ['quiet', 'brooding', 'kinetic']
+export const FILMS_RICH = Array.from({ length: 28 }, (_, i) => {
+  const era = i < 9 ? 0 : i < 18 ? 1 : 2
+  const year = 2024 + Math.floor(i / 12)
+  const month = i % 12
+  return {
+    movie_id: 9400 + i,
+    watched_at: `${year}-${String(month + 1).padStart(2, '0')}-15T20:00:00Z`,
+    movies: pMovie({ id: 9400 + i, tmdb_id: 940000 + i, title: `Aurora ${i + 1}`, director_name: RICH_DIRS[i % RICH_DIRS.length], release_date: `${2008 + (i % 16)}-0${(i % 9) + 1}-01`, runtime: 92 + (i % 7) * 9, mood_tags: [RICH_ERAS[era]], tone_tags: [RICH_TONES[era]], fit_profile: ['slow-burn', 'demanding', 'easy'][era], poster_path: `/r${i}.jpg` }),
+  }
+})
+const RICH_RATING_VALUES = [8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 7, 10] // avg 4.12★, 5★ share 1/12 → warm-selective, eligible
+export const RATINGS_RICH = RICH_RATING_VALUES.map((rating, i) => ({ movie_id: 9400 + i, rating, review_text: null, rated_at: `2026-0${(i % 3) + 1}-10T20:30:00Z` }))
+
 // 6 ratings → established (≥5 rated). One Loved (9–10), a couple unrated.
 export const RATINGS = [
   { movie_id: 9300, rating: 9, review_text: 'A patient northern film that earns its silences.', rated_at: '2026-03-12T21:30:00Z' },
@@ -92,6 +114,7 @@ function profileRowFor(mode) {
   const base = { user_id: 'SELF', profile: {}, taste_fingerprint_computed_at: FRESH_TS }
   switch (mode) {
     case 'established_current':
+    case 'established_rich':
     case 'emerging':
     case 'duplicate':
       return { ...base, taste_fingerprint: fingerprint(), editorial_summary: EDITORIAL.summary, editorial_signature: EDITORIAL.signature, editorial_archetype: EDITORIAL.archetype, editorial_generated_at: FRESH_TS }
@@ -114,12 +137,14 @@ function profileRowFor(mode) {
 function historyFor(mode) {
   if (mode === 'forming' || mode === 'forming_cached') return FILMS.slice(0, 3)
   if (mode === 'emerging') return FILMS.slice(0, 8)
+  if (mode === 'established_rich') return FILMS_RICH
   if (mode === 'duplicate') return DUPLICATE_FILMS
   return FILMS
 }
 function ratingsFor(mode) {
   if (mode === 'forming' || mode === 'forming_cached') return RATINGS.slice(0, 1)
   if (mode === 'emerging') return RATINGS.slice(0, 3)
+  if (mode === 'established_rich') return RATINGS_RICH
   return RATINGS
 }
 

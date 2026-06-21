@@ -20,6 +20,11 @@ import {
   deriveDecades, deriveRuntime, deriveDaypart,
   deriveFriends, deriveSkews, deriveYIR, deriveCommunityMood,
 } from './derive'
+// Cinematic DNA redesign — pure, read-only derivations from the already-fetched canonical rows
+// (no new data source, no fetch change). Rating language + journey segmentation; the barcode
+// seed is built in the passport component from non-identifying DNA inputs.
+import { deriveRatingLanguage } from './derive/ratingLanguage'
+import { deriveTasteJourney } from './derive/tasteJourney'
 import { archetypeForFingerprint } from './archetype'
 import { aggregateWatchHistorySignals, buildSummaryRequestBody } from './buildSummaryRequest'
 
@@ -57,6 +62,9 @@ const INITIAL_STATE = {
   runtime: null,
   daypart: [],
   editorial: null,
+  ratingLanguage: null,
+  journey: [],
+  evidenceVersion: PROFILE_EVIDENCE_VERSION,
   friends: [],
   skews: [],
   communityMood: null,
@@ -233,6 +241,9 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           daypart: deriveDaypart({ history: canonicalHistory }),
           editorial,
           editorialStatus,
+          ratingLanguage: deriveRatingLanguage({ ratings }),
+          journey: deriveTasteJourney({ history: canonicalHistory }),
+          evidenceVersion: PROFILE_EVIDENCE_VERSION,
           friends: deriveFriends({
             simARows: simARes?.data || [],
             simBRows: simBRes?.data || [],

@@ -210,6 +210,7 @@ describe('Stage 3 — no third production surface adopts the foundation', () => 
       if (r.startsWith('src/features/watchlist/')) continue // Library/Watchlist (Stage 6)
       if (r.startsWith('src/features/browse/')) continue // Browse (explicit-curiosity redesign)
       if (r.startsWith('src/features/discover/')) continue // Discover (tuned-to-the-moment redesign)
+      if (r.startsWith('src/features/profile/')) continue // Cinematic DNA (/profile redesign)
       if (r.startsWith('src/features/design-lab/thoughtful-seatmate-foundations')) continue // dev-only showcase
       if (r.includes('/__tests__/')) continue
       if (!/\.(jsx?)$/.test(r)) continue

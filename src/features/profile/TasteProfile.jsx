@@ -1,140 +1,183 @@
 // src/features/profile/TasteProfile.jsx
-// FeelFlick — Cinematic DNA / Taste Profile (v2).
-// Mount at /profile-v2 alongside the existing /profile.
+// FeelFlick — Cinematic DNA (/profile, /profile/:userId).
 //
-// PR 2: live data wiring. The page reads the signed-in user's history,
-// ratings, and taste fingerprint and derives every section. Sections with
-// empty data sources self-hide. PR 3 will wire FRIENDS + SKEWS (need
-// user_similarity + an FF-median comparison); PR 4 adds an editorial
-// overlay for archetype/summary/signature.
+// The portrait redesign: a cinematic hero (deterministic archetype identity), an evidence-honest
+// set of sections that each self-hide when their evidence is missing, and a privacy-safe Cinematic
+// Passport. Composition is adopted into the Adaptive Editorial Cinema foundation (ThoughtfulRoot +
+// the global --color-* theme); per-section logic lives in focused components under ./dna; all
+// numbers are deterministic (./derive) and only the short reflection is LLM-written.
+//
+// Privacy: a Cinematic DNA profile is OWNER-PRIVATE. Another user's portrait must never render and
+// must never be fetched — the data hook is kept entirely out of the non-self branch (defense in
+// depth behind the owner-only RLS in supabase/migrations/20260609000000).
 
+import { useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import { HP, ROSE } from './data'
-import { Masthead, QuickStats, MoodRadar } from './sections-top'
-import DnaConfidence from './DnaConfidence'
-import {
-  SignatureDirectors, MotifCloud, Trajectory, PatternPanel,
-  Mixtape, Skew, FriendsRanked, ShareCard, YIRBanner, ProfileFooter,
-} from './sections-bottom'
-import { ProfileDataProvider, useProfileDataFetch } from './useProfileData'
+import { ThoughtfulRoot } from '@/shared/ui/thoughtful-seatmate'
+import { useProfileDataFetch } from './useProfileData'
+import { resolveDnaIdentity } from './dna/identity'
+import CinematicDnaHero from './dna/CinematicDnaHero'
+import DnaFormingState from './dna/DnaFormingState'
+import DnaSectionNav from './dna/DnaSectionNav'
+import RatingLanguage from './dna/RatingLanguage'
+import TasteJourney from './dna/TasteJourney'
+import DirectorInfluence from './dna/DirectorInfluence'
+import CinematicPassportSection from './dna/CinematicPassportSection'
+import DnaEvidenceSheet from './dna/DnaEvidenceSheet'
 import './profile.css'
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+function scrollToSection(id) {
+  const el = document.getElementById(id)
+  if (!el) return
+  el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
+  el.setAttribute('tabindex', '-1')
+  el.focus({ preventScroll: true })
+}
 
 export default function TasteProfile() {
   const { user } = useAuthSession()
   const { userId: paramUserId } = useParams()
   const isSelf = !paramUserId || paramUserId === user?.id
-  usePageMeta({ title: isSelf ? 'Your taste profile — FeelFlick' : 'Cinematic DNA — FeelFlick' })
+  usePageMeta({ title: isSelf ? 'Your Cinematic DNA — FeelFlick' : 'Cinematic DNA — FeelFlick' })
 
-  // F7.2 privacy containment: a Cinematic DNA profile is OWNER-PRIVATE. Another user's
-  // behavioral portrait must never render — and we must not even fetch their
-  // history/ratings/similarity/editorial. (This is defense-in-depth; the authoritative
-  // boundary is the owner-only RLS restored in supabase/migrations/20260609000000.)
-  // Keeping the data hook out of the non-self branch guarantees no cross-user query runs.
   if (!isSelf) return <PrivateProfile />
   return <SelfProfile authUser={user} />
 }
 
 function SelfProfile({ authUser }) {
   const data = useProfileDataFetch({ userId: authUser?.id, authUser, isSelf: true })
+  const [evidenceOpen, setEvidenceOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+
+  const showToast = useCallback((msg) => {
+    setToast(msg)
+    window.clearTimeout(showToast._t)
+    showToast._t = window.setTimeout(() => setToast(null), 2600)
+  }, [])
 
   if (data.loading) return <PageSkeleton />
   if (data.error) return <PageError onRetry={data.retry} />
 
+  const identity = resolveDnaIdentity(data)
+  // Downstream sections are eligibility-driven; the hero "Portrait" entry is prepended whenever any
+  // downstream section is shown (so the nav always starts at the portrait, matching the locked IA).
+  const downstream = [
+    data.ratingLanguage ? { id: 'dna-response', label: 'Response' } : null,
+    Array.isArray(data.journey) && data.journey.length >= 2 ? { id: 'dna-journey', label: 'Journey' } : null,
+    Array.isArray(data.directors) && data.directors.length > 0 ? { id: 'dna-voices', label: 'Voices' } : null,
+    !identity.forming ? { id: 'dna-passport', label: 'Passport' } : null,
+  ].filter(Boolean)
+  const navItems = downstream.length > 0 ? [{ id: 'dna-portrait', label: 'Portrait' }, ...downstream] : []
+
   return (
-    <ProfileDataProvider value={{ ...data, isSelf: true, viewingUserId: authUser?.id }}>
-      {/* F7.5: a labelled, focusable region inside AppShell's main — the Cinematic DNA skip
-          target. (AppShell owns the page-level <main>; we do not nest a second one.) */}
-      <div className="ff-profile-v2" id="cinematic-dna-content" tabIndex={-1} role="region" aria-label="Cinematic DNA" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif', position:'relative', outline:'none' }}>
-        <div style={{ maxWidth:1440, margin:'0 auto' }}>
-          <Masthead />
-          <QuickStats />
-          {/* DNA confidence, honestly framed. Explains the number as taste *evidence*,
-              guides cold-start users, and connects the profile to Tonight. */}
-          <DnaConfidence
-            confidence={data.stats?.dnaConfidence}
-            filmsLogged={data.stats?.filmsLogged}
-            filmsRated={data.stats?.filmsRated}
-            moodSignals={data.moods?.length}
+    <ThoughtfulRoot
+      className="ff-dna"
+      id="cinematic-dna-content"
+      tabIndex={-1}
+      role="region"
+      aria-label="Cinematic DNA"
+    >
+      {downstream.length > 0 ? (
+        <a className="ff-dna__skip" href={`#${downstream[0].id}`} onClick={(e) => { e.preventDefault(); scrollToSection(downstream[0].id) }}>
+          Skip to your Cinematic DNA
+        </a>
+      ) : null}
+
+      {identity.forming ? (
+        <DnaFormingState identity={identity} />
+      ) : (
+        <>
+          <CinematicDnaHero
+            identity={identity}
+            mixtape={data.mixtape}
+            evidenceVersion={data.evidenceVersion}
+            onEvidence={() => setEvidenceOpen(true)}
+            onScrollTo={scrollToSection}
           />
-          <MoodRadar />
-          <SignatureDirectors />
-          <MotifCloud />
-          <Trajectory />
-          <PatternPanel />
-          <Mixtape />
-          <Skew />
-          <FriendsRanked />
-          <YIRBanner />
-          <ShareCard />
-          <ProfileFooter />
+          <DnaSectionNav items={navItems} />
+          <RatingLanguage ratingLanguage={data.ratingLanguage} />
+          <TasteJourney journey={data.journey} />
+          <DirectorInfluence directors={data.directors} />
+          <CinematicPassportSection
+            identity={identity}
+            evidenceVersion={data.evidenceVersion}
+            onEvidence={() => setEvidenceOpen(true)}
+            onToast={showToast}
+          />
+        </>
+      )}
+
+      <footer className="ff-dna-footer">
+        <div className="ff-dna__shell" style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', width: '100%' }}>
+          <span>Cinematic DNA · Private to you</span>
+          <span><a href="/home">Tonight</a> · <a href="/browse">Browse</a></span>
         </div>
-      </div>
-    </ProfileDataProvider>
+      </footer>
+
+      <DnaEvidenceSheet
+        open={evidenceOpen}
+        onClose={() => setEvidenceOpen(false)}
+        identity={identity}
+        editorialStatus={data.editorialStatus}
+        refreshStatus={data.refreshStatus}
+        onRefresh={data.refreshEditorial}
+      />
+
+      <div className={`ff-dna-toast${toast ? ' is-show' : ''}`} role="status" aria-live="polite">{toast}</div>
+    </ThoughtfulRoot>
   )
 }
 
-// F7.2 — shown for /profile/:userId of anyone other than the signed-in user. No data is
-// fetched for the target. Honest, minimal, keyboard-accessible; explains the current rule
-// rather than implying the person has no taste data.
+// /profile/:userId of anyone but the signed-in user. No data fetched. Honest, keyboard-accessible.
 function PrivateProfile() {
   return (
-    <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
-      <div style={{ textAlign:'center', maxWidth:520 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18 }}>Cinematic DNA</div>
-        <h1 style={{ fontFamily:'Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>This profile is private.</h1>
-        <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>
-          Cinematic DNA — your watch history, ratings, and taste portrait — is visible only to you. Public taste profiles aren&rsquo;t available yet.
-        </p>
-        <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-          <a href="/profile" style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color:'#0A0510', background:HP.text, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>Your Cinematic DNA</a>
-          <a href="/people" style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, color:HP.text, background:'transparent', border:`1px solid ${HP.border}`, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>People</a>
+    <div className="ff-dna ff-dna-state">
+      <div className="ff-dna-state__box">
+        <p className="ff-dna-eyebrow">Cinematic DNA</p>
+        <h1>This profile is private.</h1>
+        <p>Cinematic DNA — watch history, ratings, and taste portrait — is visible only to its owner. Public taste profiles aren&rsquo;t available yet.</p>
+        <div className="ff-dna-state__actions">
+          <a className="ff-dna-btn ff-dna-btn--primary" href="/profile">Your Cinematic DNA</a>
+          <a className="ff-dna-btn ff-dna-btn--ghost" href="/people">People</a>
         </div>
       </div>
     </div>
   )
 }
 
-// F7.5: honest loading status — one polite live region, aria-busy, screen-reader text, and the
-// decorative skeleton geometry hidden from assistive tech. No fake progress percentage.
+// Honest loading status — one polite live region, aria-busy, sr-only text; decorative skeleton hidden.
 function PageSkeleton() {
-  const pulse = { background: 'rgba(255,255,255,0.04)' }
   return (
-    <div className="ff-profile-v2" role="status" aria-live="polite" aria-busy="true" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
+    <div className="ff-dna ff-dna-state" role="status" aria-live="polite" aria-busy="true">
       <span className="sr-only">Loading your Cinematic DNA…</span>
-      <div aria-hidden="true" style={{ maxWidth:1440, margin:'0 auto', padding:'80px 88px' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:30 }}>
-          <div className="animate-pulse" style={{ ...pulse, height:12, width:280, borderRadius:999 }} />
-        </div>
-        <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:48, alignItems:'flex-end' }}>
-          <div className="animate-pulse" style={{ ...pulse, width:120, height:120, borderRadius:999 }} />
-          <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
-            <div className="animate-pulse" style={{ background:'rgba(255,255,255,0.08)', height:80, width:'70%', borderRadius:8 }} />
-            <div className="animate-pulse" style={{ ...pulse, height:16, width:'55%', borderRadius:999 }} />
-          </div>
-          <div className="animate-pulse" style={{ ...pulse, width:240, height:120, borderRadius:6 }} />
-        </div>
+      <div className="ff-dna-state__box" aria-hidden="true" style={{ width: 'min(640px, 92vw)' }}>
+        <div className="ff-dna-skel" style={{ height: 12, width: 200, margin: '0 auto 28px' }} />
+        <div className="ff-dna-skel" style={{ height: 92, width: '88%', margin: '0 auto 18px' }} />
+        <div className="ff-dna-skel" style={{ height: 18, width: '64%', margin: '0 auto 30px' }} />
+        <div className="ff-dna-skel" style={{ height: 320, width: '100%', borderRadius: 24 }} />
       </div>
     </div>
   )
 }
 
-// F7.3: fixed, safe error copy off the stable `load_error` classification — the raw backend
-// message is never rendered. One h1, role="alert", a real in-SPA retry, and a safe exit.
+// Fixed, safe error copy off the stable load_error classification — raw backend message never shown.
 function PageError({ onRetry }) {
-  const btn = { fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:600, minHeight:44, padding:'11px 20px', borderRadius:8, cursor:'pointer' }
   return (
-    <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
-      <div role="alert" style={{ textAlign:'center', maxWidth:520 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: ROSE, marginBottom:18 }}>Cinematic DNA</div>
-        <h1 style={{ fontFamily:'Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Cinematic DNA.</h1>
-        <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>Try refreshing in a moment.</p>
-        <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+    <div className="ff-dna ff-dna-state">
+      <div className="ff-dna-state__box" role="alert">
+        <p className="ff-dna-eyebrow">Cinematic DNA</p>
+        <h1>We couldn&rsquo;t load your Cinematic DNA.</h1>
+        <p>Try refreshing in a moment.</p>
+        <div className="ff-dna-state__actions">
           {typeof onRetry === 'function' && (
-            <button type="button" onClick={onRetry} style={{ ...btn, color:'#0A0510', background:HP.text, border:'none' }}>Try again</button>
+            <button type="button" className="ff-dna-btn ff-dna-btn--primary" onClick={onRetry}>Try again</button>
           )}
-          <a href="/home" style={{ ...btn, color:HP.text, background:'transparent', border:`1px solid ${HP.border}`, textDecoration:'none', display:'inline-flex', alignItems:'center' }}>Go to Home</a>
+          <a className="ff-dna-btn ff-dna-btn--ghost" href="/home">Go to Home</a>
         </div>
       </div>
     </div>

@@ -87,7 +87,7 @@ const PURITY_PATTERNS = [
 //      A new production adopter outside the allowlist FAILS (mirrors the foundation
 //      purity test, enforced here too). Grow ADOPTERS + MIGRATED_FILES one stage at
 //      a time as each surface migrates.
-const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/', 'src/features/browse/', 'src/features/discover/']
+const ADOPTERS = ['src/features/home/', 'src/features/movie/', 'src/features/watchlist/', 'src/features/browse/', 'src/features/discover/', 'src/features/profile/']
 const ADOPTER_EXEMPT = [
   'src/shared/ui/thoughtful-seatmate', // the foundation itself
   'src/features/design-lab/thoughtful-seatmate-foundations', // dev-only showcase
@@ -163,6 +163,27 @@ const MIGRATED_FILES = [
   'src/features/discover/sections/DiscoverDirectionCard.jsx',
   'src/features/discover/sections/DiscoverExhaustedState.jsx',
   'src/features/discover/sections/DiscoverProgress.jsx',
+  // Cinematic DNA (/profile redesign) — Inter-only, flat Ink canvas, neutral ivory primary
+  // actions + coral signature only. The multi-hue passport/barcode/journey palette is LOCAL
+  // decorative evidence colour (applied dynamically, never a purple/pink chrome literal); no
+  // editorial font, no contextual-colour var. The deferred deep-dossier section components
+  // (sections-top/bottom, DnaConfidence) are NOT rendered by the route and are intentionally
+  // not listed here.
+  'src/features/profile/TasteProfile.jsx',
+  'src/features/profile/profile.css',
+  'src/features/profile/dna/CinematicDnaHero.jsx',
+  'src/features/profile/dna/CinematicArtworkSlices.jsx',
+  'src/features/profile/dna/CinematicPassport.jsx',
+  'src/features/profile/dna/CinematicPassportSection.jsx',
+  'src/features/profile/dna/DnaBarcode.jsx',
+  'src/features/profile/dna/DnaSectionNav.jsx',
+  'src/features/profile/dna/DnaEvidenceSheet.jsx',
+  'src/features/profile/dna/DnaFormingState.jsx',
+  'src/features/profile/dna/RatingLanguage.jsx',
+  'src/features/profile/dna/TasteJourney.jsx',
+  'src/features/profile/dna/DirectorInfluence.jsx',
+  'src/features/profile/dna/identity.js',
+  'src/features/profile/derive/dnaBarcode.js',
 ]
 const MIGRATED_PURITY = [
   [/var\(\s*--font-editorial\)/gi, 'editorial font var (migrated surfaces are Inter-only)'],

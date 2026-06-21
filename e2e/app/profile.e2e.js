@@ -47,9 +47,9 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
     // the Evidence sheet separates measured / derived / generated and discloses the LLM boundary
     await openEvidence(page)
     const dialog = page.locator('[role="dialog"]')
-    await expect(dialog.getByText('Measured')).toBeVisible()
-    await expect(dialog.getByText('Derived')).toBeVisible()
-    await expect(dialog.getByText('Generated')).toBeVisible()
+    await expect(dialog.getByText('Measured', { exact: true })).toBeVisible()
+    await expect(dialog.getByText('Derived', { exact: true })).toBeVisible()
+    await expect(dialog.getByText('Generated', { exact: true })).toBeVisible()
     await expect(dialog.getByText(/the language model does not calculate your profile/i)).toBeVisible()
     await expect(dialog.getByRole('button', { name: /generate reflection/i })).toHaveCount(0) // current → no refresh
     expect(ledger.edgeCalls, 'opening Evidence never generates').toEqual([])
@@ -65,9 +65,10 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
       expect(ledger.writes, 'no cache write on mount').toEqual([])
       // scroll the whole portrait (force every section + IntersectionObserver/scrollspy to fire)
       await page.mouse.wheel(0, 4000); await page.waitForTimeout(150)
-      // open + close the Evidence sheet — inspection must not generate either
+      // open + close the Evidence sheet (Escape) — inspection must not generate either
       await openEvidence(page)
-      await page.getByRole('button', { name: 'Close' }).click()
+      await page.keyboard.press('Escape')
+      await expect(page.locator('[role="dialog"]')).toBeHidden()
       expect(ledger.edgeCalls, 'no Edge call after interaction').toEqual([])
       expect(ledger.writes, 'no cache write after interaction').toEqual([])
       expect(ledger.unexpectedRequests).toEqual([])

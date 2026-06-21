@@ -41,7 +41,7 @@ export default function DnaEvidenceSheet({ open, onClose, identity, editorialSta
   const canRefresh = identity && !identity.forming && (editorialStatus === 'stale' || editorialStatus === 'none')
   return (
     <div className="ff-dna-overlay">
-      <button type="button" className="ff-dna-overlay__backdrop" aria-label="Close" tabIndex={-1} onClick={onClose} />
+      <button type="button" className="ff-dna-overlay__backdrop" aria-hidden="true" tabIndex={-1} onClick={onClose} />
       <div className="ff-dna-sheet" role="dialog" aria-modal="true" aria-labelledby="ff-dna-evidence-title" ref={sheetRef}>
         <div className="ff-dna-sheet__head">
           <div>

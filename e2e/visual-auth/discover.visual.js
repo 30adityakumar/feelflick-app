@@ -9,6 +9,7 @@ import { installDiscoverFixture } from '../fixtures/discover.js'
 
 const DESKTOP = { width: 1280, height: 720 }
 const MOBILE = { width: 390, height: 844 }
+const MOBILE_SM = { width: 320, height: 812 }
 const SHORT = { width: 1366, height: 650 }
 const FREEZE = '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}'
 const HIDE_CHROME =
@@ -102,5 +103,29 @@ test.describe('Discover — authenticated visual baselines (redesign)', () => {
     await installDiscoverFixture(page, { reducedMotion: true }); await page.setViewportSize(SHORT)
     await gotoResult(page); await freeze(page)
     await expect(page).toHaveScreenshot('result-lead-short.png')
+  })
+
+  // ── Dock reachability (approved as below-fold content that scrolls fully clear) ──
+  const scrollToBottom = async (page) => { await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await page.waitForTimeout(150) }
+  const scrollDockToEnd = async (page) => { await page.locator('.ff-disc-dock__shell').evaluate((el) => { el.scrollLeft = el.scrollWidth }); await page.waitForTimeout(150) }
+
+  for (const [label, vp] of [['390', MOBILE], ['320', MOBILE_SM]]) {
+    test(`mobile ${label} — direction dock fully scrolled into view`, async ({ page }) => {
+      await installDiscoverFixture(page, { reducedMotion: true }); await page.setViewportSize(vp)
+      await gotoResult(page); await scrollToBottom(page); await freeze(page)
+      await expect(page).toHaveScreenshot(`result-mobile-dock-visible-${label}.png`)
+    })
+
+    test(`mobile ${label} — last direction reachable via horizontal scroll`, async ({ page }) => {
+      await installDiscoverFixture(page, { reducedMotion: true }); await page.setViewportSize(vp)
+      await gotoResult(page); await scrollToBottom(page); await scrollDockToEnd(page); await freeze(page)
+      await expect(page).toHaveScreenshot(`result-mobile-last-direction-${label}.png`)
+    })
+  }
+
+  test('desktop short-height — complete dock reachable (1366×650)', async ({ page }) => {
+    await installDiscoverFixture(page, { reducedMotion: true }); await page.setViewportSize(SHORT)
+    await gotoResult(page); await scrollToBottom(page); await freeze(page)
+    await expect(page).toHaveScreenshot('result-short-dock-visible.png')
   })
 })

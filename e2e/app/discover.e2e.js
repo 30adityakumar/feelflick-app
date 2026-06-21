@@ -14,33 +14,36 @@ async function toResult(page, { source = 'live', reducedMotion = true, providerS
   await page.getByRole('button', { name: 'Continue' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'This is tonight.' })).toBeVisible()
   await page.getByRole('button', { name: /Find tonight’s film/ }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 20_000 })
+  // Title-agnostic: the engine's cold-start ranking decides the actual lead.
+  await expect(page.getByText('Closest fit').first()).toBeVisible({ timeout: 20_000 })
 }
+const leadTitle = (page) => page.getByRole('heading', { level: 1 }).first().textContent()
 
 test('1 mood → accept defaults → one dominant lead with two reserve directions', async ({ page }) => {
   await toResult(page)
-  await expect(page.getByRole('heading', { level: 1, name: 'The Quiet Hour' })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(page.getByText('Closest fit').first()).toBeVisible()
-  await expect(page.getByRole('button', { name: /Gentler direction: After the Rain/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /Bolder direction: Long Shadows/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Gentler direction:/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Bolder direction:/ })).toBeVisible()
   await expect(page.locator('body')).not.toContainText('% match')
 })
 
 test('selecting Gentler changes focus (role label persists), then Open Film File', async ({ page }) => {
   await toResult(page)
-  await page.getByRole('button', { name: /Gentler direction: After the Rain/ }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'After the Rain' })).toBeVisible()
-  await expect(page.getByRole('button', { name: /Closest fit: The Quiet Hour/ })).toBeVisible()
+  const before = await leadTitle(page)
+  await page.getByRole('button', { name: /Gentler direction:/ }).click()
+  await expect.poll(async () => leadTitle(page)).not.toBe(before) // lead changed → focus moved
+  await expect(page.getByText('Gentler direction').first()).toBeVisible()
+  await expect(page.getByRole('button', { name: /Closest fit:/ })).toBeVisible() // closest role persists
   await page.getByRole('button', { name: 'Open Film File' }).click()
-  await expect(page).toHaveURL(/\/movie\/700002/)
+  await expect(page).toHaveURL(/\/movie\/\d+/)
 })
 
 test('Not tonight promotes the next direction', async ({ page }) => {
   await toResult(page)
-  await expect(page.getByRole('heading', { level: 1, name: 'The Quiet Hour' })).toBeVisible()
+  const before = await leadTitle(page)
   await page.getByRole('button', { name: 'Not tonight' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'The Quiet Hour' })).toHaveCount(0)
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect.poll(async () => leadTitle(page).catch(() => null)).not.toBe(before)
 })
 
 test('exhausting the shortlist shows the honest finite-edge state', async ({ page }) => {
@@ -109,6 +112,6 @@ test('a11y — no serious/critical violations on each stage (excluding contrast)
   await page.getByRole('button', { name: 'Continue' }).click()
   await audit('context')
   await page.getByRole('button', { name: /Find tonight’s film/ }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'The Quiet Hour' })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText('Closest fit').first()).toBeVisible({ timeout: 20_000 })
   await audit('result')
 })

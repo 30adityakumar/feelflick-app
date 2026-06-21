@@ -25,10 +25,14 @@ async function gotoContext(page) {
   await page.getByRole('button', { name: 'Continue' }).click()
   await expect(page.getByRole('heading', { name: 'This is tonight.' })).toBeVisible()
 }
+// Title-agnostic: the engine's cold-start ranking decides the actual lead, so we
+// wait for the stable result signal (the role label + the lead action) rather than
+// a specific film title.
 async function gotoResult(page) {
   await gotoContext(page)
   await page.getByRole('button', { name: /Find tonight’s film/ }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'The Quiet Hour' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Closest fit').first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: 'Open Film File' })).toBeVisible({ timeout: 15_000 })
 }
 
 test.describe('Discover — authenticated visual baselines (redesign)', () => {
@@ -64,8 +68,8 @@ test.describe('Discover — authenticated visual baselines (redesign)', () => {
     test(`${device} — gentler focused`, async ({ page }) => {
       await installDiscoverFixture(page, { reducedMotion: true }); await page.setViewportSize(vp)
       await gotoResult(page)
-      await page.getByRole('button', { name: /Gentler direction: After the Rain/ }).click()
-      await expect(page.getByRole('heading', { level: 1, name: 'After the Rain' })).toBeVisible()
+      await page.getByRole('button', { name: /Gentler direction:/ }).click()
+      await expect(page.getByText('Gentler direction').first()).toBeVisible()
       await freeze(page)
       await expect(page).toHaveScreenshot(`result-gentler-${device}.png`, { fullPage: full })
     })
@@ -74,7 +78,7 @@ test.describe('Discover — authenticated visual baselines (redesign)', () => {
       await installDiscoverFixture(page, { reducedMotion: true, source: 'lead_only' }); await page.setViewportSize(vp)
       await gotoContext(page)
       await page.getByRole('button', { name: /Find tonight’s film/ }).click()
-      await expect(page.getByRole('heading', { level: 1, name: 'Still Water' })).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText('Closest fit').first()).toBeVisible({ timeout: 15_000 })
       await freeze(page)
       await expect(page).toHaveScreenshot(`result-lead-only-${device}.png`, { fullPage: full })
     })

@@ -112,6 +112,21 @@ async function commitDiscoverPreferences({ userId, intention, time, who, energy 
   } catch (e) { console.error('[Discover.commitDiscoverPreferences]', e) }
 }
 
+// Existing approved fallback set — used ONLY when the live query returns nothing
+// (offline / empty / error). These carry a mood `fit` vector (cold-start scoring)
+// but no `_raw`/llm_* fields, so the result is honestly LEAD-ONLY (no fabricated
+// directions) and the result stage labels it "Example pick" + suppresses any
+// personal reason. No twin/diary/critic prose is rendered.
+const TMDB = (p) => `https://image.tmdb.org/t/p/w500${p}`
+const FILMS_FALLBACK = [
+  { id: 1, tmdbId: 496243, title: 'Parasite', year: 2019, runtime: 132, dir: 'Bong Joon-ho', genre: 'Thriller', poster: TMDB('/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg'), ff: 97, critic: 96, audience: 90, fit: { tense: 0.94, slow: 0.78, tender: 0.20, cerebral: 0.70, cozy: 0.05, bittersweet: 0.50, mythic: 0.10, restless: 0.78 }, trailerKey: null },
+  { id: 2, tmdbId: 666277, title: 'Past Lives', year: 2023, runtime: 105, dir: 'Celine Song', genre: 'Drama', poster: TMDB('/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg'), ff: 94, critic: 96, audience: 84, fit: { tense: 0.10, slow: 0.86, tender: 0.94, cerebral: 0.40, cozy: 0.20, bittersweet: 0.92, mythic: 0.20, restless: 0.55 }, trailerKey: null },
+  { id: 4, tmdbId: 329865, title: 'Arrival', year: 2016, runtime: 116, dir: 'Denis Villeneuve', genre: 'Sci-Fi', poster: TMDB('/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg'), ff: 90, critic: 94, audience: 82, fit: { tense: 0.30, slow: 0.82, tender: 0.40, cerebral: 0.95, cozy: 0.10, bittersweet: 0.78, mythic: 0.85, restless: 0.42 }, trailerKey: null },
+  { id: 6, tmdbId: 152601, title: 'Her', year: 2013, runtime: 126, dir: 'Spike Jonze', genre: 'Romance', poster: TMDB('/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg'), ff: 86, critic: 94, audience: 81, fit: { tense: 0.15, slow: 0.78, tender: 0.86, cerebral: 0.62, cozy: 0.45, bittersweet: 0.88, mythic: 0.45, restless: 0.55 }, trailerKey: null },
+  { id: 7, tmdbId: 129, title: 'Spirited Away', year: 2001, runtime: 125, dir: 'Hayao Miyazaki', genre: 'Animation', poster: TMDB('/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg'), ff: 91, critic: 97, audience: 97, fit: { tense: 0.20, slow: 0.55, tender: 0.70, cerebral: 0.45, cozy: 0.92, bittersweet: 0.40, mythic: 0.95, restless: 0.30 }, trailerKey: null },
+  { id: 9, tmdbId: 843, title: 'In the Mood for Love', year: 2000, runtime: 98, dir: 'Wong Kar-wai', genre: 'Romance', poster: TMDB('/iYypPT4bhqXfq1b6EnmxvRt6b2Y.jpg'), ff: 93, critic: 92, audience: 87, fit: { tense: 0.12, slow: 0.92, tender: 0.92, cerebral: 0.55, cozy: 0.30, bittersweet: 0.95, mythic: 0.25, restless: 0.40 }, trailerKey: null },
+]
+
 function DiscoverPaused({ onRestart }) {
   return (
     <section className="ff-disc-stage ff-disc-paused">
@@ -172,7 +187,9 @@ function DiscoverBody() {
   // Canonical ranked pool (step 1–3). Roles (step 4) are derived in the result stage.
   const ranked = useMemo(() => {
     if (!recsEnabled) return []
-    const films = usingLiveFilms ? liveFilms : (liveFilms || [])
+    // Live candidates when present; otherwise the existing approved fallback set
+    // (honestly labelled + lead-only downstream because it carries no llm_* fields).
+    const films = usingLiveFilms ? liveFilms : FILMS_FALLBACK
     if (!films || films.length === 0) return []
     const runtimeBand = TIME_OPTIONS.find((t) => t.id === time)?.v || [0, 300]
     const savedDirs = new Set((recentSaves || []).map((s) => s.director).filter(Boolean))

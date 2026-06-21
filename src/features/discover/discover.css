@@ -282,7 +282,11 @@
   .ff-disc-result__backdrop { opacity: .34; }
   .ff-disc-result__art { inset: 0; background-position: center 5%; background-size: auto 56vh; -webkit-mask-image: linear-gradient(0deg, transparent 0%, #000 32%, #000 100%); mask-image: linear-gradient(0deg, transparent 0%, #000 32%, #000 100%); opacity: .66; }
   .ff-disc-result__scrim { background: linear-gradient(0deg, var(--ff-ink) 0%, rgba(15,16,16,.98) 48%, rgba(15,16,16,.52) 74%, rgba(15,16,16,.16) 100%); }
-  .ff-disc-result__inner { width: calc(100% - 2 * var(--ff-pad)); min-height: calc(100svh - var(--hdr-h, 56px) - 96px); padding: 12px 0 168px; }
+  /* Mobile: the dock flows AFTER the actions (not an absolute overlay) so it can never
+     intercept the action buttons; min-height:0 lets the inner shrink to its content and
+     the in-flow dock follow immediately. The result keeps its own min-height for the
+     full-bleed artwork. */
+  .ff-disc-result__inner { width: calc(100% - 2 * var(--ff-pad)); min-height: 0; padding: 12px 0 16px; }
   /* Audio toggle is stage-aware on the mobile RESULT: move it to the top-right so it
      cannot overlap the dock / actions / title / reason / BottomNav. Mood + context keep
      the default fixed bottom-left placement. Behaviour is unchanged. */
@@ -294,7 +298,7 @@
   .ff-disc-lead__title.is-long { font-size: clamp(2.2rem, 10vw, 3.6rem); }
   .ff-disc-reason { max-width: 100%; }
   .ff-disc-result-footer { margin-top: 18px; }
-  .ff-disc-dock { bottom: 72px; }
+  .ff-disc-dock { position: static; margin: 6px auto 16px; }
   .ff-disc-dock__shell { width: calc(100% - 16px); padding: 7px; display: flex; overflow-x: auto; gap: 7px; scroll-snap-type: x mandatory; scrollbar-width: none; }
   .ff-disc-dock__shell::-webkit-scrollbar { display: none; }
   .ff-disc-dir { flex: 0 0 min(78vw, 300px); min-height: 92px; scroll-snap-align: start; }

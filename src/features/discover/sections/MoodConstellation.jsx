@@ -1,9 +1,13 @@
 // src/features/discover/sections/MoodConstellation.jsx
-// The expressive 8-mood constellation. Orbs are real buttons with aria-pressed +
-// an accessible name that INCLUDES the mood description (no title-only info).
-// Selection order is conveyed by a numbered badge (not colour alone). The burst
+// The expressive 8-mood constellation in an OPEN field (no enclosing card / border —
+// the moods float in the page atmosphere, prototype-faithful). Orbs are real buttons
+// with aria-pressed + an accessible name that INCLUDES the mood description (no
+// title-only info). Selection order is conveyed by a numbered badge (not colour
+// alone). The named constellation sits at the visual centre of the field. The burst
 // is DETERMINISTIC (fixed geometry by index), reduced-motion-aware, aria-hidden,
 // and absent from the a11y tree — so it never destabilises visual regression.
+
+import DiscoverConstellationCenter from './DiscoverConstellationCenter'
 
 const BURST_DOTS = Array.from({ length: 10 }, (_, i) => ({
   a: (i / 10) * Math.PI * 2,
@@ -35,13 +39,14 @@ export default function MoodConstellation({ selected, moods, onToggle, burst, re
     }
   }
   return (
-    <div className="ff-disc-canvas" role="group" aria-label="Choose one to three moods">
-      <svg aria-hidden="true" className="ff-disc-canvas__lines">
+    <div className="ff-disc-field" role="group" aria-label="Choose one to three moods">
+      <svg aria-hidden="true" className="ff-disc-field__lines">
         {lines.map(({ a, b, key }) => (
           <line key={key} x1={`${a.x}%`} y1={`${a.y}%`} x2={`${b.x}%`} y2={`${b.y}%`}
-            className="ff-disc-canvas__line" style={reducedMotion ? { strokeDashoffset: 0 } : undefined} />
+            className="ff-disc-field__line" />
         ))}
       </svg>
+      <DiscoverConstellationCenter selected={selected} />
       {moods.map((m) => {
         const on = selected.includes(m.id)
         const order = selected.indexOf(m.id) + 1

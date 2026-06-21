@@ -60,7 +60,8 @@ test('exhausting the shortlist shows the honest finite-edge state', async ({ pag
 
 test('Adjust tonight returns to context with moods preserved', async ({ page }) => {
   await toResult(page)
-  await page.getByRole('button', { name: 'Adjust tonight' }).first().click()
+  // Adjust lives in the context-chip row on the active result (Start over is the dock tool).
+  await page.getByRole('button', { name: 'Adjust' }).first().click()
   await expect(page.getByRole('heading', { level: 1, name: 'This is tonight.' })).toBeVisible()
   await page.getByRole('button', { name: /^Back/ }).click()
   await expect(page.getByRole('button', { name: /^Tender/, pressed: true })).toBeVisible()

@@ -41,6 +41,7 @@ export default function DiscoverResultStage({
   const session = useDiscoverSession({ ranked, selected, profile, allowAlternates: !isFallback, sessionKey })
   const { roles, focusId, focused, exhaustion } = session
   const lead = roles.closest
+  const hasDock = !!(roles.gentler || roles.bolder) // ≥1 alternate → the dock (with its Start-over tool) shows
   const role = focused ? session.roleOf(focused.id) : null
   const familiar = useMemo(() => familiarLanguagesOf(profile), [profile])
 
@@ -124,7 +125,7 @@ export default function DiscoverResultStage({
   return (
     <>
       {liveRegion}
-      <section className="ff-disc-result" aria-labelledby="ff-disc-lead-title">
+      <section className={`ff-disc-result${hasDock ? '' : ' ff-disc-result--nodock'}`} aria-labelledby="ff-disc-lead-title">
         {audioToggle}
         {/* Full-bleed cinematic layers: blurred backdrop → masked artwork → scrim → grain */}
         <DiscoverResultBackdrop film={focused} />
@@ -152,20 +153,26 @@ export default function DiscoverResultStage({
             onSkip={actions.handleSkip}
             onTrailer={() => setTrailerOpen(true)}
           />
-          <div className="ff-disc-result-footer">
-            <button type="button" className="ff-disc-link" onClick={onAdjust}>Adjust tonight</button>
-            <button type="button" className="ff-disc-link" onClick={onRestart}>Start over</button>
-          </div>
+          {/* Adjust lives in the chip row; Start over lives in the dock tools. When there
+              is no dock (lead-only / fallback) keep a single bottom-anchored Start over. */}
+          {!hasDock ? (
+            <div className="ff-disc-result__tools">
+              <button type="button" className="ff-disc-btn ff-disc-btn--ghost" onClick={onRestart}>Start over</button>
+            </div>
+          ) : null}
         </div>
 
-        <DiscoverDirectionDock
-          roles={roles}
-          focusId={focusId}
-          onSelect={(f) => session.focus(f.id)}
-          observe={impressions.observe}
-          blendHex={blendHex}
-          deltaCopyByRole={deltaCopyByRole}
-        />
+        {hasDock ? (
+          <DiscoverDirectionDock
+            roles={roles}
+            focusId={focusId}
+            onSelect={(f) => session.focus(f.id)}
+            observe={impressions.observe}
+            blendHex={blendHex}
+            deltaCopyByRole={deltaCopyByRole}
+            onRestart={onRestart}
+          />
+        ) : null}
       </section>
       <TrailerModal open={trailerOpen} youtubeKey={focused?.trailerKey} title={focused?.title} onClose={() => setTrailerOpen(false)} />
     </>

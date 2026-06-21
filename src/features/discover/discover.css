@@ -155,7 +155,10 @@
   linear-gradient(90deg, var(--ff-ink) 0%, rgba(15,16,16,.98) 35%, rgba(15,16,16,.83) 55%, rgba(15,16,16,.28) 79%, rgba(15,16,16,.56) 100%),
   linear-gradient(0deg, var(--ff-ink) 0%, transparent 36%); }
 .ff-disc-grain { position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0.04; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
-.ff-disc-result__inner { position: relative; z-index: 3; width: min(calc(100% - 2 * var(--ff-pad)), var(--ff-max)); margin-inline: auto; min-height: calc(100svh - var(--hdr-h, 56px)); padding: 20px 0 168px; display: flex; flex-direction: column; } /* bottom padding reserves the absolute dock */
+/* Inner fills the AppShell content viewport (header-aware). The result-copy group is
+   bottom-anchored via margin-top:auto; the dock space is reserved ONCE, by the copy's
+   margin-bottom (never doubled with inner padding, which would overflow + clip the dock). */
+.ff-disc-result__inner { position: relative; z-index: 3; width: min(calc(100% - 2 * var(--ff-pad)), var(--ff-max)); margin-inline: auto; min-height: calc(100svh - var(--hdr-h, 56px)); padding: 20px 0 22px; display: flex; flex-direction: column; }
 
 /* Context chips (descriptive, scrollable) */
 .ff-disc-chips { display: flex; align-items: center; gap: 8px; }
@@ -192,10 +195,14 @@
 
 /* ── Direction dock — translucent, attached to the result bottom ─────────── */
 .ff-disc-dock { position: absolute; z-index: 6; left: 0; right: 0; bottom: 18px; }
-.ff-disc-dock__shell { width: min(calc(100% - 2 * var(--ff-pad)), var(--ff-max)); margin-inline: auto; padding: 9px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: rgba(15,16,16,.72); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); display: grid; grid-template-columns: auto repeat(var(--ff-dock-cols, 2), minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+.ff-disc-dock__shell { width: min(calc(100% - 2 * var(--ff-pad)), var(--ff-max)); margin-inline: auto; padding: 9px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: rgba(15,16,16,.72); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); display: grid; grid-template-columns: auto repeat(var(--ff-dock-cols, 2), minmax(0, 1fr)) auto; gap: 8px; align-items: stretch; }
 .ff-disc-dock__meta { width: 132px; padding: 8px; display: flex; flex-direction: column; justify-content: center; }
 .ff-disc-dock__meta strong { font-size: 12.5px; color: var(--ff-tp); }
 .ff-disc-dock__meta span { margin-top: 4px; font-size: 10px; line-height: 1.35; color: var(--ff-tm); }
+.ff-disc-dock__tools { display: flex; align-items: center; gap: 6px; padding: 0 2px; }
+.ff-disc-dock__tool { width: 38px; height: 38px; flex: 0 0 auto; align-self: center; border-radius: 11px; border: 1px solid var(--ff-bd); background: rgba(255,255,255,.04); color: var(--ff-tm); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: color .18s ease, border-color .18s ease; }
+.ff-disc-dock__tool:hover { color: var(--ff-tp); border-color: var(--ff-bs); }
+.ff-disc-dock__tool:focus-visible { outline: 2px solid var(--ff-coral-text); outline-offset: 2px; }
 .ff-disc-dir { min-width: 0; min-height: 104px; padding: 8px; border: 1px solid rgba(255,255,255,.09); border-radius: 11px; background: rgba(255,255,255,.025); display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 10px; text-align: left; cursor: pointer; transition: border-color .17s ease, background .17s ease, transform .17s ease; }
 .ff-disc-dir:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.05); }
 .ff-disc-dir.is-active { border-color: color-mix(in srgb, var(--ff-blend) 60%, #fff); background: color-mix(in srgb, var(--ff-blend) 9%, rgba(255,255,255,.025)); opacity: .92; } /* active card quieter */
@@ -208,7 +215,10 @@
 .ff-disc-dir__delta { font-size: 11px; color: var(--ff-ts); line-height: 1.35; }
 .ff-disc-dir__now { font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ff-tm); }
 
-.ff-disc-result-footer { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+/* No-dock (lead-only / fallback) — a single bottom-anchored Start over (Adjust lives
+   in the chip row). Never a floating mid-stage footer. */
+.ff-disc-result--nodock .ff-disc-result__copy { margin-bottom: 16px; }
+.ff-disc-result__tools { margin-top: 14px; display: flex; gap: 8px; }
 
 /* Exhausted */
 .ff-disc-exhausted { position: relative; z-index: 1; text-align: center; padding: 80px 16px; max-width: 540px; margin: 0 auto; min-height: calc(70svh - var(--hdr-h, 56px)); display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -226,7 +236,7 @@
 @media (max-width: 1120px) {
   .ff-disc-result__copy { width: min(590px, 57vw); }
   .ff-disc-dock__meta { display: none; }
-  .ff-disc-dock__shell { grid-template-columns: repeat(var(--ff-dock-cols, 2), minmax(0, 1fr)); }
+  .ff-disc-dock__shell { grid-template-columns: repeat(var(--ff-dock-cols, 2), minmax(0, 1fr)) auto; }
 }
 @media (max-width: 1020px) {
   .ff-disc-result__art { left: 48%; }
@@ -255,6 +265,13 @@
   .ff-disc-actionbar { flex-direction: column; align-items: stretch; }
   .ff-disc-actionbar__meta { text-align: center; }
   .ff-disc-actionbar .ff-disc-btn { width: 100%; }
+  /* Mobile context action order: helper above, primary Find first, Back beneath it
+     (the helper never separates the two actions). Desktop keeps Back-left / Find-right. */
+  .ff-disc-actionbar--ctx .ff-disc-actionbar__meta { order: 1; }
+  .ff-disc-actionbar--ctx .ff-disc-btn--primary { order: 2; }
+  .ff-disc-actionbar--ctx .ff-disc-btn--ghost { order: 3; }
+  /* Guarantee both context actions clear the fixed BottomNav at the bottom scroll position. */
+  .ff-disc-stage--ctx { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
   .ff-disc-ctx-hero { padding: 21px; }
   .ff-disc-ctx__summary { grid-template-columns: 92px 1fr auto; min-height: 60px; }
   .ff-disc-ctx__choices { padding-left: 105px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
@@ -266,6 +283,11 @@
   .ff-disc-result__art { inset: 0; background-position: center 5%; background-size: auto 56vh; -webkit-mask-image: linear-gradient(0deg, transparent 0%, #000 32%, #000 100%); mask-image: linear-gradient(0deg, transparent 0%, #000 32%, #000 100%); opacity: .66; }
   .ff-disc-result__scrim { background: linear-gradient(0deg, var(--ff-ink) 0%, rgba(15,16,16,.98) 48%, rgba(15,16,16,.52) 74%, rgba(15,16,16,.16) 100%); }
   .ff-disc-result__inner { width: calc(100% - 2 * var(--ff-pad)); min-height: calc(100svh - var(--hdr-h, 56px) - 96px); padding: 12px 0 168px; }
+  /* Audio toggle is stage-aware on the mobile RESULT: move it to the top-right so it
+     cannot overlap the dock / actions / title / reason / BottomNav. Mood + context keep
+     the default fixed bottom-left placement. Behaviour is unchanged. */
+  .ff-disc-result .ff-disc-audio { position: absolute; top: 12px; right: var(--ff-pad); bottom: auto; left: auto; width: 38px; height: 38px; border-radius: 11px; z-index: 7; }
+  .ff-disc-result .ff-disc-chips { padding-right: 48px; } /* keep the chip-row Adjust clear of the audio button */
   .ff-disc-chips__scroll .ff-disc-chip:nth-of-type(n+4) { display: none; }
   .ff-disc-result__copy { width: 100%; margin-top: 31vh; margin-bottom: 0; }
   .ff-disc-lead__title { font-size: clamp(3rem, 14vw, 5.1rem); }

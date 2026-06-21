@@ -9,13 +9,14 @@
 // an impression once it is genuinely visible. No invented controls — adjust/start
 // over live in the result footer + chips, which already have real handlers.
 
+import { RotateCcw } from 'lucide-react'
 import { DIRECTION_LABEL } from '../discoverDirections'
 import DiscoverDirectionCard from './DiscoverDirectionCard'
 
 const ORDER = ['closest', 'gentler', 'bolder']
 const COUNT_WORD = { 2: 'Two directions', 3: 'Three directions' }
 
-export default function DiscoverDirectionDock({ roles, focusId, onSelect, observe, blendHex, deltaCopyByRole = {} }) {
+export default function DiscoverDirectionDock({ roles, focusId, onSelect, observe, blendHex, deltaCopyByRole = {}, onRestart }) {
   const cards = ORDER.map((r) => (roles[r] ? { role: r, film: roles[r] } : null)).filter(Boolean)
   if (cards.length <= 1) return null // only the lead exists → nothing to switch to
 
@@ -38,6 +39,13 @@ export default function DiscoverDirectionDock({ roles, focusId, onSelect, observ
             blendHex={blendHex}
           />
         ))}
+        {onRestart ? (
+          <div className="ff-disc-dock__tools">
+            <button type="button" className="ff-disc-dock__tool" aria-label="Start over" onClick={onRestart}>
+              <RotateCcw size={16} aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   )

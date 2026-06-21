@@ -150,3 +150,74 @@ describe('fidelity — result is a full-bleed cinematic stage, not a poster-card
     expect(container.querySelector('nav')).toBeNull() // the dock is a labelled section, not a nav
   })
 })
+
+describe('fidelity v2 — bottom-anchored copy, complete dock, no floating footer', () => {
+  it('has NO floating mid-stage footer and NO duplicate Adjust on the active result', () => {
+    const { container } = renderResult()
+    expect(container.querySelector('.ff-disc-result-footer')).toBeNull()
+    // exactly one "Adjust" control (the chip); never a second "Adjust tonight" in the centre
+    const adjusts = screen.getAllByRole('button', { name: 'Adjust' })
+    expect(adjusts).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Adjust tonight' })).toBeNull()
+  })
+
+  it('bottom-anchors the copy: dock is a SIBLING of the inner (not nested), copy follows chips in the inner', () => {
+    const { container } = renderResult()
+    const result = container.querySelector('.ff-disc-result')
+    const inner = container.querySelector('.ff-disc-result__inner')
+    // dock is a direct child of the result stage, NOT inside the inner copy column
+    expect(result.querySelector(':scope > .ff-disc-dock')).toBeTruthy()
+    expect(inner.querySelector('.ff-disc-dock')).toBeNull()
+    // inner order: chips before copy (copy is pushed to the bottom via margin-top:auto)
+    const kids = [...inner.children]
+    expect(kids.findIndex((k) => k.classList.contains('ff-disc-chips'))).toBeLessThan(
+      kids.findIndex((k) => k.classList.contains('ff-disc-result__copy')),
+    )
+  })
+
+  it('the dock carries a Start over tool (Adjust stays in the chips)', () => {
+    renderResult()
+    const startOver = screen.getByRole('button', { name: 'Start over' })
+    expect(startOver.closest('.ff-disc-dock')).toBeTruthy()
+  })
+
+  it('alternate dock cards keep their (observer) ref attachment', () => {
+    const { container } = renderResult()
+    // both non-closest cards render (they receive the IntersectionObserver ref);
+    // selecting one still changes focus, not role
+    expect(container.querySelectorAll('.ff-disc-dir').length).toBe(3)
+    fireEvent.click(screen.getByRole('button', { name: /Gentler direction: Gentler Film/ }))
+    expect(screen.getByRole('heading', { level: 1, name: 'Gentler Film' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Closest fit: Lead Film/ })).toBeTruthy()
+  })
+
+  it('lead-only: no dock, a bottom-anchored Start over, and the --nodock variant', () => {
+    const { container } = renderResult({ ranked: [film({ id: 9, title: 'Solo Lead', runtime: 110, moodFitRaw: 0.9, _rankScore: 100 })] })
+    expect(container.querySelector('.ff-disc-dock')).toBeNull()
+    expect(container.querySelector('.ff-disc-result--nodock')).toBeTruthy()
+    const startOver = screen.getByRole('button', { name: 'Start over' })
+    expect(startOver.closest('.ff-disc-result__tools')).toBeTruthy()
+  })
+})
+
+describe('fidelity v2 — mobile context action order + clearance scope', () => {
+  function CtxHarness2() {
+    const [intention, setIntention] = useState('move')
+    const [time, setTime] = useState('std')
+    const [who, setWho] = useState('alone')
+    const [energy, setEnergy] = useState('steady')
+    return (
+      <DiscoverContextStage selected={['tender']}
+        time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention}
+        onUserEdit={vi.fn()} onNext={vi.fn()} onBack={vi.fn()} />
+    )
+  }
+  it('context actionbar carries the --ctx ordering hook + both actions, and the stage carries the clearance hook', () => {
+    const { container } = render(<CtxHarness2 />)
+    const bar = container.querySelector('.ff-disc-actionbar--ctx')
+    expect(bar).toBeTruthy()
+    expect(bar.querySelector('.ff-disc-btn--primary').textContent).toMatch(/Find tonight/)
+    expect(bar.querySelector('.ff-disc-btn--ghost').textContent).toMatch(/Back/)
+    expect(container.querySelector('.ff-disc-stage--ctx')).toBeTruthy() // mobile BottomNav clearance hook
+  })
+})

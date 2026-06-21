@@ -51,7 +51,10 @@
     "test:visual:people:update": "playwright test --project=visual-app e2e/visual-auth/people.visual.js --update-snapshots",
     "test:e2e:browse": "playwright test --project=app e2e/app/browse.e2e.js",
     "test:visual:browse": "playwright test --project=visual-app e2e/visual-auth/browse.visual.js",
-    "test:visual:browse:update": "playwright test --project=visual-app e2e/visual-auth/browse.visual.js --update-snapshots"
+    "test:visual:browse:update": "playwright test --project=visual-app e2e/visual-auth/browse.visual.js --update-snapshots",
+    "test:e2e:discover": "playwright test --project=app e2e/app/discover.e2e.js",
+    "test:visual:discover": "playwright test --project=visual-app e2e/visual-auth/discover.visual.js",
+    "test:visual:discover:update": "playwright test --project=visual-app e2e/visual-auth/discover.visual.js --update-snapshots"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.10",

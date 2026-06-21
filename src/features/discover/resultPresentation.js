@@ -2,6 +2,8 @@
 // Pure result-stage presentation helpers.
 
 import { TIME_OPTIONS } from './constants'
+import { constellationName } from './derive'
+import { directionDeltaCopy, familiarLanguagesOf } from './discoverDirections'
 
 // Map the primary mood id to the poster presentation properties still used by the
 // one-pick result: a colour `cardFilter` and an `overlay` texture. (The old
@@ -31,4 +33,32 @@ export function buildRuntimeFitLine({ time, runtime }) {
   const [min, max] = option.v
   if (runtime < min || runtime > max) return null
   return `Within your ${option.label} window.`
+}
+
+// Always-present MOMENT-FIT sentence (shown on every viewport, including mobile).
+// For an alternate it is the honest delta vs the lead; for the closest it names
+// the mood/context fit. Never fabricated — grounded in selected moods + runtime.
+export function buildMomentFitLine({ film, role, lead, selected = [], time, profile = null }) {
+  if (!film) return null
+  if (role && role !== 'closest' && lead) {
+    return directionDeltaCopy(role, film, lead, familiarLanguagesOf(profile))
+  }
+  const cName = constellationName(selected)
+  const moodPart = (cName && cName !== 'Your night')
+    ? `Tuned to your ${cName.replace(/^the\s+/i, '').toLowerCase()} night.`
+    : 'Tuned to the shape of your night.'
+  const rt = buildRuntimeFitLine({ time, runtime: film.runtime })
+  return rt ? `${moodPart} ${rt}` : moodPart
+}
+
+// Honest PERSONAL signal — only a genuine user-specific signal (filmmaker
+// affinity from the user's rated history). Returns null otherwise, and ALWAYS
+// null in fallback/example mode (never claim personalization for example data).
+export function buildPersonalSignal({ film, profile, isFallback = false }) {
+  if (isFallback || !film || !profile) return null
+  const dir = profile?.affinities?.directors?.find(
+    (d) => d?.name && film?.dir && d.name.toLowerCase() === film.dir.toLowerCase(),
+  )
+  if (dir) return `Because ${film.dir} reads the room the way you do.`
+  return null
 }

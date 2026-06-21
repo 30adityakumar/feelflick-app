@@ -32,32 +32,48 @@ function movieRow(over) {
   }
 }
 
+// Tuned so the semantic direction builder yields three DISTINCT roles for a Tender
+// selection: One = Closest (mid pressure, low novelty), Two = Gentler (clearly
+// lower pressure), Three = Bolder (preserves Tender but high novelty + a less
+// familiar language). All hold the Tender mood so each stays honestly aligned.
 const FILMS = {
   one: movieRow({
     id: 9001, tmdb_id: 700001, title: 'The Quiet Hour', overview:
       'A translator returns to the lakeside town she left a decade ago and spends one long evening reckoning with the family she kept at a distance. A patient, tender film about the small repairs that hold a life together.',
     release_date: '2021-05-01', release_year: 2021, runtime: 118, director_name: 'Mara Vance',
     primary_genre: 'Drama', genres: ['Drama'], poster_path: POSTER.one, trailer_youtube_key: 'mockTrailerOne',
-    mood_tags: ['tender', 'gentle', 'quiet'], tone_tags: ['warm'],
+    mood_tags: ['tender', 'gentle', 'quiet'], tone_tags: ['warm'], original_language: 'en',
     ff_audience_rating: 92, ff_audience_confidence: 95, ff_critic_rating: 90, ff_final_rating: 92, ff_rating: 92,
+    llm_intensity: 60, llm_attention_demand: 70, llm_emotional_depth: 70, llm_pacing: 60, discovery_potential: 25, polarization_score: 20,
   }),
   two: movieRow({
     id: 9002, tmdb_id: 700002, title: 'After the Rain', overview:
       'Two estranged siblings drive across a wet coastline to scatter their mother’s ashes, arguing and forgiving in equal measure.',
     release_date: '2020-09-01', release_year: 2020, runtime: 112, director_name: 'Idris Calloway',
     primary_genre: 'Drama', genres: ['Drama'], poster_path: POSTER.two, trailer_youtube_key: 'mockTrailerTwo',
-    mood_tags: ['tender', 'bittersweet'], tone_tags: ['reflective'],
+    mood_tags: ['tender', 'heartwarming'], tone_tags: ['warm'], original_language: 'en',
     ff_audience_rating: 84, ff_audience_confidence: 88, ff_critic_rating: 83, ff_final_rating: 84, ff_rating: 84,
+    llm_intensity: 20, llm_attention_demand: 20, llm_emotional_depth: 25, llm_pacing: 25, discovery_potential: 20, polarization_score: 20,
   }),
   three: movieRow({
     id: 9003, tmdb_id: 700003, title: 'Long Shadows', overview:
       'A clockmaker in a fog-bound town measures out his last winter in small, deliberate acts.',
-    release_date: '2018-02-01', release_year: 2018, runtime: 142, director_name: 'Petra Wolf',
+    release_date: '2018-02-01', release_year: 2018, runtime: 124, director_name: 'Petra Wolf',
     primary_genre: 'Drama', genres: ['Drama'], poster_path: POSTER.three, trailer_youtube_key: null,
-    mood_tags: ['slow', 'cerebral'], tone_tags: ['cold'],
-    ff_audience_rating: 76, ff_audience_confidence: 82, ff_critic_rating: 78, ff_final_rating: 76, ff_rating: 76,
+    mood_tags: ['tender', 'bittersweet'], tone_tags: ['poetic'], original_language: 'ko',
+    ff_audience_rating: 80, ff_audience_confidence: 84, ff_critic_rating: 81, ff_final_rating: 80, ff_rating: 80,
+    llm_intensity: 60, llm_attention_demand: 70, llm_emotional_depth: 70, llm_pacing: 60, discovery_potential: 92, polarization_score: 90,
   }),
 }
+
+// lead_only: three Tender films with near-identical pressure + novelty → no
+// candidate clears the gentler/bolder delta, so the result honestly shows ONE
+// direction (render fewer rather than fabricate).
+const LEAD_ONLY = [
+  movieRow({ id: 9201, tmdb_id: 700201, title: 'Still Water', mood_tags: ['tender'], poster_path: POSTER.one, ff_audience_rating: 90, ff_final_rating: 90, llm_intensity: 50, llm_attention_demand: 50, llm_emotional_depth: 50, llm_pacing: 50, discovery_potential: 30, polarization_score: 20 }),
+  movieRow({ id: 9202, tmdb_id: 700202, title: 'Paper Boats', mood_tags: ['tender'], poster_path: POSTER.two, ff_audience_rating: 86, ff_final_rating: 86, llm_intensity: 50, llm_attention_demand: 50, llm_emotional_depth: 50, llm_pacing: 50, discovery_potential: 30, polarization_score: 20 }),
+  movieRow({ id: 9203, tmdb_id: 700203, title: 'Open Window', mood_tags: ['tender'], poster_path: POSTER.three, ff_audience_rating: 82, ff_final_rating: 82, llm_intensity: 50, llm_attention_demand: 50, llm_emotional_depth: 50, llm_pacing: 50, discovery_potential: 30, polarization_score: 20 }),
+]
 
 // Horror candidates for filtered_empty: real live rows that the engine's gated-genre
 // exclusion removes for a user with no Horror watch history (films=0, candidates>0).
@@ -69,6 +85,7 @@ const HORROR = [
 function moviesFor(source) {
   if (source === 'live_empty' || source === 'live_error') return []
   if (source === 'filtered_empty') return HORROR
+  if (source === 'lead_only') return LEAD_ONLY
   return [FILMS.one, FILMS.two, FILMS.three]
 }
 

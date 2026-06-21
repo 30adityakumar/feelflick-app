@@ -88,12 +88,12 @@ describe('Stage 6 — local Watchlist activation boundary + canonical-Button mig
 
 describe('Stage 6 — no fourth production surface adopts the foundation', () => {
   const importsFoundation = /['"]@\/shared\/ui\/thoughtful-seatmate(['"/]|$)/
-  it('only Tonight + Film File + Watchlist + Browse + the dev showcase import the foundation', () => {
+  it('only Tonight + Film File + Watchlist + Browse + Discover + the dev showcase import the foundation', () => {
     const offenders = []
     for (const f of walk(join(ROOT, 'src'))) {
       const r = rel(f)
       if (r.startsWith('src/shared/ui/thoughtful-seatmate')) continue
-      if (r.startsWith('src/features/home/') || r.startsWith('src/features/movie/') || r.startsWith('src/features/watchlist/') || r.startsWith('src/features/browse/')) continue
+      if (r.startsWith('src/features/home/') || r.startsWith('src/features/movie/') || r.startsWith('src/features/watchlist/') || r.startsWith('src/features/browse/') || r.startsWith('src/features/discover/')) continue
       if (r.startsWith('src/features/design-lab/thoughtful-seatmate-foundations')) continue
       if (r.includes('/__tests__/')) continue
       if (!/\.(jsx?)$/.test(r)) continue

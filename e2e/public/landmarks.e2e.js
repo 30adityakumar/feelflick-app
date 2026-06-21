@@ -64,5 +64,5 @@ test('discover: single <main> and exactly one h1 (the mood question)', async ({ 
   // checkpoint, then the pick title) — never two at once.
   const h1 = page.locator('h1')
   await expect(h1).toHaveCount(1, { timeout: 15_000 })
-  await expect(h1).toHaveText(/shape\b.*\bof your mood\?$/)
+  await expect(h1).toHaveText(/How should tonight feel\?$/)
 })

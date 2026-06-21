@@ -1,9 +1,10 @@
 // src/features/discover/sections/DiscoverDirectionCard.jsx
-// A compact alternate-direction card in the dock. It FOCUSES/SELECTS a film onto
-// the cinematic stage — it is a single button, not a duplicate action suite (no
-// nested interactive elements). It carries the semantic role label + the honest
-// delta vs the lead; it deliberately does NOT repeat the lead's full metadata.
-// The active card is rendered quieter than the alternate choices.
+// A compact alternate-direction card in the dock. It FOCUSES/SELECTS a film onto the
+// cinematic stage — it is a single button, not a duplicate action suite (no nested
+// interactive elements). It carries a small poster thumbnail, the semantic role
+// label, the title, and the honest delta vs the lead; the active card is rendered
+// quieter than the alternate choices and marked "Now showing". It deliberately does
+// NOT repeat the lead's full metadata.
 
 import { tmdbImg } from '@/shared/api/tmdb'
 
@@ -28,8 +29,8 @@ export default function DiscoverDirectionCard({ film, label, delta, active, onSe
         <span className="ff-disc-dir__role" style={{ color: active ? undefined : blendHex }}>{label}</span>
         <span className="ff-disc-dir__title">{film.title}</span>
         {delta ? <span className="ff-disc-dir__delta">{delta}</span> : null}
+        <span className="ff-disc-dir__now" aria-hidden="true">{active ? 'Now showing' : 'Bring forward'}</span>
       </span>
-      {active ? <span className="ff-disc-dir__now" aria-hidden="true">Now showing</span> : null}
     </button>
   )
 }

@@ -16,7 +16,6 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useReducedMotion } from 'framer-motion'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
@@ -78,21 +77,6 @@ function AudioToggle() {
   )
 }
 
-// Deterministic, reduced-motion-aware starfield (seeded PRNG → identical every
-// render/mount, so visual baselines stay stable). Subordinate + aria-hidden.
-function mulberry32(seed) { return function () { let t = (seed += 0x6d2b79f5); t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
-function Starfield({ tint, reduced }) {
-  const stars = useMemo(() => { const r = mulberry32(20260621); const out = []; for (let i = 0; i < 80; i++) out.push({ x: r() * 100, y: r() * 100, size: r() * 1.4 + 0.4, delay: r() * 8, dur: 6 + r() * 8, op: 0.18 + r() * 0.4 }); return out }, [])
-  return (
-    <div aria-hidden="true" className="ff-disc-starfield">
-      <div className="ff-disc-starfield__tint" style={{ background: `radial-gradient(ellipse 90% 55% at 50% 0%, ${tint}1c, transparent 60%)` }} />
-      {stars.map((s, i) => (
-        <span key={i} className="ff-disc-star" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.size, height: s.size, opacity: s.op, animation: reduced ? 'none' : `ff-disc-twinkle ${s.dur}s ease-in-out ${s.delay}s infinite` }} />
-      ))}
-    </div>
-  )
-}
-
 async function commitDiscoverPreferences({ userId, intention, time, who, energy }) {
   if (!userId) return
   try {
@@ -144,7 +128,6 @@ function DiscoverBody() {
   const [who, setWho] = useState('alone')
   const [energy, setEnergy] = useState('steady')
   const [intention, setIntention] = useState('move')
-  const reduced = useReducedMotion()
   const sessionShownIds = useRef(new Set())
 
   const { films: liveFilms, profile, baselineMoods, learnedPrefs, recentSaves, dataSource, loading } = useDiscoverData()
@@ -251,39 +234,44 @@ function DiscoverBody() {
   const moodsForResult = selected.length > 0 ? selected : ['slow', 'tender']
 
   return (
-    <ThoughtfulRoot className="ff-discover">
-      <Starfield tint={blendHex} reduced={reduced} />
-      <div className="ff-discover__inner">
-        {stage === 1 && (
-          <DiscoverMoodStage
-            selected={selected} setSelected={setSelected}
-            onNext={() => setStage(2)}
-            audioToggle={<AudioToggle />} playMoodCue={(id) => FFAudio.pluck(id)} playContinueCue={() => FFAudio.whoom()}
-          />
-        )}
-        {stage === 2 && (
-          <DiscoverContextStage
-            time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention}
-            onUserEdit={() => { contextTouchedRef.current = true }}
-            onNext={() => { handleCommitStage2(); setStage(2.3) }}
-            onBack={() => setStage(1)}
-            playOptionCue={() => FFAudio.pluck('cozy')} playContinueCue={() => FFAudio.whoom()}
-          />
-        )}
-        {stage === 2.3 && (
-          <DiscoverResolveStage ready={!loading} error={false} blendHex={blendHex} onDone={() => setStage(3)} />
-        )}
-        {stage === 3 && (recsEnabled ? (
-          <DiscoverResultStage
-            ranked={ranked} selected={moodsForResult} profile={profile} blendHex={blendHex}
-            isFallback={isFallback} fallbackReason={fallbackReason}
-            intention={intention} energy={energy} who={who} time={time}
-            user={user} sessionKey={sessionKey}
-            onAdjust={() => setStage(2)} onRestart={restart}
-            audioToggle={<AudioToggle />}
-          />
-        ) : <DiscoverPaused onRestart={restart} />)}
-      </div>
+    <ThoughtfulRoot className="ff-discover" style={{ '--ff-blend': blendHex }}>
+      <div className="ff-disc-atmosphere" aria-hidden="true" />
+      {/* Stages 1–2.3 use the centred content shell; the cinematic result is
+          rendered full-bleed (outside the constrained inner wrapper). */}
+      {stage !== 3 && (
+        <div className="ff-discover__inner">
+          {stage === 1 && (
+            <DiscoverMoodStage
+              selected={selected} setSelected={setSelected}
+              onNext={() => setStage(2)}
+              audioToggle={<AudioToggle />} playMoodCue={(id) => FFAudio.pluck(id)} playContinueCue={() => FFAudio.whoom()}
+            />
+          )}
+          {stage === 2 && (
+            <DiscoverContextStage
+              selected={selected}
+              time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention}
+              onUserEdit={() => { contextTouchedRef.current = true }}
+              onNext={() => { handleCommitStage2(); setStage(2.3) }}
+              onBack={() => setStage(1)}
+              playOptionCue={() => FFAudio.pluck('cozy')} playContinueCue={() => FFAudio.whoom()}
+            />
+          )}
+          {stage === 2.3 && (
+            <DiscoverResolveStage ready={!loading} error={false} blendHex={blendHex} onDone={() => setStage(3)} />
+          )}
+        </div>
+      )}
+      {stage === 3 && (recsEnabled ? (
+        <DiscoverResultStage
+          ranked={ranked} selected={moodsForResult} profile={profile} blendHex={blendHex}
+          isFallback={isFallback} fallbackReason={fallbackReason}
+          intention={intention} energy={energy} who={who} time={time}
+          user={user} sessionKey={sessionKey}
+          onAdjust={() => setStage(2)} onRestart={restart}
+          audioToggle={<AudioToggle />}
+        />
+      ) : <div className="ff-discover__inner"><DiscoverPaused onRestart={restart} /></div>)}
     </ThoughtfulRoot>
   )
 }

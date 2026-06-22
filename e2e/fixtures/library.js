@@ -84,11 +84,13 @@ const REDACT = (s) => String(s).replace(/(apikey|access_token|authorization|emai
 
 // ── installer ──────────────────────────────────────────────────────────────────────
 export async function installLibraryFixture(page, options = {}) {
-  const opts = { mode: 'loaded', removeMode: 'success', reducedMotion: false, duplicateHistory: false, ...options }
+  const opts = { mode: 'loaded', removeMode: 'success', reducedMotion: false, duplicateHistory: false, noTmdb: false, ...options }
 
   // Mutable in-memory state so removals are reflected by subsequent reads (and cross-nav).
   const state = {
-    watchlist: WATCHLIST.map(r => ({ ...r })),
+    // noTmdb (opt-in): drop the TMDB id on the no-poster row (North) so a saved film with no
+    // TMDB id renders non-interactively. NOT the default → the visual baselines stay stable.
+    watchlist: WATCHLIST.map(r => (opts.noTmdb && r.movie_id === 9103 ? { ...r, movies: { ...r.movies, tmdb_id: null } } : { ...r })),
     history: (opts.duplicateHistory ? DUPLICATE_HISTORY : HISTORY).map(r => ({ ...r })),
     ratings: RATINGS.map(r => ({ ...r })),
     removedWatchlistIds: [],

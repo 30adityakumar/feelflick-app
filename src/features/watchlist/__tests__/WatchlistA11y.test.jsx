@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
 const navigate = vi.fn()
-vi.mock('react-router-dom', () => ({ useNavigate: () => navigate, Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a> }))
+vi.mock('react-router-dom', async (orig) => ({ ...await orig(), useNavigate: () => navigate }))
+const wrap = { wrapper: MemoryRouter }
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
 
 let mockCtx
@@ -21,7 +23,7 @@ afterEach(() => { cleanup(); vi.clearAllMocks() })
 describe('Watchlist — a11y/responsive hardening (F6.7)', () => {
   it('each saved-film item is exactly ONE Film File link + ONE Remove action', () => {
     mockCtx = withItems(1)
-    render(<Watchlist />)
+    render(<Watchlist />, wrap)
     const items = screen.getAllByRole('listitem')
     expect(items).toHaveLength(1)
     const card = items[0]
@@ -34,14 +36,14 @@ describe('Watchlist — a11y/responsive hardening (F6.7)', () => {
 
   it('the collection is a labelled list whose listitem count matches the films', () => {
     mockCtx = withItems(3)
-    render(<Watchlist />)
+    render(<Watchlist />, wrap)
     const list = screen.getByRole('list')
     expect(within(list).getAllByRole('listitem')).toHaveLength(3)
   })
 
   it('the Remove control is ≥44px and exposes pending state', () => {
     mockCtx = withItems(1, { isRemoving: (id) => id === 1 })
-    render(<Watchlist />)
+    render(<Watchlist />, wrap)
     const btn = screen.getByRole('button', { name: 'Removing Film 1' })
     expect(btn.style.minHeight).toBe('44px')
     expect(btn).toBeDisabled()
@@ -50,7 +52,7 @@ describe('Watchlist — a11y/responsive hardening (F6.7)', () => {
 
   it('loading shows an honest busy status with a visually-hidden message', () => {
     mockCtx = ctx({ loading: true })
-    render(<Watchlist />)
+    render(<Watchlist />, wrap)
     const status = screen.getByRole('status')
     expect(status).toHaveAttribute('aria-busy', 'true')
     expect(screen.getByText('Loading your watchlist…')).toBeInTheDocument()
@@ -59,7 +61,7 @@ describe('Watchlist — a11y/responsive hardening (F6.7)', () => {
   it('filtered-empty is announced via role="status"', () => {
     // availableMoods offers a mood no item has → selecting it yields filtered-empty.
     mockCtx = ctx({ items: [item({ mood: 'Tender' })], total: 1, availableMoods: [{ mood: 'Tense', count: 0 }] })
-    render(<Watchlist />)
+    render(<Watchlist />, wrap)
     fireEvent.click(screen.getByRole('button', { name: 'Tense' }))
     // (the page also has the persistent announcement live region — scope to the one with copy)
     const statuses = screen.getAllByRole('status')

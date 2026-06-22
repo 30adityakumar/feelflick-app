@@ -1,97 +1,160 @@
 // src/features/account/Account.jsx
-// FeelFlick — Account (v2). Mount at /account-v2 alongside the existing /account.
-// PR 1: real handlers (avatar upload, name save, sign out, sign out everywhere,
-//        reset DNA, delete via mailto) ported from the existing Account.jsx
-//        page; settings toggles + sliders persist to localStorage until per-user
-//        preference tables ship.
-// Page is rendered inside AppShell which already provides the global TopNav;
-// the prototype's internal nav has been dropped.
+// FeelFlick — /account. Apple-inspired master–detail settings, rendered inside the canonical
+// AppShell (Header + mobile BottomNav are AppShell's). Section selection is URL-addressable via
+// ?section= (deep-linkable, refresh-safe, Back/Forward-aware) — one registry, shared by the
+// desktop sidebar + the mobile index/push-in detail. No localStorage, no innerHTML cloning.
 
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import Eyebrow from '@/shared/ui/Eyebrow'
-import PageContainer from '@/shared/ui/PageContainer'
-import { HP } from './data'
-import {
-  Masthead, IdentityCard, Notifications,
-} from './sections-top'
-import {
-  Privacy, Connections, PlanCard, SessionsCard, DangerZone, AccountFooter,
-} from './sections-bottom'
+import { VALID_SECTIONS, resolveSection, sectionById } from './accountSections'
+import AccountSummary from './components/AccountSummary'
+import AccountSidebar from './components/AccountSidebar'
+import AccountMobileHome from './components/AccountMobileHome'
+import AccountDetail from './components/AccountDetail'
 import { AccountDataProvider, useAccountData } from './useAccountData'
 import './account.css'
 
+const MOBILE_QUERY = '(max-width: 760px)'
+
+function useIsMobile() {
+  const get = () => (typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(MOBILE_QUERY).matches : false)
+  const [isMobile, setIsMobile] = useState(get)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined
+    const mq = window.matchMedia(MOBILE_QUERY)
+    const onChange = () => setIsMobile(mq.matches)
+    onChange()
+    mq.addEventListener?.('change', onChange)
+    return () => mq.removeEventListener?.('change', onChange)
+  }, [])
+  return isMobile
+}
+
 export default function Account() {
-  usePageMeta({ title: 'Account — FeelFlick' })
   return (
     <AccountDataProvider>
-      <AccountV2Shell />
+      <AccountShell />
     </AccountDataProvider>
   )
 }
 
-function AccountV2Shell() {
-  const { loading, authUser, error } = useAccountData()
-  if (loading) return <PageSkeleton />
-  if (error) return <PageError error={error} />
-  if (!authUser) return <SignedOut />
+function AccountShell() {
+  const { loading, authUser, error, refresh } = useAccountData()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const isMobile = useIsMobile()
+
+  const rawSection = searchParams.get('section')
+  const activeSection = resolveSection(rawSection)
+  const detailOpen = isMobile && !!rawSection && VALID_SECTIONS.has(rawSection)
+  const headingRef = useRef(null)
+  const prevKeyRef = useRef(null)
+
+  usePageMeta({ title: rawSection && VALID_SECTIONS.has(rawSection) ? `${sectionById(activeSection).label} · Account — FeelFlick` : 'Account — FeelFlick' })
+
+  // An invalid ?section= falls back safely to a clean /account.
+  useEffect(() => {
+    if (rawSection && !VALID_SECTIONS.has(rawSection)) setSearchParams({}, { replace: true })
+  }, [rawSection, setSearchParams])
+
+  // Move focus to the active heading after a navigation (not on first mount); on mobile Back,
+  // restore focus to the index row that opened the detail.
+  useLayoutEffect(() => {
+    const prev = prevKeyRef.current
+    const key = !isMobile || detailOpen ? activeSection : '__index__'
+    if (prev !== null && prev !== key) {
+      if (key === '__index__') {
+        document.querySelector(`a[href="/account?section=${prev}"]`)?.focus?.()
+      } else {
+        headingRef.current?.focus?.()
+      }
+    }
+    prevKeyRef.current = key
+  }, [activeSection, detailOpen, isMobile])
+
+  if (loading) return <AccountLoading />
+  if (error) return <AccountError error={error} onRetry={refresh} />
+  if (!authUser) return <AccountSignedOut onSignIn={() => navigate('/')} />
 
   return (
-    <div className="ff-account-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
-      {/* F12B: shared PageContainer (size="app" = 1280, byte-identical to the old inline cap) + a11y landmark. */}
-      <PageContainer size="app" padding="none">
-        <h1 className="sr-only">Account settings</h1>
-        <Masthead />
-        <IdentityCard />
-        <Notifications />
-        <Privacy />
-        <Connections />
-        <PlanCard />
-        <SessionsCard />
-        <DangerZone />
-        <AccountFooter />
-      </PageContainer>
+    <div className="ff-acct">
+      <div className="ff-acct__shell">
+        <header className="ff-acct__title">
+          <h1>Account</h1>
+          <p>Your FeelFlick identity, privacy, connections, and access—all in one quiet place.</p>
+        </header>
+
+        <AccountSummary />
+
+        {isMobile ? (
+          <div className="ff-acct-window">
+            <AccountMobileHome />
+            {detailOpen && (
+              <section className="ff-acct-mobiledetail is-open" aria-label={sectionById(activeSection).label}>
+                <div className="ff-acct-mobiledetail__head">
+                  <button type="button" className="ff-acct-back" aria-label="Back to settings" onClick={() => setSearchParams({}, { replace: true })}>
+                    <span aria-hidden="true" style={{ fontSize: '1.6rem', lineHeight: 1 }}>‹</span>
+                  </button>
+                  <strong>{sectionById(activeSection).label}</strong>
+                </div>
+                <AccountDetail sectionId={activeSection} headingRef={headingRef} />
+              </section>
+            )}
+          </div>
+        ) : (
+          <div className="ff-acct-window">
+            <AccountSidebar active={activeSection} />
+            <AccountDetail sectionId={activeSection} headingRef={headingRef} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
-function PageSkeleton() {
-  const pulse = { background: 'rgba(255,255,255,0.04)' }
+function AccountLoading() {
   return (
-    <div className="ff-account-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
-      <div className="ff-acct-section" style={{ maxWidth:1280, margin:'0 auto', padding:'80px 88px' }}>
-        <div className="animate-pulse" style={{ ...pulse, height:14, width:280, borderRadius:999, marginBottom:30 }} />
-        <div className="animate-pulse" style={{ background:'rgba(255,255,255,0.08)', height:80, width:'40%', borderRadius:8, marginBottom:48 }} />
-        <div style={{ display:'flex', gap:48, alignItems:'center', flexWrap:'wrap' }}>
-          <div className="animate-pulse" style={{ ...pulse, width:96, height:96, borderRadius:999 }} />
-          <div style={{ flex:1, display:'flex', flexDirection:'column', gap:14, minWidth:200 }}>
-            <div className="animate-pulse" style={{ ...pulse, height:28, width:'40%', borderRadius:6 }} />
-            <div className="animate-pulse" style={{ ...pulse, height:14, width:'60%', borderRadius:999 }} />
-          </div>
+    <div className="ff-acct" aria-busy="true">
+      <div className="ff-acct__shell">
+        <h1 className="sr-only">Account</h1>
+        <p className="sr-only" role="status">Loading your account…</p>
+        <div className="ff-acct__title" aria-hidden="true">
+          <div className="ff-acct-skel" style={{ height: 56, width: '50%', margin: '24px auto' }} />
+        </div>
+        <div className="ff-acct-skel" style={{ height: 122, borderRadius: 22 }} />
+        <div className="ff-acct-skel" style={{ height: 420, borderRadius: 22, marginTop: 22 }} />
+      </div>
+    </div>
+  )
+}
+
+function AccountError({ error, onRetry }) {
+  return (
+    <div className="ff-acct">
+      <div className="ff-acct-state">
+        <div className="ff-acct-state__box">
+          <p className="ff-acct-eyebrow">Account</p>
+          <h1>We couldn’t load your settings.</h1>
+          <p>Something went wrong reaching your account. Please try again.</p>
+          <button type="button" className="ff-acct-btn ff-acct-btn--primary" onClick={onRetry}>Retry</button>
+          {import.meta.env?.DEV && error ? <p style={{ marginTop: 16, fontSize: 11 }}>{String(error)}</p> : null}
         </div>
       </div>
     </div>
   )
 }
 
-function SignedOut() {
+function AccountSignedOut({ onSignIn }) {
   return (
-    <div className="ff-account-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
-      <div style={{ textAlign:'center', maxWidth:480 }}>
-        <Eyebrow size={10} style={{ marginBottom:18 }}>Account</Eyebrow>
-        <h1 style={{ fontFamily:'var(--font-editorial)', fontSize:42, fontWeight:400, color: HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Sign in to manage your settings.</h1>
-        <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>The settings drawer needs an account to attach to.</p>
-      </div>
-    </div>
-  )
-}
-
-function PageError({ error }) {
-  return (
-    <div className="ff-account-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
-      <div style={{ textAlign:'center', maxWidth:520 }}>
-        <Eyebrow size={10} style={{ marginBottom:18 }}>Account · error</Eyebrow>
-        <h1 style={{ fontFamily:'var(--font-editorial)', fontSize:36, fontWeight:400, color:HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Couldn&rsquo;t load your settings.</h1>
-        <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>{error}</p>
+    <div className="ff-acct">
+      <div className="ff-acct-state">
+        <div className="ff-acct-state__box">
+          <p className="ff-acct-eyebrow">Account</p>
+          <h1>Sign in to manage your settings.</h1>
+          <p>Your account settings need an account to attach to.</p>
+          <button type="button" className="ff-acct-btn ff-acct-btn--primary" onClick={onSignIn}>Go to sign in</button>
+        </div>
       </div>
     </div>
   )

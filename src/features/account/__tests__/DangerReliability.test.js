@@ -1,45 +1,53 @@
 import { describe, it, expect } from 'vitest'
-import src from '../sections-bottom.jsx?raw'
+import dialogSrc from '../dialogs/AccountDialog.jsx?raw'
+import deleteSrc from '../dialogs/DeleteAccountDialog.jsx?raw'
+import resetSrc from '../dialogs/ResetTasteDialog.jsx?raw'
+import dataPaneSrc from '../panes/DataDeletionPane.jsx?raw'
 
-// F9.3 — Account destructive-action a11y + reliability + copy honesty (source guard).
-describe('Account — F9.3 delete-modal a11y + pending', () => {
-  it('the delete dialog is labelled by its visible title', () => {
-    expect(src).toMatch(/aria-labelledby="del-modal-title"/)
-    expect(src).toMatch(/<h2 id="del-modal-title"/)
-  })
-
-  it('closes on Escape and focuses the first field on open', () => {
-    expect(src).toMatch(/e\.key === 'Escape'/)
-    expect(src).toMatch(/emailRef\.current\?\.focus\(\)/)
-  })
-
-  it('removes outline:none from the modal inputs (keyboard focus is visible)', () => {
-    // both del-confirm-email + del-reason had outline:'none'; neither should anymore
-    const modal = src.slice(src.indexOf('del-modal-title'), src.indexOf('Schedule deletion') + 40)
-    expect(modal).not.toMatch(/outline:'none'/)
-  })
-
-  it('disables the destructive button while the request is pending', () => {
-    expect(src).toMatch(/disabled=\{!enabled \|\| busy\}/)
-    expect(src).toMatch(/busy \? 'Scheduling…' : 'Schedule deletion'/)
+// Account destructive-action a11y + reliability + copy honesty (source guards), carried
+// forward from F9.3 to the redesigned dialog/pane architecture.
+describe('Account — dialog a11y primitive', () => {
+  it('the shared dialog is a labelled modal with a focus trap, Escape-when-safe, scroll lock + restore', () => {
+    expect(dialogSrc).toMatch(/role="dialog"/)
+    expect(dialogSrc).toMatch(/aria-modal="true"/)
+    expect(dialogSrc).toMatch(/aria-labelledby=\{titleId\}/)
+    expect(dialogSrc).toMatch(/e\.key === 'Escape' && !busy/)        // Escape only when not busy
+    expect(dialogSrc).toMatch(/e\.key !== 'Tab'/)                    // Tab is trapped
+    expect(dialogSrc).toMatch(/document\.body\.style\.overflow = 'hidden'/) // body scroll lock
+    expect(dialogSrc).toMatch(/opener\.focus\(\)/)                   // focus restoration
   })
 })
 
-describe('Account — F9.3 Reset taste profile confirmation + honest copy', () => {
-  it('requires a two-step confirmation (confirmFirst)', () => {
-    const reset = src.slice(src.indexOf('Reset taste profile') - 40, src.indexOf('Reset taste profile') + 320)
-    expect(reset).toMatch(/confirmFirst/)
+describe('Account — delete dialog', () => {
+  it('is labelled by its visible title and gates the destructive action on email match + busy', () => {
+    expect(deleteSrc).toMatch(/<h2 id=\{titleId\}/)
+    expect(deleteSrc).toMatch(/disabled=\{!matches \|\| busy\}/)
+    expect(deleteSrc).toMatch(/busy \? 'Scheduling…' : 'Schedule deletion'/)
   })
-
-  it('copy is accurate — no misleading "mood weights" / "watches stay logged"', () => {
-    const reset = src.slice(src.indexOf('Reset taste profile') - 40, src.indexOf('Reset taste profile') + 320)
-    expect(reset).not.toMatch(/mood weights start from zero/)
-    expect(reset).not.toMatch(/existing watches stay logged/)
-    expect(reset).toMatch(/onboarding/i) // describes what actually happens
+  it('uses generic wording (no unverified enumerated deleted-data scope)', () => {
+    expect(deleteSrc).toMatch(/seven days to cancel/i)
+    expect(deleteSrc).not.toMatch(/profile, watches, ratings, lists, and DNA/i)
   })
+  it('treats the reason as sensitive — never sent to analytics from the dialog', () => {
+    expect(deleteSrc).not.toMatch(/from ['"]@\/shared\/services\/analytics['"]/) // no analytics import
+    expect(deleteSrc).not.toMatch(/posthog|\.capture\(/i)                        // no capture call
+  })
+})
 
-  it('does NOT regress the B1.2 analytics copy (still honest, no "no PII")', () => {
-    expect(src).not.toMatch(/Aggregated, no PII/)
-    expect(src).toMatch(/Privacy-safe usage analytics/)
+describe('Account — restart taste setup', () => {
+  it('confirmation copy is accurate (onboarding, what is kept) and not "Reset DNA"', () => {
+    expect(resetSrc).toMatch(/onboarding/i)
+    expect(resetSrc).toMatch(/Films, ratings, lists and Diary entries you added later remain/)
+    expect(resetSrc).not.toMatch(/Reset DNA/)
+  })
+  it('the reset checks every operation and only redirects after full success', () => {
+    expect(dataPaneSrc).toMatch(/if \(r\.error\) throw r\.error/)
+    expect(dataPaneSrc).toMatch(/if \(metaErr\) throw metaErr/)
+    // navigate to onboarding happens inside runReset, after the checked deletes
+    expect(dataPaneSrc).toMatch(/navigate\('\/onboarding'/)
+  })
+  it('pending deletion shows an explicit timezone and a cancel path', () => {
+    expect(dataPaneSrc).toMatch(/timeZoneName: 'short'/)
+    expect(dataPaneSrc).toMatch(/Cancel deletion/)
   })
 })

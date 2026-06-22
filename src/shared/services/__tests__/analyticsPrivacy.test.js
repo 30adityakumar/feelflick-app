@@ -122,8 +122,8 @@ describe('analytics privacy — source guards', () => {
   })
 
   it('Account analytics copy is honest (no false "no PII" / "Aggregated" claim)', async () => {
-    const src = await import('@/features/account/sections-bottom.jsx?raw').then((m) => m.default)
-    const m = src.match(/k:'analytics'[^}]*desc:'([^']*)'/)
+    const src = await import('@/features/account/panes/PrivacyPane.jsx?raw').then((m) => m.default)
+    const m = src.match(/ANALYTICS_DESC = '([^']*)'/)
     expect(m).toBeTruthy()
     expect(m[1]).not.toMatch(/no PII/i)
     expect(m[1]).not.toMatch(/aggregated/i)

@@ -701,26 +701,31 @@ test.describe('User Library — Diary small-screen + geometry', () => {
     })
   }
 
-  for (const vp of [{ name: '1280×800', width: 1280, height: 800 }, { name: '390×844', width: 390, height: 844 }, { name: '320×812', width: 320, height: 812 }]) {
-    test(`R4 — Diary at 200% zoom @ ${vp.name}: no horizontal overflow, content reachable`, async ({ page }) => {
+  // 200% browser zoom halves the effective CSS viewport, so the faithful + Playwright-reliable
+  // simulation is a half-size viewport. (CSS `zoom` confuses Playwright's visibility model and is
+  // not how page-zoom reflows the layout viewport.) The most extreme case — a 320px device at 200%
+  // ≈ 160 CSS px — exercises the narrow-width fallbacks.
+  for (const z of [
+    { name: '1280 @ 200% (≈640)', width: 640, height: 400 },
+    { name: '390 @ 200% (≈195)', width: 195, height: 422 },
+    { name: '320 @ 200% (≈160)', width: 160, height: 406 },
+  ]) {
+    test(`R4 — Diary at 200% zoom ${z.name}: no horizontal overflow, content reachable`, async ({ page }) => {
       const ledger = await installLibraryFixture(page)
-      await page.setViewportSize({ width: vp.width, height: vp.height })
+      await page.setViewportSize({ width: z.width, height: z.height })
       await openDiary(page)
-      await page.evaluate(() => { document.documentElement.style.zoom = '2' })
-      await page.waitForTimeout(150)
-      const overflow = await page.evaluate(() => {
-        const el = document.scrollingElement || document.documentElement
-        return el.scrollWidth - el.clientWidth
-      })
-      expect(overflow, 'no horizontal overflow at 200% zoom').toBeLessThanOrEqual(2)
+      await noHorizontalOverflow(page)
       await expect(libNav(page)).toBeVisible()
       await expect(page.getByText('Films logged', { exact: true })).toBeVisible()
       await expect(page.getByLabel('Search the Diary')).toBeVisible()
-      await expect(page.getByRole('heading', { level: 3 }).first()).toBeVisible()
-      // dialog opens + scrolls within the zoomed viewport
+      await expect(page.getByRole('heading', { level: 3 }).first()).toBeVisible() // title column never collapses
+      await expect(page.getByRole('button', { name: /Remove .* from Diary/ }).first()).toBeVisible()
+      // dialog opens + is actionable + fits at 200% zoom
       await page.getByRole('listitem').first().getByRole('button', { name: /Remove .* from Diary/ }).click()
-      await expect(page.getByRole('dialog')).toBeVisible()
-      await expect(page.getByRole('dialog').getByRole('button', { name: 'Remove from Diary' })).toBeVisible()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+      await expect(dialog.getByRole('button', { name: 'Remove from Diary' })).toBeVisible()
+      expect((await dialog.boundingBox()).width).toBeLessThanOrEqual(z.width)
       await page.keyboard.press('Escape')
       expect(ledger.unexpectedRequests).toEqual([])
     })

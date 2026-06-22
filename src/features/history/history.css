@@ -254,6 +254,16 @@
   .ff-diary-row__poster, .ff-diary-row__img { width: 52px; }
   .ff-diary-row__runtime { display: none; }
 }
+/* Very narrow effective widths (e.g. a 320px device at 200% browser zoom ≈ 160 CSS px): shrink the
+   gutter, poster, and gaps so the minmax(0,1fr) title column never collapses to zero and the row
+   never overflows. Above 360px (so the 390px + desktop baselines are untouched). */
+@media (max-width: 360px) {
+  .ff-history-v2 { --diary-px: 12px; }
+  .ff-diary-row { grid-template-columns: 44px minmax(0, 1fr) auto; column-gap: 8px; }
+  .ff-diary-row__poster, .ff-diary-row__img { width: 44px; }
+  .ff-diary-dialog-backdrop { padding: 10px; }
+  .ff-diary-empty { padding-left: var(--diary-px); padding-right: var(--diary-px); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .ff-history-v2 *, .ff-history-v2 *::before, .ff-history-v2 *::after { transition: none !important; animation: none !important; }

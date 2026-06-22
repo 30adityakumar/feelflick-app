@@ -1,102 +1,179 @@
-/* people.css */
-/* people.css — fonts load globally via index.html */
-.ff-people-v2, body:has(> div > div.ff-people-v2) { font-family:'Inter', system-ui, sans-serif; }
-.ff-people-v2 em { font-style: italic; }
-.ff-people-v2 button { font-family: inherit; transition: filter 0.18s ease; }
-.ff-people-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
-.ff-people-v2 input { font-family: inherit; }
-.ff-people-v2 ::selection { background: rgba(221,78,131,0.35); color:#fff; }
+/* src/features/people/people.css — People on the Adaptive Editorial Cinema foundation (warm Ink +
+   Inter), shared with the released Library surfaces. Uses the --ts-* foundation tokens with warm-Ink
+   fallbacks (no ThoughtfulRoot wrapper required). Route-scoped; replaces the prior inline-style
+   sprawl + purple/pink gradient identity. No percentage gradients. Sticky offsets use the real --n
+   header token. */
 
-/* === Responsive overrides ==================================================
-   Mirrors the pattern used in account-v2.css + watchlist-v2.css + history-v2.css:
-   inline `padding: ...88px` and fixed grid templates are kept for desktop;
-   class hooks override them at narrow widths. */
+.ff-people-v2 {
+  --pl-canvas: var(--ts-canvas, #15120f);
+  --pl-surface: var(--ts-surface-1, #1d1814);
+  --pl-surface-2: var(--ts-surface-2, #241e19);
+  --pl-border: var(--ts-border-subtle, #302c28);
+  --pl-border-strong: var(--ts-border-strong, #46423d);
+  --pl-text: var(--ts-text-primary, #f3ecdf);
+  --pl-text-2: var(--ts-text-secondary, #beb8ad);
+  --pl-text-muted: var(--ts-text-muted, #8d887f);
+  --pl-rose: #dd4e83;
+  /* Deeper rose for white-text fills — white on #dd4e83 is 3.82:1 (fails AA); #c0356c clears 4.5:1. */
+  --pl-rose-deep: #c0356c;
+  --pl-px: clamp(20px, 5vw, 64px);
+  --pl-nav-clear: 96px;
 
-/* Tablet (≤ 1100px): trim sidewalls; twin grid drops 4 → 3 cols. */
-@media (max-width: 1100px) {
-  .ff-people-section {
-    padding-left: clamp(28px, 5vw, 60px) !important;
-    padding-right: clamp(28px, 5vw, 60px) !important;
-  }
-  .ff-people-grid-4 {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 16px !important;
-  }
+  min-height: 100vh;
+  background: var(--pl-canvas);
+  color: var(--pl-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 80px;
 }
+.ff-people-v2 button, .ff-people-v2 input, .ff-people-v2 select { font-family: inherit; }
+.ff-people-v2 ::selection { background: rgba(221, 78, 131, 0.3); color: #fff; }
+.ff-people-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-/* Smaller tablet (≤ 880px): twin grid 3 → 2 cols, "3-col rails" → 2 cols. */
-@media (max-width: 880px) {
-  .ff-people-grid-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .ff-people-grid-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 14px !important;
-  }
-}
+.ff-people-section { padding-left: var(--pl-px); padding-right: var(--pl-px); }
 
-/* Phone (≤ 720px). */
-@media (max-width: 720px) {
-  .ff-people-section {
-    padding-left: clamp(16px, 4vw, 24px) !important;
-    padding-right: clamp(16px, 4vw, 24px) !important;
-  }
-  .ff-people-masthead {
-    padding-top: 48px !important;
-    padding-bottom: 24px !important;
-  }
-  /* Hero clamps so "Your taste matches." fits on two lines max instead of three. */
-  .ff-people-hero {
-    font-size: clamp(44px, 13vw, 72px) !important;
-    line-height: 1 !important;
-  }
-  .ff-people-h2 {
-    font-size: 26px !important;
-  }
-  .ff-people-h2-sm {
-    font-size: 22px !important;
-  }
-  /* Twin cards stack so each gets the full viewport width. */
-  .ff-people-grid-4 {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-  .ff-people-grid-3 {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-  .ff-people-twin-card {
-    padding: 20px 18px !important;
-  }
-  /* Search form: input + button stack so button keeps full label visible. */
-  .ff-people-search-form {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  .ff-people-search-form > button {
-    width: 100% !important;
-  }
-}
+/* ── Masthead ───────────────────────────────────────────────────────── */
+.ff-people-masthead { padding-top: 40px; padding-bottom: 8px; }
+.ff-people-masthead__head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: end; }
+.ff-people-hero { margin: 10px 0 0; font-size: clamp(34px, 5.6vw, 56px); line-height: 1.0; font-weight: 600; letter-spacing: -0.035em; color: var(--pl-text); }
+.ff-people-masthead__sub { margin: 12px 0 0; max-width: 60ch; font-size: 15px; line-height: 1.55; color: var(--pl-text-2); }
+.ff-people-masthead__aside { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.ff-people-summary { margin: 0; font-size: 12px; letter-spacing: 0.04em; color: var(--pl-text-muted); display: flex; gap: 6px; }
+.ff-people-summary__dot { opacity: 0.6; }
+.ff-people-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.ff-people-action { min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: var(--pl-surface); border: 1px solid var(--pl-border); color: var(--pl-text-2); font-size: 12px; font-weight: 600; cursor: pointer; }
+.ff-people-action--primary { background: var(--pl-text); border-color: var(--pl-text); color: #1a1410; }
+.ff-people-invite-status { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--pl-text-2); }
 
-/* F8.4 / F8.7 — visible focus ring for every People interactive control (keyboard + AT). */
-.ff-people-followbtn:focus-visible,
-.ff-people-hidebtn:focus-visible,
-.ff-people-invite-btn:focus-visible,
-.ff-people-clear-btn:focus-visible {
-  outline: 2px solid var(--color-focus, #f3ecdf);
-  outline-offset: 2px;
-  border-radius: 999px;
-}
-.ff-people-hidebtn:hover { color: rgba(250, 250, 250, 0.85); }
+/* ── Sticky name search ─────────────────────────────────────────────── */
+.ff-people-searchbar { position: sticky; top: var(--n, 56px); z-index: 30; background: var(--pl-canvas); border-top: 1px solid var(--pl-border); border-bottom: 1px solid var(--pl-border); margin-top: 24px; }
+.ff-people-searchbar__shell { padding-top: 12px; padding-bottom: 12px; }
+.ff-people-searchbar__inner { display: flex; align-items: center; gap: 14px; }
+.ff-people-search-field { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; }
+.ff-people-search-icon { position: absolute; left: 14px; color: var(--pl-text-muted); pointer-events: none; }
+.ff-people-search-input { width: 100%; min-width: 0; height: 44px; padding: 0 40px; border-radius: 999px; background: var(--pl-surface); border: 1px solid var(--pl-border); color: var(--pl-text); font-size: 13px; outline: none; }
+.ff-people-search-input::placeholder { color: var(--pl-text-muted); }
+.ff-people-search-clear { position: absolute; right: 8px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: transparent; color: var(--pl-text-muted); cursor: pointer; }
+.ff-people-search-note { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pl-text-muted); white-space: nowrap; }
 
-/* F8.7 — the search input had outline:none inline; give it an explicit, branded focus ring + border. */
+/* ── Rails ──────────────────────────────────────────────────────────── */
+.ff-people-rail { padding-top: 34px; padding-bottom: 10px; }
+.ff-people-rail__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.ff-people-rail__title { margin: 8px 0 0; font-size: clamp(24px, 3.4vw, 34px); font-weight: 600; letter-spacing: -0.03em; color: var(--pl-text); }
+.ff-people-rail__title--sm { font-size: clamp(20px, 2.6vw, 26px); }
+.ff-people-rail__sub { margin: 8px 0 0; font-size: 13px; color: var(--pl-text-muted); }
+.ff-people-chip { min-height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; background: transparent; border: 1px solid var(--pl-border); color: var(--pl-text-muted); font-size: 11px; cursor: pointer; }
+.ff-people-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; outline: none; }
+.ff-people-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; outline: none; }
+
+/* ── Strongest card ─────────────────────────────────────────────────── */
+.ff-people-card { min-width: 0; padding: 20px; border-radius: 14px; background: var(--pl-surface); border: 1px solid var(--pl-border); display: flex; flex-direction: column; }
+.ff-people-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ff-people-card__band { text-align: right; min-width: 0; }
+.ff-people-card__band-label { display: block; font-size: 13px; font-weight: 600; color: var(--pl-text); letter-spacing: -0.01em; }
+.ff-people-card__evidence { display: block; margin-top: 3px; font-size: 10px; color: var(--pl-text-muted); }
+.ff-people-card__name { margin: 16px 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.015em; color: var(--pl-text); overflow-wrap: anywhere; }
+.ff-people-card__bio { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: var(--pl-text-2); overflow-wrap: anywhere; }
+.ff-people-card__actions { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--pl-border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* ── Avatar ─────────────────────────────────────────────────────────── */
+.ff-people-avatar { border-radius: 50%; object-fit: cover; display: block; flex: none; background: var(--pl-surface-2); }
+.ff-people-avatar--initial { display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: #1a1410; }
+
+/* ── Follow / Hide ──────────────────────────────────────────────────── */
+.ff-people-followbtn { padding: 0 16px; border-radius: 999px; background: var(--pl-rose-deep); border: none; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+.ff-people-followbtn--following { background: transparent; border: 1px solid var(--pl-border-strong); color: var(--pl-text-2); }
+.ff-people-followbtn:disabled { opacity: 0.7; cursor: wait; }
+.ff-people-hidebtn { padding: 0 10px; background: transparent; border: none; color: var(--pl-text-muted); font-size: 11px; letter-spacing: 0.04em; cursor: pointer; }
+.ff-people-hidebtn:hover { color: var(--pl-text); }
+
+/* ── Rows (More / Suggested / Search) ───────────────────────────────── */
+.ff-people-row { min-width: 0; padding: 14px 16px; border-radius: 12px; background: var(--pl-surface); border: 1px solid var(--pl-border); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.ff-people-row__copy { min-width: 0; }
+.ff-people-row__name { font-size: 14px; font-weight: 600; color: var(--pl-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ff-people-row__bio { margin-top: 3px; font-size: 11px; color: var(--pl-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ff-people-row__caption { margin-top: 4px; font-size: 10px; letter-spacing: 0.04em; color: var(--pl-text-muted); }
+.ff-people-row__via { margin-top: 3px; font-size: 11px; color: var(--pl-text-muted); }
+.ff-people-row__via span { color: var(--pl-text-2); }
+.ff-people-row__stack { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+
+.ff-people-clear-btn { min-height: 44px; padding: 0 14px; border: 1px solid var(--pl-border); border-radius: 10px; background: transparent; color: var(--pl-text-muted); font-size: 12px; cursor: pointer; }
+.ff-people-state-note { font-size: 13px; color: var(--pl-text-muted); }
+
+/* ── Empty / cold / error ───────────────────────────────────────────── */
+.ff-people-coldwrap { padding-top: 32px; }
+.ff-people-empty { border: 1px dashed var(--pl-border-strong); border-radius: 16px; padding: 44px 24px; text-align: center; background: var(--pl-surface); }
+.ff-people-empty--cold { padding: 56px 24px; }
+.ff-people-empty__title { margin: 0; font-size: 18px; font-weight: 600; color: var(--pl-text); }
+.ff-people-empty__body { margin: 10px auto 0; max-width: 46ch; font-size: 13px; line-height: 1.55; color: var(--pl-text-2); }
+.ff-people-retry { margin-top: 18px; }
+
+.ff-people-errorwrap { min-height: 56vh; display: flex; align-items: center; justify-content: center; padding: 24px var(--pl-px); }
+.ff-people-error { text-align: center; max-width: 520px; }
+.ff-people-error__eyebrow { margin: 0 0 16px; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--pl-text-muted); }
+.ff-people-error__title { margin: 0 0 14px; font-size: clamp(26px, 4vw, 34px); font-weight: 600; letter-spacing: -0.02em; color: var(--pl-text); }
+.ff-people-error__body { margin: 0 0 26px; font-size: 14px; line-height: 1.6; color: var(--pl-text-2); }
+.ff-people-error__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ── Hide/Undo toast ────────────────────────────────────────────────── */
+.ff-people-toast-wrap { position: fixed; z-index: 80; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom)); transform: translateX(-50%); max-width: 92vw; }
+.ff-people-toast { display: flex; align-items: center; gap: 14px; padding: 11px 12px 11px 18px; border-radius: 14px; background: var(--pl-surface-2); border: 1px solid var(--pl-border-strong); color: var(--pl-text); box-shadow: 0 18px 50px -18px rgba(0,0,0,0.7); font-size: 13px; }
+.ff-people-toast__undo { min-height: 36px; padding: 0 12px; border: 0; border-radius: 9px; background: rgba(255,255,255,0.08); color: var(--pl-text); font-size: 12px; font-weight: 700; cursor: pointer; }
+
+/* ── Explainer dialog ───────────────────────────────────────────────── */
+.ff-people-dialog-backdrop { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.62); }
+.ff-people-dialog { width: 100%; max-width: 560px; max-height: calc(100svh - 40px); overflow-y: auto; padding: 26px; border-radius: 18px; background: var(--pl-surface); border: 1px solid var(--pl-border-strong); box-shadow: 0 28px 70px -20px rgba(0,0,0,0.78); outline: none; }
+.ff-people-dialog__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.ff-people-dialog__eyebrow { margin: 0; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--pl-text-muted); }
+.ff-people-dialog__title { margin: 6px 0 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: var(--pl-text); }
+.ff-people-dialog__close { width: 38px; height: 38px; flex: none; border: 0; border-radius: 50%; background: var(--pl-surface-2); color: var(--pl-text-2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.ff-people-dialog__intro { margin: 14px 0 0; font-size: 14px; line-height: 1.55; color: var(--pl-text-2); }
+.ff-people-dialog__list { margin: 16px 0 0; padding-left: 18px; display: grid; gap: 9px; font-size: 13px; line-height: 1.5; color: var(--pl-text-2); }
+.ff-people-dialog__foot { margin: 16px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--pl-text-muted); }
+.ff-people-dialog__foot strong { color: var(--pl-text-2); }
+
+/* ── Skeleton ───────────────────────────────────────────────────────── */
+.ff-people-skel-card { height: 210px; border-radius: 14px; background: var(--pl-surface); border: 1px solid var(--pl-border); }
+
+/* ── Disabled (kill switch) ─────────────────────────────────────────── */
+.ff-people-unavailable { max-width: 680px; margin: 0 auto; padding: 120px 24px; text-align: center; }
+.ff-people-unavailable__title { margin: 0 0 12px; font-size: 28px; font-weight: 700; color: var(--pl-text); }
+.ff-people-unavailable__body { margin: 0; color: var(--pl-text-2); font-size: 15px; line-height: 1.6; }
+
+/* ── Focus visibility ───────────────────────────────────────────────── */
+.ff-people-v2 a:focus-visible, .ff-people-v2 button:focus-visible, .ff-people-v2 input:focus-visible,
 .ff-people-search-input:focus-visible {
-  outline: 2px solid var(--color-focus, #f3ecdf);
-  outline-offset: 1px;
-  border-color: var(--color-border-strong, #46423d);
+  outline: 2px solid var(--pl-text); outline-offset: 2px; border-radius: 8px;
 }
 
-/* F8.7 — reduced motion: People adds NO JS animation. The only motion is the button hover-brightness
-   transition above + the loading skeleton's Tailwind .animate-pulse; both are neutralised by the
-   global @media (prefers-reduced-motion: reduce) reset in src/index.css (transition-duration +
-   animation-duration → ~0). No People-specific guard is required; documented here for auditability. */
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 1100px) { .ff-people-grid-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .ff-people-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ff-people-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) {
+  .ff-people-masthead { padding-top: 28px; }
+  .ff-people-masthead__head { grid-template-columns: 1fr; gap: 18px; align-items: start; }
+  .ff-people-masthead__aside { align-items: flex-start; }
+  .ff-people-actions { justify-content: flex-start; }
+  .ff-people-searchbar__inner { gap: 10px; }
+  .ff-people-search-note { display: none; }
+  /* Strongest becomes a horizontal snap carousel with a partial-next cue. */
+  .ff-people-grid-4 { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin-inline: calc(-1 * var(--pl-px)); padding: 0 var(--pl-px) 8px; scrollbar-width: none; }
+  .ff-people-grid-4::-webkit-scrollbar { display: none; }
+  .ff-people-card { min-width: min(82vw, 320px); scroll-snap-align: start; }
+  .ff-people-grid-3 { grid-template-columns: 1fr; }
+  /* Clear the fixed mobile BottomNav for the last row + the toast. */
+  .ff-people-rail:last-of-type, .ff-people-coldwrap { padding-bottom: calc(var(--pl-nav-clear) + env(safe-area-inset-bottom)); }
+  .ff-people-toast-wrap { bottom: calc(var(--pl-nav-clear) + 12px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 420px) {
+  .ff-people-v2 { --pl-px: 14px; }
+  .ff-people-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .ff-people-action { justify-content: center; }
+  .ff-people-row { grid-template-columns: auto minmax(0, 1fr); }
+  .ff-people-row__stack, .ff-people-row > .ff-people-followbtn { grid-column: 1 / -1; width: 100%; }
+  .ff-people-row__stack { flex-direction: row; justify-content: space-between; align-items: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-people-v2 *, .ff-people-v2 *::before, .ff-people-v2 *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}

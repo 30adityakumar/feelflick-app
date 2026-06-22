@@ -53,12 +53,13 @@ const U = {
   ida: 'aaaa0009-0000-4000-8000-000000000009',
   jay: 'aaaa0010-0000-4000-8000-000000000010',
   kim: 'aaaa0011-0000-4000-8000-000000000011',
+  lee: 'aaaa0012-0000-4000-8000-000000000012', // FOF-only (not in similarity) — Suggested via Fin
 }
 
 const NAME = {
   [U.ana]: 'Ana Okafor', [U.bo]: 'Bo Tremblay', [U.cy]: 'Cy Nakamura', [U.eve]: 'Eve Salenko',
   [U.fin]: 'Fin Adeyemi', [U.gus]: 'Gus Halloran', [U.hal]: 'Hal Voss', [U.ida]: 'Ida Pereira',
-  [U.jay]: 'Jay Okonkwo', [U.kim]: 'Kim Larsen',
+  [U.jay]: 'Jay Okonkwo', [U.kim]: 'Kim Larsen', [U.lee]: 'Lee Okafor',
 }
 
 // overall_similarity (0-1), movies_in_common, fingerprint total (counterpart maturity).
@@ -74,6 +75,7 @@ const CANDIDATES = [
   { id: U.ida, sim: 0.44, inCommon: 2,    total: 16 }, // insufficient overlap → "Not enough shared evidence yet"
   { id: U.jay, sim: 0.40, inCommon: 7,    total: 14 },
   { id: U.kim, sim: 0.36, inCommon: 5,    total: 9  },
+  { id: U.lee, sim: 0,    inCommon: null, total: 20, fofOnly: true }, // opted-in, NOT in similarity → only reachable via FOF
 ]
 
 const FOLLOWING = CANDIDATES.filter(c => c.following).map(c => c.id) // [fin]
@@ -136,7 +138,7 @@ export async function installPeopleFixture(page, options = {}) {
   // user_similarity rows the provider reads (numbers only — identity comes from the RPC).
   function similarityRows() {
     if (opts.mode === 'empty') return []
-    const rows = CANDIDATES.map(c => ({ user_b_id: c.id, overall_similarity: c.sim, movies_in_common: c.inCommon }))
+    const rows = CANDIDATES.filter(c => !c.fofOnly).map(c => ({ user_b_id: c.id, overall_similarity: c.sim, movies_in_common: c.inCommon }))
     if (opts.includeSelfCandidate && selfId) {
       rows.unshift({ user_b_id: selfId, overall_similarity: 0.99, movies_in_common: 20 }) // must be filtered out
     }
@@ -190,7 +192,8 @@ export async function installPeopleFixture(page, options = {}) {
           if (opts.rpc === 'taste_fail') return json(500, { code: 'MOCK', message: 'taste RPC failed' })
           return json(200, tasteProfiles())
         case 'get_follow_suggestions':
-          return json(200, []) // FOF empty in these deterministic states (similarity fills the rails)
+          // Caller-scoped FOF: Lee is suggested via Fin (followed). Empty in 'empty' mode.
+          return json(200, opts.mode === 'empty' ? [] : [{ suggested_user_id: U.lee, via_user_id: U.fin }])
         case 'search_people_by_name':
           if (opts.search === 'failure') return json(500, { code: 'MOCK', message: 'search failed' })
           return json(200, opts.search === 'empty' ? [] : SEARCH_ROWS)

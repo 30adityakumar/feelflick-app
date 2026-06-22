@@ -35,8 +35,9 @@ async function openWatchlist(page) {
 }
 async function openDiary(page, route = '/history') {
   await page.goto(route)
-  await expect(h1(page)).toHaveText(/Your diary\./, { timeout: 20_000 })
+  await expect(h1(page)).toHaveText('Diary', { timeout: 20_000 })
 }
+const diaryTitles = (page) => page.getByRole('listitem').locator('h3')
 
 // ── Setup + safety ────────────────────────────────────────────────────────────────
 test.describe('User Library — authenticated, intercepted', () => {
@@ -272,7 +273,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     await openDiary(page)
 
     await expect(page.getByText('Your library')).toBeVisible()
-    await expect(h1(page)).toHaveText(/Your diary\./)
+    await expect(h1(page)).toHaveText('Diary')
     await expect(libNav(page).getByRole('link', { name: 'Diary' })).toHaveAttribute('aria-current', 'page')
 
     // truthful, Diary-scoped stats; NO streak
@@ -282,8 +283,8 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     expect(surface).not.toMatch(/\d+%/)                              // no match %
 
     // chronological month grouping + provenance labels
-    await expect(page.getByRole('heading', { level: 2, name: 'Feb' })).toBeVisible()
-    await expect(page.getByRole('heading', { level: 2, name: 'Jan' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2, name: /Feb 2026/ })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2, name: /Jan 2026/ })).toBeVisible()
     await expect(page.getByRole('img', { name: 'Film mood: Tender' }).first()).toBeVisible()
     await expect(page.getByText('Your review').first()).toBeVisible()
 
@@ -293,7 +294,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     for (const title of TITLES.diary) {
       const row = rows.filter({ has: page.getByRole('heading', { name: title, exact: true }) })
       await expect(row.getByRole('link', { name: `Open ${title}` })).toHaveCount(1)
-      await expect(row.getByRole('button', { name: `Remove ${title} from diary` })).toHaveCount(1)
+      await expect(row.getByRole('button', { name: `Remove ${title} from Diary` })).toHaveCount(1)
     }
     expect(ledger.unexpectedRequests).toEqual([])
   })
@@ -308,13 +309,11 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     await expect(page.getByRole('heading', { name: 'Lantern Hill', exact: true })).toHaveCount(1) // film shown once
     await expect(rows.first().getByRole('heading', { level: 3 })).toHaveText('Lantern Hill')       // its LATEST watch (Feb 13) → newest-first
 
-    // stats count each film once (not inflated by dupes): masthead "4 films · 7 hours"
-    // (Logged + Hours) + the per-card values located by exact label.
-    await expect(page.getByText('4 films · 7 hours')).toBeVisible()
-    const card = (label) => page.locator('.ff-hist-pulse-grid > div').filter({ has: page.getByText(label, { exact: true }) })
-    await expect(card('Logged')).toContainText('4')
-    await expect(card('Hours watched')).toContainText('7h')
-    await expect(card('This month')).toContainText('2')
+    // compact stats count each film once (not inflated by dupes), located by exact label.
+    const stat = (label) => page.locator('.ff-diary-stat').filter({ has: page.getByText(label, { exact: true }) })
+    await expect(stat('Films logged')).toContainText('4')
+    await expect(stat('Runtime logged')).toContainText('7h')
+    await expect(stat('This month')).toContainText('2')
 
     // rating + review remain attached to the canonical Lantern Hill entry
     const lantern = rows.filter({ has: page.getByRole('heading', { name: 'Lantern Hill', exact: true }) })
@@ -338,7 +337,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     await expect(page.getByRole('heading', { name: 'Lantern Hill', exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'All' }).click()
 
-    const search = page.getByLabel('Search the diary')
+    const search = page.getByLabel('Search the Diary')
     await search.fill('tin')                                          // title
     await expect(page.getByRole('heading', { name: 'The Tin Almanac', exact: true })).toBeVisible()
     await expect(page.getByRole('listitem')).toHaveCount(1)
@@ -347,7 +346,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     await search.fill('grief')                                        // review text
     await expect(page.getByRole('heading', { name: 'The Long Field', exact: true })).toBeVisible()
     await search.fill('zzzzz')                                        // searched-empty
-    await expect(page.getByText(/0 of 4 match/i)).toBeVisible()
+    await expect(page.getByText(/match your search/i)).toBeVisible()
     await search.fill('')                                             // reset
     await expect(page.getByRole('listitem')).toHaveCount(4)
 
@@ -361,14 +360,14 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
   test('I — Diary remove dialog: accessible, cancel performs no delete', async ({ page }) => {
     const ledger = await installLibraryFixture(page)
     await openDiary(page)
-    const trigger = page.getByRole('button', { name: 'Remove Lantern Hill from diary' })
+    const trigger = page.getByRole('button', { name: 'Remove Lantern Hill from Diary' })
     await trigger.click()
 
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
     await expect(dialog).toHaveAttribute('aria-modal', 'true')
     await expect(dialog.getByRole('heading', { name: 'Remove from Diary?' })).toBeVisible()
-    await expect(dialog.getByText(/Your rating and review will stay with the film/i)).toBeVisible()
+    await expect(dialog.getByText(/Your rating and review remain attached to the film/i)).toBeVisible()
     await expect(dialog.getByRole('button', { name: 'Keep entry' })).toBeFocused() // initial focus = safe default
 
     // Tab trap between the two actions
@@ -387,7 +386,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
   test('J — Diary removal success (only user_history; rating/review survive)', async ({ page }) => {
     const ledger = await installLibraryFixture(page)
     await openDiary(page)
-    await page.getByRole('button', { name: 'Remove Lantern Hill from diary' }).click()
+    await page.getByRole('button', { name: 'Remove Lantern Hill from Diary' }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Remove from Diary' }).click()
 
     await expect(liveStatus(page)).toContainText('Removed Lantern Hill from your Diary.')
@@ -406,7 +405,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
   test('K — Diary removal failure (entry retained, no rating mutation, no false success)', async ({ page }) => {
     const ledger = await installLibraryFixture(page, { removeMode: 'failure' })
     await openDiary(page)
-    await page.getByRole('button', { name: 'Remove Lantern Hill from diary' }).click()
+    await page.getByRole('button', { name: 'Remove Lantern Hill from Diary' }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Remove from Diary' }).click()
 
     await expect(liveStatus(page)).toContainText('Could not remove Lantern Hill from your Diary. Try again.')
@@ -420,7 +419,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
   test('L — Diary empty + sanitized load error', async ({ page }) => {
     const empty = await installLibraryFixture(page, { mode: 'empty' })
     await openDiary(page)
-    await expect(page.getByText('Mark something watched.')).toBeVisible()
+    await expect(page.getByText('Your Diary is open.')).toBeVisible()
     expect(empty.unexpectedRequests).toEqual([])
 
     const ledger = await installLibraryFixture(page, { mode: 'load_error' })
@@ -439,9 +438,98 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     const ledger = await installLibraryFixture(page)
     await openDiary(page, '/watched')
     expect(new URL(page.url()).pathname).toBe('/watched')           // no redirect
-    await expect(h1(page)).toHaveText(/Your diary\./)
+    await expect(h1(page)).toHaveText('Diary')
     await expect(libNav(page).getByRole('link', { name: 'Diary' })).toHaveAttribute('aria-current', 'page')
     await expect(libNav(page).getByRole('link', { name: 'Watchlist' })).toHaveAttribute('href', '/watchlist')
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  test('M2 — Diary filter/sort are URL-addressable; invalid fall back; Back/Forward restore; flat sort shows watched-date', async ({ page }) => {
+    const ledger = await installLibraryFixture(page)
+    await openDiary(page, '/history?sort=rating')
+
+    // Highest rated → FLAT list (no month containers), RAW order, unrated LAST, each row dated.
+    await expect(page.getByRole('heading', { level: 2, name: /highest rated/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2, name: /\b20\d\d\b/ })).toHaveCount(0)
+    await expect(diaryTitles(page).first()).toHaveText('Lantern Hill')   // raw 9 first
+    await expect(diaryTitles(page).last()).toHaveText('Winter Tenants')  // unrated last
+    await expect(page.getByText(/^Watched /).first()).toBeVisible()
+
+    // invalid params fall back to All + Most recent
+    await page.goto('/history?filter=nope&sort=bogus')
+    await expect(h1(page)).toHaveText('Diary')
+    await expect(page.getByRole('combobox', { name: 'Sort diary' })).toHaveValue('recent')
+
+    // selecting Loved writes the URL; Back restores All; Forward restores Loved
+    await page.getByRole('button', { name: 'Loved · 9–10' }).click()
+    await expect(page).toHaveURL(/filter=loved/)
+    await expect(page.getByRole('listitem')).toHaveCount(1)
+    await page.goBack()
+    await expect(page.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
+    await page.goForward()
+    await expect(page.getByRole('button', { name: 'Loved · 9–10' })).toHaveAttribute('aria-pressed', 'true')
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  test('M3 — a failing user_ratings read fails the whole Diary into the sanitized error state', async ({ page }) => {
+    const ledger = await installLibraryFixture(page, { mode: 'ratings_error' })
+    await page.goto('/history')
+    await expect(page.getByRole('alert')).toContainText('We couldn’t load your Diary.')
+    const alert = await page.getByRole('alert').innerText()
+    expect(alert).not.toMatch(/ratings error|500|supabase|PGRST|undefined/i)
+    await expect(h1(page)).toHaveCount(1)
+    await expect(libNav(page)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  test('M4 — completely-empty Diary: truthful copy + Browse picks (/home) and Browse films (/browse); no retrieval', async ({ page }) => {
+    const ledger = await installLibraryFixture(page, { mode: 'empty' })
+    await openDiary(page)
+    await expect(page.getByText('Your Diary is open.')).toBeVisible()
+    await expect(page.getByRole('link', { name: /Browse tonight’s picks/ })).toHaveAttribute('href', '/home')
+    await expect(page.getByRole('link', { name: 'Browse films' })).toHaveAttribute('href', '/browse')
+    await expect(libNav(page)).toBeVisible()
+    await expect(page.getByLabel('Search the Diary')).toHaveCount(0) // retrieval hidden when empty
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  test('M5 — "Show all" from the filtered-empty state clears search + restores results, keeping sort', async ({ page }) => {
+    const ledger = await installLibraryFixture(page)
+    await openDiary(page, '/history?sort=rating')
+    await page.getByLabel('Search the Diary').fill('zzzzz')
+    await expect(page.getByText(/match your search/i)).toBeVisible()
+    await page.getByRole('button', { name: 'Show all' }).click()
+    await expect(page.getByRole('listitem')).toHaveCount(4)
+    await expect(diaryTitles(page).first()).toHaveText('Lantern Hill') // still the rating sort
+    await expect(page.getByLabel('Search the Diary')).toHaveValue('')
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  test('M6 — the confirmation dialog stays OPEN + busy while the delete is in flight, then settles', async ({ page }) => {
+    const ledger = await installLibraryFixture(page, { removeMode: 'slow' })
+    await openDiary(page)
+    await page.getByRole('button', { name: 'Remove Lantern Hill from Diary' }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByRole('button', { name: 'Remove from Diary' }).click()
+    // 450ms in flight: dialog open + busy + both actions disabled (no close-before-await)
+    await expect(dialog.getByRole('button', { name: 'Removing…' })).toBeDisabled()
+    await expect(dialog).toHaveAttribute('aria-busy', 'true')
+    await expect(dialog.getByRole('button', { name: 'Keep entry' })).toBeDisabled()
+    // settles → closes + announces
+    await expect(liveStatus(page)).toContainText('Removed Lantern Hill from your Diary.')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    expect(deletes(ledger, 'user_history')).toHaveLength(1)
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  test('M7 — a Diary entry with no TMDB id renders non-interactively (no broken link); Remove stays', async ({ page }) => {
+    const ledger = await installLibraryFixture(page, { noTmdb: true })
+    await openDiary(page)
+    const row = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Winter Tenants', exact: true }) })
+    await expect(row.getByRole('link')).toHaveCount(0)
+    await expect(row.getByRole('heading', { name: 'Winter Tenants', exact: true })).toBeVisible()
+    await expect(row.getByRole('button', { name: 'Remove Winter Tenants from Diary' })).toHaveCount(1)
     expect(ledger.unexpectedRequests).toEqual([])
   })
 
@@ -453,7 +541,7 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     expect(await page.getByRole('tab').count()).toBe(0)
 
     await libNav(page).getByRole('link', { name: 'Diary' }).click()
-    await expect(h1(page)).toHaveText(/Your diary\./)               // route data updated through the fixture
+    await expect(h1(page)).toHaveText('Diary')               // route data updated through the fixture
     await expect(libNav(page).getByRole('link', { name: 'Diary' })).toHaveAttribute('aria-current', 'page')
 
     await libNav(page).getByRole('link', { name: 'Watchlist' }).click()
@@ -535,7 +623,7 @@ test.describe('User Library — Diary responsive', () => {
       await expect(page.getByText('Your review').first()).toBeVisible() // long review wraps, present
       const lastRow = page.getByRole('listitem').last()
       await lastRow.scrollIntoViewIfNeeded()
-      const remove = lastRow.getByRole('button', { name: /Remove .* from diary/ })
+      const remove = lastRow.getByRole('button', { name: /Remove .* from Diary/ })
       await expect(remove).toBeVisible()
       const box = await remove.boundingBox()
       expect(box.y + box.height).toBeLessThanOrEqual(vp.height + 1)
@@ -544,6 +632,95 @@ test.describe('User Library — Diary responsive', () => {
       await expect(page.getByRole('dialog')).toBeVisible()
       const dbox = await page.getByRole('dialog').boundingBox()
       expect(dbox.width).toBeLessThanOrEqual(vp.width)
+      await page.keyboard.press('Escape')
+      expect(ledger.unexpectedRequests).toEqual([])
+    })
+  }
+})
+
+// ── Diary — explicit small-screen + BottomNav geometry + 200% zoom ────────────────
+// The fixed mobile BottomNav occupies part of the viewport, so "inside the viewport" is not
+// sufficient: the final row's Remove AND the removal status toast must clear the BottomNav's top.
+const bottomNav = (page) => page.locator('.fixed.bottom-0.left-0.right-0.z-30').first()
+const GAP = 8
+
+test.describe('User Library — Diary small-screen + geometry', () => {
+  test('R2 — explicit 320×812: usable, wrapped, no overflow, controls + dialog reachable', async ({ page }) => {
+    const ledger = await installLibraryFixture(page)
+    await page.setViewportSize({ width: 320, height: 812 })
+    await openDiary(page)
+    await noHorizontalOverflow(page)
+    await expect(h1(page)).toHaveCount(1)
+    // nav + the four stats + retrieval controls remain present/usable
+    await expect(libNav(page)).toBeVisible()
+    for (const label of ['Films logged', 'Runtime logged', 'Avg rating', 'This month']) {
+      await expect(page.getByText(label, { exact: true })).toBeVisible()
+    }
+    await expect(page.getByLabel('Search the Diary')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Loved · 9–10' })).toBeVisible()
+    await expect(page.getByRole('combobox', { name: 'Sort diary' })).toBeVisible()
+    // title/review wrap without overflow (already asserted page-level); a row is present
+    await expect(page.getByText('Your review').first()).toBeVisible()
+    // Remove reachable + dialog actions reachable at 320
+    const lastRow = page.getByRole('listitem').last()
+    await lastRow.scrollIntoViewIfNeeded()
+    const remove = lastRow.getByRole('button', { name: /Remove .* from Diary/ })
+    await expect(remove).toBeVisible()
+    await remove.click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Keep entry' })).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Remove from Diary' })).toBeVisible()
+    expect((await dialog.boundingBox()).width).toBeLessThanOrEqual(320)
+    await page.keyboard.press('Escape')
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  for (const vp of [{ name: '390×844', width: 390, height: 844 }, { name: '320×812', width: 320, height: 812 }]) {
+    test(`R3 — Diary final row + status toast clear the BottomNav @ ${vp.name}`, async ({ page }) => {
+      const ledger = await installLibraryFixture(page)
+      await page.setViewportSize({ width: vp.width, height: vp.height })
+      await openDiary(page)
+      const nav = await bottomNav(page).boundingBox()
+      expect(nav, 'BottomNav present at mobile width').toBeTruthy()
+
+      // final row's Remove clears the BottomNav top (not merely inside the viewport)
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      const lastRemove = await page.locator('.ff-diary-row__remove').last().boundingBox()
+      expect(lastRemove.y + lastRemove.height).toBeLessThanOrEqual(nav.y - GAP)
+
+      // the settled removal toast sits ABOVE, not on top of, the BottomNav
+      await page.evaluate(() => window.scrollTo(0, 0))
+      await page.getByRole('listitem').first().getByRole('button', { name: /Remove .* from Diary/ }).click()
+      await page.getByRole('dialog').getByRole('button', { name: 'Remove from Diary' }).click()
+      const toast = page.locator('.ff-diary-toast')
+      await expect(toast).toBeVisible()
+      const tb = await toast.boundingBox()
+      expect(tb.y + tb.height).toBeLessThanOrEqual(nav.y - GAP)
+      expect(ledger.unexpectedRequests).toEqual([])
+    })
+  }
+
+  for (const vp of [{ name: '1280×800', width: 1280, height: 800 }, { name: '390×844', width: 390, height: 844 }, { name: '320×812', width: 320, height: 812 }]) {
+    test(`R4 — Diary at 200% zoom @ ${vp.name}: no horizontal overflow, content reachable`, async ({ page }) => {
+      const ledger = await installLibraryFixture(page)
+      await page.setViewportSize({ width: vp.width, height: vp.height })
+      await openDiary(page)
+      await page.evaluate(() => { document.documentElement.style.zoom = '2' })
+      await page.waitForTimeout(150)
+      const overflow = await page.evaluate(() => {
+        const el = document.scrollingElement || document.documentElement
+        return el.scrollWidth - el.clientWidth
+      })
+      expect(overflow, 'no horizontal overflow at 200% zoom').toBeLessThanOrEqual(2)
+      await expect(libNav(page)).toBeVisible()
+      await expect(page.getByText('Films logged', { exact: true })).toBeVisible()
+      await expect(page.getByLabel('Search the Diary')).toBeVisible()
+      await expect(page.getByRole('heading', { level: 3 }).first()).toBeVisible()
+      // dialog opens + scrolls within the zoomed viewport
+      await page.getByRole('listitem').first().getByRole('button', { name: /Remove .* from Diary/ }).click()
+      await expect(page.getByRole('dialog')).toBeVisible()
+      await expect(page.getByRole('dialog').getByRole('button', { name: 'Remove from Diary' })).toBeVisible()
       await page.keyboard.press('Escape')
       expect(ledger.unexpectedRequests).toEqual([])
     })

@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import {
   WEEKDAY_NAMES, capitalize, dayPart, moodHexFor,
   deriveEntries, deriveStats, matchesQuery, dedupeHistoryByMovie,
+  normalizeSearch, sortEntries, isGroupedSort,
 } from '../historyDerive'
 
 // F6.5 — the Diary derivation is now data-truthful: the average is DIARY-SCOPED (only
@@ -47,6 +48,17 @@ describe('deriveEntries', () => {
     expect(e.note).toBe('Stayed with me.') // retained alias
     expect(e.fav).toBe(true)              // raw ≥ 9
     expect(e.context).toMatch(/Evening · (Sunday|Monday)/)
+  })
+
+  it('exposes rawRating (1-10, null when unrated) + watched fields for sorting/flat rows', () => {
+    const [rated] = deriveEntries([hRow()], [{ movie_id: 1, rating: 10 }])
+    expect(rated.rawRating).toBe(10)        // raw authority (display stars still round to 5)
+    expect(rated.rating).toBe(5)
+    expect(typeof rated.watchedTs).toBe('number')
+    expect(rated.watchedAt).toBe('2026-03-09T20:30:00')
+    expect(rated.watchedLabel).toMatch(/^Watched /)
+    const [unrated] = deriveEntries([hRow()], [])
+    expect(unrated.rawRating).toBeNull()
   })
 
   it('fav fires at raw 9 and 10, not 8; no rating → 0 stars; id fallback', () => {
@@ -118,6 +130,65 @@ describe('matchesQuery — Diary search (title / director / review, NOT film moo
   it('25. does NOT match on the FILM mood (it is not a user note)', () => {
     expect(matchesQuery(e, 'tender')).toBe(false)
     expect(matchesQuery(e, 'zzz')).toBe(false)
+  })
+})
+
+describe('normalizeSearch — deterministic, locale-stable', () => {
+  it('trims, NFKD-folds diacritics, lowercases (not locale), collapses whitespace', () => {
+    expect(normalizeSearch('  Amélie  ')).toBe('amelie')   // é → e
+    expect(normalizeSearch('  featuring\t  Spaces  ')).toBe('featuring spaces')
+    expect(normalizeSearch('CAFÉ')).toBe('cafe')
+    expect(normalizeSearch(null)).toBe('')
+  })
+  it('matchesQuery folds diacritics in BOTH the query and the content', () => {
+    const film = { title: 'Amélie', dir: 'Jean-Pierre Jeunet', review: null }
+    expect(matchesQuery(film, 'amelie')).toBe(true)   // unaccented query matches accented title
+    expect(matchesQuery({ title: 'Cafe Society', dir: '', review: null }, 'café')).toBe(true)
+  })
+})
+
+describe('sortEntries — deterministic', () => {
+  const e = (over) => ({ runtime: 0, rawRating: null, watchedTs: 0, movieId: 0, title: '', ...over })
+  it('recent: watched desc, then title (collator), then movieId', () => {
+    const out = sortEntries([
+      e({ title: 'B', watchedTs: 100, movieId: 2 }),
+      e({ title: 'A', watchedTs: 200, movieId: 1 }),
+      e({ title: 'A', watchedTs: 100, movieId: 9 }),
+      e({ title: 'A', watchedTs: 100, movieId: 3 }),
+    ], 'recent').map((x) => `${x.title}${x.movieId}`)
+    expect(out).toEqual(['A1', 'A3', 'A9', 'B2']) // 200 first; then ties broken by title then id
+  })
+  it('rating: rated before unrated; RAW 10 before RAW 9 (display would tie at 5★)', () => {
+    const out = sortEntries([
+      e({ title: 'Nine', rawRating: 9, movieId: 1 }),
+      e({ title: 'Unrated', rawRating: null, movieId: 2 }),
+      e({ title: 'Ten', rawRating: 10, movieId: 3 }),
+      e({ title: 'Eight', rawRating: 8, movieId: 4 }),
+    ], 'rating').map((x) => x.title)
+    expect(out).toEqual(['Ten', 'Nine', 'Eight', 'Unrated'])
+  })
+  it('runtime: positive ascending; unknown/0 LAST (never the shortest)', () => {
+    const out = sortEntries([
+      e({ title: 'Long', runtime: 180, movieId: 1 }),
+      e({ title: 'Unknown', runtime: 0, movieId: 2 }),
+      e({ title: 'Short', runtime: 90, movieId: 3 }),
+    ], 'runtime').map((x) => x.title)
+    expect(out).toEqual(['Short', 'Long', 'Unknown'])
+  })
+  it('does not mutate the input', () => {
+    const input = [e({ title: 'B', watchedTs: 1 }), e({ title: 'A', watchedTs: 2 })]
+    const snap = JSON.stringify(input)
+    sortEntries(input, 'recent')
+    expect(JSON.stringify(input)).toBe(snap)
+  })
+})
+
+describe('isGroupedSort — only Most recent groups', () => {
+  it('recent (and default) group; rating/runtime are flat', () => {
+    expect(isGroupedSort('recent')).toBe(true)
+    expect(isGroupedSort(undefined)).toBe(true)
+    expect(isGroupedSort('rating')).toBe(false)
+    expect(isGroupedSort('runtime')).toBe(false)
   })
 })
 

@@ -91,7 +91,9 @@ export async function installLibraryFixture(page, options = {}) {
     // noTmdb (opt-in): drop the TMDB id on the no-poster row (North) so a saved film with no
     // TMDB id renders non-interactively. NOT the default → the visual baselines stay stable.
     watchlist: WATCHLIST.map(r => (opts.noTmdb && r.movie_id === 9103 ? { ...r, movies: { ...r.movies, tmdb_id: null } } : { ...r })),
-    history: (opts.duplicateHistory ? DUPLICATE_HISTORY : HISTORY).map(r => ({ ...r })),
+    // noTmdb also drops the TMDB id on a Diary entry (Winter Tenants, 9203) so a watched film
+    // with no TMDB id renders non-interactively (no broken Film File link).
+    history: (opts.duplicateHistory ? DUPLICATE_HISTORY : HISTORY).map(r => (opts.noTmdb && r.movie_id === 9203 ? { ...r, movies: { ...r.movies, tmdb_id: null } } : { ...r })),
     ratings: RATINGS.map(r => ({ ...r })),
     removedWatchlistIds: [],
     removedHistoryIds: [],
@@ -136,7 +138,7 @@ export async function installLibraryFixture(page, options = {}) {
   }
 
   // All Supabase REST. /auth/v1/** is NOT matched → real auth passes through untouched.
-  await page.route('**/rest/v1/**', (route) => {
+  await page.route('**/rest/v1/**', async (route) => {
     const req = route.request()
     const method = req.method()
     const url = new URL(req.url())
@@ -149,6 +151,12 @@ export async function installLibraryFixture(page, options = {}) {
       // load_error: the route's primary read fails → provider catch → 'load_error'.
       if (opts.mode === 'load_error' && (table === 'user_watchlist' || table === 'user_history')) {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ code: 'MOCK', message: 'mock load error', details: null, hint: null }) })
+      }
+      // ratings_error: the Diary's user_history read SUCCEEDS but the parallel user_ratings
+      // read fails → the provider must fail the whole Diary into the sanitized error state
+      // (never silently render films with missing ratings/reviews + a wrong average).
+      if (opts.mode === 'ratings_error' && table === 'user_ratings') {
+        return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ code: 'MOCK', message: 'mock ratings error', details: null, hint: null }) })
       }
       const rows = readFor(table)
       const accept = req.headers()['accept'] || ''
@@ -170,6 +178,8 @@ export async function installLibraryFixture(page, options = {}) {
       // The ONLY permitted writes are scoped DELETEs from user_watchlist / user_history.
       if (method === 'DELETE' && EXPECTED_DELETE_TABLES.has(table)) {
         ledger.writes.push(entry)
+        // slow: hold the DELETE in flight so the confirmation dialog's busy state is observable.
+        if (opts.removeMode === 'slow') await new Promise((r) => setTimeout(r, 450))
         if (opts.removeMode === 'failure') {
           return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: 'MOCK', message: 'mock delete failure', details: null, hint: null }) })
         }

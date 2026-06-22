@@ -119,7 +119,10 @@ export function HistoryDataProvider({ children }) {
             .eq('user_id', user.id),
         ])
         if (abort) return
+        // Both reads are required: a ratings failure must NOT silently render a Diary with missing
+        // ratings/reviews + a wrong average — fail the whole Diary into the sanitized error state.
         if (historyRes.error) throw historyRes.error
+        if (ratingsRes.error) throw ratingsRes.error
 
         const history = historyRes.data || []
         const ratings = ratingsRes.data || []

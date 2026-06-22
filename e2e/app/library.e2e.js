@@ -102,20 +102,25 @@ test.describe('User Library — authenticated, intercepted', () => {
     await expect(filterGroup.getByRole('button', { name: 'Tender' })).toHaveAttribute('aria-pressed', 'true')
     await expect(page.getByRole('listitem')).toHaveCount(2)
 
-    // sort the (re-shown) full list deterministically
+    // sort the (re-shown) full list deterministically. Sort is URL-backed, so the re-order lands
+    // asynchronously — assert with retrying web-first assertions on the first/last card, never an
+    // eager snapshot read.
     await filterGroup.getByRole('button', { name: 'All' }).click()
-    const titlesInOrder = async () => (await page.getByRole('listitem').getByRole('heading', { level: 3 }).allInnerTexts())
+    await expect(page.getByRole('listitem')).toHaveCount(4) // wait for the URL-backed mood reset to land before sorting
+    const firstTitle = () => page.getByRole('listitem').first().getByRole('heading', { level: 3 })
+    const lastTitle = () => page.getByRole('listitem').last().getByRole('heading', { level: 3 })
+    const longTitle = 'The Cartographer’s Daughter and the Long Winter Road Home'
     const sort = page.getByRole('combobox', { name: 'Sort saved films' })
     await sort.selectOption('recent')
-    expect((await titlesInOrder())[0]).toBe('Paper Harbor')      // newest added
+    await expect(firstTitle()).toHaveText('Paper Harbor')        // newest added
     await sort.selectOption('oldest')
-    expect((await titlesInOrder())[0]).toBe('North')             // oldest added
+    await expect(firstTitle()).toHaveText('North')               // oldest added
     await sort.selectOption('runtime')
-    expect((await titlesInOrder()).slice(0, 2)).toEqual(['North', 'Saltwater Hours']) // 0min, then 98min
+    await expect(firstTitle()).toHaveText('Saltwater Hours')     // 98m shortest known
+    await expect(lastTitle()).toHaveText('North')               // unknown/0 runtime sorts LAST (never the shortest)
     await sort.selectOption('title')
-    expect(await titlesInOrder()).toEqual([
-      'North', 'Paper Harbor', 'Saltwater Hours', 'The Cartographer’s Daughter and the Long Winter Road Home',
-    ]) // alphabetical ("The…" sorts last)
+    await expect(firstTitle()).toHaveText('North')               // alphabetical first
+    await expect(lastTitle()).toHaveText(longTitle)             // "The…" sorts last
     expect(ledger.unexpectedRequests).toEqual([])
   })
 
@@ -195,6 +200,68 @@ test.describe('User Library — authenticated, intercepted', () => {
     await expect(tryAgain.locator('> span')).toHaveText('Try again')
     await expect(page.getByRole('button', { name: 'Go to Home' })).toBeVisible()
     expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  // ── Watchlist retrieval (redesign: local search + URL mood/sort + no Undo) ─────
+  test('S — local search over title / director / mood; constraint-aware empties', async ({ page }) => {
+    const ledger = await installLibraryFixture(page)
+    await openWatchlist(page)
+    const search = page.getByLabel('Search Watchlist')
+    await search.fill('paper')                                       // title
+    await expect(page.getByRole('listitem')).toHaveCount(1)
+    await expect(page.getByRole('heading', { name: 'Paper Harbor', exact: true })).toBeVisible()
+    await search.fill('idris')                                       // director (Idris Bell → Saltwater Hours)
+    await expect(page.getByRole('heading', { name: 'Saltwater Hours', exact: true })).toBeVisible()
+    await search.fill('cozy')                                        // primary mood
+    await expect(page.getByRole('heading', { name: 'Saltwater Hours', exact: true })).toBeVisible()
+    await search.fill('zzzzz')                                       // search-only empty copy
+    await expect(page.getByText('No saved films match your search.')).toBeVisible()
+    await page.keyboard.press('Escape')                             // Escape clears
+    await expect(page.getByRole('listitem')).toHaveCount(4)
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
+  test('T — mood + sort are URL-addressable; invalid values fall back; Back/Forward restore', async ({ page }) => {
+    await installLibraryFixture(page)
+    await page.goto('/watchlist?mood=Tender&sort=oldest')
+    await expect(h1(page)).toHaveText(/Saved for later\./, { timeout: 20_000 })
+    await expect(page.getByRole('button', { name: 'Tender' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('combobox', { name: 'Sort saved films' })).toHaveValue('oldest')
+    await expect(page.getByRole('listitem')).toHaveCount(2) // two Tender films
+
+    await page.goto('/watchlist?mood=Nope&sort=bogus')              // invalid → All / recent
+    await expect(page.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('combobox', { name: 'Sort saved films' })).toHaveValue('recent')
+    await expect(page.getByRole('listitem')).toHaveCount(4)
+
+    await page.goto('/watchlist')
+    await page.getByRole('group', { name: 'Filter by film mood' }).getByRole('button', { name: 'Tender' }).click()
+    await expect(page).toHaveURL(/mood=Tender/)
+    await expect(page.getByRole('listitem')).toHaveCount(2)
+    await page.goBack()                                             // back → All
+    await expect(page.getByRole('listitem')).toHaveCount(4)
+    await page.goForward()                                          // forward → Tender
+    await expect(page.getByRole('listitem')).toHaveCount(2)
+  })
+
+  test('U — removal offers NO Undo; the status toast clears the BottomNav (390×844)', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await installLibraryFixture(page)
+    await openWatchlist(page)
+    await page.getByRole('button', { name: 'Remove Paper Harbor from Watchlist' }).click()
+    await expect(liveStatus(page)).toContainText('Removed Paper Harbor from your Watchlist.')
+    await expect(page.getByRole('button', { name: 'Undo' })).toHaveCount(0) // truthful: no Undo
+    // the visible status sits above the fixed BottomNav
+    const box = await liveStatus(page).boundingBox()
+    if (box) expect(box.y + box.height).toBeLessThanOrEqual(844 + 1)
+  })
+
+  test('V — a saved film with no TMDB id renders non-interactively (no broken link)', async ({ page }) => {
+    await installLibraryFixture(page, { noTmdb: true })
+    await openWatchlist(page)
+    const card = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'North', exact: true }) })
+    await expect(card.getByRole('link')).toHaveCount(0)             // no Film File link
+    await expect(card.getByRole('button', { name: 'Remove North from Watchlist' })).toHaveCount(1) // remove still works
   })
 })
 

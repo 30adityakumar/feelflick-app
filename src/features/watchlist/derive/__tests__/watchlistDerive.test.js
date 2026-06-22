@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   capitalize, pickPrimaryMood, daysAgo, savedAgeLabel,
   deriveItems, deriveAvailableMoods, SORTS, sortItems,
+  normalizeSearch, searchItems, splitMoods,
 } from '../watchlistDerive'
 
 // F6.4 — the Watchlist derivation is now CALM SAVED-INTENT: no match %, no approx score,
@@ -82,8 +83,8 @@ describe('sortItems (deterministic saved-intent ordering)', () => {
   it('6. oldest = added_at ascending', () => {
     expect(sortItems(items, 'oldest').map(i => i.id)).toEqual([2, 1, 3])
   })
-  it('7. runtime ascending, missing runtime (0) first', () => {
-    expect(sortItems(items, 'runtime').map(i => i.id)).toEqual([3, 2, 1])
+  it('7. runtime ascending; unknown/zero runtime LAST (never the shortest)', () => {
+    expect(sortItems(items, 'runtime').map(i => i.id)).toEqual([2, 1, 3]) // 90, 120, then 0 last
   })
   it('8. title alphabetical', () => {
     expect(sortItems(items, 'title').map(i => i.title)).toEqual(['Apple', 'Banana', 'Cherry'])
@@ -91,5 +92,63 @@ describe('sortItems (deterministic saved-intent ordering)', () => {
   it('exposes the SORTS list, default included', () => {
     expect(SORTS).toContain('recent')
     expect(SORTS).not.toContain('match')
+    expect(SORTS).not.toContain('priority')
+  })
+  it('deterministic tie-breaks: equal primary key falls back to title then id', () => {
+    const at = '2026-03-01T00:00:00Z'
+    const tie = [
+      { id: 9, addedAt: at, runtime: 100, title: 'Zebra' },
+      { id: 4, addedAt: at, runtime: 100, title: 'Apple' },
+      { id: 7, addedAt: at, runtime: 100, title: 'Apple' },
+    ]
+    expect(sortItems(tie, 'recent').map(i => i.id)).toEqual([4, 7, 9]) // title asc, then id asc
+    expect(sortItems(tie, 'runtime').map(i => i.id)).toEqual([4, 7, 9])
+  })
+})
+
+describe('normalizeSearch (deterministic, locale-stable)', () => {
+  it('trims, lowercases, strips diacritics, collapses whitespace', () => {
+    expect(normalizeSearch('  Amélie   POULAIN ')).toBe('amelie poulain')
+    expect(normalizeSearch('Crème Brûlée')).toBe('creme brulee')
+    expect(normalizeSearch(null)).toBe('')
+  })
+})
+
+describe('searchItems (title + director + primary mood)', () => {
+  const items = [
+    { title: 'The Quiet Harbor', dir: 'Mara Vance', mood: 'Tender' },
+    { title: 'Northern Lantern', dir: 'Park Soo-jin', mood: 'Tense' },
+  ]
+  it('matches by title, director, or mood; empty query → all', () => {
+    expect(searchItems(items, 'harbor').map(i => i.title)).toEqual(['The Quiet Harbor'])
+    expect(searchItems(items, 'park').map(i => i.title)).toEqual(['Northern Lantern'])
+    expect(searchItems(items, 'tender').map(i => i.title)).toEqual(['The Quiet Harbor'])
+    expect(searchItems(items, '   ')).toHaveLength(2)
+    expect(searchItems(items, 'zzz')).toHaveLength(0)
+  })
+})
+
+describe('splitMoods (top-N + More overflow)', () => {
+  const moods = [{ mood: 'Tender' }, { mood: 'Tense' }, { mood: 'Romantic' }, { mood: 'Dreamy' }, { mood: 'Somber' }]
+  it('top-3 primary + rest in More (desktop)', () => {
+    const { primary, extra } = splitMoods(moods, { topN: 3 })
+    expect(primary).toEqual(['Tender', 'Tense', 'Romantic'])
+    expect(extra).toEqual(['Dreamy', 'Somber'])
+  })
+  it('top-2 at compact width', () => {
+    expect(splitMoods(moods, { topN: 2 }).primary).toEqual(['Tender', 'Tense'])
+  })
+  it('an active mood from More stays represented in More', () => {
+    const { primary, extra } = splitMoods(moods, { topN: 3, activeMood: 'Somber' })
+    expect(primary).not.toContain('Somber')
+    expect(extra).toContain('Somber')
+  })
+})
+
+describe('savedAgeLabel hardening', () => {
+  it('invalid → "Saved"; future → "Saved" (never negative/today)', () => {
+    expect(savedAgeLabel('not-a-date')).toBe('Saved')
+    const future = new Date(Date.now() + 5 * 86400000).toISOString()
+    expect(savedAgeLabel(future)).toBe('Saved')
   })
 })

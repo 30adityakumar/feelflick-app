@@ -16,7 +16,11 @@ export const SYN = {
   email: 'mira.sen@example.test',
   name: 'Mira Sen',
   longName: 'Mirabel Seraphina Şenoğlu-Wątróbień de la Cruz',
-  joined: '2025-04-01T00:00:00Z',
+  // Mid-month, midday UTC — deliberately NOT a month boundary. "Member since <Month Year>" is
+  // rendered via toLocaleDateString in the viewer's timezone, so a boundary value like
+  // 2025-04-01T00:00:00Z reads as April in UTC but March in America/Toronto (UTC-4), which made
+  // the assertion timezone-sensitive. 2025-04-15T12:00:00Z resolves to April in every timezone.
+  joined: '2025-04-15T12:00:00Z',
 }
 
 const DEFAULT_SETTINGS = () => ({

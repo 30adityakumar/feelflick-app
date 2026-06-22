@@ -57,7 +57,7 @@ test.describe('Account — profile summary', () => {
     await openAccount(page)
     await expect(page.getByRole('heading', { level: 2, name: SYN.name })).toBeVisible()
     await expect(page.getByText(SYN.email)).toBeVisible()
-    await expect(page.getByText(/Member since March 2025/).first()).toBeVisible()
+    await expect(page.getByText(/Member since April 2025/).first()).toBeVisible()
     await expect(page.getByText('Free plan')).toBeVisible()
     await expect(page.getByText(/Founding Member|locked in/i)).toHaveCount(0)
     await expect(page.getByText(/films logged|hours watched/i)).toHaveCount(0)
@@ -330,6 +330,20 @@ test.describe('Account — deletion', () => {
     await expect(trigger).toBeFocused()
   })
 })
+
+// The synthetic joined date is mid-month/midday UTC so "Member since <Month>" is stable across
+// timezones (a month-boundary value previously read as April in UTC but March in America/Toronto).
+for (const timezoneId of ['UTC', 'America/Toronto']) {
+  test.describe(`Account — member-since is timezone-stable (${timezoneId})`, () => {
+    test.use({ timezoneId })
+    test('renders "Member since April 2025" regardless of timezone', async ({ page }) => {
+      await installAccountFixture(page)
+      await openAccount(page)
+      await expect(page.getByText(/Member since April 2025/).first()).toBeVisible()
+      await expect(page.getByText(/Member since March 2025/)).toHaveCount(0)
+    })
+  })
+}
 
 test.describe('Account — accessibility', () => {
   test('Overview has no serious/critical axe violations', async ({ page }) => {

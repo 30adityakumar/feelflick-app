@@ -37,7 +37,7 @@ test.describe('People — authenticated, intercepted', () => {
     await expect(page.getByRole('region', { name: /More people to discover/i })).toBeVisible()
     await expect(page.getByRole('region', { name: /People you might know/i })).toBeVisible()
     // search + a follow control + a hide control
-    await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible()
+    await expect(page.getByRole('searchbox', { name: 'Search people by name' })).toBeVisible()
     await expect(followControl(page, 'Ana Okafor')).toBeVisible()
     await expect(hideControl(page, 'Ana Okafor')).toBeVisible()
     // a followed user shows the Following (Unfollow) control, no Hide
@@ -201,8 +201,8 @@ test.describe('People — authenticated, intercepted', () => {
     // focus recovery (double-rAF) lands on a real control, never <body>
     await expect.poll(() => page.evaluate(() => document.activeElement?.tagName), { timeout: 3000 }).not.toBe('BODY')
     // does not reappear after a re-render (toggle search on/off)
-    await page.getByRole('textbox', { name: 'Search people by name' }).fill('x')
-    await page.getByRole('textbox', { name: 'Search people by name' }).fill('')
+    await page.getByRole('searchbox', { name: 'Search people by name' }).fill('x')
+    await page.getByRole('searchbox', { name: 'Search people by name' }).fill('')
     await expect(followControl(page, 'Ana Okafor')).toHaveCount(0)
   })
 
@@ -210,7 +210,7 @@ test.describe('People — authenticated, intercepted', () => {
   test('K — search success / empty / failure degrade honestly; clear control is labelled + 44px', async ({ page }) => {
     await installPeopleFixture(page, { search: 'success' })
     await openPeople(page)
-    const input = page.getByRole('textbox', { name: 'Search people by name' })
+    const input = page.getByRole('searchbox', { name: 'Search people by name' })
     await input.fill('hal')
     await expect(page.getByRole('region', { name: /result/i })).toBeVisible()
     await expect(followControl(page, 'Hal Voss')).toBeVisible()
@@ -224,7 +224,7 @@ test.describe('People — authenticated, intercepted', () => {
   test('K2 — empty search shows the privacy-safe no-results copy', async ({ page }) => {
     await installPeopleFixture(page, { search: 'empty' })
     await openPeople(page)
-    await page.getByRole('textbox', { name: 'Search people by name' }).fill('zzz')
+    await page.getByRole('searchbox', { name: 'Search people by name' }).fill('zzz')
     await expect(page.getByText('No people found.')).toBeVisible()
     await expect(page.getByText(/never looks through private film activity or reviews/i)).toBeVisible()
   })
@@ -232,7 +232,7 @@ test.describe('People — authenticated, intercepted', () => {
   test('K3 — search RPC failure → "unavailable" (never "No people found"), no raw text, no table fallback', async ({ page }) => {
     const ledger = await installPeopleFixture(page, { search: 'failure' })
     await openPeople(page)
-    await page.getByRole('textbox', { name: 'Search people by name' }).fill('zzz')
+    await page.getByRole('searchbox', { name: 'Search people by name' }).fill('zzz')
     await expect(page.getByText('Search is unavailable right now.')).toBeVisible()
     await expect(page.getByText('No people found.')).toHaveCount(0)
     const body = await page.locator('body').innerText()
@@ -256,7 +256,7 @@ test.describe('People — authenticated, intercepted', () => {
     await installPeopleFixture(page)
     await openPeople(page)
     await expect(followControl(page, 'Ana Okafor')).toBeVisible()
-    await page.getByRole('textbox', { name: 'Search people by name' }).focus()
+    await page.getByRole('searchbox', { name: 'Search people by name' }).focus()
     const seen = []
     for (let i = 0; i < 18; i++) {
       seen.push(await page.evaluate(() => {
@@ -289,7 +289,7 @@ test.describe('People — authenticated, intercepted', () => {
   for (const [label, opts, prep] of [
     ['healthy', {}, null],
     ['empty', { mode: 'empty' }, null],
-    ['search', { search: 'success' }, async (page) => page.getByRole('textbox', { name: 'Search people by name' }).fill('hal')],
+    ['search', { search: 'success' }, async (page) => page.getByRole('searchbox', { name: 'Search people by name' }).fill('hal')],
     ['follow-failure', { followWrite: 'failure' }, async (page) => { await page.getByRole('button', { name: /^Follow Ana Okafor/ }).click() }],
     ['hidden', {}, async (page) => page.getByRole('button', { name: 'Hide Ana Okafor from your suggestions' }).click()],
   ]) {
@@ -324,7 +324,7 @@ test.describe('People — authenticated, intercepted', () => {
       await expect(h1(page)).toHaveCount(1)
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
       expect(overflow, `h-overflow at ${vp.width}`).toBeLessThanOrEqual(1)
-      await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible()
+      await expect(page.getByRole('searchbox', { name: 'Search people by name' })).toBeVisible()
     }
   })
 
@@ -347,7 +347,7 @@ test.describe('People — authenticated, intercepted', () => {
     await expect(page.getByText('Taste matches are unavailable right now.')).toBeVisible()
     await expect(followControl(page, 'Ana Okafor')).toHaveCount(0) // no identity-only cards
     await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible()
-    await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible() // search remains
+    await expect(page.getByRole('searchbox', { name: 'Search people by name' })).toBeVisible() // search remains
     expect(ledger.rpcsFor('get_people_public_identities')).toHaveLength(0) // never fetched identity after fail-closed
   })
 
@@ -443,7 +443,7 @@ test.describe('People — authenticated, intercepted', () => {
       // masthead actions + search + Strongest Follow/Hide all reachable
       await expect(page.getByRole('button', { name: /How matching works/i })).toBeVisible()
       await expect(page.getByRole('button', { name: /Invite a friend/i })).toBeVisible()
-      await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible()
+      await expect(page.getByRole('searchbox', { name: 'Search people by name' })).toBeVisible()
       await expect(followControl(page, 'Ana Okafor')).toBeVisible()
       await expect(hideControl(page, 'Ana Okafor')).toBeVisible()
       // explainer fits + Close reachable + scrollable

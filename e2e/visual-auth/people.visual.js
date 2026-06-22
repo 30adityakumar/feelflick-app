@@ -80,7 +80,7 @@ test.describe('People — authenticated visual baselines', () => {
     await installPeopleFixture(page, { reducedMotion: true, search: 'success' })
     await page.setViewportSize(MOBILE)
     await openPeople(page)
-    await page.getByRole('textbox', { name: 'Search people by name' }).fill('hal')
+    await page.getByRole('searchbox', { name: 'Search people by name' }).fill('hal')
     await expect(followControl(page, 'Hal Voss')).toBeVisible()
     await freeze(page)
     await expect(page).toHaveScreenshot('people-search-mobile.png')

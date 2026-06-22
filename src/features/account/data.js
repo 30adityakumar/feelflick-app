@@ -1,51 +1,28 @@
-// /account v2 — data layer
+// src/features/account/data.js — Account static data + defaults.
 //
-// What's here vs derived:
-//   - Brand tokens (HP, ROSE) — always static
-//   - SETTINGS — *default values* for notifications + privacy. The page
-//     merges these with the user's row from `user_settings.settings` (JSONB)
-//     when they sign in. Each toggle queues a debounced upsert via
-//     updateNotifications / updatePrivacy on the AccountData context.
-//     See ./useAccountData.jsx. Engine + display prefs live in /preferences.
-//   - CONNECTIONS — registry of integrations the page knows about. The
-//     `status` is overridden live (Google detected from auth.app_metadata).
-//   - PLAN — static until a billing service is in place.
+//   - Brand tokens (HP, ROSE) — static, re-exported from the shared token source.
+//   - SETTINGS — DEFAULT values for notifications + privacy, merged with the user's
+//     `user_settings.settings` JSONB on load (see ./useAccountData.jsx). Engine +
+//     display prefs live in /preferences ("The dials") and own the `prefs` branch.
 //
-// USER + stats are now live. They're fetched via useAccountData() against
-// auth.getUser() + the users table + user_history/user_ratings counts.
+// Plan is a flat "Free plan" label for this slice — there is no billing/entitlement
+// backend, so no tier is derived. (The former signup-cutoff "Founding Member" badge
+// was retired: its 2027 cutoff meant every current member qualified, and "Free,
+// locked in" was a price guarantee with no backing.)
 
 export { HP, ROSE, ROSE_DEEP } from '@/shared/lib/tokens'
 
 export const SETTINGS = {
   notifications: [
-    // MVP: only Daily Briefing has real send infra (Resend + pg_cron). Other
-    // channels return one-at-a-time as their underlying feature ships
-    // (Friend activity needs a friend graph, Year in review needs annual
-    // content gen, Product news needs a broadcast tool).
-    { id:'daily', label:'Daily Briefing', desc:"Tonight's three picks at 6 PM", enabled:true, badge:'Recommended' },
+    // Only Daily Briefing has real send infrastructure (out-of-repo Resend + pg_cron).
+    // Other channels return one-at-a-time as their delivery systems ship.
+    { id: 'daily', label: 'Daily Briefing', desc: 'A daily email with tonight’s picks.', enabled: true, badge: 'Recommended' },
   ],
-  // `prefs` is owned by /preferences-v2 (see usePreferencesData.jsx). We
-  // never seed defaults here — that would clobber engine prefs the user set
-  // on /preferences when /account writes a notifications/privacy change.
+  // `prefs` (engine/display) is owned by /preferences — never seeded here (would clobber it).
   privacy: {
-    profilePublic:      true,
-    diaryPublic:        false,
-    // F8.2: taste-match discovery is now EXPLICIT OPT-IN — a user with no stored preference
-    // defaults to NOT discoverable (matches get_discoverable_taste_profiles' opt-in fallback).
+    // F8.2: taste-match discovery is EXPLICIT OPT-IN — no stored preference → NOT discoverable
+    // (matches get_discoverable_taste_profiles' opt-in fallback).
     showOnLeaderboards: false,
-    analytics:          true,
-    // `shareableCards` removed: no export feature exists for it to gate.
+    analytics: true,
   },
-};
-
-// "Founding Member" = signed up before this cutoff. Lets us derive plan
-// status from `users.joined_at` without a new column or billing system.
-// When billing ships, add `users.plan_tier` and switch source.
-export const FOUNDING_CUTOFF = new Date('2027-01-01T00:00:00Z');
-
-export const CONNECTIONS = [
-  { id:'google',     name:'Google',     status:'Available', detail:'Connect via Google sign-in',  since:null,   primary:false, tint:'#A78BFA' },
-  { id:'letterboxd', name:'Letterboxd', status:'Available', detail:'Coming soon',                 since:null,   primary:false, tint:'#F472B6' },
-  { id:'netflix',    name:'Netflix',    status:'Available', detail:'Coming soon',                 since:null,   primary:false, tint:'#EF4444' },
-  { id:'plex',       name:'Plex',       status:'Available', detail:'Coming soon',                 since:null,   primary:false, tint:'#FBBF24' },
-];
+}

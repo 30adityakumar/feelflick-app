@@ -1,83 +1,60 @@
 // src/features/account/useAccountData.jsx
-// FeelFlick — Account v2 data layer. Fetches the signed-in user, their
-// `users` row, derived stats, and their `user_settings` JSONB (notifications
-// + privacy flags). Components consume via `useAccountData()`.
+// FeelFlick — Account data layer. Fetches the signed-in user, their `users` row, their
+// `user_settings` JSONB (notifications + privacy), and any pending account-deletion request.
+// Components consume via `useAccountData()`.
 //
-// Engine + display prefs live in /preferences ("The dials") and write to the
-// same `user_settings.settings.prefs` JSONB — Account no longer owns that
-// surface, so updateEnginePrefs has been removed.
+// Engine + display prefs live in /preferences ("The dials") and write to the same
+// `user_settings.settings.prefs` JSONB — Account never owns that surface.
 //
-// Every toggle writes through one of two setters — updateNotifications /
-// updatePrivacy — which optimistically mutate the in-memory shape and
-// debounce a single upsert into `user_settings` for the signed-in user.
-// RLS keeps the row per-user; defaults from ./data.js fill in fields the
-// user hasn't touched.
+// Persistence model (replaces the old silent debounced upsert):
+//   • Every setting mutation flows through `saveSection(key, value)`.
+//   • Per-section state machine: idle → saving → saved → error (see `saveStatus`).
+//   • Writes are read-modify-write so a concurrent /preferences write to `prefs`
+//     (or any unknown top-level key) is never clobbered. Same-section writes are
+//     serialised (a per-section loop) so rapid toggles can't race.
+//   • Supabase `.error` is ALWAYS checked. On failure the section is rolled back to the
+//     last server-confirmed value and `error` is exposed for an inline retry.
+//   • Privacy/analytics never remains visually changed after a failed save; the PostHog
+//     runtime opt-out is coordinated with the persisted result.
+// Remaining limitation (documented): cross-TAB last-write-wins between this RMW read and its
+// write — acceptable without a new RPC/migration.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
-import { getTasteFingerprint } from '@/shared/services/tasteCache'
-import { computeDnaConfidence } from '@/shared/services/dnaConfidence'
+import { setAnalyticsOptOut } from '@/shared/services/analytics'
 import { SETTINGS as DEFAULT_SETTINGS } from './data'
 
 const AccountDataContext = createContext(null)
-
-const UPSERT_DEBOUNCE_MS = 350
+const SAVED_RESET_MS = 1800 // how long a section shows "saved" before returning to idle
 
 const INITIAL = {
   authUser: null,
   profile: null,
-  stats: null,
   provider: null,
-  serverSettings: null,         // null while loading; object once loaded
-  pendingDeletion: null,        // { scheduled_for, requested_at } or null
+  serverSettings: null,
+  pendingDeletion: null,
   loading: true,
   error: null,
-  refresh: () => {},
-  updateNotifications: () => {},
-  updatePrivacy: () => {},
-  requestDeletion: async () => {},
-  cancelDeletion: async () => {},
+  saveStatus: {}, // { [section]: 'idle'|'saving'|'saved'|'error' }
 }
 
-// Stats are derived live from the user's actual rows — no fallbacks to
-// users.total_movies_watched (which has been observed stale at 0 even when
-// user_history has many rows). dnaConfidence reads the SHARED formula in
-// @/shared/services/dnaConfidence so /account and /profile never disagree.
-function deriveStats({ history, ratings, fingerprint }) {
-  const filmsLogged = history.length
-  const filmsRated = ratings.length
-  const totalRuntime = history.reduce((s, h) => s + (h.movies?.runtime || 0), 0)
-  const hoursWatched = Math.round(totalRuntime / 60)
-  const distinctMoodTags = fingerprint?.topMoodTags?.length || 0
-  const dnaConfidence = computeDnaConfidence({ filmsLogged, filmsRated, distinctMoodTags })
-  return { filmsLogged, filmsRated, hoursWatched, dnaConfidence }
-}
+// /preferences owns `prefs` — never seed defaults for it (would clobber engine prefs).
+const DEFAULT_SHAPE = { notifications: DEFAULT_SETTINGS.notifications, privacy: DEFAULT_SETTINGS.privacy }
 
-// Default shape used to backstop any keys the user hasn't set yet.
-// `prefs` is intentionally pass-through (no defaults): /preferences-v2 owns
-// that JSONB branch — seeding defaults here would clobber its values when
-// /account writes a notifications/privacy change.
-const DEFAULT_SHAPE = {
-  notifications: DEFAULT_SETTINGS.notifications,
-  privacy:       DEFAULT_SETTINGS.privacy,
-}
-
-function mergeWithDefaults(serverShape) {
+export function mergeWithDefaults(serverShape) {
   const s = serverShape && typeof serverShape === 'object' ? serverShape : {}
-  // Notifications: SETTINGS.notifications is the canonical schema (defines
-  // which channels exist + their label/desc/badge). The server row only
-  // contributes per-channel `enabled` flags. Channels that disappear from
-  // DEFAULT_SHAPE (e.g. trimmed during a refactor) are dropped automatically.
-  const savedById = new Map((Array.isArray(s.notifications) ? s.notifications : []).map(n => [n.id, n]))
-  const notifications = DEFAULT_SHAPE.notifications.map(def => {
+  const savedById = new Map((Array.isArray(s.notifications) ? s.notifications : []).map((n) => [n.id, n]))
+  const notifications = DEFAULT_SHAPE.notifications.map((def) => {
     const saved = savedById.get(def.id)
     return saved ? { ...def, enabled: !!saved.enabled } : def
   })
   return {
     notifications,
-    prefs:   s.prefs && typeof s.prefs === 'object' ? s.prefs : {},
+    prefs: s.prefs && typeof s.prefs === 'object' ? s.prefs : {},
     privacy: { ...DEFAULT_SHAPE.privacy, ...(s.privacy || {}) },
+    // Preserve any unknown top-level keys verbatim so we never drop forward-written data.
+    ...Object.fromEntries(Object.entries(s).filter(([k]) => !['notifications', 'prefs', 'privacy'].includes(k))),
   }
 }
 
@@ -86,173 +63,154 @@ export function AccountDataProvider({ children }) {
   const [state, setState] = useState(INITIAL)
   const [nonce, setNonce] = useState(0)
 
-  // Debounced upsert state — single timer that flushes the latest settings.
-  const pendingRef = useRef(null)        // latest settings shape awaiting flush
-  const timerRef = useRef(null)
   const userIdRef = useRef(null)
   userIdRef.current = authUser?.id || null
+  const authUserRef = useRef(null)
+  authUserRef.current = authUser
+  const confirmedRef = useRef({})   // last server-confirmed value per section (rollback target)
+  const pendingRef = useRef({})      // latest desired value awaiting write, per section
+  const runningRef = useRef({})      // whether a write loop is running, per section
+  const settingsRef = useRef(null)   // mirror of state.serverSettings for stable reads
+  const savedTimers = useRef({})
+  settingsRef.current = state.serverSettings
 
-  const flushUpsert = useCallback(async () => {
-    if (!userIdRef.current || !pendingRef.current) return
-    const payload = pendingRef.current
-    pendingRef.current = null
-    timerRef.current = null
-    try {
-      await supabase
-        .from('user_settings')
-        .upsert(
-          { user_id: userIdRef.current, settings: payload },
-          { onConflict: 'user_id' }
-        )
-    } catch (e) {
-      console.warn('[user_settings upsert]', e)
+  useEffect(() => () => Object.values(savedTimers.current).forEach(clearTimeout), [])
+
+  const refresh = useCallback(() => setNonce((n) => n + 1), [])
+
+  const setSaveStatus = useCallback((key, status) => {
+    setState((prev) => ({ ...prev, saveStatus: { ...prev.saveStatus, [key]: status } }))
+    if (status === 'saved') {
+      clearTimeout(savedTimers.current[key])
+      savedTimers.current[key] = setTimeout(() => {
+        setState((prev) => (prev.saveStatus[key] === 'saved' ? { ...prev, saveStatus: { ...prev.saveStatus, [key]: 'idle' } } : prev))
+      }, SAVED_RESET_MS)
     }
   }, [])
 
-  const queueUpsert = useCallback((nextShape) => {
-    pendingRef.current = nextShape
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(flushUpsert, UPSERT_DEBOUNCE_MS)
-  }, [flushUpsert])
+  // Read-modify-write a single owned section, preserving prefs + unknown keys.
+  const writeSection = useCallback(async (key, value) => {
+    const uid = userIdRef.current
+    if (!uid) throw new Error('no_user')
+    const { data, error: readErr } = await supabase.from('user_settings').select('settings').eq('user_id', uid).maybeSingle()
+    if (readErr) throw readErr
+    const fresh = mergeWithDefaults(data?.settings)
+    const merged = { ...fresh, [key]: value }
+    const { error: writeErr } = await supabase.from('user_settings').upsert({ user_id: uid, settings: merged }, { onConflict: 'user_id' })
+    if (writeErr) throw writeErr
+  }, [])
 
-  // Flush on unmount so the last edit isn't lost.
-  useEffect(() => () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      flushUpsert()
-    }
-  }, [flushUpsert])
+  // Per-section serialised write loop. Coalesces rapid toggles to the latest value.
+  const runLoop = useCallback((key, onSettle) => {
+    if (runningRef.current[key]) return
+    runningRef.current[key] = true
+    ;(async () => {
+      while (pendingRef.current[key] !== undefined) {
+        const value = pendingRef.current[key]
+        pendingRef.current[key] = undefined
+        setSaveStatus(key, 'saving')
+        try {
+          await writeSection(key, value)
+          confirmedRef.current[key] = value
+          if (pendingRef.current[key] === undefined) setSaveStatus(key, 'saved')
+          onSettle?.(true, value)
+        } catch {
+          // Roll the section back to the last server-confirmed value + surface error.
+          const rollbackTo = confirmedRef.current[key]
+          pendingRef.current[key] = undefined
+          setState((prev) => ({ ...prev, serverSettings: { ...prev.serverSettings, [key]: rollbackTo }, saveStatus: { ...prev.saveStatus, [key]: 'error' } }))
+          onSettle?.(false, rollbackTo)
+          break
+        }
+      }
+      runningRef.current[key] = false
+    })()
+  }, [writeSection, setSaveStatus])
 
-  const refresh = useCallback(() => setNonce(n => n + 1), [])
+  const saveSection = useCallback((key, value, onSettle) => {
+    pendingRef.current[key] = value
+    setState((prev) => ({ ...prev, serverSettings: { ...prev.serverSettings, [key]: value }, saveStatus: { ...prev.saveStatus, [key]: 'saving' } }))
+    runLoop(key, onSettle)
+  }, [runLoop])
 
-  // Generic merger: takes a top-level key + patch and updates state + queues an upsert.
-  const patchSection = useCallback((sectionKey, patch) => {
-    setState(prev => {
-      const baseline = prev.serverSettings || mergeWithDefaults(null)
-      const nextSection = typeof patch === 'function'
-        ? patch(baseline[sectionKey])
-        : { ...baseline[sectionKey], ...patch }
-      const nextShape = { ...baseline, [sectionKey]: nextSection }
-      queueUpsert(nextShape)
-      return { ...prev, serverSettings: nextShape }
+  const updateNotifications = useCallback((nextItems) => saveSection('notifications', nextItems), [saveSection])
+
+  // Privacy: analytics runtime is coordinated with the persisted result. Turning OFF stops
+  // capture immediately (so nothing is captured mid-save); a failed save restores both the
+  // stored/UI state AND the runtime PostHog state. Turning ON only opts in after success.
+  const updatePrivacy = useCallback((patch) => {
+    const key = Object.keys(patch)[0]
+    const current = pendingRef.current.privacy || settingsRef.current?.privacy || DEFAULT_SHAPE.privacy
+    const next = { ...current, [key]: patch[key] }
+    const analyticsChanged = key === 'analytics'
+    if (analyticsChanged && next.analytics === false) setAnalyticsOptOut(true) // stop capture during save
+    saveSection('privacy', next, (ok) => {
+      if (!analyticsChanged) return
+      if (ok) setAnalyticsOptOut(!next.analytics)
+      else setAnalyticsOptOut(!(confirmedRef.current.privacy?.analytics ?? true)) // restore runtime
     })
-  }, [queueUpsert])
+  }, [saveSection])
 
-  const updateNotifications = useCallback((nextItems) => {
-    setState(prev => {
-      const baseline = prev.serverSettings || mergeWithDefaults(null)
-      const nextShape = { ...baseline, notifications: nextItems }
-      queueUpsert(nextShape)
-      return { ...prev, serverSettings: nextShape }
-    })
-  }, [queueUpsert])
+  const retrySection = useCallback((key) => {
+    const last = pendingRef.current[key] ?? settingsRef.current?.[key]
+    if (last !== undefined) saveSection(key, last)
+  }, [saveSection])
 
-  const updatePrivacy = useCallback((patch) => patchSection('privacy', patch), [patchSection])
-
-  // === Deletion (7-day delayed) ============================================
-  // Wraps the request_/cancel_account_deletion RPCs and updates local state
-  // optimistically so the DangerZone + AppShell banner reflect immediately.
+  // === Deletion (7-day delayed) — RPCs throw on error so callers surface it. ===
   const requestDeletion = useCallback(async (reason = null) => {
     const { data, error } = await supabase.rpc('request_account_deletion', { p_reason: reason })
     if (error) throw error
-    setState(prev => ({
-      ...prev,
-      pendingDeletion: data
-        ? { scheduled_for: data.scheduled_for, requested_at: data.requested_at }
-        : prev.pendingDeletion,
-    }))
+    setState((prev) => ({ ...prev, pendingDeletion: data ? { scheduled_for: data.scheduled_for, requested_at: data.requested_at } : prev.pendingDeletion }))
     return data
   }, [])
 
   const cancelDeletion = useCallback(async () => {
     const { error } = await supabase.rpc('cancel_account_deletion')
     if (error) throw error
-    setState(prev => ({ ...prev, pendingDeletion: null }))
+    setState((prev) => ({ ...prev, pendingDeletion: null }))
   }, [])
 
+  // Re-fetch only when the user IDENTITY changes (or on refresh) — not on every upstream object
+  // re-creation. The auth object itself is read through a ref so its identity churn can't loop us.
+  const authUserId = authUser?.id || null
   useEffect(() => {
-    if (!authUser?.id) {
-      setState({ ...INITIAL, loading: false })
-      return
-    }
+    const u = authUserRef.current
+    if (!authUserId) { setState({ ...INITIAL, loading: false }); return undefined }
     let abort = false
-    setState(s => ({ ...s, loading: true, error: null }))
-
+    setState((s) => ({ ...s, loading: true, error: null }))
     ;(async () => {
       try {
-        const [profileRes, historyRes, ratingsRes, settingsRes, deletionRes, fingerprint] = await Promise.all([
-          supabase
-            .from('users')
-            // taste_label: column exists but no write path in the codebase
-            // and never read for display — dropped from the select in the
-            // 2026-05-21 audit. Schema column kept for now; safe to drop in a
-            // future migration if confirmed unused org-wide.
-            // total_movies_watched dropped: it's been observed stale (0 even
-            // when user_history has rows). Stats now derive from history.
-            .select('id, name, email, avatar_url, signup_source, joined_at, onboarding_complete, last_active_at')
-            .eq('id', authUser.id)
-            .maybeSingle(),
-          supabase
-            .from('user_history')
-            // runtime is fetched so deriveStats can sum it for "Hours watched".
-            .select('watched_at, movies!inner ( runtime )')
-            .eq('user_id', authUser.id),
-          supabase
-            .from('user_ratings')
-            .select('movie_id')
-            .eq('user_id', authUser.id),
-          supabase
-            .from('user_settings')
-            .select('settings')
-            .eq('user_id', authUser.id)
-            .maybeSingle(),
-          supabase
-            .from('account_deletion_requests')
-            .select('scheduled_for, requested_at')
-            .eq('user_id', authUser.id)
-            .is('cancelled_at', null)
-            .maybeSingle(),
-          // Cached taste fingerprint — its topMoodTags length feeds the
-          // dnaConfidence "fingerprint richness" signal so the Identity
-          // stat card matches /profile's QuickStats.
-          getTasteFingerprint(authUser.id).catch(() => null),
+        const [profileRes, settingsRes, deletionRes] = await Promise.all([
+          supabase.from('users').select('id, name, email, avatar_url, signup_source, joined_at, onboarding_complete, last_active_at').eq('id', authUserId).maybeSingle(),
+          supabase.from('user_settings').select('settings').eq('user_id', authUserId).maybeSingle(),
+          supabase.from('account_deletion_requests').select('scheduled_for, requested_at').eq('user_id', authUserId).is('cancelled_at', null).maybeSingle(),
         ])
         if (abort) return
-
-        const profile = profileRes.data || null
-        const history = historyRes.data || []
-        const ratings = ratingsRes.data || []
-        const stats = deriveStats({ history, ratings, fingerprint })
-        const provider = authUser?.app_metadata?.provider || 'email'
         const serverSettings = mergeWithDefaults(settingsRes.data?.settings)
-        const pendingDeletion = deletionRes.data || null
-
+        confirmedRef.current = { notifications: serverSettings.notifications, privacy: serverSettings.privacy }
         setState({
-          authUser,
-          profile,
-          stats,
-          provider,
+          authUser: u,
+          profile: profileRes.data || null,
+          provider: u?.app_metadata?.provider || 'email',
           serverSettings,
-          pendingDeletion,
+          pendingDeletion: deletionRes.data || null,
           loading: false,
           error: null,
-          refresh,
-          updateNotifications,
-          updatePrivacy,
-          requestDeletion,
-          cancelDeletion,
+          saveStatus: {},
         })
       } catch (e) {
         if (abort) return
         console.error('[useAccountData]', e)
-        setState(s => ({ ...s, loading: false, error: e?.message || 'Failed to load' }))
+        setState((s) => ({ ...s, loading: false, error: e?.message || 'Failed to load' }))
       }
     })()
-
     return () => { abort = true }
-  }, [authUser, nonce, refresh, updateNotifications, updatePrivacy, requestDeletion, cancelDeletion])
+  }, [authUserId, nonce])
 
-  const value = useMemo(() => state, [state])
+  const value = useMemo(
+    () => ({ ...state, refresh, updateNotifications, updatePrivacy, retrySection, requestDeletion, cancelDeletion }),
+    [state, refresh, updateNotifications, updatePrivacy, retrySection, requestDeletion, cancelDeletion],
+  )
   return <AccountDataContext.Provider value={value}>{children}</AccountDataContext.Provider>
 }
 

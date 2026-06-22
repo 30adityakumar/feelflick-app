@@ -6,15 +6,19 @@ import { render, screen } from '@testing-library/react'
 // functional-looking controls. Enforced controls (taste-match surfacing, analytics) stay.
 
 const updatePrivacy = vi.fn()
+const retrySection = vi.fn()
 vi.mock('../useAccountData', () => ({
   useAccountData: () => ({
     serverSettings: { privacy: { showOnLeaderboards: true, analytics: true } },
     updatePrivacy,
+    retrySection,
+    saveStatus: {},
   }),
 }))
 vi.mock('@/shared/services/analytics', () => ({ setAnalyticsOptOut: vi.fn() }))
 
-import { Privacy } from '../sections-bottom'
+import PrivacyPane from '../panes/PrivacyPane'
+const Privacy = PrivacyPane
 
 describe('Account Privacy — F7.2 honest controls', () => {
   it('does NOT render the unenforced "Public profile" / "Public diary" controls', () => {

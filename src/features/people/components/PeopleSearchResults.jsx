@@ -16,7 +16,7 @@ export default function PeopleSearchResults({ phase, results, onClear }) {
         <h2 id="ff-people-search-h" className="ff-people-rail__title ff-people-rail__title--sm">
           {phase === 'results' ? `${count} ${count === 1 ? 'result' : 'results'}` : 'Search results'}
         </h2>
-        <button type="button" className="ff-people-clear-btn" onClick={onClear}>Clear</button>
+        <button type="button" className="ff-people-clear-btn" style={{ minHeight: 44 }} aria-label="Clear search results" onClick={onClear}>Clear</button>
       </div>
       {phase === 'searching' ? (
         <p className="ff-people-state-note" role="status">Searching…</p>

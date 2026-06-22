@@ -14,6 +14,8 @@
   --pl-text-2: var(--ts-text-secondary, #beb8ad);
   --pl-text-muted: var(--ts-text-muted, #8d887f);
   --pl-rose: #dd4e83;
+  /* Deeper rose for white-text fills — white on #dd4e83 is 3.82:1 (fails AA); #c0356c clears 4.5:1. */
+  --pl-rose-deep: #c0356c;
   --pl-px: clamp(20px, 5vw, 64px);
   --pl-nav-clear: 96px;
 
@@ -79,7 +81,7 @@
 .ff-people-avatar--initial { display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: #1a1410; }
 
 /* ── Follow / Hide ──────────────────────────────────────────────────── */
-.ff-people-followbtn { padding: 0 16px; border-radius: 999px; background: var(--pl-rose); border: none; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+.ff-people-followbtn { padding: 0 16px; border-radius: 999px; background: var(--pl-rose-deep); border: none; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
 .ff-people-followbtn--following { background: transparent; border: 1px solid var(--pl-border-strong); color: var(--pl-text-2); }
 .ff-people-followbtn:disabled { opacity: 0.7; cursor: wait; }
 .ff-people-hidebtn { padding: 0 10px; background: transparent; border: none; color: var(--pl-text-muted); font-size: 11px; letter-spacing: 0.04em; cursor: pointer; }
@@ -95,7 +97,7 @@
 .ff-people-row__via span { color: var(--pl-text-2); }
 .ff-people-row__stack { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
 
-.ff-people-clear-btn { min-height: 40px; padding: 0 12px; border: 1px solid var(--pl-border); border-radius: 10px; background: transparent; color: var(--pl-text-muted); font-size: 12px; cursor: pointer; }
+.ff-people-clear-btn { min-height: 44px; padding: 0 14px; border: 1px solid var(--pl-border); border-radius: 10px; background: transparent; color: var(--pl-text-muted); font-size: 12px; cursor: pointer; }
 .ff-people-state-note { font-size: 13px; color: var(--pl-text-muted); }
 
 /* ── Empty / cold / error ───────────────────────────────────────────── */

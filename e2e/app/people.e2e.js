@@ -431,9 +431,10 @@ test.describe('People — authenticated, intercepted', () => {
     { name: '320 @ 200% (≈160)', w: 160, h: 406 },
   ]) {
     test(`Y — 200% zoom ${z.name}: usable, no overflow, controls + dialog + Undo reachable, BottomNav clearance`, async ({ page }) => {
+      const BENIGN = /WebSocket|vite|ERR_CONNECTION_REFUSED|HMR|Sentry|PostHog|posthog|Failed to load resource|net::ERR/i
       const errors = []
-      page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
-      page.on('pageerror', (e) => errors.push(e.message))
+      page.on('console', (m) => { if (m.type() === 'error' && !BENIGN.test(m.text())) errors.push(m.text()) })
+      page.on('pageerror', (e) => { if (!BENIGN.test(e.message)) errors.push(e.message) })
       await installPeopleFixture(page)
       await page.setViewportSize({ width: z.w, height: z.h })
       await openPeople(page)

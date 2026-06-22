@@ -31,7 +31,7 @@ async function openWatchlist(page) {
 }
 async function openDiary(page) {
   await page.goto('/history')
-  await expect(h1(page)).toHaveText(/Your diary\./, { timeout: 20_000 })
+  await expect(h1(page)).toHaveText('Diary', { timeout: 20_000 })
 }
 
 test.describe('User Library — authenticated visual baselines', () => {
@@ -68,7 +68,7 @@ test.describe('User Library — authenticated visual baselines', () => {
     await installLibraryFixture(page, { reducedMotion: true })
     await page.setViewportSize(DESKTOP)
     await openDiary(page)
-    await page.getByRole('button', { name: 'Remove Lantern Hill from diary' }).click()
+    await page.getByRole('button', { name: 'Remove Lantern Hill from Diary' }).click()
     await expect(page.getByRole('dialog')).toBeVisible()
     await freeze(page)
     await expect(page).toHaveScreenshot('diary-remove-dialog-desktop.png')
@@ -103,8 +103,8 @@ test.describe('User Library — authenticated visual baselines', () => {
     await installLibraryFixture(page, { reducedMotion: true })
     await page.setViewportSize(MOBILE)
     await openDiary(page)
-    await page.getByLabel('Search the diary').fill('zzzzz')
-    await expect(page.getByText('0 of 4 match “zzzzz”')).toBeVisible()
+    await page.getByLabel('Search the Diary').fill('zzzzz')
+    await expect(page.getByText('No Diary entries match your search.')).toBeVisible()
     await freeze(page)
     await expect(page).toHaveScreenshot('diary-searched-empty-mobile.png')
   })

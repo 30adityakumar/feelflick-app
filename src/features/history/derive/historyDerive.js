@@ -14,8 +14,13 @@
 // loved/fav (raw ≥9), total-hours, and thisMonthCount are unchanged.
 
 import { formatShortDate, formatShortMonthYear } from '@/shared/lib/format/date'
-import { HP, MOOD_HEX, tmdbImg } from '../data'
+import { MOOD_HEX, tmdbImg } from '../data'
 import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
+
+// Deterministic, locale-stable comparator for titles (English, accent/case-insensitive,
+// natural-number aware). Used as a tie-break across every sort so equal primary keys never
+// reorder between renders/environments.
+const titleCollator = new Intl.Collator('en', { sensitivity: 'base', numeric: true })
 
 export const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -30,9 +35,12 @@ export function dayPart(hour) {
   return 'Late'
 }
 
+// Neutral warm-graphite fallback for unmapped moods — stays on the Library foundation palette
+// rather than the legacy brand purple.
+const MOOD_NEUTRAL = '#8d887f'
 export function moodHexFor(name) {
-  if (!name) return HP.purple
-  return MOOD_HEX[name] || MOOD_HEX[capitalize(name)] || HP.purple
+  if (!name) return MOOD_NEUTRAL
+  return MOOD_HEX[name] || MOOD_HEX[capitalize(name)] || MOOD_NEUTRAL
 }
 
 // === Derivers ============================================================
@@ -67,7 +75,14 @@ export function deriveEntries(history, ratings) {
         date: formatShortDate(d),
         month: formatShortMonthYear(d),
         day: d.getDate(),
-        // user_ratings.rating is on the 1-10 scale; map to 1-5 for star display.
+        // Raw canonical watched timestamp + a concise label for the flat (non-chronological) sorts.
+        watchedAt: h.watched_at,
+        watchedTs: d.getTime(),
+        watchedLabel: `Watched ${formatShortDate(d)}`,
+        // user_ratings.rating is on the 1-10 scale; map to 1-5 for star display. `rawRating`
+        // preserves the stored 1-10 value (null when unrated) — the authority for sorting/filtering
+        // so raw 10 sorts above raw 9 even though both display 5 stars.
+        rawRating: typeof r.rating === 'number' ? r.rating : null,
         rating: r.rating ? Math.round(r.rating / 2) : 0,
         filmMood,
         mood: filmMood,
@@ -115,15 +130,57 @@ export function deriveStats({ history, ratings }) {
   return { totalLogged, totalHours, avgRating, thisMonthCount }
 }
 
-// Pure Diary search: matches a derived entry against a free-text query over the
-// user's own content — title, director, and review. The FILM's generated mood is
-// intentionally NOT searched (it isn't a user note).
+// Deterministic, locale-stable search normalization: trim → Unicode NFKD → strip combining
+// diacritics → lowercase (NOT toLocaleLowerCase) → collapse whitespace.
+export function normalizeSearch(value) {
+  return String(value ?? '')
+    .trim()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '') // strip combining diacritical marks
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+}
+
+// Pure Diary search: matches a derived entry against a free-text query over the user's own
+// content — title, director, and review. The FILM's generated mood is intentionally NOT searched
+// (it isn't a user note). Empty/whitespace query → match all.
 export function matchesQuery(entry, query) {
-  const q = (query || '').trim().toLowerCase()
+  const q = normalizeSearch(query)
   if (!q) return true
-  return (
-    String(entry.title || '').toLowerCase().includes(q) ||
-    String(entry.dir || '').toLowerCase().includes(q) ||
-    String(entry.review || '').toLowerCase().includes(q)
-  )
+  const hay = `${normalizeSearch(entry.title)} ${normalizeSearch(entry.dir)} ${normalizeSearch(entry.review)}`
+  return hay.includes(q)
+}
+
+// Deterministic Diary sort. Every mode ends in title (English collator) then movie id, so equal
+// primary keys never reorder. Raw rating (1-10) is the authority for Highest rated — raw 10 sorts
+// above raw 9 even though both display 5 stars; unrated films sort LAST. Runtime sorts unknown/zero
+// LAST (never the shortest). No recommendation rank / oldest / mood / review-length sort.
+const byTitleThenId = (a, b) => titleCollator.compare(String(a.title || ''), String(b.title || '')) || ((a.movieId ?? 0) - (b.movieId ?? 0))
+const byDateDesc = (a, b) => (b.watchedTs || 0) - (a.watchedTs || 0)
+
+export function sortEntries(entries, sort) {
+  const arr = (entries || []).slice()
+  if (sort === 'rating') {
+    arr.sort((a, b) => {
+      const ar = a.rawRating == null ? -1 : a.rawRating
+      const br = b.rawRating == null ? -1 : b.rawRating
+      return (br - ar) || byDateDesc(a, b) || byTitleThenId(a, b) // rated first, raw desc
+    })
+  } else if (sort === 'runtime') {
+    arr.sort((a, b) => {
+      const ra = a.runtime > 0 ? a.runtime : Infinity
+      const rb = b.runtime > 0 ? b.runtime : Infinity
+      return (ra - rb) || byDateDesc(a, b) || byTitleThenId(a, b) // unknown/0 last
+    })
+  } else {
+    arr.sort((a, b) => byDateDesc(a, b) || byTitleThenId(a, b)) // 'recent' (default)
+  }
+  return arr
+}
+
+// Most recent renders the chronological month → day timeline; Highest rated / Runtime render a
+// flat sorted list (chronological containers would falsely imply order).
+export const GROUPED_SORTS = new Set(['recent'])
+export function isGroupedSort(sort) {
+  return GROUPED_SORTS.has(sort || 'recent')
 }

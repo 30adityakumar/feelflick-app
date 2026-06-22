@@ -1,126 +1,270 @@
-/* history.css — fonts load globally via index.html, no per-route @import needed */
-.ff-history-v2 { font-family:'Inter', system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
-.ff-history-v2 em { font-style: italic; }
-.ff-history-v2 button { font-family: inherit; transition: filter 0.18s ease; }
-.ff-history-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
-.ff-history-v2 select, .ff-history-v2 input { font-family: inherit; }
-.ff-history-v2 ::selection { background: rgba(221,78,131,0.35); color:#fff; }
+/* src/features/history/history.css — Diary on the Library foundation (warm Ink + Inter), shared
+   with the released Watchlist. Uses the --ts-* foundation tokens with warm-Ink fallbacks (no
+   ThoughtfulRoot wrapper required) so the surface matches Watchlist without importing the
+   thoughtful-seatmate module. Sticky offsets come from the real --n header token (never a hard
+   62px). No editorial font, no gradient identity, no oversized stat cards. */
 
-/* === Responsive overrides ==================================================
-   Mirrors the pattern used in account-v2.css + watchlist-v2.css: inline
-   `padding: ...88px` and fixed grid templates are kept for the desktop
-   case; class hooks override them at narrow widths. `!important` is needed
-   because the source styles are inline. */
+.ff-history-v2 {
+  --diary-canvas: var(--ts-canvas, #15120f);
+  --diary-surface: var(--ts-surface-1, #1d1814);
+  --diary-surface-2: var(--ts-surface-2, #241e19);
+  --diary-border: var(--ts-border-subtle, #302c28);
+  --diary-border-strong: var(--ts-border-strong, #46423d);
+  --diary-text: var(--ts-text-primary, #f3ecdf);
+  --diary-text-2: var(--ts-text-secondary, #beb8ad);
+  --diary-text-muted: var(--ts-text-muted, #8d887f);
+  --diary-rose: #dd4e83;
+  --diary-amber: #fbbf24;
+  --diary-px: clamp(20px, 5vw, 64px);
+  --diary-retrieval-h: 66px;
+  /* Canonical mobile BottomNav is ~88px tall + safe-area; clear it (matches Account's 96px). */
+  --diary-nav-clear: 96px;
 
-/* Tablet (≤ 960px): trim sidewalls; pulse strip drops 4 → 2 cols. */
+  min-height: 100vh;
+  background: var(--diary-canvas);
+  color: var(--diary-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.ff-history-v2 button,
+.ff-history-v2 select,
+.ff-history-v2 input { font-family: inherit; }
+.ff-history-v2 ::selection { background: rgba(221, 78, 131, 0.32); color: #fff; }
+
+.ff-diary-root { padding-bottom: 80px; }
+
+/* Horizontal rhythm shared by every band. */
+.ff-diary-section,
+.ff-library-nav,
+.ff-diary-collection,
+.ff-diary-retrieval__shell { padding-left: var(--diary-px); padding-right: var(--diary-px); }
+
+.ff-library-nav { padding-top: 32px; }
+
+/* ── Masthead ───────────────────────────────────────────────────────── */
+.ff-diary-masthead { padding-top: 18px; padding-bottom: 8px; }
+.ff-diary-hero {
+  margin: 10px 0 0; font-size: clamp(34px, 5.5vw, 52px); line-height: 1.02;
+  font-weight: 600; letter-spacing: -0.03em; color: var(--diary-text);
+}
+.ff-diary-masthead__sub {
+  margin: 12px 0 0; max-width: 56ch; font-size: 15px; line-height: 1.55;
+  color: var(--diary-text-2);
+}
+
+/* ── Compact stats ──────────────────────────────────────────────────── */
+.ff-diary-stats { padding-top: 22px; padding-bottom: 26px; }
+.ff-diary-stats__row {
+  margin: 0; display: flex; flex-wrap: wrap; gap: 14px 36px; align-items: baseline;
+  border-top: 1px solid var(--diary-border); padding-top: 18px;
+}
+.ff-diary-stat { display: flex; align-items: baseline; gap: 8px; }
+.ff-diary-stat__value {
+  margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--diary-text);
+  order: -1; /* value reads/visually leads the label */
+}
+.ff-diary-stat__label {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--diary-text-muted);
+}
+
+/* ── Sticky retrieval ───────────────────────────────────────────────── */
+.ff-diary-retrieval {
+  position: sticky; top: var(--n, 56px); z-index: 30;
+  background: var(--diary-canvas); border-top: 1px solid var(--diary-border);
+  border-bottom: 1px solid var(--diary-border);
+}
+.ff-diary-retrieval__shell { padding-top: 12px; padding-bottom: 12px; }
+.ff-diary-retrieval__inner {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px 16px; align-items: center;
+}
+.ff-diary-search { position: relative; display: flex; align-items: center; min-width: 0; }
+.ff-diary-search__icon { position: absolute; left: 13px; color: var(--diary-text-muted); pointer-events: none; }
+.ff-diary-search__input {
+  width: 100%; min-width: 0; height: 42px; padding: 0 38px; border-radius: 999px;
+  background: var(--diary-surface); border: 1px solid var(--diary-border); color: var(--diary-text);
+  font-size: 13px; outline: none;
+}
+.ff-diary-search__input::placeholder { color: var(--diary-text-muted); }
+.ff-diary-search__input:focus { border-color: var(--diary-border-strong); }
+.ff-diary-search__clear {
+  position: absolute; right: 8px; width: 26px; height: 26px; display: inline-flex; align-items: center;
+  justify-content: center; border: 0; border-radius: 50%; background: transparent; color: var(--diary-text-muted);
+  cursor: pointer;
+}
+.ff-diary-filters { display: flex; gap: 8px; }
+.ff-diary-filter {
+  min-height: 44px; padding: 8px 16px; border-radius: 999px; cursor: pointer;
+  background: var(--diary-surface); border: 1px solid var(--diary-border); color: var(--diary-text-2);
+  font-size: 12px; font-weight: 500;
+}
+.ff-diary-filter--active { background: var(--diary-surface-2); border-color: var(--diary-text-2); color: var(--diary-text); }
+.ff-diary-sort {
+  display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border-radius: 999px;
+  background: var(--diary-surface); border: 1px solid var(--diary-border);
+}
+.ff-diary-sort__label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--diary-text-muted); }
+.ff-diary-sort__select { background: transparent; border: 0; color: var(--diary-text); font-size: 12px; font-weight: 600; cursor: pointer; outline: none; }
+
+/* ── Collection / timeline ──────────────────────────────────────────── */
+.ff-diary-collection { outline: none; padding-top: 8px; }
+.ff-diary-month { padding-top: 8px; }
+.ff-diary-month__head {
+  position: sticky; top: calc(var(--n, 56px) + var(--diary-retrieval-h)); z-index: 20;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 18px 0 12px; background: var(--diary-canvas); border-bottom: 1px solid var(--diary-border);
+}
+.ff-diary-month__title { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--diary-text); }
+.ff-diary-month__count { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--diary-text-muted); }
+.ff-diary-day { padding-top: 6px; }
+.ff-diary-day__head {
+  margin: 0; padding: 18px 0 8px; font-size: 13px; color: var(--diary-text-muted); letter-spacing: 0.01em;
+}
+
+/* Flat (non-chronological) presentation. */
+.ff-diary-flat { padding-top: 8px; }
+.ff-diary-flat__head {
+  margin: 0; padding: 18px 0 12px; font-size: 13px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--diary-text-muted); border-bottom: 1px solid var(--diary-border);
+}
+
+/* ── Row ────────────────────────────────────────────────────────────── */
+.ff-diary-row {
+  position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto;
+  column-gap: 18px; align-items: start; padding: 16px 0; border-bottom: 1px solid var(--diary-border);
+}
+.ff-diary-row__poster { width: 64px; }
+.ff-diary-row__img {
+  display: block; width: 64px; aspect-ratio: 2 / 3; height: auto; object-fit: cover; border-radius: 5px;
+  background: var(--diary-surface-2);
+}
+.ff-diary-row__img--empty { aspect-ratio: 2 / 3; }
+.ff-diary-row__main { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.ff-diary-row__title-link { text-decoration: none; color: inherit; }
+/* Stretched hit area: poster + title (+ entry body) act as the one Film File link. */
+.ff-diary-row__title-link::after { content: ''; position: absolute; inset: 0; z-index: 0; }
+/* Lift the secondary content + end controls above the stretched overlay so they stay
+   selectable / clickable and Remove is never swallowed by the link. */
+.ff-diary-row__main > :not(.ff-diary-row__title-link) { position: relative; z-index: 1; }
+.ff-diary-row__end { position: relative; z-index: 2; }
+.ff-diary-row__title { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.015em; color: var(--diary-text); overflow-wrap: anywhere; }
+.ff-diary-row__sub { margin: 0; font-size: 12px; color: var(--diary-text-muted); overflow-wrap: anywhere; }
+.ff-diary-row__signals { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ff-diary-row__stars { display: inline-flex; gap: 2px; color: var(--diary-amber); }
+.ff-diary-row__review { margin-top: 2px; }
+.ff-diary-row__review-label { display: block; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--diary-text-muted); margin-bottom: 5px; }
+.ff-diary-row__review-text { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--diary-text-2); border-left: 2px solid var(--diary-rose); padding-left: 12px; overflow-wrap: anywhere; text-wrap: pretty; }
+.ff-diary-row__watched { margin: 2px 0 0; font-size: 11px; letter-spacing: 0.04em; color: var(--diary-text-muted); }
+.ff-diary-row__end { display: flex; align-items: flex-start; gap: 12px; }
+.ff-diary-row__runtime { padding-top: 6px; font-size: 11px; letter-spacing: 0.04em; color: var(--diary-text-muted); white-space: nowrap; }
+.ff-diary-row__remove {
+  opacity: 0; transition: opacity 0.15s ease; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px; background: transparent; border: none; color: var(--diary-text-muted); cursor: pointer;
+}
+.ff-diary-row:hover .ff-diary-row__remove,
+.ff-diary-row:focus-within .ff-diary-row__remove,
+.ff-diary-row__remove:focus-visible { opacity: 1; }
+.ff-diary-row__remove:hover:not(:disabled) { color: var(--diary-rose); }
+.ff-diary-row__remove:disabled { cursor: wait; }
+@media (hover: none) { .ff-diary-row__remove { opacity: 1; } }
+@media (forced-colors: active) { .ff-diary-row__remove { opacity: 1; } }
+
+/* ── Empty states ───────────────────────────────────────────────────── */
+.ff-diary-empty { padding: 56px var(--diary-px) 80px; }
+.ff-diary-empty__title { margin: 0 0 12px; font-size: clamp(24px, 4vw, 30px); font-weight: 600; letter-spacing: -0.02em; color: var(--diary-text); }
+.ff-diary-empty__body { margin: 0 0 22px; max-width: 48ch; font-size: 14px; line-height: 1.6; color: var(--diary-text-2); }
+.ff-diary-empty__actions { display: flex; gap: 22px; flex-wrap: wrap; margin: 0; }
+.ff-diary-empty__link { color: var(--diary-text); font-size: 14px; font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--diary-rose); padding-bottom: 2px; }
+.ff-diary-empty__link--muted { color: var(--diary-text-2); border-bottom-color: var(--diary-border-strong); }
+
+.ff-diary-filtered-empty { padding: 56px 0 64px; }
+.ff-diary-filtered-empty__title { margin: 0 0 10px; font-size: 19px; font-weight: 600; color: var(--diary-text); }
+.ff-diary-filtered-empty__body { margin: 0 0 18px; font-size: 14px; color: var(--diary-text-2); }
+.ff-diary-filtered-empty__action { min-height: 44px; padding: 10px 20px; border-radius: 999px; background: var(--diary-surface-2); border: 1px solid var(--diary-border-strong); color: var(--diary-text); font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* ── Success toast (visual mirror; SR uses the live region) ─────────── */
+.ff-diary-toast-wrap { position: fixed; z-index: 80; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom)); transform: translateX(-50%); pointer-events: none; padding: 0 16px; max-width: 92vw; }
+.ff-diary-toast { padding: 11px 18px; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--diary-surface-2); border: 1px solid var(--diary-border-strong); color: var(--diary-text); box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.7); }
+.ff-diary-toast--error { border-color: var(--diary-rose); }
+
+/* ── Removal dialog ─────────────────────────────────────────────────── */
+.ff-diary-dialog-backdrop { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0, 0, 0, 0.62); }
+.ff-diary-dialog { width: 100%; max-width: 440px; max-height: calc(100svh - 40px); overflow-y: auto; background: var(--diary-surface); border: 1px solid var(--diary-border-strong); border-radius: 14px; padding: 26px; box-shadow: 0 28px 70px -20px rgba(0, 0, 0, 0.78); outline: none; }
+.ff-diary-dialog__title { margin: 0 0 12px; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: var(--diary-text); }
+.ff-diary-dialog__body { margin: 0 0 18px; font-size: 14px; line-height: 1.55; color: var(--diary-text-2); }
+.ff-diary-dialog__error { margin: 0 0 18px; font-size: 13px; line-height: 1.5; color: #ffb4b4; }
+.ff-diary-dialog__actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+.ff-diary-dialog__btn { min-height: 44px; padding: 11px 20px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.ff-diary-dialog__btn--keep { background: transparent; border: 1px solid var(--diary-border-strong); color: var(--diary-text-2); }
+.ff-diary-dialog__btn--remove { background: var(--diary-rose); border: none; color: #fff; }
+.ff-diary-dialog__btn:disabled { opacity: 0.6; cursor: wait; }
+
+/* ── Loading / error states ─────────────────────────────────────────── */
+.ff-diary-skeleton { padding: 40px var(--diary-px) 80px; }
+.ff-diary-skel { background: var(--diary-surface); border-radius: 8px; }
+.ff-diary-skel--eyebrow { height: 12px; width: 180px; border-radius: 999px; margin-bottom: 18px; }
+.ff-diary-skel--title { height: 52px; width: 220px; margin-bottom: 28px; }
+.ff-diary-skel-row { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 30px; }
+.ff-diary-skel--stat { height: 30px; width: 120px; }
+.ff-diary-skel--bar { height: 44px; width: 100%; margin-bottom: 22px; }
+.ff-diary-skel--entry { height: 96px; width: 100%; margin-bottom: 14px; }
+.ff-diary-error-wrap { min-height: 56vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.ff-diary-error { text-align: center; max-width: 520px; }
+.ff-diary-error__eyebrow { margin: 0 0 16px; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--diary-text-muted); }
+.ff-diary-error__title { margin: 0 0 14px; font-size: clamp(26px, 4vw, 34px); font-weight: 600; letter-spacing: -0.02em; color: var(--diary-text); }
+.ff-diary-error__body { margin: 0 0 26px; font-size: 14px; line-height: 1.6; color: var(--diary-text-2); }
+.ff-diary-error__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.ff-diary-error__btn { min-height: 44px; padding: 12px 22px; border-radius: 999px; background: transparent; border: 1px solid var(--diary-border-strong); color: var(--diary-text); font-size: 14px; font-weight: 600; cursor: pointer; }
+.ff-diary-error__btn--primary { background: var(--diary-rose); border: none; color: #fff; }
+
+/* ── Focus visibility ───────────────────────────────────────────────── */
+.ff-history-v2 a:focus-visible,
+.ff-history-v2 button:focus-visible,
+.ff-history-v2 select:focus-visible,
+.ff-history-v2 input:focus-visible,
+.ff-diary-row__title-link:focus-visible::after {
+  outline: 2px solid var(--diary-text); outline-offset: 2px; border-radius: 6px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
-  .ff-hist-section {
-    padding-left: clamp(28px, 5vw, 60px) !important;
-    padding-right: clamp(28px, 5vw, 60px) !important;
-  }
-  .ff-hist-pulse-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-  }
-  .ff-hist-tl {
-    grid-template-columns: 1fr !important;
-    gap: 32px !important;
-  }
+  .ff-diary-retrieval__inner { grid-template-columns: 1fr auto; }
+  .ff-diary-search { grid-column: 1 / -1; }
 }
-
-/* Phone (≤ 720px). */
-@media (max-width: 720px) {
-  .ff-hist-section {
-    padding-left: clamp(16px, 4vw, 24px) !important;
-    padding-right: clamp(16px, 4vw, 24px) !important;
-  }
-  .ff-hist-section--masthead {
-    padding-top: 32px !important;
-    padding-bottom: 8px !important;
-  }
-  /* PulseStrip: 2-col still readable, but tighter padding inside each card. */
-  .ff-hist-pulse-grid {
-    gap: 10px !important;
-  }
-  .ff-hist-pulse-grid > div {
-    padding: 14px 16px !important;
-  }
-  .ff-hist-pulse-grid > div > div:nth-child(2) {
-    font-size: 32px !important;
-  }
-  /* Section headlines (Heatmap "twelve weeks", Timeline, Mood share). */
-  .ff-hist-h2 {
-    font-size: 22px !important;
-  }
-  /* FilterBar: search input stretches full-width on mobile so it doesn't
-     overflow the flex parent. */
-  .ff-hist-filterbar-controls {
-    width: 100%;
-  }
-  .ff-hist-search {
-    min-width: 0 !important;
-    flex: 1;
-    width: 100%;
-  }
-  /* Diary row: drop the runtime column to free horizontal space. The day
-     numeral is already gone from the row (replaced by per-day sub-headers
-     at the day level). */
-  .ff-hist-row {
-    grid-template-columns: 64px 1fr auto !important;
-    gap: 12px !important;
-  }
-  .ff-hist-row__runtime { display: none !important; }
-  /* Day sub-headers wrap their content on narrow widths. */
-  .ff-hist-day-header {
-    padding: 18px 0 10px !important;
-  }
-  /* DiaryGroup heading: trim the 48px year numeral so the title fits. */
-  .ff-hist-group h2 {
-    font-size: 36px !important;
-  }
-}
-
-/* F6.3 — sanitized error recovery buttons + the data-library-fallback focus target. */
-.ff-hist-error-btn:focus-visible {
-  outline: 2px solid var(--color-focus, #f3ecdf);
-  outline-offset: 3px;
-}
-[data-library-fallback]:focus {
-  outline: none;
-}
-
-/* F6.5 — Remove-from-Diary confirmation dialog: visible focus rings on its actions
-   and a comfortable narrow-screen fit. */
-.ff-hist-dialog-btn:focus-visible {
-  outline: 2px solid var(--color-focus, #f3ecdf);
-  outline-offset: 3px;
-}
-@media (max-width: 480px) {
-  .ff-hist-dialog { padding: 22px 18px; }
-  .ff-hist-dialog-btn { flex: 1; }
-}
-
-/* F6.6 — the Diary masthead now has a visible headline; clamp it on phones like the
-   Watchlist hero so the two Library mastheads behave consistently. */
-@media (max-width: 720px) {
-  .ff-hist-hero { font-size: clamp(40px, 12vw, 72px) !important; line-height: 1 !important; }
-}
-
-/* F6.7 — accessibility + responsive hardening for diary rows. */
-.ff-hist-row__title { overflow-wrap: anywhere; min-width: 0; }
-.ff-hist-row__poster:focus-visible,
-.ff-hist-filter-pill:focus-visible {
-  outline: 2px solid var(--color-focus, #f3ecdf);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-/* Mobile: collapse the 4-col row grid (poster | content | runtime | remove) so the runtime
-   chip drops under the content and the poster/title/remove stay stable without overflow. */
-@media (max-width: 560px) {
-  .ff-hist-row { grid-template-columns: 64px 1fr auto !important; gap: 16px !important; }
-  .ff-hist-row__runtime { display: none !important; }
-}
-/* Keep the last diary entry clear of the fixed mobile bottom nav (md:hidden, ~54px). */
 @media (max-width: 767px) {
-  .ff-hist-collection { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .ff-history-v2 { --diary-retrieval-h: 112px; }
+  /* Month headings are NOT sticky on mobile (dual-sticky is brittle on small viewports). */
+  .ff-diary-month__head { position: static; }
+  .ff-diary-retrieval__inner { grid-template-columns: 1fr; }
+  .ff-diary-search { grid-column: auto; }
+  .ff-diary-filters { flex-wrap: wrap; }
+  .ff-diary-stats__row { gap: 16px 28px; }
+  /* Clear the fixed mobile BottomNav: the last row's padding floor + the toast both sit ABOVE it
+     (the toast offset clears the ~88px nav rather than relying on z-index). */
+  .ff-diary-collection { padding-bottom: calc(var(--diary-nav-clear) + env(safe-area-inset-bottom)); }
+  .ff-diary-toast-wrap { bottom: calc(var(--diary-nav-clear) + 12px + env(safe-area-inset-bottom)); }
+  .ff-diary-row__remove { opacity: 1; }
+}
+@media (max-width: 560px) {
+  .ff-diary-stats__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+  .ff-diary-stat { flex-direction: column; gap: 2px; }
+}
+@media (max-width: 420px) {
+  .ff-diary-row { grid-template-columns: 52px minmax(0, 1fr) auto; column-gap: 14px; }
+  .ff-diary-row__poster, .ff-diary-row__img { width: 52px; }
+  .ff-diary-row__runtime { display: none; }
+}
+/* Very narrow effective widths (e.g. a 320px device at 200% browser zoom ≈ 160 CSS px): shrink the
+   gutter, poster, and gaps so the minmax(0,1fr) title column never collapses to zero and the row
+   never overflows. Above 360px (so the 390px + desktop baselines are untouched). */
+@media (max-width: 360px) {
+  .ff-history-v2 { --diary-px: 12px; }
+  .ff-diary-row { grid-template-columns: 44px minmax(0, 1fr) auto; column-gap: 8px; }
+  .ff-diary-row__poster, .ff-diary-row__img { width: 44px; }
+  .ff-diary-dialog-backdrop { padding: 10px; }
+  .ff-diary-empty { padding-left: var(--diary-px); padding-right: var(--diary-px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-history-v2 *, .ff-history-v2 *::before, .ff-history-v2 *::after { transition: none !important; animation: none !important; }
 }

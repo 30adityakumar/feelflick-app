@@ -61,7 +61,7 @@ test.describe('People — authenticated visual baselines', () => {
     await installPeopleFixture(page, { reducedMotion: true, mode: 'empty' })
     await page.setViewportSize(DESKTOP)
     await openPeople(page)
-    await expect(page.getByText('No taste matches yet')).toBeVisible()
+    await expect(page.getByText('No confident taste matches yet')).toBeVisible()
     await freeze(page)
     await expect(page).toHaveScreenshot('people-empty-desktop.png')
   })
@@ -80,7 +80,7 @@ test.describe('People — authenticated visual baselines', () => {
     await installPeopleFixture(page, { reducedMotion: true, search: 'success' })
     await page.setViewportSize(MOBILE)
     await openPeople(page)
-    await page.getByRole('textbox', { name: 'Search for users by name' }).fill('hal')
+    await page.getByRole('textbox', { name: 'Search people by name' }).fill('hal')
     await expect(followControl(page, 'Hal Voss')).toBeVisible()
     await freeze(page)
     await expect(page).toHaveScreenshot('people-search-mobile.png')
@@ -98,13 +98,13 @@ test.describe('People — authenticated visual baselines', () => {
     await expect(page.getByRole('region', { name: /People who get it/i })).toHaveScreenshot('people-hidden-mobile.png')
   })
 
-  test('mobile — degraded discovery (taste RPC failure)', async ({ page }) => {
-    // get_discoverable_taste_profiles fails → cards still render from the identity RPC, but without
-    // fingerprint totals the bands degrade gracefully (no crash, no raw error, honest fallbacks).
+  test('mobile — discovery unavailable (taste RPC failure → fail closed)', async ({ page }) => {
+    // get_discoverable_taste_profiles fails → consent membership is unknowable, so discovery FAILS
+    // CLOSED: no candidate cards (never identity-only). Name search remains available.
     await installPeopleFixture(page, { reducedMotion: true, rpc: 'taste_fail' })
     await page.setViewportSize(MOBILE)
     await openPeople(page)
-    await expect(followControl(page, 'Ana Okafor')).toBeVisible()
+    await expect(page.getByText('Taste matches are unavailable right now.')).toBeVisible()
     await freeze(page)
     await expect(page).toHaveScreenshot('people-degraded-mobile.png')
   })

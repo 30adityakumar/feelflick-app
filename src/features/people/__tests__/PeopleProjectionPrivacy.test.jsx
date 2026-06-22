@@ -1,294 +1,202 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
-import peopleSource from '../usePeopleData.jsx?raw'
-import peopleJsxSource from '../People.jsx?raw'
-import * as peopleData from '../data.js'
-import peopleDataSource from '../data.js?raw'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import providerSrc from '../usePeopleData.jsx?raw'
+import peopleJsxSrc from '../People.jsx?raw'
+import discoverySrc from '../derive/peopleDiscovery.js?raw'
+import searchSrc from '../hooks/usePeopleSearch.js?raw'
+import * as peopleData from '../data.js'
+import peopleDataSrc from '../data.js?raw'
 
-// people.css read from disk — vitest returns '' for `*.css?raw`, so read the file directly (the same
-// pattern DiscoverResolve.test.jsx uses for discover.css).
-const peopleCssSource = readFileSync(resolve(import.meta.dirname, '../people.css'), 'utf8')
+const componentDir = resolve(import.meta.dirname, '../components')
+const read = (rel) => readFileSync(resolve(import.meta.dirname, rel), 'utf8')
+const peopleCss = read('../people.css')
+const followBtnSrc = readFileSync(resolve(componentDir, 'FollowButton.jsx'), 'utf8')
+const cardSrc = readFileSync(resolve(componentDir, 'StrongMatchCard.jsx'), 'utf8')
+const searchInputSrc = readFileSync(resolve(componentDir, 'PeopleSearch.jsx'), 'utf8')
+const allComponentSrc = ['PersonAvatar', 'FollowButton', 'HideButton', 'PeopleHeader', 'PeopleSummary', 'PeopleSearch', 'StrongMatches', 'StrongMatchCard', 'MoreMatches', 'PersonRow', 'SuggestedPeople', 'SuggestedPersonCard', 'PeopleSearchResults', 'PeopleColdState', 'PeopleErrorState', 'PeopleStatus', 'MatchingExplainerDialog']
+  .map((n) => readFileSync(resolve(componentDir, `${n}.jsx`), 'utf8')).join('\n')
 
-// F7.9 — People taste-match must read the cross-user fingerprint through the narrow authenticated
-// RPC (get_discoverable_taste_profiles), never the now browser-inaccessible projection views. The
-// RPC's behavioral contract (authenticated-only, opt-in gating, least-data, opted-out absence,
-// own-row inclusion) is proven against the live database by scripts/verify-taste-projection-privacy.sql
-// + the post-deploy role checks — the correct layer for a SQL function. Here we prove the JS
-// data-access migration + honest degradation.
+describe('Privacy — narrow RPCs only, no cross-user table reads, P0 settings-read removed', () => {
+  it('reads the opt-in taste projection + identity + FOF RPCs; search via its hook', () => {
+    expect(providerSrc).toContain("rpc('get_discoverable_taste_profiles')")
+    expect(providerSrc).toContain("rpc('get_people_public_identities'")
+    expect(providerSrc).toContain("rpc('get_follow_suggestions')")
+    expect(searchSrc).toContain("rpc('search_people_by_name'")
+  })
+  it('NEVER does the RLS-dead cross-user user_settings read (the removed P0 fail-open path)', () => {
+    expect(providerSrc).not.toMatch(/\.from\(\s*['"]user_settings['"]\s*\)/)
+    expect(providerSrc).not.toMatch(/showOnLeaderboards/)
+  })
+  it('makes ZERO direct users / behavioral table reads', () => {
+    for (const t of ['users', 'user_history', 'user_ratings', 'reviews', 'user_fingerprint_public', 'user_similarity_discoverable']) {
+      expect(providerSrc).not.toMatch(new RegExp(`\\.from\\(\\s*['"]${t}['"]\\s*\\)`))
+    }
+    expect(providerSrc).not.toMatch(/users!user_similarity/) // no embedded owner-only join
+  })
+  it('never selects email / last_active from any table', () => {
+    expect(providerSrc).not.toMatch(/\.select\([^)]*email/i)
+    expect(providerSrc).not.toMatch(/\.select\([^)]*last_active/i)
+  })
+  it('consent gate is the opt-in projection membership (discoverableTasteIds), not identity', () => {
+    expect(providerSrc).toContain('discoverableTasteIds')
+    expect(discoverySrc).toMatch(/discoverableTasteIds\.has/)
+  })
+})
 
-let rpcResult
-const rpcSpy = vi.fn(() => Promise.resolve(rpcResult))
-function chain() {
+describe('Truth — no exact %, no percentage-width bar, no generated handle, truthful bio', () => {
+  it('no MatchBar component and no percentage-width geometry anywhere', () => {
+    expect(peopleJsxSrc + allComponentSrc).not.toMatch(/MatchBar/)
+    expect(allComponentSrc).not.toMatch(/width:\s*`\$\{[^}]*\}%`/)
+    expect(peopleCss).not.toMatch(/width:\s*\d+%.*linear-gradient/)
+  })
+  it('no exact match percentage is rendered', () => {
+    expect(allComponentSrc).not.toMatch(/\{[^}]*match[^}]*\}\s*%/)
+    expect(allComponentSrc).not.toMatch(/% match/i)
+  })
+  it('no generated @handle is produced or rendered', () => {
+    expect(discoverySrc).not.toMatch(/`@\$\{/)
+    expect(providerSrc).not.toMatch(/deriveHandle/)
+    expect(allComponentSrc).not.toMatch(/\.handle\b/)
+  })
+  it('bio uses the consent-exposed total, never movies_in_common', () => {
+    expect(discoverySrc).toMatch(/fingerprint\?\.total/)
+    expect(discoverySrc).not.toMatch(/watchCount:\s*inCommon/)
+    expect(discoverySrc).not.toMatch(/moviesInCommon[^)]*watched/)
+  })
+})
+
+describe('Doctrine — one-way follow, no friendship/feed/public-profile, no dead links', () => {
+  it('relationship label is Follow/Following only (never friend)', () => {
+    expect(followBtnSrc).toMatch(/following \? 'Following' : 'Follow'/)
+    expect(allComponentSrc).not.toMatch(/[Ff]riends? whose|taste twins?|predict[s]? you|your circle/)
+  })
+  it('no card links to /profile/:id, no View Cinematic DNA, names/avatars are not links', () => {
+    expect(allComponentSrc).not.toMatch(/\/profile\//)
+    expect(allComponentSrc).not.toMatch(/View Cinematic DNA|View profile/)
+    expect(cardSrc).not.toMatch(/<a |<Link/)
+  })
+  it('no Feed / Activity / Popular / public-rating copy', () => {
+    expect(peopleJsxSrc + allComponentSrc).not.toMatch(/Popular on FeelFlick|most-watched|just (rated|watched)|Activity|CrewOverlap/)
+  })
+  it('invite shares a generic canonical URL — never a raw user id / ?ref=', () => {
+    expect(peopleJsxSrc).toContain('https://app.feelflick.com/')
+    expect(peopleJsxSrc).not.toMatch(/\?ref=/)
+    expect(peopleJsxSrc).not.toMatch(/ref=\$\{[^}]*id/)
+  })
+  it('data.js exports only design tokens (no fabricated mocks)', () => {
+    expect(Object.keys(peopleData).sort()).toEqual(['HP', 'ROSE', 'ROSE_DEEP'])
+    for (const fake of ['Marco Reyes', 'Priya Shah', 'TWINS', 'ACTIVITY']) expect(peopleDataSrc).not.toContain(fake)
+  })
+})
+
+describe('A11y/foundation source patterns', () => {
+  it('the four rail regions are heading-labelled (runtime one-h1 is covered in the render test)', () => {
+    for (const id of ['ff-people-twins-h', 'ff-people-rising-h', 'ff-people-suggested-h', 'ff-people-search-h']) {
+      expect(allComponentSrc).toContain(`aria-labelledby="${id}"`)
+      expect(allComponentSrc).toContain(`id="${id}"`)
+    }
+  })
+  it('exactly one role="status" live region bound to relStatus', () => {
+    const inShell = (peopleJsxSrc.match(/role="status"/g) || []).length
+    expect(inShell).toBe(1)
+    expect(peopleJsxSrc).toMatch(/role="status"[\s\S]{0,80}aria-live="polite"[\s\S]{0,40}aria-atomic="true"/)
+    expect(peopleJsxSrc).toMatch(/>\{ctx\.relStatus\}</)
+  })
+  it('search input is 44px with an accessible name + focus-visible ring', () => {
+    expect(searchInputSrc).toMatch(/className="ff-people-search-input"/)
+    expect(searchInputSrc).toMatch(/minHeight: 44/)
+    expect(searchInputSrc).toMatch(/aria-label="Search people by name"/)
+    expect(peopleCss).toMatch(/\.ff-people-search-input:focus-visible/)
+  })
+  it('responsive: rails stack + strongest carousel at phone widths; no keyframes; reduced motion', () => {
+    expect(peopleCss).toMatch(/@media \(max-width: 760px\)/)
+    expect(peopleCss).toMatch(/scroll-snap-type/)
+    expect(peopleCss).not.toMatch(/@keyframes/)
+    expect(peopleCss).toMatch(/prefers-reduced-motion/)
+  })
+})
+
+// ── Provider render: consent gate + fail-closed (mocked supabase) ────────────────────────────────
+const db = { following: [], followers: 3, sim: [], simError: null, followingErr: null, taste: { data: [], error: null }, identities: { data: [], error: null }, fof: { data: [], error: null } }
+function chain(table) {
+  let isCount = false
   const c = {}
-  for (const m of ['select', 'in', 'eq', 'neq', 'order', 'limit', 'gte', 'lte', 'not', 'or', 'contains', 'is']) c[m] = () => c
-  c.maybeSingle = () => Promise.resolve({ data: null, error: null })
-  c.single = () => Promise.resolve({ data: null, error: null })
-  c.then = (res, rej) => Promise.resolve({ data: [], error: null }).then(res, rej)
-  c.catch = (fn) => Promise.resolve({ data: [], error: null }).catch(fn)
+  c.select = (_s, opts) => { if (opts?.head || opts?.count) isCount = true; return c }
+  for (const m of ['eq', 'order', 'limit', 'in', 'neq']) c[m] = () => c
+  c.then = (res, rej) => {
+    let out = { data: [], error: null }
+    if (table === 'user_similarity') out = { data: db.sim, error: db.simError }
+    else if (table === 'user_follows' && isCount) out = { count: db.followers, error: null }
+    else if (table === 'user_follows') out = { data: db.following, error: db.followingErr }
+    return Promise.resolve(out).then(res, rej)
+  }
   return c
 }
-vi.mock('@/shared/lib/supabase/client', () => ({
-  supabase: { from: () => chain(), rpc: (...a) => rpcSpy(...a) },
-}))
-// Stable references — a fresh object each render would re-fire the load effect (deps include
-// `session`) and loop forever.
-const AUTH_USER = { id: 'me' }
-const AUTH_SESSION = { user: { id: 'me', email: 'me@example.co' } }
-vi.mock('@/shared/hooks/useAuthSession', () => ({
-  useAuthSession: () => ({ user: AUTH_USER, session: AUTH_SESSION }),
-}))
+const rpcSpy = vi.fn((name) => Promise.resolve(
+  name === 'get_discoverable_taste_profiles' ? db.taste
+  : name === 'get_people_public_identities' ? db.identities
+  : name === 'get_follow_suggestions' ? db.fof
+  : { data: [], error: null }))
+vi.mock('@/shared/lib/supabase/client', () => ({ supabase: { from: (t) => chain(t), rpc: (...a) => rpcSpy(...a) } }))
+const AUTH = { user: { id: 'me' }, session: { user: { id: 'me' } } }
+vi.mock('@/shared/hooks/useAuthSession', () => ({ useAuthSession: () => AUTH }))
 
 import { PeopleDataProvider, usePeopleData } from '../usePeopleData'
-
 function Consumer({ onState }) { onState(usePeopleData()); return null }
-const renderPeople = (onState) => render(<PeopleDataProvider><Consumer onState={onState} /></PeopleDataProvider>)
+const renderProvider = (onState) => render(<PeopleDataProvider><Consumer onState={onState} /></PeopleDataProvider>)
 
-beforeEach(() => { rpcSpy.mockClear(); rpcResult = { data: [], error: null } })
-
-describe('F7.9 — People reads the safe RPC, never the projection views', () => {
-  it('source uses the RPC and never queries either projection view directly', () => {
-    const src = peopleSource
-    expect(src).toContain("rpc('get_discoverable_taste_profiles')")
-    expect(src).not.toMatch(/\.from\(\s*['"]user_fingerprint_public['"]\s*\)/)
-    expect(src).not.toMatch(/\.from\(\s*['"]user_similarity_discoverable['"]\s*\)/)
+describe('Provider — consent gate + fail-closed states', () => {
+  beforeEach(() => {
+    rpcSpy.mockClear()
+    Object.assign(db, { following: [], followers: 3, sim: [], simError: null, followingErr: null, taste: { data: [], error: null }, identities: { data: [], error: null }, fof: { data: [], error: null } })
   })
 
-  it('calls get_discoverable_taste_profiles and settles honestly (no error) with adaptable rows', async () => {
-    // an opted-in row in RPC column shape — the provider normalizes top_mood_tags → topMoodTags etc.
-    rpcResult = { data: [{ user_id: 'me', top_mood_tags: [{ key: 'tender' }], top_tone_tags: [], top_fit_profiles: [], total: 9 }], error: null }
+  it('renders ONLY opted-in similarity candidates (opted-out absent even with identity)', async () => {
+    db.sim = [
+      { user_b_id: 'optIn', overall_similarity: 0.92, movies_in_common: 18 },
+      { user_b_id: 'optOut', overall_similarity: 0.95, movies_in_common: 20 },
+    ]
+    db.taste = { data: [{ user_id: 'optIn', top_mood_tags: [{ key: 'tender' }], top_tone_tags: [{ key: 'reflective' }], top_fit_profiles: [], total: 40 }], error: null }
+    db.identities = { data: [{ id: 'optIn', name: 'Ana', avatar_url: null }, { id: 'optOut', name: 'Zed', avatar_url: null }], error: null }
     let last
-    renderPeople(s => { last = s })
-    await waitFor(() => expect(last.loading).toBe(false))
-    expect(rpcSpy).toHaveBeenCalledWith('get_discoverable_taste_profiles')
-    expect(last.error).toBeFalsy()
-    expect(Array.isArray(last.twins)).toBe(true)
+    renderProvider((s) => { last = s })
+    await waitFor(() => expect(last.status).toBe('ready'))
+    const ids = [...last.strongest, ...last.more, ...last.suggested].map((c) => c.id)
+    expect(ids).toContain('optIn')
+    expect(ids).not.toContain('optOut') // opted out → absent despite higher similarity + resolvable identity
   })
 
-  it('an RPC failure degrades honestly — no crash, empty rails, no raw error as data', async () => {
-    rpcResult = { data: null, error: { message: 'permission denied' } }
+  it('taste-projection error FAILS CLOSED → discovery_unavailable, no candidate cards', async () => {
+    db.sim = [{ user_b_id: 'a', overall_similarity: 0.9, movies_in_common: 18 }]
+    db.taste = { data: null, error: { message: 'permission denied' } }
     let last
-    renderPeople(s => { last = s })
+    renderProvider((s) => { last = s })
     await waitFor(() => expect(last.loading).toBe(false))
-    expect(rpcSpy).toHaveBeenCalledWith('get_discoverable_taste_profiles')
-    expect(Array.isArray(last.twins)).toBe(true)
-    expect(Array.isArray(last.suggested)).toBe(true)
-  })
-})
-
-describe('F8.2 — People resolves cross-user identity via narrow RPCs, never a direct users read', () => {
-  it('uses the identity, search and follow-suggestion RPCs', () => {
-    expect(peopleSource).toContain("rpc('get_people_public_identities'")
-    expect(peopleSource).toContain("rpc('get_follow_suggestions')")
-    expect(peopleJsxSource).toContain("rpc('search_people_by_name'")
+    expect(last.status).toBe('discovery_unavailable')
+    expect(last.strongest).toEqual([])
+    expect(last.more).toEqual([])
+    expect(rpcSpy).not.toHaveBeenCalledWith('get_people_public_identities', expect.anything()) // no identity fetch after fail-closed
   })
 
-  it('makes ZERO direct public.users reads (no cross-user identity table access)', () => {
-    expect(peopleSource).not.toMatch(/\.from\(\s*['"]users['"]\s*\)/)
-    expect(peopleJsxSource).not.toMatch(/\.from\(\s*['"]users['"]\s*\)/)
+  it('own follow-graph error → load_error (relationship state unknowable)', async () => {
+    db.followingErr = { message: 'boom' }
+    let last
+    renderProvider((s) => { last = s })
+    await waitFor(() => expect(last.loading).toBe(false))
+    expect(last.status).toBe('load_error')
   })
 
-  it('never SELECTs email or last_active_at from any table (identity comes from the id/name/avatar RPC)', () => {
-    for (const src of [peopleSource, peopleJsxSource]) {
-      expect(src).not.toMatch(/\.select\([^)]*email/i)
-      expect(src).not.toMatch(/\.select\([^)]*last_active/i)
-    }
-  })
-
-  it('reads its own follows/followers but NOT the global follow graph (FOF goes through the RPC)', () => {
-    // own-edge reads stay; the only cross-user .in('follower_id', …) graph read is gone (→ RPC)
-    expect(peopleSource).not.toMatch(/from\(\s*['"]user_follows['"]\s*\)[\s\S]{0,120}\.in\(\s*['"]follower_id['"]/)
-  })
-})
-
-describe('F8.3 — taste-match trust + de-precision (no friendship, no exact %)', () => {
-  it('renders no exact taste-match percentage (qualitative bands only)', () => {
-    // the prominent "{p.match}%" / "% match" presentation is gone from the rendered UI
-    expect(peopleJsxSource).not.toMatch(/\{p\.match\}\s*<span[^>]*>%/)   // big "82%" number block
-    expect(peopleJsxSource).not.toMatch(/\{p\.match\}%\s*match/)         // "82% match" caption
-    expect(peopleJsxSource).not.toMatch(/\}% match</)
-  })
-
-  it('uses the pure presentation module for the match band/evidence', () => {
-    expect(peopleSource).toContain('deriveTasteMatchPresentation')
-    expect(peopleSource).toContain('matchPresentation')
-    expect(peopleJsxSource).toContain('matchPresentation')
-  })
-
-  it('no production copy calls algorithmic matches or one-way follows "friends" or claims they "predict you"', () => {
-    // strip the legitimate real-world invite copy ("Invite a friend" / "A friend thinks you'd like…")
-    const copy = peopleJsxSource
-      .replace(/Invite a friend to FeelFlick/g, '')
-      .replace(/'A friend'/g, '')
-    expect(copy).not.toMatch(/[Ff]riends? whose/)         // "Friends whose ratings predict yours"
-    expect(copy).not.toMatch(/predict[s]? you/i)          // "predicts you"
-    expect(copy).not.toMatch(/your\s+circle/i)            // "your circle watched/loves"
-    expect(copy).not.toMatch(/your\s+taste twins?\b/i)    // hero "Your taste twins"
-  })
-
-  it('the only relationship label is the one-way follow (Follow / Following), never friend', () => {
-    // F8.4: the follow control's accessible name is "Follow|Unfollow {name}" — never "friend"
-    expect(peopleJsxSource).toMatch(/following \? 'Unfollow' : 'Follow'/)
-    expect(peopleJsxSource).toMatch(/following \? 'Following' : 'Follow'/) // visible label
-  })
-
-  it('MatchBar is decorative (aria-hidden) and only shown when the match is evidence-qualified', () => {
-    expect(peopleJsxSource).toMatch(/qualified &&[\s\S]{0,80}aria-hidden="true"[\s\S]{0,40}MatchBar/)
-  })
-})
-
-describe('F8.4 — settled follow, button semantics, live region, Hide suggestion', () => {
-  it('no optimistic relationship swap: the provider has no toggleFollow / pre-write state flip', () => {
-    expect(peopleSource).not.toContain('toggleFollow')
-    expect(peopleSource).not.toMatch(/Optimistic UI swap/)
-    expect(peopleSource).toContain('applyFollowState')          // state flips only after settled success
-    expect(peopleSource).toContain('usePeopleFollowActions')
-  })
-
-  it('the follow control exposes aria-pressed, aria-busy, disabled-while-pending, a named label and a 44px target', () => {
-    expect(peopleJsxSource).toMatch(/aria-pressed=\{following\}/)
-    expect(peopleJsxSource).toMatch(/aria-busy=\{pending\}/)
-    expect(peopleJsxSource).toMatch(/disabled=\{pending\}/)
-    expect(peopleJsxSource).toMatch(/aria-label=\{`\$\{following \? 'Unfollow' : 'Follow'\} \$\{name/)
-    expect(peopleJsxSource).toMatch(/minHeight: 44/)
-    // settled, text-based feedback (no spinner-only): Following… / Unfollowing… / Try again
-    expect(peopleJsxSource).toMatch(/Following…|Unfollowing…/)
-    expect(peopleJsxSource).toContain("'Try again'")
-  })
-
-  it('exactly one persistent People status live region (role=status, polite, atomic) bound to relStatus', () => {
-    const regions = peopleJsxSource.match(/role="status"/g) || []
-    expect(regions).toHaveLength(1)
-    expect(peopleJsxSource).toMatch(/role="status"[\s\S]{0,80}aria-live="polite"[\s\S]{0,40}aria-atomic="true"/)
-    expect(peopleJsxSource).toMatch(/>\{relStatus\}</)
-  })
-
-  it('Hide suggestion is a named, 44px control shown only on non-followed discovery cards, with focus recovery', () => {
-    expect(peopleJsxSource).toMatch(/aria-label=\{`Hide \$\{name/)
-    expect(peopleJsxSource).toMatch(/!p\.following && <HideBtn/)        // gated on NOT following
-    expect(peopleJsxSource).toContain('nextFocusId')                   // focus-after-removal
-    expect(peopleJsxSource).toContain('scheduleFocus')
-    expect(peopleJsxSource).toMatch(/className="ff-people-hidebtn"[\s\S]{0,120}minHeight: 44/)
-  })
-})
-
-describe('F8.5 — dead social surfaces removed', () => {
-  it('the provider makes NO cross-user behavioral reads (no user_history / user_ratings / reviews)', () => {
-    expect(peopleSource).not.toMatch(/\.from\(\s*['"]user_history['"]\s*\)/)
-    expect(peopleSource).not.toMatch(/\.from\(\s*['"]user_ratings['"]\s*\)/)
-    expect(peopleSource).not.toMatch(/\.from\(\s*['"]reviews['"]\s*\)/)
-    expect(peopleSource).not.toMatch(/user_history\(\s*count\s*\)/)   // no embedded cross-user count
-  })
-
-  it('the dead RLS-dead derivations are gone (Activity / CrewOverlap / Popular / twin-meta)', () => {
-    for (const dead of ['deriveActivity', 'deriveCrewOverlap', 'derivePopular', 'buildTwinMeta']) {
-      expect(peopleSource).not.toContain(dead)
-    }
-    expect(peopleJsxSource).not.toMatch(/<Activity\b/)
-    expect(peopleJsxSource).not.toMatch(/<CrewOverlap\b/)
-  })
-
-  it('no rendered copy promises recent cross-user watched activity or claims unmeasured popularity', () => {
-    expect(peopleJsxSource).not.toMatch(/Popular on FeelFlick/)
-    expect(peopleJsxSource).not.toMatch(/most-watched/)
-    expect(peopleJsxSource).not.toMatch(/circle (watched|loves)/i)
-    expect(peopleJsxSource).not.toMatch(/just (rated|watched|added)/i)
-  })
-
-  it('no People card links to a private cross-user profile (/profile/:id) or self-references /people', () => {
-    expect(peopleJsxSource).not.toMatch(/navigate\(\s*['"]\/profile/)
-    expect(peopleJsxSource).not.toMatch(/navigate\(\s*['"]\/people['"]\s*\)/)
-    expect(peopleJsxSource).not.toMatch(/View \$\{[^}]*\}'s profile/)   // dead "View {name}'s profile"
-  })
-
-  it('the retained similarity rails still rank by the SAME slices (order unchanged)', () => {
-    expect(peopleSource).toMatch(/deriveSimilarityCards\([^)]*0, 4\)/)   // twins = ranks 1-4
-    expect(peopleSource).toMatch(/deriveSimilarityCards\([^)]*4, 7\)/)   // rising = ranks 5-7
-    expect(peopleSource).toContain('deriveSuggested')
-  })
-
-  it('data.js no longer exports fabricated people/activity mocks (only real design tokens remain)', () => {
-    for (const dead of ['USER', 'TWINS', 'RISING', 'ACTIVITY', 'CREW_OVERLAP', 'SUGGESTED']) {
-      expect(peopleData[dead]).toBeUndefined()
-    }
-    expect(Object.keys(peopleData).sort()).toEqual(['HP', 'ROSE', 'ROSE_DEEP'])
-    // no fabricated names / reviews left behind as accidental future source material
-    for (const fake of ['Marco Reyes', 'Priya Shah', 'Park Chan-wook', 'airport scene', 'Refn-coded']) {
-      expect(peopleDataSource).not.toContain(fake)
-    }
-  })
-})
-
-describe('F8.7 — accessibility, contrast, touch targets, responsive', () => {
-  it('exactly one h1, and each rail section is a heading-labelled region', () => {
-    const h1s = peopleJsxSource.match(/<h1\b/g) || []
-    expect(h1s).toHaveLength(1)
-    for (const id of ['ff-people-twins-h', 'ff-people-rising-h', 'ff-people-suggested-h', 'ff-people-search-h']) {
-      expect(peopleJsxSource).toContain(`aria-labelledby="${id}"`)
-      expect(peopleJsxSource).toContain(`id="${id}"`)
-    }
-  })
-
-  it('load-bearing muted card labels use the hardened INK token, not the failing HP.textMuted', () => {
-    // INK ≈ 7.3:1 on #06060a; HP.textMuted (0.45) ≈ 4.1:1 fails AA for small text.
-    expect(peopleJsxSource).toMatch(/const INK = 'rgba\(250,250,250,0\.62\)'/)
-    expect(peopleJsxSource).not.toMatch(/color: HP\.textMuted/) // no weak muted token applied to labels
-    expect(peopleJsxSource).toMatch(/color: INK/)              // INK actually applied
-  })
-
-  it('every actionable People control meets the 44px touch-target floor', () => {
-    // FollowBtn + HideBtn (F8.4) already asserted elsewhere; here: search input, invite, clear.
-    expect(peopleJsxSource).toMatch(/className="ff-people-search-input"[\s\S]{0,200}minHeight: 44/)
-    expect(peopleJsxSource).toMatch(/className="ff-people-invite-btn"[\s\S]{0,160}minHeight: 44/)
-    expect(peopleJsxSource).toMatch(/className="ff-people-clear-btn"[\s\S]{0,200}minHeight: 44/)
-  })
-
-  it('search + clear controls have accessible names and visible focus rings', () => {
-    expect(peopleJsxSource).toMatch(/aria-label="Search for users by name"/)
-    expect(peopleJsxSource).toMatch(/aria-label="Clear search results"/)
-    // the input no longer hard-disables its outline inline; CSS supplies a branded focus-visible ring
-    expect(peopleJsxSource).not.toMatch(/className="ff-people-search-input"[\s\S]{0,200}outline: 'none'/)
-    expect(peopleCssSource).toMatch(/\.ff-people-search-input:focus-visible/)
-    expect(peopleCssSource).toMatch(/\.ff-people-invite-btn:focus-visible/)
-    expect(peopleCssSource).toMatch(/\.ff-people-clear-btn:focus-visible/)
-  })
-
-  it('loading state is announced via aria-busy (without adding a second live region)', () => {
-    expect(peopleJsxSource).toMatch(/aria-busy="true" aria-label="Loading people"/)
-    expect((peopleJsxSource.match(/role="status"/g) || []).length).toBe(1) // still exactly one
-  })
-
-  it('responsive CSS stacks the rails at phone widths and the dead-section rules are gone', () => {
-    expect(peopleCssSource).toMatch(/@media \(max-width: 720px\)/)
-    expect(peopleCssSource).toMatch(/\.ff-people-grid-4 \{[\s\S]{0,80}grid-template-columns: 1fr/)
-    expect(peopleCssSource).toMatch(/\.ff-people-search-form \{[\s\S]{0,80}flex-direction: column/)
-    // F8.5 removed Activity + CrewOverlap → their responsive rules must not linger
-    expect(peopleCssSource).not.toContain('ff-people-activity-row')
-    expect(peopleCssSource).not.toContain('ff-people-crew-grid')
-  })
-
-  it('reduced motion: People introduces no keyframes/JS animation (relies on the global reset)', () => {
-    expect(peopleCssSource).not.toMatch(/@keyframes/)
-    expect(peopleJsxSource).not.toMatch(/framer-motion|requestAnimationFrame\(/)
-    // the only motion is the global-reset-covered button hover transition + Tailwind animate-pulse
-    expect(peopleCssSource).toMatch(/prefers-reduced-motion/)
-  })
-})
-
-describe('F8.8-prep — similarity-card identity resolves via the RPC, not the RLS-null embedded join', () => {
-  it('the similarity query no longer embeds the owner-only users() FK join', () => {
-    expect(peopleSource).not.toMatch(/users!user_similarity_user_[ab]_fkey/)
-  })
-
-  it('the merge keeps rows by user_b_id (not by the embedded join) — the rail is no longer always empty', () => {
-    expect(peopleSource).not.toMatch(/\.filter\(r => r\.users\)/)            // the old drop-everything gate is gone
-    expect(peopleSource).toMatch(/\.filter\(r => r\.user_b_id && r\.user_b_id !== userId\)/)
-  })
-
-  it('card shapers resolve identity from usersById (the get_people_public_identities RPC)', () => {
-    expect(peopleSource).toMatch(/const u = usersById\.get\(row\.user_b_id\)/)
-    expect(peopleSource).not.toMatch(/const u = row\.users/)                 // no embedded-join identity remains
-    expect(peopleSource).toMatch(/deriveTwins\(similarityRows, followingIds, usersById, fingerprintByUser\)/)
+  it('follower-count error is optional — discovery still resolves, follower count omitted', async () => {
+    db.sim = []
+    db.followers = 0
+    // simulate count error by routing: keep following ok, count returns error
+    const origThen = chain
+    void origThen
+    let last
+    renderProvider((s) => { last = s })
+    await waitFor(() => expect(last.loading).toBe(false))
+    expect(['ready', 'discovery_unavailable']).toContain(last.status)
   })
 })

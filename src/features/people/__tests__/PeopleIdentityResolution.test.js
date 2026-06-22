@@ -1,71 +1,109 @@
 import { describe, it, expect } from 'vitest'
-import { deriveTwins, deriveRising, deriveSuggested } from '../usePeopleData'
+import { mergeSimilarity, compareCandidates, deriveDiscovery, deriveSuggestedFOF, deriveBio } from '../derive/peopleDiscovery'
 
-// Regression for the closest-matches RLS-dead defect: public.users is owner-only (F8.2), so the
-// user_similarity embedded users() FK join returns null for every counterpart and the twin/rising/
-// similarity-suggested rails rendered EMPTY in production. The fix resolves identity from the
-// get_people_public_identities RPC (`usersById`) instead. These pure tests prove that contract.
+// Pure discovery derivation: consent gate (opt-in projection is authoritative), deterministic order,
+// Strongest = qualified-only, More = qualified + cautious, Suggested = FOF-only with genuine "via",
+// truthful bio (never films-in-common as a watched total), and no generated handles.
 
-// 8 similarity rows ranked by overall_similarity (the slices: twins 0-4, rising 4-7, suggested 7-13).
-const ROWS = [
-  { user_b_id: 'u1', overall_similarity: 0.92, movies_in_common: 18 },
-  { user_b_id: 'u2', overall_similarity: 0.81, movies_in_common: 9 },
-  { user_b_id: 'u3', overall_similarity: 0.70, movies_in_common: 4 },
-  { user_b_id: 'u4', overall_similarity: 0.61, movies_in_common: 2 },
-  { user_b_id: 'u5', overall_similarity: 0.55, movies_in_common: 6 },
-  { user_b_id: 'u6', overall_similarity: 0.50, movies_in_common: 3 },
-  { user_b_id: 'u7', overall_similarity: 0.44, movies_in_common: 1 },
-  { user_b_id: 'u8', overall_similarity: 0.40, movies_in_common: 12 },
-]
-// Identities from the RPC. u4 is intentionally ABSENT (e.g. opted out of discovery) → must be dropped.
-const usersById = new Map([
-  ['u1', { id: 'u1', name: 'Ana', avatar_url: 'a.png' }],
-  ['u2', { id: 'u2', name: 'Bo', avatar_url: null }],
-  ['u3', { id: 'u3', name: 'Cy', avatar_url: null }],
-  ['u5', { id: 'u5', name: 'Eve', avatar_url: null }],
-  ['u6', { id: 'u6', name: 'Fin', avatar_url: null }],
-  ['u7', { id: 'u7', name: 'Gus', avatar_url: null }],
-  ['u8', { id: 'u8', name: 'Hal', avatar_url: null }],
-])
-const fp = new Map([['u1', { total: 40 }], ['u2', { total: 20 }]])
-const NO_FOLLOWS = new Set()
+const sim = (id, s, inCommon) => ({ user_b_id: id, overall_similarity: s, movies_in_common: inCommon })
+const ident = (id, name = id.toUpperCase()) => [id, { id, name, avatar_url: null }]
 
-describe('F8.8-prep — similarity rails resolve identity from the RPC, not the RLS-null embedded join', () => {
-  it('twins render from usersById (NOT row.users) — the rail is no longer empty', () => {
-    const twins = deriveTwins(ROWS, NO_FOLLOWS, usersById, fp)
-    expect(twins.length).toBeGreaterThan(0)                 // the defect was: always [] in prod
-    // ranks 0-3, but u4 has no RPC identity → dropped → twins = u1,u2,u3
-    expect(twins.map(t => t.id)).toEqual(['u1', 'u2', 'u3'])
-    expect(twins.map(t => t.name)).toEqual(['Ana', 'Bo', 'Cy']) // names come from the RPC
+describe('mergeSimilarity — normalize, dedupe, deterministic order', () => {
+  it('merges both directions, drops self, sorts sim→inCommon→id', () => {
+    const out = mergeSimilarity({
+      simAsA: [sim('a', 0.9, 18), sim('self', 1, 1)],
+      simAsB: [{ user_a_id: 'b', overall_similarity: 0.9, movies_in_common: 4 }, { user_a_id: 'c', overall_similarity: 0.5, movies_in_common: 9 }],
+      selfId: 'self',
+    })
+    expect(out.map((r) => r.id)).toEqual(['a', 'b', 'c']) // a,b tie at 90% → a wins on inCommon(18>4); c last
+    expect(out.find((r) => r.id === 'self')).toBeUndefined()
+    expect(out[0].match).toBe(90)
   })
-
-  it('a candidate with no RPC identity (opted out) is dropped, not rendered Anonymous', () => {
-    const twins = deriveTwins(ROWS, NO_FOLLOWS, usersById, fp)
-    expect(twins.find(t => t.id === 'u4')).toBeUndefined()
+  it('dedupes a counterpart appearing in both directions (keeps highest similarity)', () => {
+    const out = mergeSimilarity({ simAsA: [sim('a', 0.6, 5)], simAsB: [{ user_a_id: 'a', overall_similarity: 0.8, movies_in_common: 5 }], selfId: 'me' })
+    expect(out).toHaveLength(1)
+    expect(out[0].match).toBe(80)
   })
-
-  it('rising uses the 4-7 slice and resolves identity from the RPC', () => {
-    const rising = deriveRising(ROWS, NO_FOLLOWS, usersById, fp)
-    expect(rising.map(r => r.id)).toEqual(['u5', 'u6', 'u7']) // ranks 4-6 (u4 already past)
-    expect(rising.map(r => r.name)).toEqual(['Eve', 'Fin', 'Gus'])
+  it('compareCandidates breaks exact ties by id ascending', () => {
+    expect(compareCandidates({ match: 70, inCommon: 5, id: 'z' }, { match: 70, inCommon: 5, id: 'a' })).toBeGreaterThan(0)
   })
+})
 
-  it('ranking/slice order is preserved (sorted-similarity order unchanged by the identity fix)', () => {
-    const twins = deriveTwins(ROWS, NO_FOLLOWS, usersById, fp)
-    const sims = twins.map(t => ROWS.find(r => r.user_b_id === t.id).overall_similarity)
-    expect(sims).toEqual([...sims].sort((a, b) => b - a)) // strictly descending
+describe('deriveDiscovery — consent gate + Strongest/More', () => {
+  const merged = mergeSimilarity({
+    simAsA: [sim('opt1', 0.92, 18), sim('opt2', 0.6, 8), sim('optOutNoId', 0.8, 10), sim('optForming', 0.9, 6), sim('noIdentity', 0.7, 9), sim('insuff', 0.95, 2)],
+    simAsB: [], selfId: 'me',
   })
+  // opt-in projection (authoritative): opt1, opt2, optForming, insuff, noIdentity are opted in; optOutNoId is NOT.
+  const fingerprintByUser = new Map([
+    ['opt1', { total: 40 }], ['opt2', { total: 22 }], ['optForming', { total: 3 }], ['insuff', { total: 50 }], ['noIdentity', { total: 12 }],
+  ])
+  const discoverableTasteIds = new Set(fingerprintByUser.keys())
+  const usersById = new Map([ident('opt1', 'Ana'), ident('opt2', 'Bo'), ident('optForming', 'Cy'), ident('insuff', 'Di'), ident('optOutNoId', 'Zed')])
+  const { strongest, more } = deriveDiscovery({ mergedSimilarity: merged, discoverableTasteIds, usersById, fingerprintByUser })
 
-  it('suggested (7-13) resolves from the RPC, excludes already-followed + self', () => {
-    const suggested = deriveSuggested(ROWS, new Set(['u8']), 'me', usersById, fp)
-    // u8 is the only rank ≥7 here and it is followed → excluded → empty
-    expect(suggested.map(s => s.id)).not.toContain('u8')
+  it('an opted-OUT candidate never appears (not in the taste projection) even with high similarity', () => {
+    const ids = [...strongest, ...more].map((c) => c.id)
+    expect(ids).not.toContain('optOutNoId')
   })
+  it('an opted-in candidate with no resolved identity is dropped (no Anonymous card)', () => {
+    expect([...strongest, ...more].map((c) => c.id)).not.toContain('noIdentity')
+  })
+  it('Strongest contains ONLY evidence-qualified candidates', () => {
+    expect(strongest.every((c) => c.matchPresentation.qualified)).toBe(true)
+    expect(strongest.map((c) => c.id)).toContain('opt1') // 92% / 18 in common → qualified
+    expect(strongest.map((c) => c.id)).not.toContain('optForming') // total 3 < 5 → forming, not strongest
+    expect(strongest.map((c) => c.id)).not.toContain('insuff')     // 2 in common < 3 → insufficient
+  })
+  it('More carries the cautious (forming/insufficient) candidates with no band', () => {
+    const forming = more.find((c) => c.id === 'optForming')
+    const insuff = more.find((c) => c.id === 'insuff')
+    expect(forming).toBeTruthy(); expect(forming.matchPresentation.qualified).toBe(false)
+    expect(insuff).toBeTruthy(); expect(insuff.matchPresentation.qualified).toBe(false)
+  })
+})
 
-  it('no card carries name/avatar from a row.users field (identity is RPC-only)', () => {
-    // even if a stray embedded users slipped onto a row, it must be ignored
-    const rowsWithStrayEmbed = [{ ...ROWS[0], users: { id: 'u1', name: 'WRONG', avatar_url: 'x' } }]
-    const twins = deriveTwins(rowsWithStrayEmbed, NO_FOLLOWS, usersById, fp)
-    expect(twins[0].name).toBe('Ana') // from usersById, never the embedded 'WRONG'
+describe('truthful bio + no handles', () => {
+  it('bio uses the candidate total (fingerprint.total), never films-in-common', () => {
+    const merged = mergeSimilarity({ simAsA: [sim('a', 0.9, 18)], simAsB: [], selfId: 'me' })
+    const fingerprintByUser = new Map([['a', { total: 40, topMoodTags: [{ key: 'tender' }], topToneTags: [{ key: 'reflective' }] }]])
+    const { strongest } = deriveDiscovery({ mergedSimilarity: merged, discoverableTasteIds: new Set(['a']), usersById: new Map([ident('a', 'Ana')]), fingerprintByUser })
+    expect(strongest[0].bio).toBe('Tender + Reflective films · 40 watched') // 40 = total, NOT 18 in common
+    expect(strongest[0].bio).not.toContain('18')
+  })
+  it('omits the count when the candidate exposes no total (never substitutes films-in-common or 0)', () => {
+    expect(deriveBio({ fingerprint: { topMoodTags: [{ key: 'tense' }], topToneTags: [{ key: 'earnest' }] } })).toBe('Tense + Earnest films')
+    expect(deriveBio({ fingerprint: { total: 0 } })).toBe('Just getting started')
+    expect(deriveBio({})).toBe('Just getting started')
+  })
+  it('candidate objects expose NO generated handle', () => {
+    const merged = mergeSimilarity({ simAsA: [sim('a', 0.9, 18)], simAsB: [], selfId: 'me' })
+    const { strongest } = deriveDiscovery({ mergedSimilarity: merged, discoverableTasteIds: new Set(['a']), usersById: new Map([ident('a', 'Ana')]), fingerprintByUser: new Map([['a', { total: 40 }]]) })
+    expect(strongest[0]).not.toHaveProperty('handle')
+  })
+})
+
+describe('deriveSuggestedFOF — FOF-only, opt-in gated, genuine via', () => {
+  const usersById = new Map([ident('cand', 'Cand'), ident('viaFriend', 'Mira'), ident('shownAlready', 'Shown'), ident('notOptIn', 'NoOpt')])
+  const discoverableTasteIds = new Set(['cand', 'shownAlready'])
+  const viaNames = new Map([['viaFriend', 'Mira']])
+  const base = { followingIds: new Set(['viaFriend']), selfId: 'me', usersById, fingerprintByUser: new Map(), discoverableTasteIds, shownIds: new Set(['shownAlready']), viaNames }
+
+  it('returns an opted-in FOF candidate with a genuine via-friend', () => {
+    const out = deriveSuggestedFOF({ ...base, fofRows: [{ suggested_user_id: 'cand', via_user_id: 'viaFriend' }] })
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({ id: 'cand', viaFriend: 'Mira' })
+  })
+  it('drops a candidate without a resolvable via name (never fabricates via)', () => {
+    const out = deriveSuggestedFOF({ ...base, fofRows: [{ suggested_user_id: 'cand', via_user_id: 'unknownVia' }] })
+    expect(out).toHaveLength(0)
+  })
+  it('drops an opted-OUT FOF candidate, an already-shown one, and self', () => {
+    const out = deriveSuggestedFOF({ ...base, fofRows: [
+      { suggested_user_id: 'notOptIn', via_user_id: 'viaFriend' },
+      { suggested_user_id: 'shownAlready', via_user_id: 'viaFriend' },
+      { suggested_user_id: 'me', via_user_id: 'viaFriend' },
+    ] })
+    expect(out).toHaveLength(0)
   })
 })

@@ -37,7 +37,7 @@ test.describe('People — authenticated, intercepted', () => {
     await expect(page.getByRole('region', { name: /More people to discover/i })).toBeVisible()
     await expect(page.getByRole('region', { name: /People you might know/i })).toBeVisible()
     // search + a follow control + a hide control
-    await expect(page.getByRole('textbox', { name: 'Search for users by name' })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible()
     await expect(followControl(page, 'Ana Okafor')).toBeVisible()
     await expect(hideControl(page, 'Ana Okafor')).toBeVisible()
     // a followed user shows the Following (Unfollow) control, no Hide
@@ -194,15 +194,15 @@ test.describe('People — authenticated, intercepted', () => {
     await hideControl(page, 'Ana Okafor').click()
 
     await expect(followControl(page, 'Ana Okafor')).toHaveCount(0)               // removed from the surface
-    await expect(status(page)).toContainText('Hidden from your suggestions.')
+    await expect(status(page)).toContainText('Hidden Ana Okafor for this session.')
     await expect(status(page)).not.toContainText(/block|report/i)                // not a block
     expect(ledger.followWrites).toEqual([])                                       // no Supabase write
     expect(ledger.unexpectedRequests).toEqual([])
     // focus recovery (double-rAF) lands on a real control, never <body>
     await expect.poll(() => page.evaluate(() => document.activeElement?.tagName), { timeout: 3000 }).not.toBe('BODY')
     // does not reappear after a re-render (toggle search on/off)
-    await page.getByRole('textbox', { name: 'Search for users by name' }).fill('x')
-    await page.getByRole('textbox', { name: 'Search for users by name' }).fill('')
+    await page.getByRole('textbox', { name: 'Search people by name' }).fill('x')
+    await page.getByRole('textbox', { name: 'Search people by name' }).fill('')
     await expect(followControl(page, 'Ana Okafor')).toHaveCount(0)
   })
 
@@ -210,9 +210,9 @@ test.describe('People — authenticated, intercepted', () => {
   test('K — search success / empty / failure degrade honestly; clear control is labelled + 44px', async ({ page }) => {
     await installPeopleFixture(page, { search: 'success' })
     await openPeople(page)
-    const input = page.getByRole('textbox', { name: 'Search for users by name' })
+    const input = page.getByRole('textbox', { name: 'Search people by name' })
     await input.fill('hal')
-    await expect(page.getByRole('region', { name: /match/i })).toBeVisible()
+    await expect(page.getByRole('region', { name: /result/i })).toBeVisible()
     await expect(followControl(page, 'Hal Voss')).toBeVisible()
     const clear = page.getByRole('button', { name: 'Clear search results' })
     await expect(clear).toBeVisible()
@@ -221,11 +221,20 @@ test.describe('People — authenticated, intercepted', () => {
     expect(box.height).toBeGreaterThanOrEqual(44)
   })
 
-  test('K2 — search empty + failure show honest copy, no raw backend text, no table fallback', async ({ page }) => {
+  test('K2 — empty search shows the privacy-safe no-results copy', async ({ page }) => {
+    await installPeopleFixture(page, { search: 'empty' })
+    await openPeople(page)
+    await page.getByRole('textbox', { name: 'Search people by name' }).fill('zzz')
+    await expect(page.getByText('No people found.')).toBeVisible()
+    await expect(page.getByText(/never looks through private film activity or reviews/i)).toBeVisible()
+  })
+
+  test('K3 — search RPC failure → "unavailable" (never "No people found"), no raw text, no table fallback', async ({ page }) => {
     const ledger = await installPeopleFixture(page, { search: 'failure' })
     await openPeople(page)
-    await page.getByRole('textbox', { name: 'Search for users by name' }).fill('zzz')
-    await expect(page.getByText('No people found. Try a different name.')).toBeVisible()
+    await page.getByRole('textbox', { name: 'Search people by name' }).fill('zzz')
+    await expect(page.getByText('Search is unavailable right now.')).toBeVisible()
+    await expect(page.getByText('No people found.')).toHaveCount(0)
     const body = await page.locator('body').innerText()
     expect(body).not.toMatch(/mock|42501|relation does not exist/i)
     expect(ledger.forbiddenReads).toEqual([])         // no direct table fallback on RPC failure
@@ -235,7 +244,7 @@ test.describe('People — authenticated, intercepted', () => {
   test('L — empty discovery shows the honest empty state, no fabricated social proof', async ({ page }) => {
     const ledger = await installPeopleFixture(page, { mode: 'empty' })
     await openPeople(page)
-    await expect(page.getByText('No taste matches yet')).toBeVisible()
+    await expect(page.getByText('No confident taste matches yet')).toBeVisible()
     const body = (await page.locator('body').innerText())
     for (const name of Object.values(ledger.NAME)) expect(body).not.toContain(name)
     expect(body.toLowerCase()).not.toMatch(/popular on feelflick|crew overlap|what your circle|shared lineage/)
@@ -247,7 +256,7 @@ test.describe('People — authenticated, intercepted', () => {
     await installPeopleFixture(page)
     await openPeople(page)
     await expect(followControl(page, 'Ana Okafor')).toBeVisible()
-    await page.getByRole('textbox', { name: 'Search for users by name' }).focus()
+    await page.getByRole('textbox', { name: 'Search people by name' }).focus()
     const seen = []
     for (let i = 0; i < 18; i++) {
       seen.push(await page.evaluate(() => {
@@ -280,7 +289,7 @@ test.describe('People — authenticated, intercepted', () => {
   for (const [label, opts, prep] of [
     ['healthy', {}, null],
     ['empty', { mode: 'empty' }, null],
-    ['search', { search: 'success' }, async (page) => page.getByRole('textbox', { name: 'Search for users by name' }).fill('hal')],
+    ['search', { search: 'success' }, async (page) => page.getByRole('textbox', { name: 'Search people by name' }).fill('hal')],
     ['follow-failure', { followWrite: 'failure' }, async (page) => { await page.getByRole('button', { name: /^Follow Ana Okafor/ }).click() }],
     ['hidden', {}, async (page) => page.getByRole('button', { name: 'Hide Ana Okafor from your suggestions' }).click()],
   ]) {
@@ -315,7 +324,145 @@ test.describe('People — authenticated, intercepted', () => {
       await expect(h1(page)).toHaveCount(1)
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
       expect(overflow, `h-overflow at ${vp.width}`).toBeLessThanOrEqual(1)
-      await expect(page.getByRole('textbox', { name: 'Search for users by name' })).toBeVisible()
+      await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible()
     }
   })
+
+  // ── R. consent gate: opted-out candidate never appears ──────────────────────────────────────
+  test('R — an opted-OUT candidate (not in the taste projection) never appears in any rail', async ({ page }) => {
+    const ledger = await installPeopleFixture(page)
+    await openPeople(page)
+    await expect(followControl(page, 'Ana Okafor')).toBeVisible()
+    const body = await page.locator('.ff-people-v2').innerText()
+    expect(body).not.toContain('Gus Halloran') // opted out → excluded despite a real similarity row
+    // identity was never requested for the opted-out candidate
+    const idCalls = ledger.rpcsFor('get_people_public_identities').flatMap(r => (r.body?.requested_user_ids) || [])
+    expect(idCalls).not.toContain(ledger.U.gus)
+  })
+
+  // ── S. fail-closed: taste-projection failure suppresses discovery ───────────────────────────
+  test('S — taste-projection failure fails CLOSED: no cards, search still works, no identity fetch', async ({ page }) => {
+    const ledger = await installPeopleFixture(page, { rpc: 'taste_fail' })
+    await openPeople(page)
+    await expect(page.getByText('Taste matches are unavailable right now.')).toBeVisible()
+    await expect(followControl(page, 'Ana Okafor')).toHaveCount(0) // no identity-only cards
+    await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible() // search remains
+    expect(ledger.rpcsFor('get_people_public_identities')).toHaveLength(0) // never fetched identity after fail-closed
+  })
+
+  // ── T. Suggested is FOF-only, with a genuine via ────────────────────────────────────────────
+  test('T — Suggested shows ONLY friend-of-follows with a genuine via; no similarity candidate', async ({ page }) => {
+    await installPeopleFixture(page)
+    await openPeople(page)
+    const region = page.getByRole('region', { name: /People you might know/i })
+    await expect(region).toBeVisible()
+    await expect(region.getByText('Lee Okafor')).toBeVisible()   // FOF candidate (not in similarity)
+    await expect(region.getByText(/via/i)).toBeVisible()
+    await expect(region.getByText('Fin Adeyemi')).toBeVisible()  // the genuine via friend
+    await expect(region.getByText('Ana Okafor')).toHaveCount(0)  // a similarity candidate never appears here
+  })
+
+  // ── U. invite shares the generic canonical URL (no raw id) ──────────────────────────────────
+  test('U — Invite copies the generic canonical URL, never a raw user id / ?ref=', async ({ page }) => {
+    await installPeopleFixture(page)
+    await page.addInitScript(() => {
+      window.__copied = []
+      // stub clipboard so the desktop copy path is deterministic + capturable
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText: (t) => { window.__copied.push(t); return Promise.resolve() } }, configurable: true })
+    })
+    await openPeople(page)
+    await page.getByRole('button', { name: /Invite a friend/i }).click()
+    await expect(status(page)).toContainText('Invite link copied.')
+    const copied = await page.evaluate(() => window.__copied || [])
+    expect(copied).toContain('https://app.feelflick.com/')
+    for (const c of copied) { expect(c).not.toMatch(/\?ref=/); expect(c).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}/) }
+  })
+
+  // ── V. matching explainer (one shared accessible dialog) ────────────────────────────────────
+  test('V — explainer opens from both triggers, is a focus-trapped modal, Escape closes + restores', async ({ page }) => {
+    await installPeopleFixture(page)
+    await openPeople(page)
+    const trigger = page.getByRole('button', { name: /How matching works/i })
+    await trigger.click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toHaveAttribute('aria-modal', 'true')
+    await expect(dialog.getByText(/Name search is separate/i)).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(trigger).toBeFocused() // focus restored to the opener
+    // the Strongest "No exact percentages" chip opens the SAME dialog
+    await page.getByRole('button', { name: /No exact percentages/i }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+  })
+
+  // ── W. Hide → Undo restores ─────────────────────────────────────────────────────────────────
+  test('W — Undo restores a just-hidden card (no backend write)', async ({ page }) => {
+    const ledger = await installPeopleFixture(page)
+    await openPeople(page)
+    await hideControl(page, 'Ana Okafor').click()
+    await expect(followControl(page, 'Ana Okafor')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Undo hiding Ana Okafor' }).click()
+    await expect(followControl(page, 'Ana Okafor')).toBeVisible()
+    await expect(status(page)).toContainText('Restored Ana Okafor.')
+    expect(ledger.followWrites).toEqual([])
+  })
+
+  // ── X. 320×812: no overflow + Undo toast clears the BottomNav ────────────────────────────────
+  test('X — 320×812: no horizontal overflow; the Undo toast sits above the BottomNav', async ({ page }) => {
+    await installPeopleFixture(page)
+    await page.setViewportSize({ width: 320, height: 812 })
+    await openPeople(page)
+    await expect(h1(page)).toHaveCount(1)
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow).toBeLessThanOrEqual(1)
+    await hideControl(page, 'Ana Okafor').click()
+    const toast = page.locator('.ff-people-toast')
+    await expect(toast).toBeVisible()
+    const nav = await page.locator('.fixed.bottom-0.left-0.right-0.z-30').first().boundingBox()
+    const tb = await toast.boundingBox()
+    if (nav) expect(tb.y + tb.height).toBeLessThanOrEqual(nav.y - 8) // toast above the BottomNav
+  })
+
+  // ── Y. 200% browser zoom (halved effective viewport — the faithful reflow) ───────────────────
+  for (const z of [
+    { name: '1280 @ 200% (≈640)', w: 640, h: 400 },
+    { name: '390 @ 200% (≈195)', w: 195, h: 422 },
+    { name: '320 @ 200% (≈160)', w: 160, h: 406 },
+  ]) {
+    test(`Y — 200% zoom ${z.name}: usable, no overflow, controls + dialog + Undo reachable, BottomNav clearance`, async ({ page }) => {
+      const errors = []
+      page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
+      page.on('pageerror', (e) => errors.push(e.message))
+      await installPeopleFixture(page)
+      await page.setViewportSize({ width: z.w, height: z.h })
+      await openPeople(page)
+      await expect(h1(page)).toHaveCount(1)
+      const overflow = await page.evaluate(() => { const el = document.scrollingElement || document.documentElement; return el.scrollWidth - el.clientWidth })
+      expect(overflow, `overflow ${z.name}`).toBeLessThanOrEqual(1)
+      // masthead actions + search + Strongest Follow/Hide all reachable
+      await expect(page.getByRole('button', { name: /How matching works/i })).toBeVisible()
+      await expect(page.getByRole('button', { name: /Invite a friend/i })).toBeVisible()
+      await expect(page.getByRole('textbox', { name: 'Search people by name' })).toBeVisible()
+      await expect(followControl(page, 'Ana Okafor')).toBeVisible()
+      await expect(hideControl(page, 'Ana Okafor')).toBeVisible()
+      // explainer fits + Close reachable + scrollable
+      await page.getByRole('button', { name: /How matching works/i }).click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+      expect((await dialog.boundingBox()).width).toBeLessThanOrEqual(z.w)
+      await expect(dialog.getByRole('button', { name: /Close matching explanation/i })).toBeVisible()
+      await page.keyboard.press('Escape')
+      await expect(page.getByRole('dialog')).toHaveCount(0)
+      // Hide → Undo reachable; final action + toast clear the BottomNav by ≥8px
+      await hideControl(page, 'Ana Okafor').click()
+      const toast = page.locator('.ff-people-toast')
+      await expect(toast).toBeVisible()
+      await expect(page.getByRole('button', { name: /Undo hiding Ana Okafor/i })).toBeVisible()
+      const nav = await page.locator('.fixed.bottom-0.left-0.right-0.z-30').first().boundingBox()
+      const tb = await toast.boundingBox()
+      if (nav) expect(tb.y + tb.height, `toast vs nav ${z.name}`).toBeLessThanOrEqual(nav.y - 8)
+      expect(errors, errors.join(' | ')).toEqual([])
+    })
+  }
 })

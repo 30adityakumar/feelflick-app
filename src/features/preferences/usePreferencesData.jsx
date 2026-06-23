@@ -1,384 +1,164 @@
 // src/features/preferences/usePreferencesData.jsx
-// FeelFlick — Preferences v2 ("The dials") data layer.
+// Preferences data provider — the single load + transactional-save authority.
 //
-// Persistence model:
-//   • Drawn-to genres → user_preferences (user_id, genre_id, excluded=false).
-//     Engine + /home gating read this table via .select('genre_id') — they
-//     ignore the `excluded` flag entirely, so we don't write avoid rows here
-//     (would cause the engine to treat avoided genres as PREFERRED).
-//   • Avoid genres → user_settings.settings.prefs.avoidGenres (label array).
-//     Discover engine reads this; this is the only place anything checks
-//     "did the user say avoid".
-//   • Everything else (mood weights, directors trusted/muted, runtime band,
-//     daypart, subscriptions, boundaries, display knobs) → settings.prefs.
+//   • Load checks every resolved Supabase .error. A critical read failure
+//     (user_settings or user_preferences) yields status='load_error' and does
+//     NOT build an editable baseline from defaults (so a failed load can never
+//     overwrite real saved preferences on the next Save). An optional director-
+//     suggestion failure degrades to status='degraded' (page renders, no
+//     suggestions).
+//   • Save calls the owner-scoped transactional RPC save_user_preferences_v2
+//     with the loaded settings.updated_at as an optimistic-concurrency token.
+//     No direct client delete/upsert fallback exists.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { MOODS, GENRES, BOUNDARIES, LANGUAGES, SUBTITLE_MODES, SPOILER_TIERS, STREAMERS } from './data'
+import { usePreferenceDraft } from './usePreferenceDraft'
+import { buildInitialDraft, buildSavePayload } from './derive/preferencePresentation'
+import { validateDraft } from './derive/preferenceValidation'
 
 const PrefsContext = createContext(null)
-
-// === Static catalogs ===================================================
-
-export const MOODS = [
-  { id: 'tense',       label: 'Tense',       hex: '#EF4444' },
-  { id: 'tender',      label: 'Tender',      hex: '#F472B6' },
-  { id: 'slow-burn',   label: 'Slow-burn',   hex: '#A78BFA' },
-  { id: 'cerebral',    label: 'Cerebral',    hex: '#7DD3FC' },
-  { id: 'bittersweet', label: 'Bittersweet', hex: '#F472B6' },
-  { id: 'cozy',        label: 'Cozy',        hex: '#FBBF24' },
-  { id: 'dark-comic',  label: 'Dark-comic',  hex: '#34D399' },
-  { id: 'hopeful',     label: 'Hopeful',     hex: '#34D399' },
-  { id: 'mythic',      label: 'Mythic',      hex: '#0EA5E9' },
-]
-
-// TMDB genre catalog — must match the IDs the engine + v1 /preferences use.
-export const GENRES = [
-  { id: 28,    label: 'Action' },
-  { id: 12,    label: 'Adventure' },
-  { id: 16,    label: 'Animation' },
-  { id: 35,    label: 'Comedy' },
-  { id: 80,    label: 'Crime' },
-  { id: 99,    label: 'Documentary' },
-  { id: 18,    label: 'Drama' },
-  { id: 10751, label: 'Family' },
-  { id: 14,    label: 'Fantasy' },
-  { id: 36,    label: 'History' },
-  { id: 27,    label: 'Horror' },
-  { id: 10402, label: 'Music' },
-  { id: 9648,  label: 'Mystery' },
-  { id: 10749, label: 'Romance' },
-  { id: 878,   label: 'Sci-Fi' },
-  { id: 53,    label: 'Thriller' },
-]
-
-const GENRE_LABEL_BY_ID = new Map(GENRES.map(g => [g.id, g.label]))
-const GENRE_ID_BY_LABEL = new Map(GENRES.map(g => [g.label.toLowerCase(), g.id]))
-
-export const STREAMERS = [
-  { id: 'netflix',  name: 'Netflix',     logo: 'N', tint: '#e50914' },
-  { id: 'max',      name: 'Max',         logo: 'M', tint: '#0046ff' },
-  { id: 'hulu',     name: 'Hulu',        logo: 'H', tint: '#1ce783' },
-  { id: 'amazon',   name: 'Prime Video', logo: 'P', tint: '#00a8e1' },
-  { id: 'apple',    name: 'Apple TV+',   logo: 'A', tint: '#ffffff' },
-  { id: 'crite',    name: 'Criterion',   logo: 'C', tint: '#ffd700' },
-  { id: 'mubi',     name: 'MUBI',        logo: 'M', tint: '#ffffff' },
-  { id: 'disney',   name: 'Disney+',     logo: 'D', tint: '#0072d2' },
-]
-
-export const DAYPARTS = [
-  { id: 'morning',   label: 'Morning'   },
-  { id: 'afternoon', label: 'Afternoon' },
-  { id: 'evening',   label: 'Evening'   },
-  { id: 'late',      label: 'Late'      },
-]
-
-export const BOUNDARIES = [
-  { id: 'graphic', label: 'Graphic violence',         desc: 'Filter explicit / gore content.' },
-  { id: 'sexual',  label: 'Explicit sexual content',  desc: 'Filter NC-17 / unrated explicit.' },
-  { id: 'animals', label: 'Harm to animals',          desc: 'Flag depictions in films.' },
-  { id: 'noise',   label: 'Sensory-heavy films',      desc: 'Flicker, jump-cuts, strobe.' },
-]
-
-// Display-side knobs (formerly under /account → "Engine preferences").
-// They steer how content is presented, not what gets recommended, but they
-// belong here so a single page owns every "how I want films delivered to me"
-// setting.
-export const LANGUAGES = [
-  'English', 'Korean', 'Japanese', 'French', 'Spanish', 'Italian',
-  'German', 'Mandarin', 'Cantonese', 'Hindi', 'Portuguese', 'Russian',
-  'Arabic', 'Turkish', 'Persian', 'Swedish', 'Danish', 'Norwegian',
-  'Polish', 'Dutch', 'Thai', 'Vietnamese',
-]
-
-export const SUBTITLE_MODES = [
-  { v: 'never',          l: 'Never' },
-  { v: 'sometimes',      l: 'Sometimes' },
-  { v: 'always-welcome', l: 'Always welcome' },
-]
-
-export const SPOILER_TIERS = [
-  { v: 'brief',    l: 'Brief' },
-  { v: 'standard', l: 'Standard' },
-  { v: 'detailed', l: 'Detailed' },
-]
-
-// === Default shape =====================================================
-
-const DEFAULT_DRAFT = {
-  moodWeights: Object.fromEntries(MOODS.map(m => [m.id, 0.5])),
-  drawnGenreIds: [],
-  avoidGenreIds: [],
-  trustedDirectors: [],
-  mutedDirectors: [],
-  runtimeFloor: 90,
-  runtimeCap: 180,
-  daypart: { morning: false, afternoon: false, evening: true, late: false },
-  subscriptions: {},
-  boundaries: { graphic: false, sexual: false, animals: false, noise: false },
-  // Display knobs (migrated from /account EnginePrefs)
-  subtitles: 'always-welcome',
-  spoilerTier: 'brief',
-  languages: ['English'],
-}
-
-function buildInitialDraft(settingsPrefs, prefRows) {
-  const p = settingsPrefs || {}
-  const drawn = []
-  const legacyAvoid = []
-  for (const r of prefRows || []) {
-    if (r.excluded) legacyAvoid.push(r.genre_id)
-    else drawn.push(r.genre_id)
-  }
-  // Avoid is sourced from settings.prefs.avoidGenres (the canonical store the
-  // Discover engine reads). For pre-fix users we union in any legacy
-  // user_preferences.excluded=true rows so we don't lose their data — the
-  // next save normalises them out of user_preferences.
-  const avoidFromSettings = Array.isArray(p.avoidGenres)
-    ? p.avoidGenres.map(genreIdOf).filter(Boolean)
-    : []
-  const avoid = Array.from(new Set([...avoidFromSettings, ...legacyAvoid]))
-  // If a genre ended up in both drawn and avoid (data corruption), avoid wins.
-  const avoidSet = new Set(avoid)
-  const drawnDeduped = drawn.filter(id => !avoidSet.has(id))
-  return {
-    moodWeights: { ...DEFAULT_DRAFT.moodWeights, ...(p.moodWeights || {}) },
-    drawnGenreIds: drawnDeduped,
-    avoidGenreIds: avoid,
-    trustedDirectors: Array.isArray(p.trustedDirectors) ? p.trustedDirectors : [],
-    mutedDirectors:   Array.isArray(p.mutedDirectors)   ? p.mutedDirectors   : [],
-    runtimeFloor: typeof p.runtimeFloor === 'number' ? p.runtimeFloor : DEFAULT_DRAFT.runtimeFloor,
-    runtimeCap:   typeof p.runtimeCap === 'number'   ? p.runtimeCap   : DEFAULT_DRAFT.runtimeCap,
-    daypart: { ...DEFAULT_DRAFT.daypart, ...(p.daypart || {}) },
-    subscriptions: { ...DEFAULT_DRAFT.subscriptions, ...(p.subscriptions || {}) },
-    boundaries: { ...DEFAULT_DRAFT.boundaries, ...(p.boundaries || {}) },
-    subtitles:   typeof p.subtitles   === 'string' ? p.subtitles   : DEFAULT_DRAFT.subtitles,
-    spoilerTier: typeof p.spoilerTier === 'string' ? p.spoilerTier : DEFAULT_DRAFT.spoilerTier,
-    languages:   Array.isArray(p.languages) && p.languages.length ? p.languages : DEFAULT_DRAFT.languages,
-  }
-}
-
-// === Helpers ===========================================================
-
-export function genreLabelOf(id) { return GENRE_LABEL_BY_ID.get(id) || `Genre ${id}` }
-export function genreIdOf(label) { return GENRE_ID_BY_LABEL.get((label || '').toLowerCase()) || null }
-
-// Deep-stable JSON. Sorts keys at every nesting level so dirty comparison
-// ignores insertion-order differences. (Passing an array replacer to
-// JSON.stringify acts as a key whitelist at all levels — that's the wrong
-// tool for this job.)
-function stableStringify(value) {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value)
-  if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']'
-  const keys = Object.keys(value).sort()
-  return '{' + keys.map(k => JSON.stringify(k) + ':' + stableStringify(value[k])).join(',') + '}'
-}
-
-// === Provider ==========================================================
+const CATALOGS = { MOODS, GENRES, BOUNDARIES, LANGUAGES, SUBTITLE_MODES, SPOILER_TIERS, STREAMERS }
 
 export function PreferencesDataProvider({ children }) {
-  const { user } = useAuthSession()
-  const userId = user?.id
+  const { userId } = useAuthSession()
+  const d = usePreferenceDraft()
 
-  const [baseline, setBaseline] = useState(DEFAULT_DRAFT)
-  const [draft, setDraft] = useState(DEFAULT_DRAFT)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [savedAt, setSavedAt] = useState(null) // for toast / dot
-  const [saveError, setSaveError] = useState('') // F9.3: surfaced to the user, never raw backend text
-  const savingRef = useRef(false) // F9.3: synchronous duplicate-submit guard
-
-  // Watch-history-derived director suggestions (so "+ Director" picker is real)
+  const [status, setStatus] = useState('loading')        // loading | ready | degraded | load_error
+  const [saveStatus, setSaveStatus] = useState('idle')   // idle | saving | saved | save_error | conflict
+  const [saveError, setSaveError] = useState('')
+  const [savedAt, setSavedAt] = useState(null)
+  const [updatedAt, setUpdatedAt] = useState(null)       // concurrency token
   const [directorSuggestions, setDirectorSuggestions] = useState([])
+  const [suggestionsUnavailable, setSuggestionsUnavailable] = useState(false)
+  const [liveMessage, setLiveMessage] = useState('')
 
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false)
+  const savingRef = useRef(false)
+  const loadTokenRef = useRef(0)
+  const userIdRef = useRef(userId)
+  userIdRef.current = userId // always the latest authed user, for stale-completion guards
+
+  const announce = useCallback((msg) => setLiveMessage(msg), [])
+
+  const runLoad = useCallback(async () => {
+    if (!userId) return
+    const token = ++loadTokenRef.current
+    setStatus('loading')
+    setSaveStatus('idle')
+    setSaveError('')
+    const [settingsRes, prefsRes, historyRes] = await Promise.all([
+      supabase.from('user_settings').select('settings, updated_at').eq('user_id', userId).maybeSingle(),
+      supabase.from('user_preferences').select('genre_id, excluded').eq('user_id', userId),
+      supabase.from('user_history').select('movies!inner(director_name)').eq('user_id', userId).limit(120),
+    ])
+    if (token !== loadTokenRef.current) return // stale (user switched / remounted)
+
+    // Critical dependencies — a real error must never become editable defaults.
+    if (settingsRes.error || prefsRes.error) {
+      setStatus('load_error')
       return
     }
-    let abort = false
-    setLoading(true)
-    ;(async () => {
-      try {
-        const [settingsRes, prefsRes, historyRes] = await Promise.all([
-          supabase.from('user_settings').select('settings').eq('user_id', userId).maybeSingle(),
-          supabase.from('user_preferences').select('genre_id, excluded').eq('user_id', userId),
-          supabase
-            .from('user_history')
-            .select('movies!inner(director_name)')
-            .eq('user_id', userId)
-            .limit(120),
-        ])
-        if (abort) return
+    const initial = buildInitialDraft(settingsRes.data?.settings?.prefs, prefsRes.data)
+    d.resetTo(initial)
+    setUpdatedAt(settingsRes.data?.updated_at ?? null)
 
-        const initial = buildInitialDraft(settingsRes.data?.settings?.prefs, prefsRes.data)
-        setBaseline(initial)
-        setDraft(initial)
+    // Optional dependency — degrade gracefully.
+    if (historyRes.error) {
+      setDirectorSuggestions([])
+      setSuggestionsUnavailable(true)
+      setStatus('degraded')
+      return
+    }
+    const counts = new Map()
+    for (const h of historyRes.data || []) {
+      const name = h.movies?.director_name
+      if (name) counts.set(name, (counts.get(name) || 0) + 1)
+    }
+    setDirectorSuggestions([...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20).map(([n]) => n))
+    setSuggestionsUnavailable(false)
+    setStatus('ready')
+  }, [userId, d])
 
-        // Top directors from your own history → suggestion pool for the picker
-        const counts = new Map()
-        for (const h of historyRes.data || []) {
-          const d = h.movies?.director_name
-          if (d) counts.set(d, (counts.get(d) || 0) + 1)
-        }
-        const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20).map(([d]) => d)
-        setDirectorSuggestions(top)
-      } catch (e) {
-        console.error('[usePreferencesData.load]', e)
-      } finally {
-        if (!abort) setLoading(false)
-      }
-    })()
-    return () => { abort = true }
+  useEffect(() => {
+    if (!userId) return
+    // runLoad claims a fresh token; a later runLoad (e.g. after a user switch)
+    // bumps the token so any in-flight load resolves stale and is ignored.
+    runLoad()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
-  // === Draft mutations (don't persist) ===
-  const setMoodWeight   = useCallback((id, w) => setDraft(d => ({ ...d, moodWeights: { ...d.moodWeights, [id]: w } })), [])
-  const addDrawnGenre   = useCallback((id) => setDraft(d => d.drawnGenreIds.includes(id) || d.avoidGenreIds.includes(id) ? d : ({ ...d, drawnGenreIds: [...d.drawnGenreIds, id] })), [])
-  const removeDrawnGenre = useCallback((id) => setDraft(d => ({ ...d, drawnGenreIds: d.drawnGenreIds.filter(x => x !== id) })), [])
-  const addAvoidGenre   = useCallback((id) => setDraft(d => d.avoidGenreIds.includes(id) || d.drawnGenreIds.includes(id) ? d : ({ ...d, avoidGenreIds: [...d.avoidGenreIds, id] })), [])
-  const removeAvoidGenre = useCallback((id) => setDraft(d => ({ ...d, avoidGenreIds: d.avoidGenreIds.filter(x => x !== id) })), [])
-  const addTrustedDirector = useCallback((name) => {
-    const n = (name || '').trim()
-    if (!n) return
-    setDraft(d => d.trustedDirectors.includes(n) || d.mutedDirectors.includes(n) ? d : ({ ...d, trustedDirectors: [...d.trustedDirectors, n] }))
-  }, [])
-  const removeTrustedDirector = useCallback((name) => setDraft(d => ({ ...d, trustedDirectors: d.trustedDirectors.filter(x => x !== name) })), [])
-  const addMutedDirector = useCallback((name) => {
-    const n = (name || '').trim()
-    if (!n) return
-    setDraft(d => d.mutedDirectors.includes(n) || d.trustedDirectors.includes(n) ? d : ({ ...d, mutedDirectors: [...d.mutedDirectors, n] }))
-  }, [])
-  const removeMutedDirector = useCallback((name) => setDraft(d => ({ ...d, mutedDirectors: d.mutedDirectors.filter(x => x !== name) })), [])
-  const setRuntimeFloor = useCallback((n) => setDraft(d => ({ ...d, runtimeFloor: Math.min(d.runtimeCap, n) })), [])
-  const setRuntimeCap   = useCallback((n) => setDraft(d => ({ ...d, runtimeCap: Math.max(d.runtimeFloor, n) })), [])
-  const toggleDaypart = useCallback((id) => setDraft(d => ({ ...d, daypart: { ...d.daypart, [id]: !d.daypart[id] } })), [])
-  const toggleSubscription = useCallback((id) => setDraft(d => ({ ...d, subscriptions: { ...d.subscriptions, [id]: !d.subscriptions[id] } })), [])
-  const toggleBoundary = useCallback((id) => setDraft(d => ({ ...d, boundaries: { ...d.boundaries, [id]: !d.boundaries[id] } })), [])
-  const setSubtitles   = useCallback((v) => setDraft(d => ({ ...d, subtitles: v })), [])
-  const setSpoilerTier = useCallback((v) => setDraft(d => ({ ...d, spoilerTier: v })), [])
-  const addLanguage    = useCallback((name) => {
-    const n = (name || '').trim()
-    if (!n) return
-    setDraft(d => d.languages.includes(n) ? d : ({ ...d, languages: [...d.languages, n] }))
-  }, [])
-  const removeLanguage = useCallback((name) => setDraft(d => ({ ...d, languages: d.languages.filter(x => x !== name) })), [])
-
-  const discard = useCallback(() => setDraft(baseline), [baseline])
-
-  const dirty = useMemo(() => stableStringify(draft) !== stableStringify(baseline), [draft, baseline])
-
-  // === Save (writes to user_preferences + user_settings.settings.prefs) ===
   const save = useCallback(async () => {
-    if (!userId || !dirty || savingRef.current) return // F9.3: synchronous duplicate-submit guard
-    savingRef.current = true
-    setSaving(true)
-    setSaveError('')
-    try {
-      // 1) Replace this user's drawn-to genre rows. We deliberately do NOT write
-      //    avoid rows here — the engine selects only `genre_id` from this table
-      //    and treats every row as PREFERRED. Avoid lives in
-      //    settings.prefs.avoidGenres (written below), which is what the
-      //    Discover engine actually reads.
-      //    F9.3 onboarding-write race: this delete is scoped to THIS user's genre
-      //    rows. /preferences is only reachable after onboarding completes
-      //    (PostAuthGate gates it), so a user can never be saving preferences
-      //    while onboarding is concurrently writing user_preferences — the two
-      //    delete-then-write paths cannot overlap for the same user.
-      await supabase.from('user_preferences').delete().eq('user_id', userId)
-      const rows = draft.drawnGenreIds.map(id => ({ user_id: userId, genre_id: id, excluded: false }))
-      if (rows.length) {
-        await supabase
-          .from('user_preferences')
-          .upsert(rows, { onConflict: 'user_id,genre_id' })
-      }
-
-      // 2) Merge our prefs into user_settings.settings.prefs without clobbering
-      //    other keys (account-v2 may also write `notifications` / `privacy`).
-      const { data: existing } = await supabase
-        .from('user_settings')
-        .select('settings')
-        .eq('user_id', userId)
-        .maybeSingle()
-      const existingSettings = existing?.settings || {}
-      const existingPrefs = existingSettings.prefs || {}
-      const nextSettings = {
-        ...existingSettings,
-        prefs: {
-          ...existingPrefs,
-          moodWeights: draft.moodWeights,
-          trustedDirectors: draft.trustedDirectors,
-          mutedDirectors: draft.mutedDirectors,
-          runtimeFloor: draft.runtimeFloor,
-          runtimeCap: draft.runtimeCap,
-          daypart: draft.daypart,
-          subscriptions: draft.subscriptions,
-          boundaries: draft.boundaries,
-          // Display knobs (migrated from /account EnginePrefs — same JSONB
-          // path so any pre-existing values survive the move).
-          subtitles: draft.subtitles,
-          spoilerTier: draft.spoilerTier,
-          languages: draft.languages,
-          // Avoid genres — Discover engine reads names from here. Drawn-to
-          // lives in user_preferences (no need to mirror).
-          avoidGenres: draft.avoidGenreIds.map(genreLabelOf),
-        },
-      }
-
-      await supabase
-        .from('user_settings')
-        .upsert({ user_id: userId, settings: nextSettings }, { onConflict: 'user_id' })
-
-      // Invalidate the cached recommendation profile so the engine picks up
-      // the just-saved prefs on the next surface visit (computeUserProfile
-      // gates on user_profiles_computed.computed_at — null forces recompute).
-      // Best-effort; failure doesn't block the save itself.
-      try {
-        await supabase
-          .from('user_profiles_computed')
-          .update({ computed_at: null })
-          .eq('user_id', userId)
-      } catch (e) {
-        console.warn('[usePreferencesData.save] profile cache invalidate failed:', e)
-      }
-
-      setBaseline(draft)
-      setSavedAt(Date.now())
-    } catch (e) {
-      console.error('[usePreferencesData.save]', e) // raw error stays in console, never the UI
-      setSaveError('Could not save your preferences. Please try again.')
-    } finally {
-      savingRef.current = false
-      setSaving(false)
+    if (!userId || !d.dirty || savingRef.current) return
+    const check = validateDraft(d.draft)
+    if (!check.ok) {
+      setSaveStatus('save_error')
+      setSaveError('Could not save your preferences. Try again.')
+      announce('Could not save your preferences. Try again.')
+      return
     }
-  }, [userId, dirty, draft])
+    savingRef.current = true
+    setSaveStatus('saving')
+    setSaveError('')
+    const mine = userIdRef.current
+    const snapshot = d.draft
+    const { genreIds, patch } = buildSavePayload(snapshot)
+    const { data, error } = await supabase.rpc('save_user_preferences_v2', {
+      p_expected_updated_at: updatedAt,
+      p_genre_ids: genreIds,
+      p_prefs_patch: patch,
+    })
+    savingRef.current = false
+    if (mine !== userIdRef.current) return // user switched mid-save — ignore stale completion
+
+    if (error) {
+      if (error.code === 'PT409') {
+        setSaveStatus('conflict')
+        announce('Your preferences changed in another tab or session.')
+      } else {
+        setSaveStatus('save_error')
+        setSaveError('Could not save your preferences. Try again.')
+        announce('Could not save your preferences. Try again.')
+      }
+      return // never update baseline on failure
+    }
+    d.commit(snapshot)
+    setUpdatedAt(data?.updated_at ?? null)
+    setSavedAt(Date.now())
+    setSaveStatus('saved')
+    announce('Preferences saved. Recommendations will update as surfaces refresh.')
+  }, [userId, d, updatedAt, announce])
+
+  const discard = useCallback(() => {
+    d.discard()
+    setSaveStatus('idle')
+    setSaveError('')
+    announce('Changes discarded.')
+  }, [d, announce])
+
+  const retry = useCallback(() => { runLoad() }, [runLoad])
+  const reloadLatest = useCallback(() => { runLoad() }, [runLoad]) // conflict → re-fetch remote, replace draft
+  const keepEditing = useCallback(() => setSaveStatus('idle'), [])
 
   const value = useMemo(() => ({
-    loading, saving, savedAt, saveError, dirty,
-    draft, baseline,
-    directorSuggestions,
-    catalogs: { MOODS, GENRES, STREAMERS, DAYPARTS, BOUNDARIES, LANGUAGES, SUBTITLE_MODES, SPOILER_TIERS },
-    // setters
-    setMoodWeight,
-    addDrawnGenre, removeDrawnGenre,
-    addAvoidGenre, removeAvoidGenre,
-    addTrustedDirector, removeTrustedDirector,
-    addMutedDirector, removeMutedDirector,
-    setRuntimeFloor, setRuntimeCap,
-    toggleDaypart, toggleSubscription, toggleBoundary,
-    setSubtitles, setSpoilerTier, addLanguage, removeLanguage,
-    discard, save,
-  }), [
-    loading, saving, savedAt, saveError, dirty, draft, baseline, directorSuggestions,
-    setMoodWeight,
-    addDrawnGenre, removeDrawnGenre, addAvoidGenre, removeAvoidGenre,
-    addTrustedDirector, removeTrustedDirector,
-    addMutedDirector, removeMutedDirector,
-    setRuntimeFloor, setRuntimeCap,
-    toggleDaypart, toggleSubscription, toggleBoundary,
-    setSubtitles, setSpoilerTier, addLanguage, removeLanguage,
-    discard, save,
-  ])
+    status, saveStatus, saveError, savedAt, updatedAt,
+    conflict: saveStatus === 'conflict',
+    saving: saveStatus === 'saving',
+    draft: d.draft, baseline: d.baseline, dirty: d.dirty,
+    directorSuggestions, suggestionsUnavailable,
+    liveMessage, announce,
+    catalogs: CATALOGS,
+    setMoodBand: d.setMoodBand,
+    addDrawnGenre: d.addDrawnGenre, removeDrawnGenre: d.removeDrawnGenre,
+    addAvoidGenre: d.addAvoidGenre, removeAvoidGenre: d.removeAvoidGenre,
+    addTrustedDirector: d.addTrustedDirector, removeTrustedDirector: d.removeTrustedDirector,
+    addMutedDirector: d.addMutedDirector, removeMutedDirector: d.removeMutedDirector,
+    setRuntimeFloor: d.setRuntimeFloor, setRuntimeCap: d.setRuntimeCap,
+    toggleBoundary: d.toggleBoundary, setSubtitles: d.setSubtitles, setSpoilerTier: d.setSpoilerTier,
+    addLanguage: d.addLanguage, removeLanguage: d.removeLanguage,
+    save, discard, retry, reloadLatest, keepEditing,
+  }), [status, saveStatus, saveError, savedAt, updatedAt, d, directorSuggestions, suggestionsUnavailable, liveMessage, announce, save, discard, retry, reloadLatest, keepEditing])
 
   return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>
 }

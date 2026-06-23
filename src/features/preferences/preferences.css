@@ -198,7 +198,7 @@
 @media (max-width: 920px) { .ff-prefs-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) {
   .ff-prefs-twocol, .ff-prefs-runtime { grid-template-columns: 1fr; gap: 28px; }
-  .ff-prefs-dock { width: calc(100% - 20px); bottom: calc(var(--pf-nav-clear) - 16px + env(safe-area-inset-bottom, 0px)); }
+  .ff-prefs-dock { width: calc(100% - 20px); bottom: calc(var(--pf-nav-clear) + 12px + env(safe-area-inset-bottom, 0px)); }
   .ff-prefs-masthead { padding-top: 36px; }
 }
 @media (max-width: 420px) {

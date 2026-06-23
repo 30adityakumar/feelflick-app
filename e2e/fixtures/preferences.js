@@ -66,7 +66,10 @@ export async function installPreferencesFixture(page, options = {}) {
 
     if (method === 'GET' || method === 'HEAD') {
       if (table === 'user_settings') {
-        if (settingsFailsLeft > 0) { settingsFailsLeft -= 1; return json(route, 500, { message: 'boom' }) }
+        // Fail ONLY the Preferences provider's read (it uniquely selects updated_at as its
+        // concurrency token), so the failure isn't consumed by another user_settings reader.
+        const isPrefsLoad = url.search.includes('updated_at')
+        if (settingsFailsLeft > 0 && isPrefsLoad) { settingsFailsLeft -= 1; return json(route, 500, { message: 'boom' }) }
         ledger.reads.push({ table })
         return json(route, 200, { settings: { prefs: PREFS }, updated_at: T_LOADED })
       }

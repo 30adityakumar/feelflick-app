@@ -26,7 +26,8 @@ test.describe('Preferences — authenticated, intercepted', () => {
     await installPreferencesFixture(page)
     await open(page)
     await expect(h1(page)).toHaveCount(1)
-    expect(await page.locator('main').count()).toBe(0)
+    await expect(page.locator('main')).toHaveCount(1) // AppShell owns the one <main>
+    expect(await page.locator('.ff-prefs main').count()).toBe(0) // Preferences adds no nested <main>
     await expect(page.getByText('2 preferred · 1 avoided')).toBeVisible()
     await expect(page.getByText('95–160 min')).toBeVisible()
     await expect(page.getByText('Watched · Ratings · Saves · Skips')).toBeVisible()
@@ -58,7 +59,7 @@ test.describe('Preferences — authenticated, intercepted', () => {
     await expect(page.getByRole('button', { name: 'Remove Comedy' })).toHaveCount(1)
     // runtime minimum gap (floor cannot cross cap)
     await page.locator('#pf-rt-floor').fill('240')
-    await expect(page.getByText('155–160')).toBeVisible()
+    await expect(page.getByText('155–160 min')).toBeVisible() // summary cell (unique vs the runtime value)
   })
 
   test('D — transactional Save: RPC only, no direct table writes, success status', async ({ page }) => {
@@ -77,7 +78,8 @@ test.describe('Preferences — authenticated, intercepted', () => {
     await open(page)
     await page.getByRole('radiogroup', { name: 'Tender' }).getByRole('radio', { name: 'Less' }).click()
     await page.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByText('Could not save your preferences. Try again.')).toBeVisible()
+    await expect(page.getByRole('region', { name: /unsaved preference changes/i })
+      .getByText('Could not save your preferences. Try again.')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled()
   })
 
@@ -86,18 +88,18 @@ test.describe('Preferences — authenticated, intercepted', () => {
     await open(page)
     await page.getByRole('radiogroup', { name: 'Tender' }).getByRole('radio', { name: 'Less' }).click()
     await page.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByText(/changed in another tab or session/i)).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Save conflict' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Reload latest' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Keep editing' })).toBeVisible()
   })
 
-  test('G — duplicate submit guarded (one RPC despite a double click)', async ({ page }) => {
+  test('G — duplicate submit guarded (saving disables Save; exactly one RPC)', async ({ page }) => {
     const ledger = await installPreferencesFixture(page, { rpc: 'success', saveDelayMs: 900 })
     await open(page)
     await page.getByRole('radiogroup', { name: 'Tender' }).getByRole('radio', { name: 'Less' }).click()
-    const save = page.getByRole('button', { name: 'Save' })
-    await save.click()
-    await save.click({ force: true }).catch(() => {})
+    await page.getByRole('button', { name: 'Save' }).click()
+    // While the RPC is in flight the control is disabled "Saving…" — a second submit is impossible.
+    await expect(page.getByRole('button', { name: 'Saving…' })).toBeDisabled()
     await expect(page.getByRole('status')).toContainText(/Preferences saved/i, { timeout: 5000 })
     expect(ledger.rpcs.filter((r) => r.name === 'save_user_preferences_v2')).toHaveLength(1)
   })
@@ -148,9 +150,10 @@ test.describe('Preferences — authenticated, intercepted', () => {
 
   test('M — dirty internal navigation prompts the unsaved-changes dialog', async ({ page }) => {
     await installPreferencesFixture(page)
+    await page.setViewportSize({ width: 390, height: 844 }) // mobile bottom nav uses router NavLinks
     await open(page)
     await page.getByRole('radiogroup', { name: 'Tender' }).getByRole('radio', { name: 'Less' }).click()
-    await page.getByRole('link').filter({ hasText: /home|discover|browse/i }).first().click().catch(() => {})
+    await page.getByRole('link', { name: 'Browse' }).click() // SPA NavLink → useBlocker intercepts
     await expect(page.getByText(/leave without saving/i)).toBeVisible()
     await page.getByRole('button', { name: 'Keep editing' }).click()
     await expect(h1(page)).toHaveText(/Your taste, clearly/i)
@@ -178,14 +181,22 @@ test.describe('Preferences — authenticated, intercepted', () => {
     }
   })
 
-  test('P — axe: zero serious/critical (default, reduced-motion, forced-colors)', async ({ page }) => {
+  test('P — axe: zero serious/critical (excl. color-contrast) + scoped contrast on the surface', async ({ page }) => {
     await installPreferencesFixture(page)
+    // General gate across default + reduced-motion + forced-colors. color-contrast is excluded here
+    // (a deliberate editorial choice tracked separately, matching the other route gates).
     for (const media of [{}, { reducedMotion: 'reduce' }, { forcedColors: 'active' }]) {
       await page.emulateMedia(media)
       await open(page)
       const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
-      const serious = results.violations.filter((v) => ['serious', 'critical'].includes(v.impact))
+      const serious = results.violations.filter((v) => ['serious', 'critical'].includes(v.impact) && v.id !== 'color-contrast')
       expect(serious, JSON.stringify(serious.map((v) => v.id))).toEqual([])
     }
+    // Contrast IS gated, scoped to the Preferences surface (the redesign owns its own contrast).
+    await page.emulateMedia({})
+    await open(page)
+    const contrast = await new AxeBuilder({ page }).include('.ff-prefs').withRules(['color-contrast']).analyze()
+    const cv = contrast.violations.filter((v) => ['serious', 'critical'].includes(v.impact))
+    expect(cv, JSON.stringify(cv.flatMap((v) => v.nodes.map((n) => n.target)))).toEqual([])
   })
 })

@@ -13,6 +13,7 @@ on:
       - 'e2e/fixtures/library.js'
       - 'e2e/fixtures/profile.js'
       - 'e2e/fixtures/people.js'
+      - 'e2e/fixtures/preferences.js'
       - 'playwright.config.*'
       - 'package.json'
       - 'package-lock.json'
@@ -181,6 +182,9 @@ jobs:
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/discover-* ]]; then
             echo "Regenerating Linux authenticated Discover baselines only…"
             npm run test:visual:discover:update
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/preferences-* ]]; then
+            echo "Regenerating Linux authenticated Preferences baselines only…"
+            npm run test:visual:preferences:update
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/* ]]; then
             echo "Regenerating Linux authenticated app baselines (Discover + Home + Movie + Library)…"
             npm run test:visual:app:update
@@ -209,6 +213,8 @@ jobs:
             git add 'e2e/visual-auth/browse.visual.js-snapshots'
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/discover-* ]]; then
             git add 'e2e/visual-auth/discover.visual.js-snapshots'
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/preferences-* ]]; then
+            git add 'e2e/visual-auth/preferences.visual.js-snapshots'
           else
             git add 'e2e/visual-auth'
           fi

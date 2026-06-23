@@ -113,11 +113,14 @@ test.describe('Preferences — authenticated, intercepted', () => {
   })
 
   test('I — critical load error: no editable controls, Retry recovers', async ({ page }) => {
-    // Fail the provider-exclusive user_preferences read once → critical load_error → Retry recovers.
-    await installPreferencesFixture(page, { prefsError: 'once' })
+    // Always-fail the provider's settings read → critical load_error (fail closed: no editable UI).
+    await installPreferencesFixture(page, { settingsError: true })
     await page.goto('/preferences')
     await expect(page.getByText(/could not load your preferences/i)).toBeVisible({ timeout: 20_000 })
     await expect(page.getByRole('region', { name: /unsaved preference changes/i })).toHaveCount(0)
+    await expect(page.getByRole('radiogroup', { name: 'Tender' })).toHaveCount(0) // no editable controls
+    // Heal the backend (a fresh install's routes take precedence) and Retry → recovers.
+    await installPreferencesFixture(page)
     await page.getByRole('button', { name: 'Retry' }).click()
     await expect(h1(page)).toHaveText(/Your taste, clearly/i)
   })

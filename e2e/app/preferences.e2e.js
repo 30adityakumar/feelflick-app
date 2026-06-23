@@ -113,7 +113,8 @@ test.describe('Preferences — authenticated, intercepted', () => {
   })
 
   test('I — critical load error: no editable controls, Retry recovers', async ({ page }) => {
-    await installPreferencesFixture(page, { settingsError: 'once' })
+    // Fail the provider-exclusive user_preferences read once → critical load_error → Retry recovers.
+    await installPreferencesFixture(page, { prefsError: 'once' })
     await page.goto('/preferences')
     await expect(page.getByText(/could not load your preferences/i)).toBeVisible({ timeout: 20_000 })
     await expect(page.getByRole('region', { name: /unsaved preference changes/i })).toHaveCount(0)
@@ -193,7 +194,9 @@ test.describe('Preferences — authenticated, intercepted', () => {
       expect(serious, JSON.stringify(serious.map((v) => v.id))).toEqual([])
     }
     // Contrast IS gated, scoped to the Preferences surface (the redesign owns its own contrast).
-    await page.emulateMedia({})
+    // Reset forced-colors first — under forced-colors axe computes against the forced white canvas,
+    // which is not the real theme (emulateMedia({}) does NOT clear a previously-set forcedColors).
+    await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference' })
     await open(page)
     const contrast = await new AxeBuilder({ page }).include('.ff-prefs').withRules(['color-contrast']).analyze()
     const cv = contrast.violations.filter((v) => ['serious', 'critical'].includes(v.impact))

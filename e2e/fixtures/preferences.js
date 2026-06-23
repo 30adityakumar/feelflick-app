@@ -36,6 +36,9 @@ const FORBIDDEN_DIRECT_WRITE = new Set(['user_preferences', 'user_settings', 'us
 export async function installPreferencesFixture(page, options = {}) {
   const opts = { rpc: 'success', settingsError: false, prefsError: false, historyError: false, saveDelayMs: 0, ...options }
   let settingsFailsLeft = opts.settingsError === 'once' ? 1 : opts.settingsError ? Infinity : 0
+  // user_preferences is read ONLY by the Preferences provider on /preferences, so failing it is the
+  // unambiguous way to drive the critical load_error (no other reader can consume a one-shot failure).
+  let prefsFailsLeft = opts.prefsError === 'once' ? 1 : opts.prefsError ? Infinity : 0
   const ledger = { requests: [], reads: [], rpcs: [], directWrites: [], unexpected: [] }
   const json = (route, status, obj, headers = {}) => route.fulfill({ status, contentType: 'application/json', headers, body: JSON.stringify(obj) })
 
@@ -74,7 +77,7 @@ export async function installPreferencesFixture(page, options = {}) {
         return json(route, 200, { settings: { prefs: PREFS }, updated_at: T_LOADED })
       }
       if (table === 'user_preferences') {
-        if (opts.prefsError) return json(route, 500, { message: 'boom' })
+        if (prefsFailsLeft > 0) { prefsFailsLeft -= 1; return json(route, 500, { message: 'boom' }) }
         ledger.reads.push({ table })
         return json(route, 200, PREF_ROWS, { 'content-range': `0-${PREF_ROWS.length - 1}/${PREF_ROWS.length}` })
       }

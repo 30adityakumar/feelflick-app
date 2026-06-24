@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { tmdbImg } from '@/shared/api/tmdb'
-import { PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP as HP_BASE, RADIUS } from './data'
+import { PARASITE_TIMELINE_SAMPLE, HP as HP_BASE, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
 
@@ -180,7 +180,7 @@ function ProviderSectionShell({ children }) {
   return (
     <section className="ff-movie-section ff-movie-providers" aria-label="Where to watch" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Where to watch
+        <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Where to watch · United States
       </div>
       {children}
     </section>
@@ -258,7 +258,7 @@ function ProvidersSection() {
       <div className="ff-movie-providers-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:64, alignItems:'flex-start' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Where to watch
+            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Where to watch · United States
           </div>
           <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
             Streaming <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>now.</em>
@@ -595,15 +595,12 @@ function YourTakeLockedPrompt() {
 const REACTION_TAGS = ['Loved it', 'Liked it', 'Mixed', "Didn't connect"];
 
 function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
-  const { mv } = useMovieData();
-  // DNADelta's projected motifs are still Parasite-specific until real
-  // before/after deltas land. Gate to Parasite only so auto-generated
-  // overlays on other films don't surface Bong's class-tension projection.
-  const showDnaDelta = mv?.id === PARASITE_TMDB_ID;
+  // §24: the projected DNA-delta surface was removed — it presented a Parasite-only
+  // *projected* before/after as if it were a measured taste change. No replacement.
   const {
     stars, reviewText, reaction,
     setStars, setReviewText, setReaction,
-    saveStatus, hydrated,
+    saveStatus, hydrated, loadError, retryHydrate,
   } = useUserRating({ userId, internalId });
   const canPersist = Boolean(userId && internalId);
   // After hydration: if the user already has data, surface a passive "saved"
@@ -627,6 +624,9 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
     else if (saveStatus === 'error') onError?.();
   }, [saveStatus, onSaved, onError]);
 
+  // §21: hydration read failed → show a safe local error + Retry instead of an
+  // editable form that could overwrite unknown existing rating/note data.
+  if (loadError) return <YourTakeLoadError onRetry={retryHydrate} />;
   // Unwatched + no existing reflection → compact locked prompt (no new unwatched rating).
   if (!unlocked) return <YourTakeLockedPrompt />;
 
@@ -640,7 +640,7 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
           </div>
           <SaveIndicator status={saveStatus} showIdleSavedHint={showIdleSavedHint} />
         </div>
-        <div className="ff-movie-your-take-grid" style={{ display:'grid', gridTemplateColumns: showDnaDelta ? '1fr 1.4fr' : '1fr', gap:48, alignItems:'flex-start', marginTop:14 }}>
+        <div className="ff-movie-your-take-grid" style={{ display:'grid', gridTemplateColumns: '1fr', gap:48, alignItems:'flex-start', marginTop:14 }}>
           <div>
             <div className="ff-movie-your-take-stars" role="radiogroup" aria-label="Your star rating" style={{ display:'flex', gap:6, marginBottom:18 }}>
               {[1,2,3,4,5].map(i => (
@@ -700,8 +700,29 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
               />
             </label>
           </div>
-          {showDnaDelta && <DNADelta />}
         </div>
+      </div>
+    </section>
+  );
+}
+
+// §21: safe load-error surface — never an empty editable form when we couldn't
+// read whether existing rating/note data exists.
+function YourTakeLoadError({ onRetry }) {
+  return (
+    <section className="ff-movie-section ff-movie-your-take-error" style={{ padding:'40px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div role="alert" style={{ padding:'24px 26px', borderRadius:RADIUS.sm, background:'var(--ts-surface-1, #1d1814)', border:`1px solid ${HP.border}`, maxWidth:560 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)', marginBottom:8 }}>Your take</div>
+        <p style={{ margin:'0 0 16px 0', fontSize:14, lineHeight:1.55, color:HP.text, fontFamily:'Inter, sans-serif' }}>
+          We could not load your previous reflection.<br />Try again before making changes.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          style={{ minHeight:40, padding:'9px 18px', borderRadius:4, background:'var(--ts-action-primary-fill, #efe7d7)', color:'var(--ts-action-primary-text, #221b13)', border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600 }}
+        >
+          Try again
+        </button>
       </div>
     </section>
   );
@@ -716,9 +737,9 @@ function SaveIndicator({ status, showIdleSavedHint }) {
   if (status === 'idle' && !showIdleSavedHint) return null;
   const map = {
     saving:    { label: 'Saving…',                color: HP.textMuted },
-    saved:     { label: 'Saved ✓',                color: 'var(--ts-text-primary, #f3ecdf)' },
+    saved:     { label: 'Saved privately',        color: 'var(--ts-text-primary, #f3ecdf)' },
     error:     { label: 'Could not save. Try again.', color: '#f87171' },
-    idleSaved: { label: 'Saved',                  color: HP.textMuted },
+    idleSaved: { label: 'Saved privately',        color: HP.textMuted },
   };
   const key = status === 'idle' ? 'idleSaved' : status;
   const cfg = map[key] || map.saving;
@@ -726,37 +747,6 @@ function SaveIndicator({ status, showIdleSavedHint }) {
     <span style={{ fontSize:10.5, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color: cfg.color, fontFamily:'Inter, sans-serif', transition:'color 0.2s ease' }}>
       {cfg.label}
     </span>
-  );
-}
-
-function DNADelta() {
-  const [animated, setAnimated] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setAnimated(true), 350);
-    return () => clearTimeout(t);
-  }, []);
-  return (
-    <div style={{ padding:'22px 24px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.35)', border:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:6 }}>Your engine projects this shift</div>
-      <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic', marginBottom:18 }}>Real before/after deltas land in a follow-up — for now, projected from your taste profile.</div>
-      <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-        {PARASITE_DNA_DELTA_SAMPLE.map(d => {
-          const w = animated ? d.after : d.before;
-          const delta = (d.after - d.before).toFixed(2);
-          return (
-            <div key={d.motif}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
-                <span style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, color: HP.text }}>{d.motif}</span>
-                <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, color: 'var(--ts-text-secondary, #beb8ad)', fontWeight:700 }}>+{delta}</span>
-              </div>
-              <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
-                <div style={{ height:'100%', width:`${w*100}%`, background:'var(--ts-text-secondary, #beb8ad)', transition:'width 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 

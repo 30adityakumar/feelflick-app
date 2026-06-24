@@ -32,6 +32,11 @@ vi.mock('../hooks/useTasteFingerprint', () => ({ useTasteFingerprint: () => ({ f
 vi.mock('../hooks/useDirectorAffinity', () => ({ useDirectorAffinity: () => ({ count: 0 }) }))
 vi.mock('../hooks/useFriendsLoved', () => ({ useFriendsLoved: () => ({ friends: [] }) }))
 vi.mock('../hooks/useTasteTwin', () => ({ useTasteTwin: () => ({ twin: null }) }))
+// Mock the watched-only chapter to a light marker carrying the scroll/focus target
+// id, and the duplicate mobile action bar to null, so this test focuses on the hero
+// actions + the live region (and there is exactly one "Save"/"Mark Watched" button).
+vi.mock('../components/PostWatchPortrait', () => ({ default: () => <section id="after-watching" tabIndex={-1} data-testid="postwatch" /> }))
+vi.mock('../components/MovieActionBar', () => ({ default: () => null }))
 // Mock the heavy tail so the test focuses on the hero actions + the live region.
 vi.mock('../sections-bottom', () => {
   const Stub = () => null
@@ -76,7 +81,7 @@ describe('Film File — watched settlement + live region (F5.4)', () => {
     expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled()
     expect(document.querySelector('[aria-hidden] [style*="mv-confetti"]')).toBeNull()
     settleWatched(true, true)
-    expect(live().textContent).toMatch(/Marked Parasite as watched\. Your Take is now available\./)
+    expect(live().textContent).toMatch(/Marked Parasite as watched\. The post-watch chapter is now available\./)
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
   })
 

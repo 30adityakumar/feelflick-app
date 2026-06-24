@@ -30,11 +30,13 @@ const formatWatchedDate = (iso) => {
  * @param {number|null} internalMovieId
  * @returns {{ twin: object|null, loading: boolean }}
  */
-export function useTasteTwin(currentUserId, internalMovieId) {
-  const [state, setState] = useState({ twin: null, loading: Boolean(currentUserId && internalMovieId) })
+export function useTasteTwin(currentUserId, internalMovieId, enabled = true) {
+  const [state, setState] = useState({ twin: null, loading: Boolean(enabled && currentUserId && internalMovieId) })
 
   useEffect(() => {
-    if (!currentUserId || !internalMovieId) {
+    // Spoiler gating (§18): the twin's note TEXT must not be fetched before the
+    // current user has watched the film.
+    if (!enabled || !currentUserId || !internalMovieId) {
       setState({ twin: null, loading: false })
       return
     }
@@ -76,12 +78,13 @@ export function useTasteTwin(currentUserId, internalMovieId) {
         )
         const top = ranked[0]
 
+        // similarity is used ONLY to RANK candidates; the exact value is NOT
+        // returned (§20 — no exact taste-similarity % anywhere on the Film File).
         const twin = {
           id: top.users?.id || top.user_id,
           name: top.users?.name || 'A taste twin',
           avatarBg: tintFor(top.user_id),
           avatarUrl: top.users?.avatar_url || null,
-          matchPct: Math.round((simMap.get(top.user_id) || 0) * 100),
           rating: top.rating,        // 1-10 scale
           note: top.review_text || null,
           watchedDate: formatWatchedDate(top.rated_at),
@@ -95,7 +98,7 @@ export function useTasteTwin(currentUserId, internalMovieId) {
     })()
 
     return () => { abort = true }
-  }, [currentUserId, internalMovieId])
+  }, [currentUserId, internalMovieId, enabled])
 
   return state
 }

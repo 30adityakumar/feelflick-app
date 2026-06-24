@@ -42,6 +42,8 @@ export function useUserRating({ userId, internalId }) {
   const [reaction, setReactionState]     = useState('')      // one of REACTION_TO_SENTIMENT keys
   const [saveStatus, setSaveStatus]      = useState('idle')  // idle|saving|saved|error
   const [hydrated, setHydrated]          = useState(false)
+  const [loadError, setLoadError]        = useState(false)   // hydration read failed → don't show an editable form that could overwrite unknown data
+  const [retryNonce, setRetryNonce]      = useState(0)        // bump to re-run hydration after a load error
 
   const ratingDebounceRef    = useRef(null)
   const reactionDebounceRef  = useRef(null)
@@ -94,7 +96,20 @@ export function useUserRating({ userId, internalId }) {
   }, [safeSetStatus, scheduleSavedClear])
 
   // Hydrate from DB on mount / when the (user, movie) pair changes.
+  // On every pair change we FIRST reset the form to empty + cancel any pending
+  // debounce and bump the write versions, so a stale completion from the previous
+  // (user, movie) can never overwrite the new pair's status, and the previous
+  // film's rating/note/reaction can never flash into the next film's form.
   useEffect(() => {
+    // Reset to a clean, un-hydrated baseline for the new pair.
+    if (ratingDebounceRef.current) { clearTimeout(ratingDebounceRef.current); ratingDebounceRef.current = null }
+    if (reactionDebounceRef.current) { clearTimeout(reactionDebounceRef.current); reactionDebounceRef.current = null }
+    ratingWriteRef.current.version++; ratingWriteRef.current.pending = null
+    reactionWriteRef.current.version++; reactionWriteRef.current.pending = null
+    setStarsState(0); setReviewTextState(''); setReactionState('')
+    setSaveStatus('idle'); setLoadError(false); setHydrated(false)
+    latestRef.current = { stars: 0, reviewText: '', reaction: '' }
+
     if (!userId || !internalId) {
       setHydrated(true)
       return
@@ -121,7 +136,10 @@ export function useUserRating({ userId, internalId }) {
             .maybeSingle(),
         ])
         if (abort) return
+        // Both reads are checked — a failed feedback read must NOT silently
+        // resolve to "no reaction" (that could overwrite a real saved reaction).
         if (ratingRes.error) throw ratingRes.error
+        if (feedbackRes.error) throw feedbackRes.error
         let nextStars = 0
         let nextText = ''
         if (ratingRes.data) {
@@ -141,12 +159,18 @@ export function useUserRating({ userId, internalId }) {
         latestRef.current = { stars: nextStars, reviewText: nextText, reaction: nextReaction }
       } catch (err) {
         console.warn('[useUserRating.load]', err)
+        // Surface a load error so the UI can offer Retry instead of an editable
+        // form that could overwrite unknown existing data.
+        if (!abort) setLoadError(true)
       } finally {
         if (!abort) setHydrated(true)
       }
     })()
     return () => { abort = true }
-  }, [userId, internalId])
+  }, [userId, internalId, retryNonce])
+
+  // Manual retry of hydration (used by the UI's load-error state).
+  const retryHydrate = useCallback(() => setRetryNonce((n) => n + 1), [])
 
   // Pure DB writers — byte-identical payloads to before. They now THROW on a
   // Supabase error so the serial runner can surface a real 'error' status (the prior
@@ -251,6 +275,6 @@ export function useUserRating({ userId, internalId }) {
   return {
     stars, reviewText, reaction,
     setStars, setReviewText, setReaction,
-    saveStatus, hydrated,
+    saveStatus, hydrated, loadError, retryHydrate,
   }
 }

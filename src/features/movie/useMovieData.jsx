@@ -44,52 +44,13 @@ function youtubeThumb(key) {
   return `https://i.ytimg.com/vi/${key}/hqdefault.jpg`
 }
 
-// True when the film has no curated editorial overlay AND none of the
-// auto-generatable fields are populated. We don't re-trigger generation
-// for films that have at least a partial overlay — manual curation wins.
-function needsOverlayGeneration(overlay) {
-  if (!overlay) return true
-  const empty = !overlay.ff_take && !overlay.critic_quotes && !overlay.daypart_fit
-  return empty
-}
-
-// Calls the generate-movie-overlay edge function with the film's signals.
-// The edge function persists the result to movies_editorial_overlay, so
-// subsequent visits skip OpenAI and read from DB. Returns the freshly
-// generated overlay shape ({ ff_take, critic_quotes, daypart_fit }) or null.
-async function requestOverlayGeneration({ filmDbRow, mv }) {
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-movie-overlay`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({
-        movieId: filmDbRow.id,
-        title: mv.title,
-        director: mv.director !== '—' ? mv.director : null,
-        year: mv.year || null,
-        runtimeMinutes: mv.runtime || null,
-        genres: mv.genres || [],
-        moodTags: Array.isArray(filmDbRow.mood_tags) ? filmDbRow.mood_tags : [],
-        toneTags: Array.isArray(filmDbRow.tone_tags) ? filmDbRow.tone_tags : [],
-        fitProfile: filmDbRow.fit_profile || null,
-        overview: mv.overview || '',
-      }),
-    })
-    if (!res.ok) return null
-    const data = await res.json().catch(() => null)
-    if (!data) return null
-    if (!data.ff_take && !data.critic_quotes && !data.daypart_fit) return null
-    return data
-  } catch {
-    return null
-  }
-}
+// NOTE (movie redesign §7): browser-triggered editorial-overlay generation was
+// RETIRED. The public /movie/:id route must not fire a paid, anon-key-authenticated
+// generation write simply because a visitor (including an anonymous one) opens a
+// film — that exposed cost + a prompt-injection surface + concurrent duplicate
+// writes with no dedupe. We now ONLY read existing movies_editorial_overlay rows;
+// films without an overlay fall back to derived cold-path copy. Follow-up debt: a
+// server-controlled, authenticated, deduplicated editorial-generation pipeline.
 
 function mapTmdbToMv(tmdb, { certification }) {
   const crew = tmdb?.credits?.crew || []
@@ -613,23 +574,9 @@ export function useMovieDataFetch(id) {
         // shows real numbers instead of fabricated TMDB-multiples.
         mergeFilmDbSignals(mv, filmDbRow, overlay)
 
-        // Auto-generate the editorial overlay (FF Take + critic-style quotes
-        // + daypart_fit) for films in our catalog that don't have a curated
-        // overlay yet. The edge function persists the result so the second
-        // visit reads from cache. We don't await — the page renders with
-        // derived content immediately and the overlay merges in when ready.
-        if (filmDbRow?.id && needsOverlayGeneration(overlay)) {
-          requestOverlayGeneration({ filmDbRow, mv })
-            .then(generated => {
-              if (abort || !generated) return
-              const merged = { ...(overlay || {}), ...generated }
-              // Daypart pill reads off mv.daypartFit — make sure the late
-              // arrival lights it up without forcing a re-fetch.
-              if (generated.daypart_fit && !mv.daypartFit) mv.daypartFit = generated.daypart_fit
-              setState(s => ({ ...s, overlay: merged, hasOverlay: true, mv: { ...s.mv, daypartFit: s.mv.daypartFit || generated.daypart_fit || null } }))
-            })
-            .catch(() => { /* silent — page already rendered the cold-path */ })
-        }
+        // §7: NO browser-triggered overlay generation. We render whatever curated
+        // overlay already exists (or derived cold-path copy); we never call the
+        // generate-movie-overlay edge function from the page.
 
         setState({
           mv,
@@ -691,8 +638,11 @@ export function useMovieDataFetch(id) {
         if (abort) return
         // F5.7: store ONLY a normalized internal kind — never a raw error string for
         // rendering. Diagnostic detail stays in the console (no secrets).
-        console.warn('[useMovieData] load failed:', e?.kind || e?.message || e)
-        const kind = e?.kind === 'not_found' ? 'not_found' : 'load_error'
+        console.warn('[useMovieData] load failed:', e?.kind || e?.status || e?.message || e)
+        // §6: a real TMDB HTTP 404 throws from fetchJson with e.status === 404 (no
+        // `kind`) — normalize it to not_found so the route shows the correct safe copy
+        // rather than a generic load error. A not-found TMDB payload already sets kind.
+        const kind = (e?.kind === 'not_found' || e?.status === 404) ? 'not_found' : 'load_error'
         setState(s => ({ ...s, loading: false, error: { kind } }))
       }
     })()

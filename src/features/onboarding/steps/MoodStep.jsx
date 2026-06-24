@@ -37,7 +37,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
               : count < MIN_MOODS
                 ? `${count} selected — choose ${MIN_MOODS - count} more`
                 : maxReached
-                  ? `${count} selected — that is your maximum`
+                  ? `${count} selected — that's your max`
                   : `${count} selected`
           }
           onContinue={onNext}

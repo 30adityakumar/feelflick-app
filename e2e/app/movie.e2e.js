@@ -549,7 +549,10 @@ test.describe('Film File — hardening (forced colours / 200% / geometry)', () =
     test(`forced-colours @ ${vp.w}×${vp.h}`, async ({ page }) => {
       const ledger = await installMovieFixture(page, { watched: true })
       const errors = attachGuards(page)
-      await page.emulateMedia({ forcedColors: 'active' })
+      // The Film File is a dark-only cinematic theme; the representative forced-colours
+      // scenario (and the approved measurement harness) pairs it with a dark HC scheme,
+      // so the forced system colours resolve against a dark canvas.
+      await page.emulateMedia({ forcedColors: 'active', colorScheme: 'dark' })
       await page.setViewportSize({ width: vp.w, height: vp.h })
       await gotoFilmFile(page)
 

@@ -52,7 +52,7 @@ export default function SearchDropdown({
                 {selected && (
                   <>
                     <Check className="ob-search-selected" aria-hidden="true" />
-                    <span className="sr-only">(already in your anchors)</span>
+                    <span className="sr-only">(already in your picks)</span>
                   </>
                 )}
               </button>

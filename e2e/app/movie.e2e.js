@@ -550,7 +550,7 @@ test.describe('Film File — hardening (forced colours / 200% / geometry)', () =
       const ledger = await installMovieFixture(page, { watched: true })
       const errors = attachGuards(page)
       await page.emulateMedia({ forcedColors: 'active' })
-      await page.setViewportSize(vp)
+      await page.setViewportSize({ width: vp.w, height: vp.h })
       await gotoFilmFile(page)
 
       await expect(h1(page)).toHaveCount(1)
@@ -621,8 +621,15 @@ test.describe('Film File — hardening (forced colours / 200% / geometry)', () =
       attachGuards(page)
       await page.setViewportSize({ width: g.w, height: g.h })
       await gotoFilmFile(page)
-      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      // Wait for the watched post-watch chapter to settle (the isWatched flip remounts
+      // + grows the page) before scrolling, then scroll to the true bottom — otherwise
+      // an early scrollHeight undershoots and the footer stays below the fold.
+      await expect(page.locator('#after-watching')).toBeVisible({ timeout: 10_000 })
       await page.waitForTimeout(250)
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      await page.waitForTimeout(300)
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      await page.waitForTimeout(300)
       const m = await measure(page)
       expect(m.actionBarVisible, 'mobile action bar visible').toBe(true)
       expect(m.bottomNavVisible, 'BottomNav visible').toBe(true)

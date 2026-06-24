@@ -466,6 +466,25 @@ export default function About() {
         </section>
 
       </div>
+
+      {/* Data sources & attribution — permanent TMDB attribution per TMDB terms.
+          Attribution-only; uses the official TMDB logo (public/brand/tmdb.svg). */}
+      <section className="bg-black border-t border-white/10 px-4 py-8" aria-label="Data sources and attribution">
+        <div className="max-w-4xl mx-auto flex flex-col items-center justify-center gap-3 text-center sm:flex-row sm:gap-4">
+          <a
+            href="https://www.themoviedb.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="The Movie Database (TMDB)"
+            className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DD4E83]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
+            <img src="/brand/tmdb.svg" alt="The Movie Database (TMDB)" width="167" height="14" decoding="async" className="h-3.5 w-auto" />
+          </a>
+          <p className="text-xs text-white/55 max-w-md">
+            This product uses the TMDB API but is not endorsed or certified by TMDB.
+          </p>
+        </div>
+      </section>
       <Footer />
     </>
   )

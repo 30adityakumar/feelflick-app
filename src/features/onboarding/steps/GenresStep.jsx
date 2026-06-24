@@ -40,14 +40,14 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
         <StepHeader
           onBack={onBack}
           kicker="Set the territory · 2 of 4"
-          subcopy={<>Choose a few familiar territories. They guide the opening search, not the boundaries of your taste.</>}
+          subcopy={<>Pick at least {MIN_GENRES} familiar territory. It guides the opening search, not the boundaries of your taste.</>}
         >
           Where should we <em>reach first?</em>
         </StepHeader>
       }
       footer={
         <StepFooter
-          status={count === 0 ? 'Choose at least 1 genre' : `${count} genre${count === 1 ? '' : 's'} selected`}
+          status={count === 0 ? 'Select at least 1 to continue' : `${count} selected`}
           onContinue={onNext}
           disabled={!canContinue}
         />

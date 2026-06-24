@@ -49,12 +49,12 @@ afterEach(() => vi.clearAllMocks())
 const order = () => Array.from(document.querySelectorAll('[data-sec]')).map((n) => n.dataset.sec)
 
 describe('Film File hierarchy — decision dossier (F5.5)', () => {
-  it('1-8/13. composes the sections in the decision-first order (F5.6 tail)', () => {
-    render(<MovieDetail />)
+  it('1-8/13. composes the pre-watch sections in the decision-first order (redesign)', () => {
+    render(<MovieDetail />)   // locked (unwatched) → no post-watch chapter, no social
     const o = order().filter((s) => s !== 'sticky')
     expect(o).toEqual([
       'hero', 'case', 'synopsis', 'providers', 'yourtake', 'evidence',
-      'videos', 'cast', 'social', 'explore', 'timeline', 'details', 'footer',
+      'videos', 'cast', 'explore', 'timeline', 'details', 'footer',
     ])
     // decision-zone adjacencies (unchanged)
     expect(o.indexOf('case')).toBeLessThan(o.indexOf('synopsis'))
@@ -64,13 +64,15 @@ describe('Film File hierarchy — decision dossier (F5.5)', () => {
     expect(o.at(-1)).toBe('footer')
   })
 
-  it('41-49. F5.6 tail: Videos → Cast → Social → Exploration → Film Details; old sections gone', () => {
+  it('41-49. pre-watch tail: Videos → Cast → Exploration → Film Details; social is watched-gated, old sections gone', () => {
     render(<MovieDetail />)
     const o = order()
-    expect(o.indexOf('videos')).toBeLessThan(o.indexOf('cast'))      // Cast moved before social
-    expect(o.indexOf('cast')).toBeLessThan(o.indexOf('social'))
-    expect(o.indexOf('social')).toBeLessThan(o.indexOf('explore'))
+    expect(o.indexOf('videos')).toBeLessThan(o.indexOf('cast'))
+    expect(o.indexOf('cast')).toBeLessThan(o.indexOf('explore'))
     expect(o.indexOf('explore')).toBeLessThan(o.indexOf('timeline')) // Film Details after exploration
+    // §18: social proof is NOT in the pre-watch flow — it is watched-gated inside the
+    // post-watch chapter, which is not mounted while locked.
+    expect(document.querySelector('[data-sec="social"]')).toBeNull()
     // the four old full-page tail sections are no longer independently rendered
     for (const dead of ['friends', 'twin', 'pairs', 'director']) {
       expect(document.querySelector(`[data-sec="${dead}"]`)).toBeNull()

@@ -50,24 +50,26 @@ describe('Film File — skip link + main landmark (F5.7)', () => {
     expect(focusables[0]).toHaveTextContent('Skip to Film File content')
   })
 
-  it('51/52/53. the target is a single <main id> with tabIndex -1', () => {
+  it('51/52/53. MovieDetail renders NO page <main> (AppShell owns it); the skip target is a labelled region with tabIndex -1', () => {
     const { container } = render(<MovieDetail />)
-    const mains = container.querySelectorAll('main')
-    expect(mains.length).toBe(1)
-    const main = container.querySelector('#film-file-content')
-    expect(main.tagName).toBe('MAIN')
-    expect(main).toHaveAttribute('tabindex', '-1')
+    // §5: AppShell owns the only page <main>; the route must NOT add a nested one.
+    expect(container.querySelectorAll('main').length).toBe(0)
+    const region = container.querySelector('#film-file-content')
+    expect(region.tagName).toBe('SECTION')
+    expect(region).toHaveAttribute('role', 'region')
+    expect(region).toHaveAttribute('aria-label', 'Film File')
+    expect(region).toHaveAttribute('tabindex', '-1')
   })
 
-  it('54/55/56/57. Hero is before main; PrimaryCase begins main; Footer is inside main; sticky is outside', () => {
+  it('54/55/56/57. Hero is before the region; PrimaryCase begins it; Footer is inside it; sticky is outside', () => {
     const { container } = render(<MovieDetail />)
     const hero = container.querySelector('[data-sec="hero"]')
-    const main = container.querySelector('main')
-    expect(hero.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // hero before main
-    expect(main.contains(hero)).toBe(false)                                  // hero NOT in main
-    expect(main.querySelector('[data-sec="case"]')).toBeTruthy()             // case begins main
-    expect(main.querySelector('[data-sec="footer"]')).toBeTruthy()           // footer inside main
-    expect(main.contains(container.querySelector('[data-sec="sticky"]'))).toBe(false) // sticky outside
+    const region = container.querySelector('#film-file-content')
+    expect(hero.compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // hero before region
+    expect(region.contains(hero)).toBe(false)                                  // hero NOT in region
+    expect(region.querySelector('[data-sec="case"]')).toBeTruthy()             // case begins region
+    expect(region.querySelector('[data-sec="footer"]')).toBeTruthy()           // footer inside region
+    expect(region.contains(container.querySelector('[data-sec="sticky"]'))).toBe(false) // sticky outside
   })
 
   it('71. exactly one h1', () => {

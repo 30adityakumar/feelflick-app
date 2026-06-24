@@ -457,3 +457,310 @@
 #film-file-content:focus {
   outline: none;
 }
+
+/* ============================================================================
+   Movie redesign — chapter nav, spoiler boundary, post-watch portrait, action bar
+   (route-scoped; tokens from the Thoughtful Seatmate foundation)
+   ============================================================================ */
+
+/* Shared eyebrow for the new movie components. */
+.ff-movie-eyebrow {
+  margin: 0 0 8px 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ts-text-secondary, #beb8ad);
+}
+
+/* Chapter anchors clear the AppShell header + sticky chapter nav when jumped to. */
+.ff-movie-chapter-anchor { scroll-margin-top: 116px; }
+.ff-movie-chapter-anchor:focus { outline: none; }
+
+/* --- §27 Chapter navigation: sticky below the AppShell header --- */
+.ff-movie-chapternav {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  background: rgba(20, 17, 14, 0.86);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-chapternav__list {
+  display: flex;
+  gap: 4px;
+  margin: 0 auto;
+  padding: 10px 88px;
+  max-width: 1440px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ff-movie-chapternav__list::-webkit-scrollbar { display: none; }
+.ff-movie-chapternav__link {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ts-text-muted, #8d887f);
+  text-decoration: none;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.ff-movie-chapternav__link:hover { color: var(--ts-text-secondary, #beb8ad); }
+.ff-movie-chapternav__link[aria-current="true"] {
+  color: var(--ts-text-primary, #f3ecdf);
+  background: rgba(243, 236, 223, 0.06);
+}
+.ff-movie-chapternav__link:focus-visible {
+  outline: 2px solid var(--ts-focus, #f3ecdf);
+  outline-offset: 2px;
+}
+
+/* --- §15 Spoiler boundary (shown only while spoiler content is locked) --- */
+.ff-movie-spoiler-boundary { padding: 56px 88px; border-top: 1px solid var(--ts-border-subtle, #302c28); }
+.ff-movie-spoiler-boundary__inner {
+  display: flex; gap: 18px; align-items: flex-start;
+  max-width: 680px; margin: 0 auto;
+  padding: 28px 30px;
+  border-radius: 10px;
+  background: var(--ts-surface-1, #1d1814);
+  border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-spoiler-boundary__icon {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ts-text-secondary, #beb8ad);
+  background: var(--ts-surface-2, #241e19);
+  border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-spoiler-boundary__h {
+  margin: 0 0 8px 0; font-family: 'Inter', system-ui, sans-serif;
+  font-size: 20px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15;
+  color: var(--ts-text-primary, #f3ecdf);
+}
+.ff-movie-spoiler-boundary__copy {
+  margin: 0; font-size: 14px; line-height: 1.55;
+  color: var(--ts-text-muted, #8d887f); font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* --- §16/§17 Post-watch chapter (watched-only) --- */
+.ff-movie-postwatch { padding: 56px 88px; border-top: 1px solid var(--ts-border-subtle, #302c28); }
+.ff-movie-postwatch:focus { outline: none; }
+.ff-movie-portrait { max-width: 760px; margin: 0 auto; }
+.ff-movie-portrait__loading { min-height: 200px; }
+.ff-movie-portrait__head { margin-bottom: 8px; }
+.ff-movie-portrait__shield { color: var(--ts-text-secondary, #beb8ad); }
+.ff-movie-portrait__title {
+  margin: 0 0 10px 0; font-family: 'Inter', system-ui, sans-serif;
+  font-size: 30px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.06;
+  color: var(--ts-text-primary, #f3ecdf); text-wrap: balance;
+}
+.ff-movie-portrait__intro {
+  margin: 0; font-size: 15px; line-height: 1.6; max-width: 620px;
+  color: var(--ts-text-muted, #8d887f); font-family: 'Inter', system-ui, sans-serif;
+}
+.ff-movie-portrait__block { margin-top: 40px; }
+.ff-movie-portrait__h4 {
+  margin: 0 0 18px 0; font-family: 'Inter', system-ui, sans-serif;
+  font-size: 22px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.18;
+  color: var(--ts-text-primary, #f3ecdf); text-wrap: balance;
+}
+.ff-movie-portrait__movements { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+.ff-movie-portrait__movement {
+  display: grid; grid-template-columns: 130px 1fr; gap: 4px 22px; align-items: baseline;
+  padding: 16px 0; border-top: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-portrait__movement-label {
+  grid-column: 1; grid-row: 1 / span 2;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ts-text-muted, #8d887f);
+}
+.ff-movie-portrait__movement-title {
+  grid-column: 2; font-size: 15px; font-weight: 600; color: var(--ts-text-primary, #f3ecdf);
+}
+.ff-movie-portrait__movement-body {
+  grid-column: 2; font-size: 14px; line-height: 1.55; color: var(--ts-text-secondary, #beb8ad);
+}
+.ff-movie-portrait__note {
+  margin: 18px 0 0 0; font-size: 14px; line-height: 1.55; font-style: italic;
+  color: var(--ts-text-muted, #8d887f);
+}
+.ff-movie-portrait__reading {
+  padding: 26px 28px; border-radius: 10px;
+  background: var(--ts-surface-1, #1d1814); border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-portrait__reading-body {
+  margin: 0; font-size: 16px; line-height: 1.6; color: var(--ts-text-secondary, #beb8ad);
+  letter-spacing: -0.01em; text-wrap: pretty; max-width: 640px;
+}
+.ff-movie-portrait__motifs {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+}
+.ff-movie-portrait__motif {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 16px 18px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02); border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-portrait__motif-n { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--ts-text-muted, #8d887f); }
+.ff-movie-portrait__motif-title { font-size: 15px; font-weight: 600; color: var(--ts-text-primary, #f3ecdf); }
+.ff-movie-portrait__motif-note { font-size: 12.5px; color: var(--ts-text-muted, #8d887f); }
+
+/* --- §28 Mobile action bar (hidden on desktop; positioned above the AppShell BottomNav) --- */
+.ff-movie-action-bar { display: none; }
+
+@media (max-width: 767px) {
+  .ff-movie-chapternav__list { padding: 8px 16px; }
+  /* Reserve space below the last Film File content so it clears the fixed mobile
+     action bar (§4: finalAction.bottom <= movieActionBar.top - 8). */
+  #film-file-content { padding-bottom: 32px; }
+  .ff-movie-portrait__movement { grid-template-columns: 1fr; }
+  .ff-movie-portrait__movement-label { grid-column: 1; grid-row: auto; margin-bottom: 4px; }
+  .ff-movie-portrait__movement-title,
+  .ff-movie-portrait__movement-body { grid-column: 1; }
+  .ff-movie-portrait__motifs { grid-template-columns: 1fr; }
+  .ff-movie-portrait__title { font-size: 24px; }
+
+  .ff-movie-action-bar {
+    position: fixed;
+    left: 12px; right: 12px;
+    /* BottomNav is ~85px tall incl. its own safe-area padding — clear it with margin
+       (§28: movieActionBar.bottom <= bottomNav.top - 8). */
+    bottom: calc(98px + env(safe-area-inset-bottom, 8px));
+    z-index: 29;
+    display: flex; gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
+    background: rgba(29, 24, 20, 0.94);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border: 1px solid var(--ts-border-strong, #46423d);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+  .ff-movie-action-bar__btn {
+    flex: 1; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 8px 6px; border-radius: 11px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--ts-border-subtle, #302c28);
+    color: var(--ts-text-secondary, #beb8ad);
+    font-family: 'Inter', system-ui, sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer;
+  }
+  .ff-movie-action-bar__btn.is-on {
+    color: var(--ts-text-primary, #f3ecdf);
+    background: rgba(243, 236, 223, 0.08);
+    border-color: var(--ts-border-strong, #46423d);
+  }
+  .ff-movie-action-bar__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ff-movie-action-bar__btn { min-width: 0; }
+  .ff-movie-action-bar__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* Extreme-narrow (e.g. 320px @ 200% zoom → ~160px): the action bar goes icon-only;
+   each button keeps its accessible name via aria-label, so nothing is lost. */
+@media (max-width: 280px) {
+  .ff-movie-action-bar__label { display: none; }
+  .ff-movie-action-bar__btn { gap: 0; padding: 8px 4px; }
+}
+
+/* ============================================================================
+   Forced colours (Windows High Contrast etc.) — route-scoped.
+   Strategy: normal forced-colour adaptation drives all text/border/control colours
+   to system colours automatically; here we (a) SUPPRESS the decorative atmosphere
+   (grain, page gradient, atmospheric backdrop/overlays) so it can never obscure
+   forced content, and (b) restore meaning that would otherwise be colour-only
+   (active chapter, selected rating/reaction, on-state actions, focus, the dialog).
+   No separate visual identity; no blanket forced-color-adjust:none.
+   ============================================================================ */
+@media (forced-colors: active) {
+  /* (a) Suppress decorative atmosphere — the FilmGrain full-screen overlay + the
+     page-depth radial + any inline gradient overlay + the decorative hero backdrop
+     image (alt="") were what collapsed the page to black. */
+  .ff-movie { background: Canvas !important; background-image: none !important; }
+  .ff-movie-grain { display: none !important; }
+  .ff-movie [style*="gradient"] { background-image: none !important; }
+  .ff-movie-hero img[alt=""] { display: none !important; }
+
+  /* Sections + chapter nav sit on the system canvas with a real divider. */
+  .ff-movie-chapternav {
+    background: Canvas !important;
+    border-bottom: 1px solid CanvasText !important;
+  }
+  .ff-movie-chapternav__link { color: LinkText !important; }
+  /* Active chapter cannot be colour-only — underline + box it (CanvasText keeps the
+     label high-contrast; Highlight is reserved for the structural outline). */
+  .ff-movie-chapternav__link[aria-current="true"] {
+    color: CanvasText !important;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    outline: 1px solid Highlight;
+  }
+
+  /* Buttons + role=button use the system Button pair explicitly, so the computed
+     colours are a consistent high-contrast pair (ButtonText on ButtonFace) rather
+     than the authored ivory-fill/dark-text recipe (which reads as dark-on-dark). */
+  .ff-movie button,
+  .ff-movie [role="button"] {
+    background: ButtonFace !important;
+    border: 1px solid ButtonText !important;
+    color: ButtonText !important;
+  }
+  .ff-movie button *,
+  .ff-movie [role="button"] * { color: ButtonText !important; }
+
+  /* Delineate the remaining key surfaces (forced bg merges with Canvas). */
+  .ff-movie-action-bar,
+  .ff-movie-your-take-card,
+  .ff-movie-spoiler-boundary__inner,
+  .ff-movie-spoiler-boundary__icon,
+  .ff-movie-portrait__reading,
+  .ff-movie-portrait__motif {
+    border: 1px solid CanvasText !important;
+  }
+
+  /* Selected rating stars / reaction chips: add a non-colour (outline) indicator
+     on top of the structural fill-vs-outline the SVGs already provide. */
+  .ff-movie [role="radio"][aria-checked="true"] {
+    outline: 2px solid Highlight !important;
+    outline-offset: 1px;
+  }
+  /* Settled "on" action (mobile Watched/Saved) — structural, not colour-only. */
+  .ff-movie-action-bar__btn.is-on {
+    outline: 2px solid Highlight !important;
+    outline-offset: -3px;
+  }
+
+  /* Pending/disabled controls read as GrayText. */
+  .ff-movie button:disabled,
+  .ff-movie [aria-disabled="true"] { color: GrayText !important; border-color: GrayText !important; }
+
+  /* Focus must stay visible everywhere. */
+  .ff-movie a:focus-visible,
+  .ff-movie button:focus-visible,
+  .ff-movie [role="button"]:focus-visible,
+  .ff-movie [role="radio"]:focus-visible,
+  .ff-movie summary:focus-visible,
+  .ff-movie textarea:focus-visible,
+  .ff-movie-chapternav__link:focus-visible,
+  .ff-movie-skip-link:focus,
+  .ff-movie-skip-link:focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px;
+  }
+  .ff-movie textarea { border: 1px solid CanvasText !important; }
+
+  /* Media dialog (portaled under .ff-movie): solid canvas + bordered panel + visible
+     close, decorative curtains suppressed. */
+  .ff-media-dialog [class*="backdrop"],
+  .ff-media-dialog > div:first-child { background: Canvas !important; }
+  .ff-media-dialog__curtain-l,
+  .ff-media-dialog__curtain-r { display: none !important; }
+  .ff-media-dialog [role="document"],
+  .ff-media-dialog iframe { border: 1px solid CanvasText !important; }
+}

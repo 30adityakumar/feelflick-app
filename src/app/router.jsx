@@ -217,7 +217,13 @@ function SignOutRoute() {
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter)
 
 export const router = sentryCreateBrowserRouter([
-  // Public branch (no app chrome)
+  // Root: Landing (anon) or /home (authed). Deliberately a TOP-LEVEL route OUTSIDE
+  // PublicShell so the anonymous Landing owns its own <header>/<main id="main">/
+  // <footer> as siblings — not nested inside PublicShell's <main> (the prior
+  // landmark-nesting issue). RootEntry still gates auth-ready / authed-redirect.
+  { path: '/', element: <RootEntry />, errorElement: <ErrorBoundary /> },
+
+  // Public branch (no app chrome) — legal/callback/share/aliases keep PublicShell's <main>.
   {
     element: <PublicShell />,
     errorElement: <ErrorBoundary />,
@@ -226,10 +232,6 @@ export const router = sentryCreateBrowserRouter([
       ...(import.meta.env.DEV
         ? [{ path: 'design-lab/thoughtful-seatmate-foundations', element: <LazyRoute Component={Stage1Foundations} />, errorElement: <ErrorBoundary /> }]
         : []),
-
-      // Root decides: Landing (anon) or /home (authed)
-      { index: true, element: <RootEntry /> },
-
 
       // OAuth callback route - MUST come before legacy auth redirects
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },

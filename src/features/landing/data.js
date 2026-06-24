@@ -1,11 +1,136 @@
-// Posters render at <=240px wide on the landing — w342 is the right TMDB size.
-const TMDB=(p)=>`https://image.tmdb.org/t/p/w342${p}`;
+// src/features/landing/data.js
+// Static, deterministic landing example data. NO Supabase/product/user fetch, no
+// randomization, no time-dependent copy, no match percentages, no real user names.
+// Every preview is illustrative; copy is aligned to production as of the pinned base.
 
-export const PICKS=[
-  {title:'Past Lives',year:2023,runtime:'1h 45m',dir:'Celine Song',poster:TMDB('/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg'),mood:'Tender',moodHex:'#F472B6',why:'Two strangers in a New York bar — but they were children once, in Seoul. A slow ache that lives in glances.'},
-  {title:'Parasite',year:2019,runtime:'2h 12m',dir:'Bong Joon-ho',poster:TMDB('/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg'),mood:'Tense',moodHex:'#EF4444',why:'A grift becomes architecture. Bong builds his cage room by room until the gate clicks shut.'},
-  {title:'Her',year:2013,runtime:'2h 6m',dir:'Spike Jonze',poster:TMDB('/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg'),mood:'Bittersweet',moodHex:'#FB7185',why:'Near-future Los Angeles. A man falls for an operating system. Tender, lonely, alive in every frame — Phoenix at his most undone.'},
-  {title:'Interstellar',year:2014,runtime:'2h 49m',dir:'Christopher Nolan',poster:TMDB('/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg'),mood:'Mythic',moodHex:'#0EA5E9',why:'A father leaves Earth to save it. Time bends around love. Nolan at his largest scale and his most tender.'},
-  {title:'PK',year:2014,runtime:'2h 33m',dir:'Rajkumar Hirani',poster:TMDB('/uqoAHhuKZnWxzXbXSUycgpLPmUW.jpg'),mood:'Thoughtful',moodHex:'#FBBF24',why:'An alien lands in Rajasthan and starts asking questions no priest can answer. Aamir Khan, wide-eyed, dismantling certainty.'},
-  {title:'The Truman Show',year:1998,runtime:'1h 43m',dir:'Peter Weir',poster:TMDB('/vuza0WqY239yBXOadKlGwJsZJFE.jpg'),mood:'Restless',moodHex:'#34D399',why:'A man discovers his entire life is a televised set. Jim Carrey, unsettlingly tender, pushing against the walls of a manufactured world.'},
-];
+const TMDB = (p, size = 'w342') => `https://image.tmdb.org/t/p/${size}${p}`
+export const tmdbPoster = TMDB
+
+// Decorative hero ribbon posters (aria-hidden; alt=""). The centre (index 2) is the
+// LCP candidate; all others lazy. Title is for the deterministic fallback only.
+export const LANDING_POSTERS = [
+  { path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg', title: 'Past Lives' },
+  { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', title: 'Parasite' },
+  { path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg', title: 'Arrival' },
+  { path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg', title: 'Moonlight' },
+  { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', title: 'Her' },
+]
+
+export const PRINCIPLES = [
+  { title: 'Bounded directions, not endless shelves.', body: 'FeelFlick narrows the field without turning discovery into another infinite feed.' },
+  { title: 'Reasons, not mystery scores.', body: 'See the signals behind personalized choices without a fake compatibility percentage.' },
+  { title: 'Learning from real outcomes.', body: 'Watches, ratings, saves, skips and reactions sharpen the picture over time.' },
+]
+
+// Locked order + mapping: 01 For tonight → Discover, 02 From your taste → Home,
+// 03 Follow a curiosity → Browse.
+export const ENTRANCES = [
+  {
+    n: '01', title: 'For tonight.', maps: 'Discover',
+    example: 'Quiet · two people · under two hours.',
+    copy: 'Shape one focused screening around mood, company, time and energy, with a primary direction and a small number of alternatives.',
+  },
+  {
+    n: '02', title: 'From your taste.', maps: 'Home',
+    example: 'Because you return to precise, morally complicated films.',
+    copy: 'Explore bounded personalized rows, recurring themes and transparent reasons built from your viewing history and direct preferences.',
+  },
+  {
+    n: '03', title: 'Follow a curiosity.', maps: 'Browse',
+    example: 'Korean thrillers · 2000s · slow-burn.',
+    copy: 'Browse by genre, era, language, runtime, filmmaker and supported film qualities while keeping the scope you chose.',
+  },
+]
+
+export const FILM_FILE_EXAMPLE = {
+  poster: { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', title: 'Parasite' },
+  title: 'Parasite',
+  before: {
+    status: 'Spoiler protection on',
+    summary: 'A spoiler-safe decision file: why it fits, what kind of watch it is, where it may be available, and what to expect from the experience.',
+    rows: [
+      ['Why this film', 'Personal fit and expected aftertaste'],
+      ['Experience profile', 'Attention, weight, accessibility, viewing mode'],
+      ['United States availability', 'Where to watch, via TMDB and JustWatch'],
+      ['Cast and context', 'Spoiler-safe people and background'],
+    ],
+  },
+  after: {
+    status: 'Watched · deeper portrait',
+    summary: 'After a settled Watched action, the Film File opens your full reflection and deeper post-watch context. Curated depth varies by title.',
+    rows: [
+      ['Your private response', 'Rating, reaction and a private note'],
+      ['Watched-gated social notes', 'Notes from people you follow, after watching'],
+      ['Generated impressions', 'Clearly labelled, not real reviews'],
+      ['Curated portrait where available', 'A deeper reading for select titles'],
+    ],
+    note: 'Parasite currently has a curated Film Portrait. Other films receive an honest private-reflection state without fabricated analysis.',
+  },
+}
+
+export const DNA_EXAMPLE = {
+  archetype: 'The Thinking Heart.',
+  statement: 'Tenderness through ambiguity. Beauty with something uneasy underneath.',
+  traits: [
+    { label: 'Emotional patience', level: 4, band: 'Strong' },
+    { label: 'Tonal contrast', level: 3, band: 'Growing' },
+    { label: 'Visual precision', level: 4, band: 'Strong' },
+    { label: 'Heavy aftertaste', level: 3, band: 'Contextual' },
+  ],
+  sources: ['Watches', 'Ratings and reactions', 'Saves and skips', 'Direct preferences'],
+}
+
+export const WATCHLIST_EXAMPLE = {
+  copy: 'Films saved for another moment. Search, filter, sort, open a Film File, or remove a title without turning your private library into another recommendation feed.',
+  meta: 'Saved for later',
+  chips: ['Search', 'Mood', 'Recently saved'],
+  films: [
+    { title: 'Past Lives', meta: 'Saved', path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg' },
+    { title: 'Arrival', meta: 'Thoughtful', path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg' },
+    { title: 'Her', meta: 'Warm sci-fi', path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg' },
+    { title: 'Moonlight', meta: 'Tender', path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg' },
+    { title: 'Get Out', meta: 'Tense', path: '/tFXcEccSQMf3lfhfXKSU9iRBpa3.jpg' },
+  ],
+}
+
+export const DIARY_EXAMPLE = {
+  copy: 'A chronological record of what you watched and how it landed. Ratings and reactions stay attached to the viewing rather than becoming a public feed.',
+  meta: 'Watched',
+  chips: ['Search', 'Loved', 'Newest first'],
+  films: [
+    { title: 'Parasite', meta: 'Loved', path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg' },
+    { title: 'Past Lives', meta: 'Liked', path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg' },
+    { title: 'Arrival', meta: 'Loved', path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg' },
+    { title: 'Moonlight', meta: 'Loved', path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg' },
+    { title: 'Her', meta: 'Liked', path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg' },
+  ],
+}
+
+// Anonymous illustrative "followed voices" — no names, no avatars, no percentages,
+// no profile links, no Follow interaction.
+export const PEOPLE_EXAMPLE = {
+  copy: 'Follow people whose public film notes you value. Their consented notes may appear as context on watched Film Files, without turning People into a public activity feed.',
+  voices: [
+    'Often shares your response to tender ambiguity',
+    'Frequently overlaps on tonal risk and Korean cinema',
+  ],
+}
+
+export const PREFERENCES_EXAMPLE = {
+  copy: 'Direct preferences are private and editable. Learned recommendation sources are currently explained read-only rather than edited individually.',
+  controls: [
+    'Mood emphasis',
+    'Preferred and avoided genres',
+    'Runtime and content boundaries',
+    'Trusted and down-ranked directors',
+    'See what currently shapes recommendations',
+  ],
+  comingSoon: 'Streaming preferences are coming later.',
+}
+
+export const TRUST = [
+  { title: 'Private where it should be', body: 'Your Cinematic DNA, Watchlist, Diary and direct Preferences remain private. Public social notes appear only through their existing visibility and consent rules.' },
+  { title: 'No mystery score', body: 'FeelFlick uses qualitative reasons instead of presenting a fake personal compatibility percentage.' },
+  { title: 'Spoilers stay gated', body: 'User notes, generated impressions and deeper Film Portrait content remain hidden until a film is marked Watched.' },
+  { title: 'Designed to shorten the search', body: 'The product is built around bounded choices rather than endless shelves.' },
+]

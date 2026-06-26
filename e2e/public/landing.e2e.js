@@ -202,6 +202,36 @@ test('your film life shows distinct Watchlist (retrieval grid) and Diary (chrono
   expect(overflow, 'your film life must not cause horizontal overflow').toBeLessThanOrEqual(0)
 })
 
+test('people and control shows trusted voices + a private control list (no social feed, no fake controls)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  const sec = page.locator('#people-control')
+  await sec.scrollIntoViewIfNeeded()
+
+  await expect(sec.getByRole('heading', { level: 2 })).toHaveText(/the voices you trust\. the choices you keep\./i)
+  await expect(sec.getByRole('heading', { level: 3, name: 'The voices you trust', exact: true })).toBeVisible()
+  await expect(sec.getByRole('heading', { level: 3, name: 'Control stays with you', exact: true })).toBeVisible()
+  await expect(sec.getByText('Illustrative people and preferences')).toHaveCount(1)
+
+  // Anonymous followed voices (no names/avatars/Follow).
+  await expect(sec.getByText('A followed voice')).toBeVisible()
+  await expect(sec.getByText('Another followed voice')).toBeVisible()
+  await expect(sec.getByText('The restraint is what made it stay.')).toBeVisible()
+
+  // Control list: five records, four Editable + one Inspectable, + the streaming disclosure.
+  await expect(sec.locator('.ff-l-pref-row')).toHaveCount(5)
+  await expect(sec.getByText('Editable', { exact: true })).toHaveCount(4)
+  await expect(sec.getByText('Inspectable', { exact: true })).toHaveCount(1)
+  await expect(sec.getByText(/Streaming-service preferences are planned, but are not available yet\./i)).toBeVisible()
+
+  // No links, buttons, inputs or fake switches inside the section.
+  await expect(sec.locator('a, button, input, select, textarea, [role="switch"], [role="checkbox"]')).toHaveCount(0)
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+  expect(overflow, 'people and control must not cause horizontal overflow').toBeLessThanOrEqual(0)
+})
+
 test('footer links to valid legal routes only (no /feedback) + TMDB attribution', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('.ff-l-footer-nav a[href="/about"]')).toHaveCount(1)

@@ -16,13 +16,10 @@ export const LANDING_POSTERS = [
   { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', title: 'Her' },
 ]
 
-// In-page section navigation, shared by the desktop header and the mobile menu.
+// The single primary header destination. The other sections remain on the page
+// but are no longer surfaced as header navigation.
 export const LANDING_NAV = [
   ['How it works', '#how-it-works'],
-  ['Film File', '#film-file'],
-  ['Cinematic DNA', '#cinematic-dna'],
-  ['Library', '#library'],
-  ['People & control', '#people-control'],
 ]
 
 export const PRINCIPLES = [

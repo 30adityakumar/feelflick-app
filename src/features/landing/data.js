@@ -131,31 +131,26 @@ export const DIARY_EXAMPLE = {
   ],
 }
 
-// Anonymous illustrative "followed voices" — no names, no profiles, no avatars, no
-// percentages, no Follow interaction. Each note is a fictional, watched-gated public film
-// note shown only as context (never attributed to a real person or publication).
+// Anonymous illustrative "followed voices" — no names, no avatars, no percentages,
+// no profile links, no Follow interaction.
 export const PEOPLE_EXAMPLE = {
-  heading: 'The voices you trust',
-  copy: 'Follow people whose public film notes you value. Their notes may add context after you have watched the same film—without turning discovery into a public activity feed.',
+  copy: 'Follow people whose public film notes you value. Their consented notes may appear as context on watched Film Files, without turning People into a public activity feed.',
   voices: [
-    { label: 'A followed voice', context: 'Often shares your response to tenderness, restraint and emotional ambiguity.', film: 'Past Lives', note: 'The restraint is what made it stay.' },
-    { label: 'Another followed voice', context: 'Frequently overlaps on tonal risk, social tension and Korean cinema.', film: 'Parasite', note: 'Every turn sharpened what came before it.' },
+    'Often shares your response to tender ambiguity',
+    'Frequently overlaps on tonal risk and Korean cinema',
   ],
 }
 
-// Direct preferences are editable; learned signals are inspectable (not pretend-editable).
-// Status is plain descriptive text — never a switch, field or other interactive control.
 export const PREFERENCES_EXAMPLE = {
-  heading: 'Control stays with you',
-  copy: 'Direct preferences are private and editable. Learned recommendation signals remain visible for inspection rather than pretending every inferred pattern is a manual setting.',
-  preferences: [
-    { label: 'Mood emphasis', status: 'Editable', description: 'Adjust how strongly the present mood should shape a choice.' },
-    { label: 'Preferred and avoided genres', status: 'Editable', description: 'Set broad genre preferences without permanently excluding discovery.' },
-    { label: 'Runtime and content boundaries', status: 'Editable', description: 'Keep recommendations within practical time and content limits.' },
-    { label: 'Directors', status: 'Editable', description: 'Trust or down-rank filmmakers directly.' },
-    { label: 'Recommendation influences', status: 'Inspectable', description: 'See the watches, ratings, reactions, saves and skips shaping suggestions.' },
+  copy: 'Direct preferences are private and editable. Learned recommendation sources are currently explained read-only rather than edited individually.',
+  controls: [
+    'Mood emphasis',
+    'Preferred and avoided genres',
+    'Runtime and content boundaries',
+    'Trusted and down-ranked directors',
+    'See what currently shapes recommendations',
   ],
-  comingSoon: 'Streaming-service preferences are planned, but are not available yet.',
+  comingSoon: 'Streaming preferences are coming later.',
 }
 
 export const TRUST = [

@@ -26,12 +26,10 @@ for (const [label, width, height] of VIEWPORTS) {
     )
     expect(overflow, `horizontal overflow at ${label} (initial)`).toBeLessThanOrEqual(0)
 
-    // Auth is always reachable: the shared header carries Sign in at every width, and
-    // the hero carries "Continue with Google". The header has no Menu trigger.
+    // Auth is always reachable: the hero carries "Continue with Google" at every width
+    // (the header Sign in is in the bar at md+ and inside the hamburger below md).
     expect(await page.getByRole('button', { name: /continue with google/i }).count(),
       `no reachable hero auth entry at ${label}`).toBeGreaterThan(0)
-    await expect(page.getByRole('banner').getByRole('button', { name: /sign in with google/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
 
     // The fixed shared header must never wrap or introduce horizontal scroll, including
     // after scrolling to the bottom (where the hide-on-scroll header re-reveals).
@@ -44,10 +42,11 @@ for (const [label, width, height] of VIEWPORTS) {
   })
 }
 
-// Mobile-specific: the shared header keeps FEELFLICK + Search + Sign in in the top bar
-// (no anonymous bottom bar), with 44px practical touch targets and no overflow at 320.
+// Mobile-specific: below md the shared header is FEELFLICK + Search + hamburger
+// (nav + Sign in live in the hamburger; no anonymous bottom bar), with 44px practical
+// touch targets and no overflow at 320.
 for (const [label, width, height] of [['mobile-390', 390, 844], ['mobile-320', 320, 812]]) {
-  test(`mobile shared header: FEELFLICK + Search + Sign in fit with 44px targets at ${label}`, async ({ page }) => {
+  test(`mobile shared header: FEELFLICK + Search + hamburger, 44px targets, no overflow at ${label}`, async ({ page }) => {
     await page.setViewportSize({ width, height })
     await page.goto('/')
     await expect(page.getByRole('heading', { level: 1, name: /movies, made personal/i })).toBeVisible({ timeout: 15_000 })
@@ -56,15 +55,20 @@ for (const [label, width, height] of [['mobile-390', 390, 844], ['mobile-320', 3
     await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toBeVisible()
 
     const search = banner.getByRole('button', { name: /search films/i })
-    const signIn = banner.getByRole('button', { name: /sign in with google/i })
+    const hamburger = banner.getByRole('button', { name: /open menu/i })
     await expect(search).toBeVisible()
-    await expect(signIn).toBeVisible()
+    await expect(hamburger).toBeVisible()
 
     const searchBox = await search.boundingBox()
-    const signInBox = await signIn.boundingBox()
+    const hamBox = await hamburger.boundingBox()
     expect(searchBox.height, `search target height at ${label}`).toBeGreaterThanOrEqual(44)
     expect(searchBox.width, `search target width at ${label}`).toBeGreaterThanOrEqual(44)
-    expect(signInBox.height, `Sign in target height at ${label}`).toBeGreaterThanOrEqual(44)
+    expect(hamBox.height, `hamburger target height at ${label}`).toBeGreaterThanOrEqual(44)
+    expect(hamBox.width, `hamburger target width at ${label}`).toBeGreaterThanOrEqual(44)
+
+    // Sign in is reachable from the hamburger menu.
+    await hamburger.click()
+    await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible()
 
     // No anonymous bottom navigation; no horizontal overflow.
     await expect(page.getByRole('navigation', { name: /mobile navigation/i })).toHaveCount(0)

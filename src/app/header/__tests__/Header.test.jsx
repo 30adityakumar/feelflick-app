@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 // The shared header is rendered on anonymous Landing, anonymous app routes
@@ -27,9 +27,9 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
-function renderHeader(props = {}) {
+function renderHeader() {
   const onOpenSearch = vi.fn()
-  render(<MemoryRouter><Header onOpenSearch={onOpenSearch} {...props} /></MemoryRouter>)
+  render(<MemoryRouter><Header onOpenSearch={onOpenSearch} /></MemoryRouter>)
   return { onOpenSearch }
 }
 
@@ -83,6 +83,30 @@ describe('Header — anonymous', () => {
   })
 })
 
+describe('Header — anonymous mobile menu (hamburger)', () => {
+  it('exposes a hamburger that reveals Discover/Browse + Sign in (the <md nav path)', () => {
+    renderHeader()
+    const hamburger = screen.getByRole('button', { name: /open menu/i })
+    expect(hamburger).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(hamburger)
+    expect(screen.getByRole('button', { name: /close menu/i })).toHaveAttribute('aria-expanded', 'true')
+
+    // Scope to the hamburger's own nav so we don't collide with the desktop MorphNav.
+    const menu = screen.getByRole('navigation', { name: /site/i })
+    expect(within(menu).getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
+    expect(within(menu).getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
+  })
+
+  it('the hamburger Sign in invokes the shared Google auth once', () => {
+    renderHeader()
+    fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
+    const menuSignIns = screen.getAllByRole('button', { name: /sign in with google/i })
+    // The bar Sign in (hidden md:flex) + the hamburger Sign in both exist in the DOM.
+    fireEvent.click(menuSignIns[menuSignIns.length - 1])
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('Header — authenticated', () => {
   beforeEach(() => {
     authState = { user: { id: 'u1', email: 'a@b.com', user_metadata: { name: 'Ada' } }, isAuthenticated: true }
@@ -96,62 +120,13 @@ describe('Header — authenticated', () => {
     expect(screen.getByRole('link', { name: 'DNA' })).toHaveAttribute('href', '/profile')
   })
 
-  it('shows the account menu and no anonymous Sign in', () => {
+  it('shows the account menu (44px target) and no anonymous Sign in or hamburger', () => {
     renderHeader()
-    expect(screen.getByRole('button', { name: /account menu/i })).toBeInTheDocument()
+    const account = screen.getByRole('button', { name: /account menu/i })
+    expect(account).toBeInTheDocument()
+    expect(account.className).toMatch(/min-w-\[44px\]/)
+    expect(account.className).toMatch(/min-h-\[44px\]/)
     expect(screen.queryByRole('button', { name: /sign in/i })).toBeNull()
-  })
-})
-
-// The quiet tone (Landing) changes only visual density/emphasis — the same markup,
-// controls, accessible names, and behavior must remain.
-describe('Header — quiet tone (Landing)', () => {
-  it('marks the header data-tone="quiet" while keeping all controls', () => {
-    renderHeader({ tone: 'quiet' })
-    expect(document.querySelector('header')).toHaveAttribute('data-tone', 'quiet')
-    expect(screen.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/')
-    expect(screen.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
-    expect(screen.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
-    expect(screen.getAllByRole('button', { name: /search films/i }).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByRole('button', { name: /sign in with google/i })).toHaveTextContent(/^Sign in$/)
-  })
-
-  it('keeps Sign in wired to shared Google auth and a 44px practical target', () => {
-    renderHeader({ tone: 'quiet' })
-    const signIn = screen.getByRole('button', { name: /sign in with google/i })
-    expect(signIn.className).toMatch(/min-h-\[44px\]/)
-    fireEvent.click(signIn)
-    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
-  })
-
-  it('keeps the search launcher wired to onOpenSearch', () => {
-    const { onOpenSearch } = renderHeader({ tone: 'quiet' })
-    fireEvent.click(screen.getAllByRole('button', { name: /search films/i })[0])
-    expect(onOpenSearch).toHaveBeenCalledTimes(1)
-  })
-
-  // The quiet Sign in is a distinct render branch, so lock the pending/disabled
-  // parity the variant promises (mirrors the default-tone pending test).
-  it('disables Sign in and shows pending copy while authenticating', () => {
-    googleState.isAuthenticating = true
-    renderHeader({ tone: 'quiet' })
-    const signIn = screen.getByRole('button', { name: /sign in with google/i })
-    expect(signIn).toBeDisabled()
-    expect(signIn).toHaveTextContent(/signing in…/i)
-  })
-
-  it('keeps the 44×44 mobile search trigger', () => {
-    renderHeader({ tone: 'quiet' })
-    const mobileSearch = screen
-      .getAllByRole('button', { name: /search films/i })
-      .find((b) => b.className.includes('lg:hidden'))
-    expect(mobileSearch).toBeTruthy()
-    expect(mobileSearch.className).toMatch(/\bw-11\b/)
-    expect(mobileSearch.className).toMatch(/\bh-11\b/)
-  })
-
-  it('default tone marks data-tone="default"', () => {
-    renderHeader()
-    expect(document.querySelector('header')).toHaveAttribute('data-tone', 'default')
+    expect(screen.queryByRole('button', { name: /open menu/i })).toBeNull()
   })
 })

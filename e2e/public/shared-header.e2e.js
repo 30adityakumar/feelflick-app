@@ -12,13 +12,13 @@ for (const route of ROUTES) {
     await page.goto(route)
     const banner = page.getByRole('banner')
     await expect(banner).toHaveCount(1, { timeout: 15_000 })
-    // Landing uses the quiet variant; anonymous app routes keep the default one.
-    await expect(banner).toHaveAttribute('data-tone', route === '/' ? 'quiet' : 'default')
     await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/')
     await expect(banner.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
     await expect(banner.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
     await expect(banner.getByRole('button', { name: /sign in with google/i })).toBeVisible()
     await expect(banner.getByRole('button', { name: /search films/i })).toBeVisible()
+    // Desktop shows full nav + Sign in; the mobile hamburger is hidden.
+    await expect(banner.getByRole('button', { name: /open menu/i })).toHaveCount(0)
     // No anonymous bottom bar; no horizontal overflow.
     await expect(page.getByRole('navigation', { name: /mobile navigation/i })).toHaveCount(0)
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
@@ -32,7 +32,14 @@ for (const route of ROUTES) {
     await expect(banner).toHaveCount(1, { timeout: 15_000 })
     await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toBeVisible()
     await expect(banner.getByRole('button', { name: /search films/i })).toBeVisible()
-    await expect(banner.getByRole('button', { name: /sign in with google/i })).toBeVisible()
+    // Below md, nav + Sign in collapse into a hamburger menu.
+    const hamburger = banner.getByRole('button', { name: /open menu/i })
+    await expect(hamburger).toBeVisible()
+    await hamburger.click()
+    const menu = page.getByRole('navigation', { name: /site/i })
+    await expect(menu.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
+    await expect(menu.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
+    await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible()
     await expect(page.getByRole('navigation', { name: /mobile navigation/i })).toHaveCount(0)
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
     expect(overflow, `horizontal overflow at ${route} (mobile)`).toBeLessThanOrEqual(0)

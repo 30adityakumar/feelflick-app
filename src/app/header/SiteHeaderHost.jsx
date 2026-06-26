@@ -5,25 +5,27 @@
 // global <SearchBar>. Both AppShell (authenticated + anonymous app routes) and the
 // anonymous Landing consume this host, so there is exactly one header implementation
 // and one set of search keyboard listeners — never a duplicated Landing clone.
-//
-// `tone` selects the shared Header's presentation variant: 'default' (app routes)
-// or 'quiet' (Landing — a restrained, low-contrast utility row that lets the hero
-// dominate). It only changes visual density/emphasis; markup + behavior are shared.
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
 
-export default function SiteHeaderHost({ tone = 'default' }) {
+export default function SiteHeaderHost() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [headerVisible, setHeaderVisible] = useState(true)
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
   const location = useLocation()
 
-  // "/" opens search when the user is not typing; Escape closes it.
+  // Cmd/Ctrl+K (command-palette convention) opens search from anywhere; "/" opens it
+  // when the user is not typing; Escape closes it.
   useEffect(() => {
     const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault()
+        setSearchOpen(true)
+        return
+      }
       if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         const target = e.target
         if (
@@ -80,7 +82,7 @@ export default function SiteHeaderHost({ tone = 'default' }) {
           headerVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <Header onOpenSearch={() => setSearchOpen(true)} tone={tone} />
+        <Header onOpenSearch={() => setSearchOpen(true)} />
       </div>
 
       <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />

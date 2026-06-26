@@ -30,8 +30,6 @@ test('desktop: Landing uses the shared app header (FEELFLICK + Discover/Browse +
 
   const banner = page.getByRole('banner')
   await expect(banner).toHaveCount(1)
-  // Landing requests the quiet header variant.
-  await expect(banner).toHaveAttribute('data-tone', 'quiet')
   await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/')
   await expect(banner.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
   await expect(banner.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
@@ -42,9 +40,10 @@ test('desktop: Landing uses the shared app header (FEELFLICK + Discover/Browse +
   await expect(signIn).toBeVisible()
   await expect(signIn).toHaveText(/^Sign in$/)
 
-  // The Landing-specific header CTA is gone: no "Continue with Google" / Menu in the header.
+  // The Landing-specific header CTA is gone: no "Continue with Google" in the header.
   await expect(banner.getByRole('button', { name: /continue with google/i })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
+  // The mobile hamburger is hidden on desktop (full nav + Sign in are shown).
+  await expect(banner.getByRole('button', { name: /open menu/i })).toHaveCount(0)
 
   // The hero CTA + "See how it works" anchor + #how-it-works section remain.
   await expect(page.getByRole('button', { name: /continue with google/i }).first()).toBeVisible()
@@ -52,7 +51,7 @@ test('desktop: Landing uses the shared app header (FEELFLICK + Discover/Browse +
   await expect(page.locator('#how-it-works')).toHaveCount(1)
 })
 
-test('mobile: shared header shows FEELFLICK + Search + Sign in (no Menu, no bottom bar)', async ({ page }) => {
+test('mobile: shared header = FEELFLICK + Search + hamburger; menu holds Discover/Browse/Sign in', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
@@ -60,12 +59,17 @@ test('mobile: shared header shows FEELFLICK + Search + Sign in (no Menu, no bott
   const banner = page.getByRole('banner')
   await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toBeVisible()
   await expect(banner.getByRole('button', { name: /search films/i })).toBeVisible()
-  const signIn = banner.getByRole('button', { name: /sign in with google/i })
-  await expect(signIn).toBeVisible()
-  await expect(signIn).toHaveText(/^Sign in$/)
 
-  // No Menu trigger, no anonymous bottom navigation.
-  await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
+  // Desktop nav + bar Sign in are hidden on mobile; the hamburger holds them.
+  const hamburger = banner.getByRole('button', { name: /open menu/i })
+  await expect(hamburger).toBeVisible()
+  await hamburger.click()
+  const menu = page.getByRole('navigation', { name: /site/i })
+  await expect(menu.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
+  await expect(menu.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
+  await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible()
+
+  // No anonymous bottom navigation.
   await expect(page.getByRole('navigation', { name: /mobile navigation/i })).toHaveCount(0)
 })
 

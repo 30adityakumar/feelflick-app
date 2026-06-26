@@ -6,8 +6,8 @@ import { MemoryRouter } from 'react-router-dom'
 // SearchBar (a dialog driven by the open prop) so we verify the host's search state,
 // keyboard shortcuts, and single-SearchBar guarantee — not their internals.
 vi.mock('@/app/header/Header', () => ({
-  default: ({ onOpenSearch, tone }) => (
-    <header data-tone={tone}>
+  default: ({ onOpenSearch }) => (
+    <header>
       <button type="button" onClick={onOpenSearch}>open-search</button>
     </header>
   ),
@@ -25,20 +25,8 @@ import SiteHeaderHost from '../SiteHeaderHost'
 
 afterEach(() => cleanup())
 
-const renderHost = (extra = null, props = {}) =>
-  render(<MemoryRouter><>{extra}<SiteHeaderHost {...props} /></></MemoryRouter>)
-
-describe('SiteHeaderHost — tone variant forwarding', () => {
-  it('defaults to the "default" tone', () => {
-    renderHost()
-    expect(document.querySelector('header')).toHaveAttribute('data-tone', 'default')
-  })
-
-  it('forwards tone="quiet" to the shared Header', () => {
-    renderHost(null, { tone: 'quiet' })
-    expect(document.querySelector('header')).toHaveAttribute('data-tone', 'quiet')
-  })
-})
+const renderHost = (extra = null) =>
+  render(<MemoryRouter><>{extra}<SiteHeaderHost /></></MemoryRouter>)
 
 describe('SiteHeaderHost — shared search host', () => {
   it('opens the SearchBar when the launcher is clicked', () => {
@@ -54,6 +42,16 @@ describe('SiteHeaderHost — shared search host', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('Cmd+K and Ctrl+K open search (matches the displayed shortcut hint)', () => {
+    renderHost()
+    fireEvent.keyDown(window, { key: 'k', metaKey: true })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('"/" does not open search while typing in a field', () => {

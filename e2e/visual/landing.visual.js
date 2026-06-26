@@ -66,12 +66,14 @@ test.describe('Landing — public visual baselines', () => {
     await expect(page).toHaveScreenshot('landing-mobile-fullpage.png', { fullPage: true })
   })
 
-  test('mobile — menu open', async ({ page }) => {
+  test('mobile — scrolled header (compact CTA revealed)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize(MOBILE)
     await load(page)
-    await page.getByRole('button', { name: /^menu$/i }).click()
+    // Scroll the hero CTA out of view so the compact header CTA reveals.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await expect(page.locator('.ff-l-header-cta')).toBeVisible()
     await freeze(page)
-    await expect(page).toHaveScreenshot('landing-mobile-menu.png')
+    await expect(page.locator('header.ff-l-header')).toHaveScreenshot('landing-mobile-header-scrolled.png')
   })
 })

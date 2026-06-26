@@ -1,7 +1,14 @@
 // src/features/landing/components/LandingFooter.jsx
-// Valid legal routes only (/about, /privacy, /terms — no /feedback). Required TMDB
-// attribution: the official local TMDB logo asset (public/brand/tmdb.svg) plus the
-// textual "not endorsed or certified by TMDB" notice (visible even if the image fails).
+// Landing back cover: brand + a brief human line, grouped nav columns (valid public/legal
+// routes only — /discover, /browse, /about, /privacy, /terms, Contact; no /feedback), and
+// the REQUIRED TMDB attribution (official local logo asset public/brand/tmdb.svg plus the
+// textual "not endorsed or certified by TMDB" notice, visible even if the image fails).
+const FOOTER_NAV = [
+  { title: 'Explore', links: [['Discover', '/discover'], ['Browse', '/browse']] },
+  { title: 'Company', links: [['About', '/about'], ['Privacy', '/privacy'], ['Terms', '/terms']] },
+  { title: 'Connect', links: [['Contact', 'mailto:hello@feelflick.com']] },
+]
+
 export default function LandingFooter() {
   return (
     <footer className="ff-l-footer">
@@ -9,12 +16,24 @@ export default function LandingFooter() {
         <div className="ff-l-footer-brand">
           <span className="ff-l-wordmark">FEELFLICK</span>
           <p className="ff-l-footer-tagline">Movies, made personal.</p>
+          <p className="ff-l-footer-note">
+            Built by Aditya Kumar in Toronto, around a belief that recommendations should
+            feel personal.
+          </p>
         </div>
         <nav className="ff-l-footer-nav" aria-label="Footer">
-          <a href="/about">About</a>
-          <a href="/privacy">Privacy</a>
-          <a href="/terms">Terms</a>
-          <a href="mailto:hello@feelflick.com">Contact</a>
+          <div className="ff-l-footer-cols">
+            {FOOTER_NAV.map((col) => (
+              <div key={col.title} className="ff-l-footer-col">
+                <p className="ff-l-footer-col__title">{col.title}</p>
+                <ul>
+                  {col.links.map(([label, href]) => (
+                    <li key={label}><a href={href}>{label}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </nav>
       </div>
       <div className="ff-l-shell ff-l-footer-legal">

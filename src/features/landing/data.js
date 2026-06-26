@@ -12,7 +12,7 @@ export const LANDING_POSTERS = [
   { path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg', title: 'Past Lives' },
   { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', title: 'Parasite' },
   { path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg', title: 'Arrival' },
-  { path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg', title: 'Moonlight' },
+  { path: '/qLnfEmPrDjJfPyyddLJPkXmshkp.jpg', title: 'Moonlight' },
   { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', title: 'Her' },
 ]
 

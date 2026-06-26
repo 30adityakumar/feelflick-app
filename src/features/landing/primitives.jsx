@@ -29,8 +29,7 @@ export function Poster({ path, title, size = 'w342', eager = false, decorative =
       alt={decorative ? '' : `${title} poster`}
       className={className}
       loading={eager ? 'eager' : 'lazy'}
-      // eslint-disable-next-line react/no-unknown-property
-      fetchpriority={eager ? 'high' : undefined}
+      fetchPriority={eager ? 'high' : undefined}
       decoding="async"
       width="342"
       height="513"

@@ -42,30 +42,41 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 describe('LandingHeader — desktop composition', () => {
-  it('shows the canonical FeelFlick wordmark (mixed case, not all-caps)', () => {
+  it('shows the FEELFLICK wordmark (uppercase, app identity — not mixed case)', () => {
     renderHeader()
     const mark = screen.getByRole('link', { name: /feelflick home/i })
-    expect(mark.textContent).toBe('FeelFlick')
+    expect(mark.textContent).toBe('FEELFLICK')
+    expect(mark).toHaveClass('ff-l-wordmark')
   })
 
-  it('has exactly one header nav link: How it works (no section links)', () => {
-    renderHeader()
-    expect(screen.getByRole('link', { name: /how it works/i })).toHaveAttribute('href', '#how-it-works')
-    for (const gone of [/film file/i, /cinematic dna/i, /library/i, /people/i]) {
+  it('has NO header navigation (no How it works or section links; wordmark is the only link)', () => {
+    const { container } = renderHeader()
+    expect(container.querySelector('header.ff-l-header nav')).toBeNull()
+    for (const gone of [/how it works/i, /film file/i, /cinematic dna/i, /library/i, /people/i]) {
       expect(screen.queryByRole('link', { name: gone })).toBeNull()
     }
-    // wordmark + one nav link = 2 links total in the header
-    expect(screen.getAllByRole('link')).toHaveLength(2)
+    // Only the wordmark link remains in the header.
+    expect(screen.getAllByRole('link')).toHaveLength(1)
   })
 
   it('has one Continue with Google action and no Menu button / dialog', () => {
     renderHeader()
-    expect(screen.getByRole('button', { name: /continue with google/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /continue with google/i })).toHaveLength(1)
     expect(screen.queryByRole('button', { name: /^menu$/i })).toBeNull()
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('the header CTA invokes the shared Google auth operation', () => {
+  it('renders the decorative Google mark before the label, ignored by assistive tech', () => {
+    const { container } = renderHeader()
+    const mark = container.querySelector('.ff-l-gmark')
+    expect(mark).not.toBeNull()
+    expect(mark.tagName.toLowerCase()).toBe('svg')
+    expect(mark).toHaveAttribute('aria-hidden', 'true')
+    // The accessible name comes from the button text, not the SVG.
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toContainElement(mark)
+  })
+
+  it('the header CTA invokes the shared Google auth operation once', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: /continue with google/i }))
     expect(startGoogleAuth).toHaveBeenCalledTimes(1)
@@ -84,11 +95,12 @@ describe('LandingHeader — mobile scroll-reveal', () => {
     expect(cta).not.toHaveAttribute('data-revealed')
   })
 
-  it('the revealed compact control keeps the accessible name "Continue with Google"', () => {
-    renderHeader()
+  it('the revealed compact control keeps the accessible name "Continue with Google" and the Google mark', () => {
+    const { container } = renderHeader()
     fireIO(false)
     const cta = screen.getByRole('button', { name: 'Continue with Google' })
     expect(cta).toHaveAttribute('data-revealed', 'true')
+    expect(container.querySelector('.ff-l-gmark')).not.toBeNull()
     fireEvent.click(cta)
     expect(startGoogleAuth).toHaveBeenCalledTimes(1)
   })

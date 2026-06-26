@@ -16,12 +16,6 @@ export const LANDING_POSTERS = [
   { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', title: 'Her' },
 ]
 
-// The single primary header destination. The other sections remain on the page
-// but are no longer surfaced as header navigation.
-export const LANDING_NAV = [
-  ['How it works', '#how-it-works'],
-]
-
 export const PRINCIPLES = [
   { title: 'Bounded directions, not endless shelves.', body: 'FeelFlick narrows the field without turning discovery into another infinite feed.' },
   { title: 'Reasons, not mystery scores.', body: 'See the signals behind personalized choices without a fake compatibility percentage.' },

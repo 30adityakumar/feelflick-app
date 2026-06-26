@@ -22,23 +22,27 @@ test('landing head carries the canonical metadata', async ({ page }) => {
   expect(desc).toBe('Personal movie discovery built around your taste, your moment, and your curiosity.')
 })
 
-test('desktop header is simplified: FeelFlick wordmark + one "How it works" link + one CTA, no Menu', async ({ page }) => {
+test('desktop header is minimal: FEELFLICK wordmark + one Google CTA, no nav, no Menu', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
   const header = page.locator('header.ff-l-header')
-  // Canonical mixed-case wordmark (not all-caps FEELFLICK).
-  await expect(header.getByRole('link', { name: /feelflick home/i })).toHaveText('FeelFlick')
-  // Exactly one header nav link, and it is "How it works".
-  await expect(header.locator('.ff-l-nav a')).toHaveCount(1)
-  await expect(header.getByRole('link', { name: /how it works/i })).toHaveAttribute('href', '#how-it-works')
-  for (const gone of [/film file/i, /cinematic dna/i, /^library$/i, /people/i]) {
+  // Wordmark reuses the authenticated app identity: uppercase FEELFLICK.
+  await expect(header.getByRole('link', { name: /feelflick home/i })).toHaveText('FEELFLICK')
+  // No header navigation at all (How it works removed; not replaced).
+  await expect(header.locator('nav')).toHaveCount(0)
+  for (const gone of [/how it works/i, /film file/i, /cinematic dna/i, /^library$/i, /people/i]) {
     await expect(header.getByRole('link', { name: gone })).toHaveCount(0)
   }
-  // One compact Continue with Google action; no Menu trigger; no drawer/dialog.
-  await expect(header.getByRole('button', { name: /continue with google/i })).toHaveCount(1)
+  // One compact Continue with Google action with the decorative Google mark.
+  const cta = header.getByRole('button', { name: 'Continue with Google' })
+  await expect(cta).toHaveCount(1)
+  await expect(cta.locator('svg.ff-l-gmark[aria-hidden="true"]')).toHaveCount(1)
   await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
   await expect(page.getByRole('dialog')).toHaveCount(0)
+  // The #how-it-works section + the hero's "See how it works" anchor remain.
+  await expect(page.locator('#how-it-works')).toHaveCount(1)
+  await expect(page.getByRole('link', { name: /see how it works/i })).toHaveCount(1)
 })
 
 test('mobile header shows only the wordmark initially (no Menu, no visible header CTA)', async ({ page }) => {
@@ -62,6 +66,7 @@ test('mobile header reveals a compact "Continue with Google" once the hero CTA s
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await expect(headerCta).toBeVisible()
   await expect(headerCta).toHaveAccessibleName(/continue with google/i)
+  await expect(headerCta.locator('svg.ff-l-gmark')).toHaveCount(1)
   // Scroll back up — it hides again.
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect(headerCta).toBeHidden()

@@ -1,11 +1,13 @@
 // src/features/landing/components/LandingHeader.jsx
-// Simplified Landing header (Adaptive Editorial Cinema). Desktop: wordmark + a
-// single "How it works" link + one compact "Continue with Google" action. Mobile:
-// the wordmark only, with a compact auth control that is revealed once the hero's
-// primary CTA scrolls out of view (IntersectionObserver, with a safe fallback).
+// Minimal Landing header (Adaptive Editorial Cinema). The wordmark reuses the
+// authenticated app's identity (uppercase, heavy Inter, paper-white — see
+// src/app/header/Header.jsx) WITHOUT importing the app header. No navigation. One
+// compact "Continue with Google" action (with the official Google mark). On mobile
+// the action is revealed only once the hero's primary CTA scrolls out of view
+// (IntersectionObserver, with a safe fallback).
 import { useEffect, useRef, useState } from 'react'
 import { useLandingAuth } from '../LandingAuth'
-import { LANDING_NAV } from '../data'
+import GoogleMark from './GoogleMark'
 
 export default function LandingHeader() {
   const { startGoogleAuth, isAuthenticating } = useLandingAuth()
@@ -56,10 +58,7 @@ export default function LandingHeader() {
   return (
     <header ref={headerRef} className="ff-l-header" data-scrolled={scrolled ? 'true' : undefined}>
       <div className="ff-l-shell ff-l-header-inner">
-        <a className="ff-l-wordmark" href="#top" aria-label="FeelFlick home">FeelFlick</a>
-        <nav className="ff-l-nav" aria-label="Landing">
-          {LANDING_NAV.map(([label, href]) => <a key={href} href={href}>{label}</a>)}
-        </nav>
+        <a className="ff-l-wordmark" href="#top" aria-label="FeelFlick home">FEELFLICK</a>
         <div className="ff-l-header-actions">
           <button
             ref={ctaRef}
@@ -70,13 +69,17 @@ export default function LandingHeader() {
             onBlur={handleCtaBlur}
             disabled={isAuthenticating}
           >
+            <GoogleMark />
+            {/* The full label is the accessible name at every width (visually hidden
+                on mobile via .ff-l-header-cta__full); the short label is visible on
+                mobile and aria-hidden, so the name stays "Continue with Google". */}
             {isAuthenticating ? (
-              'Opening Google…'
+              <>
+                <span className="ff-l-header-cta__full">Opening Google…</span>
+                <span className="ff-l-header-cta__short" aria-hidden="true">Opening…</span>
+              </>
             ) : (
               <>
-                {/* The full label stays in the accessible name at every width (visually
-                    hidden on mobile via .ff-l-header-cta__full); the short visible label
-                    on mobile is aria-hidden so the name remains "Continue with Google". */}
                 <span className="ff-l-header-cta__full">Continue with Google</span>
                 <span className="ff-l-header-cta__short" aria-hidden="true">Continue</span>
               </>

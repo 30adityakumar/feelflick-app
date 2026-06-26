@@ -50,17 +50,19 @@
 .ff-l-header[data-scrolled]{background:var(--c-canvas);box-shadow:0 6px 20px rgba(0,0,0,.22)}
 .ff-l-header-inner{height:100%;display:flex;align-items:center;gap:24px}
 .ff-l-wordmark{font-size:19px;font-weight:600;letter-spacing:.04em;color:var(--c-rose);white-space:nowrap}
-/* Header wordmark: canonical mixed-case "FeelFlick", bolder + tighter than the
-   footer back-cover mark (which keeps the base rule above, unchanged). */
-.ff-l-header .ff-l-wordmark{font-size:20px;font-weight:700;letter-spacing:-.01em}
-.ff-l-nav{display:flex;gap:2px;margin-left:8px}
-.ff-l-nav a{min-height:44px;padding:0 12px;border-radius:10px;display:flex;align-items:center;color:var(--c-text-3);font-size:13px;font-weight:600}
-.ff-l-nav a:hover{background:rgba(245,242,235,.05);color:var(--c-text)}
+/* Header wordmark reuses the authenticated app identity (src/app/header/Header.jsx):
+   uppercase FEELFLICK, heavy Inter (900), paper-white — distinct from the footer
+   back-cover mark above, which keeps its own (coral) base rule unchanged. */
+.ff-l-header .ff-l-wordmark{font-size:20px;font-weight:900;letter-spacing:0;color:var(--c-text);transition:opacity .2s}
+.ff-l-header .ff-l-wordmark:hover{opacity:.85}
+@media(min-width:640px){.ff-l-header .ff-l-wordmark{font-size:24px}}
 .ff-l-header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
 .ff-l-header-actions .ff-l-btn{min-height:44px}
 /* Compact, restrained header auth action — neutral inverse, no oversized pill, no glow */
-.ff-l-header-cta{padding:0 16px;font-size:14px;border-radius:10px}
+.ff-l-header-cta{padding:0 14px;font-size:14px;border-radius:10px}
 .ff-l-header-cta__short{display:none}
+/* Official Google "G" mark sits before the label; decorative (aria-hidden). */
+.ff-l-gmark{flex:none;width:18px;height:18px;display:block}
 
 /* Hero */
 .ff-landing main{padding-top:var(--header)}
@@ -217,7 +219,6 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media(max-width:980px){
-  .ff-l-nav{display:none}
   /* Mobile: wordmark only until the hero's primary CTA scrolls out of view, then a
      compact auth control is revealed. Hidden state uses visibility (not focusable)
      + opacity (animatable); reduced-motion collapses the transition globally. */
@@ -282,7 +283,7 @@
   .ff-l-ribbon{-webkit-mask-image:none;mask-image:none}
   .ff-l-btn{background:ButtonFace!important;border:1px solid ButtonText!important;color:ButtonText!important}
   .ff-l-btn *{color:ButtonText!important}
-  .ff-l-nav a,.ff-l-footer-nav a{color:LinkText!important}
+  .ff-l-footer-nav a{color:LinkText!important}
   .ff-l-card,.ff-l-voice,.ff-l-chip,.ff-l-authstatus,.ff-l-ribbon__poster{border:1px solid CanvasText!important}
   /* Tabs use the system Button/selection pairs so the active tab is a consistent,
      high-contrast pair (HighlightText on Highlight) — not authored ivory-on-dark. */

@@ -27,9 +27,9 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
-function renderHeader() {
+function renderHeader(props = {}) {
   const onOpenSearch = vi.fn()
-  render(<MemoryRouter><Header onOpenSearch={onOpenSearch} /></MemoryRouter>)
+  render(<MemoryRouter><Header onOpenSearch={onOpenSearch} {...props} /></MemoryRouter>)
   return { onOpenSearch }
 }
 
@@ -100,5 +100,58 @@ describe('Header — authenticated', () => {
     renderHeader()
     expect(screen.getByRole('button', { name: /account menu/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /sign in/i })).toBeNull()
+  })
+})
+
+// The quiet tone (Landing) changes only visual density/emphasis — the same markup,
+// controls, accessible names, and behavior must remain.
+describe('Header — quiet tone (Landing)', () => {
+  it('marks the header data-tone="quiet" while keeping all controls', () => {
+    renderHeader({ tone: 'quiet' })
+    expect(document.querySelector('header')).toHaveAttribute('data-tone', 'quiet')
+    expect(screen.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
+    expect(screen.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
+    expect(screen.getAllByRole('button', { name: /search films/i }).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('button', { name: /sign in with google/i })).toHaveTextContent(/^Sign in$/)
+  })
+
+  it('keeps Sign in wired to shared Google auth and a 44px practical target', () => {
+    renderHeader({ tone: 'quiet' })
+    const signIn = screen.getByRole('button', { name: /sign in with google/i })
+    expect(signIn.className).toMatch(/min-h-\[44px\]/)
+    fireEvent.click(signIn)
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the search launcher wired to onOpenSearch', () => {
+    const { onOpenSearch } = renderHeader({ tone: 'quiet' })
+    fireEvent.click(screen.getAllByRole('button', { name: /search films/i })[0])
+    expect(onOpenSearch).toHaveBeenCalledTimes(1)
+  })
+
+  // The quiet Sign in is a distinct render branch, so lock the pending/disabled
+  // parity the variant promises (mirrors the default-tone pending test).
+  it('disables Sign in and shows pending copy while authenticating', () => {
+    googleState.isAuthenticating = true
+    renderHeader({ tone: 'quiet' })
+    const signIn = screen.getByRole('button', { name: /sign in with google/i })
+    expect(signIn).toBeDisabled()
+    expect(signIn).toHaveTextContent(/signing in…/i)
+  })
+
+  it('keeps the 44×44 mobile search trigger', () => {
+    renderHeader({ tone: 'quiet' })
+    const mobileSearch = screen
+      .getAllByRole('button', { name: /search films/i })
+      .find((b) => b.className.includes('lg:hidden'))
+    expect(mobileSearch).toBeTruthy()
+    expect(mobileSearch.className).toMatch(/\bw-11\b/)
+    expect(mobileSearch.className).toMatch(/\bh-11\b/)
+  })
+
+  it('default tone marks data-tone="default"', () => {
+    renderHeader()
+    expect(document.querySelector('header')).toHaveAttribute('data-tone', 'default')
   })
 })

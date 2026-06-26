@@ -12,6 +12,8 @@ for (const route of ROUTES) {
     await page.goto(route)
     const banner = page.getByRole('banner')
     await expect(banner).toHaveCount(1, { timeout: 15_000 })
+    // Landing uses the quiet variant; anonymous app routes keep the default one.
+    await expect(banner).toHaveAttribute('data-tone', route === '/' ? 'quiet' : 'default')
     await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/')
     await expect(banner.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
     await expect(banner.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')

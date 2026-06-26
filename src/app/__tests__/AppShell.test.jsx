@@ -12,7 +12,7 @@ vi.mock('@/shared/hooks/useAuthSession', () => ({ useAuthSession: () => authStat
 vi.mock('@/shared/hooks/usePendingDeletion', () => ({ usePendingDeletion: () => ({ pendingDeletion: null, cancel: vi.fn() }) }))
 vi.mock('@/shared/services/analytics', () => ({ identify: vi.fn(), resetAnalytics: vi.fn(), track: vi.fn() }))
 vi.mock('@/shared/services/betaEvents', () => ({ redactPath: (p) => p }))
-vi.mock('@/app/header/SiteHeaderHost', () => ({ default: () => <div data-testid="site-header-host" /> }))
+vi.mock('@/app/header/SiteHeaderHost', () => ({ default: ({ tone = 'default' }) => <div data-testid="site-header-host" data-tone={tone} /> }))
 vi.mock('@/app/header/components/BottomNav', () => ({ default: () => <nav data-testid="bottom-nav" aria-label="Primary" /> }))
 
 import AppShell from '../AppShell'
@@ -32,9 +32,12 @@ beforeEach(() => {
 afterEach(() => cleanup())
 
 describe('AppShell — shared header + bottom-nav ownership', () => {
-  it('always mounts the shared header host (search + Sign in live there)', () => {
+  it('always mounts the shared header host with the default (app) tone', () => {
     renderShell()
-    expect(screen.getByTestId('site-header-host')).toBeInTheDocument()
+    const host = screen.getByTestId('site-header-host')
+    expect(host).toBeInTheDocument()
+    // App routes keep the default header treatment; only Landing requests quiet.
+    expect(host).toHaveAttribute('data-tone', 'default')
   })
 
   it('anonymous: renders no bottom navigation and reserves no mobile bottom-bar padding', () => {

@@ -5,12 +5,16 @@
 // global <SearchBar>. Both AppShell (authenticated + anonymous app routes) and the
 // anonymous Landing consume this host, so there is exactly one header implementation
 // and one set of search keyboard listeners — never a duplicated Landing clone.
+//
+// `tone` selects the shared Header's presentation variant: 'default' (app routes)
+// or 'quiet' (Landing — a restrained, low-contrast utility row that lets the hero
+// dominate). It only changes visual density/emphasis; markup + behavior are shared.
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
 
-export default function SiteHeaderHost() {
+export default function SiteHeaderHost({ tone = 'default' }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [headerVisible, setHeaderVisible] = useState(true)
   const lastScrollY = useRef(0)
@@ -76,7 +80,7 @@ export default function SiteHeaderHost() {
           headerVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <Header onOpenSearch={() => setSearchOpen(true)} />
+        <Header onOpenSearch={() => setSearchOpen(true)} tone={tone} />
       </div>
 
       <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />

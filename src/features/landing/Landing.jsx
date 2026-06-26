@@ -29,7 +29,7 @@ export default function Landing() {
     <LandingAuthProvider>
       <div className="ff-landing">
         <a href="#main" className="ff-l-skip">Skip to content</a>
-        <SiteHeaderHost />
+        <SiteHeaderHost tone="quiet" />
         <main id="main">
           <LandingHero />
           <PrinciplesStrip />

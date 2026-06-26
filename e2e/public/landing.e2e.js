@@ -30,6 +30,8 @@ test('desktop: Landing uses the shared app header (FEELFLICK + Discover/Browse +
 
   const banner = page.getByRole('banner')
   await expect(banner).toHaveCount(1)
+  // Landing requests the quiet header variant.
+  await expect(banner).toHaveAttribute('data-tone', 'quiet')
   await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/')
   await expect(banner.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
   await expect(banner.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')

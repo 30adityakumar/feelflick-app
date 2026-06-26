@@ -17,12 +17,12 @@ export default function FilmFilePreview() {
           <p className="ff-l-eyebrow">The Film File</p>
           <h2 id="ff-l-filmfile-h" className="ff-l-section-h2">Decide before. <em>Reflect after.</em></h2>
           <p className="ff-l-section-lede">
-            Before watching, every page is spoiler-safe and practical. After a settled
-            Watched action, it opens your reflection and deeper post-watch context.
+            Before watching, the Film File stays spoiler-safe and practical. Mark it
+            watched, and the same page opens your private reflection and deeper context.
           </p>
         </div>
         <article className="ff-l-card ff-l-example">
-          <p className="ff-l-example-tag">Illustrative example</p>
+          <p className="ff-l-example-tag">Illustrative Film File</p>
           <LandingTabs label="Film File state" tabs={TABS} active={active} onChange={setActive} idBase="ff-l-filmfile" />
           {/* Both panels exist with stable IDs so every tab's aria-controls resolves;
               the inactive panel is `hidden` (removed from focus order + a11y tree). */}

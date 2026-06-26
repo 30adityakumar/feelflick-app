@@ -9,42 +9,37 @@ export const tmdbPoster = TMDB
 // Decorative hero ribbon posters (aria-hidden; alt=""). The centre (index 2) is the
 // LCP candidate; all others lazy. Title is for the deterministic fallback only.
 export const LANDING_POSTERS = [
-  { path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg', title: 'Past Lives' },
+  { path: '/yihdXomYb5kTeSivtFndMy5iDmf.jpg', title: 'Project Hail Mary' },
   { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', title: 'Parasite' },
-  { path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg', title: 'Arrival' },
-  { path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg', title: 'Moonlight' },
   { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', title: 'Her' },
-]
-
-// The single primary header destination. The other sections remain on the page
-// but are no longer surfaced as header navigation.
-export const LANDING_NAV = [
-  ['How it works', '#how-it-works'],
+  { path: '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', title: 'Interstellar' },
+  { path: '/66A9MqXOyVFCssoloscw79z8Tew.jpg', title: '3 Idiots' },
 ]
 
 export const PRINCIPLES = [
-  { title: 'Bounded directions, not endless shelves.', body: 'FeelFlick narrows the field without turning discovery into another infinite feed.' },
-  { title: 'Reasons, not mystery scores.', body: 'See the signals behind personalized choices without a fake compatibility percentage.' },
-  { title: 'Learning from real outcomes.', body: 'Watches, ratings, saves, skips and reactions sharpen the picture over time.' },
+  { title: 'Fewer directions, chosen well.', body: 'FeelFlick narrows the field instead of giving you another endless shelf to scroll.' },
+  { title: 'Reasons you can understand.', body: 'Every personal suggestion comes with the signals behind it—not a mysterious match score.' },
+  { title: 'Taste that keeps evolving.', body: 'Watches, ratings, saves, skips and reactions help the picture become more accurate over time.' },
 ]
 
-// Locked order + mapping: 01 For tonight → Discover, 02 From your taste → Home,
-// 03 Follow a curiosity → Browse.
+// Locked order + destination: 01 For tonight → Discover, 02 From your taste → Home,
+// 03 Follow a curiosity → Browse. Destinations are editorial labels (explanatory only;
+// not links — Home is not anonymously reachable).
 export const ENTRANCES = [
   {
-    n: '01', title: 'For tonight.', maps: 'Discover',
+    n: '01', destination: 'Discover', title: 'For tonight.',
     example: 'Quiet · two people · under two hours.',
     copy: 'Shape one focused screening around mood, company, time and energy, with a primary direction and a small number of alternatives.',
   },
   {
-    n: '02', title: 'From your taste.', maps: 'Home',
+    n: '02', destination: 'Home', title: 'From your taste.',
     example: 'Because you return to precise, morally complicated films.',
-    copy: 'Explore bounded personalized rows, recurring themes and transparent reasons built from your viewing history and direct preferences.',
+    copy: 'Explore recommendations, recurring themes and transparent reasons grounded in your viewing history and direct preferences.',
   },
   {
-    n: '03', title: 'Follow a curiosity.', maps: 'Browse',
+    n: '03', destination: 'Browse', title: 'Follow a curiosity.',
     example: 'Korean thrillers · 2000s · slow-burn.',
-    copy: 'Browse by genre, era, language, runtime, filmmaker and supported film qualities while keeping the scope you chose.',
+    copy: 'Browse deliberately by genre, era, language, runtime, filmmaker and supported film qualities while preserving the scope you chose.',
   },
 ]
 
@@ -52,25 +47,25 @@ export const FILM_FILE_EXAMPLE = {
   poster: { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', title: 'Parasite' },
   title: 'Parasite',
   before: {
-    status: 'Spoiler protection on',
-    summary: 'A spoiler-safe decision file: why it fits, what kind of watch it is, where it may be available, and what to expect from the experience.',
+    status: 'Before watching · spoiler-safe',
+    summary: 'A practical decision file: why it may fit, what kind of watch it is, and what to expect—without giving the film away.',
     rows: [
-      ['Why this film', 'Personal fit and expected aftertaste'],
-      ['Experience profile', 'Attention, weight, accessibility, viewing mode'],
-      ['United States availability', 'Where to watch, via TMDB and JustWatch'],
-      ['Cast and context', 'Spoiler-safe people and background'],
+      ['Why this film', 'Personal reasons grounded in your taste and the moment'],
+      ['Experience profile', 'Pace, attention, emotional weight and viewing mode'],
+      ['Where to watch', 'Regional availability via supported providers'],
+      ['Cast and context', 'Useful people and background, kept spoiler-safe'],
     ],
   },
   after: {
-    status: 'Watched · deeper portrait',
-    summary: 'After a settled Watched action, the Film File opens your full reflection and deeper post-watch context. Curated depth varies by title.',
+    status: 'Watched · reflection open',
+    summary: 'The Film File now keeps how the film landed for you and reveals deeper post-watch context where FeelFlick has something meaningful to add.',
     rows: [
       ['Your private response', 'Rating, reaction and a private note'],
-      ['Watched-gated social notes', 'Notes from people you follow, after watching'],
-      ['Generated impressions', 'Clearly labelled, not real reviews'],
-      ['Curated portrait where available', 'A deeper reading for select titles'],
+      ['Followed voices', 'Watched-gated notes from people you follow'],
+      ['Generated impressions', 'Clearly labelled context—not fabricated reviews'],
+      ['Deeper portrait', 'Curated interpretation where genuinely available'],
     ],
-    note: 'Parasite currently has a curated Film Portrait. Other films receive an honest private-reflection state without fabricated analysis.',
+    note: 'Parasite includes a curated Film Portrait. Other titles may offer a lighter reflection state rather than fabricated depth.',
   },
 }
 
@@ -86,52 +81,81 @@ export const DNA_EXAMPLE = {
   sources: ['Watches', 'Ratings and reactions', 'Saves and skips', 'Direct preferences'],
 }
 
+// Verified illustrative posters (TMDB paths) — each returns 200 image/jpeg and visually
+// matches the film. Shared by Watchlist + Diary so a film that appears in both always
+// uses one verified path (the old Moonlight /qAwFbsz… path was invalid/404 and is gone).
+const LIB_POSTER = {
+  'Past Lives': '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg',
+  Arrival: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg',
+  Her: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg',
+  Moonlight: '/qLnfEmPrDjJfPyyddLJPkXmshkp.jpg',
+  'Get Out': '/tFXcEccSQMf3lfhfXKSU9iRBpa3.jpg',
+  Parasite: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
+}
+
+// Watchlist = a calm visual retrieval grid of films saved for later. `tools` are static,
+// non-interactive descriptions of supported retrieval (not real controls).
 export const WATCHLIST_EXAMPLE = {
-  copy: 'Films saved for another moment. Search, filter, sort, open a Film File, or remove a title without turning your private library into another recommendation feed.',
-  meta: 'Saved for later',
-  chips: ['Search', 'Mood', 'Recently saved'],
+  heading: 'Saved for later',
+  copy: 'A calm place to find the film you saved when the right mood, company or amount of time arrives.',
+  tools: ['Search by title', 'Filter by mood', 'Recently saved'],
   films: [
-    { title: 'Past Lives', meta: 'Saved', path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg' },
-    { title: 'Arrival', meta: 'Thoughtful', path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg' },
-    { title: 'Her', meta: 'Warm sci-fi', path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg' },
-    { title: 'Moonlight', meta: 'Tender', path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg' },
-    { title: 'Get Out', meta: 'Tense', path: '/tFXcEccSQMf3lfhfXKSU9iRBpa3.jpg' },
+    { title: 'Past Lives', meta: 'Quiet evening', path: LIB_POSTER['Past Lives'] },
+    { title: 'Arrival', meta: 'Thoughtful', path: LIB_POSTER.Arrival },
+    { title: 'Her', meta: 'Warm sci-fi', path: LIB_POSTER.Her },
+    { title: 'Moonlight', meta: 'Tender', path: LIB_POSTER.Moonlight },
+    { title: 'Get Out', meta: 'Tense', path: LIB_POSTER['Get Out'] },
   ],
 }
 
+// Diary = a truthful chronological record grouped by month. Each entry keeps the private
+// reaction + note attached to the viewing. Illustrative private notes, not public reviews.
 export const DIARY_EXAMPLE = {
-  copy: 'A chronological record of what you watched and how it landed. Ratings and reactions stay attached to the viewing rather than becoming a public feed.',
-  meta: 'Watched',
-  chips: ['Search', 'Loved', 'Newest first'],
-  films: [
-    { title: 'Parasite', meta: 'Loved', path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg' },
-    { title: 'Past Lives', meta: 'Liked', path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg' },
-    { title: 'Arrival', meta: 'Loved', path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg' },
-    { title: 'Moonlight', meta: 'Loved', path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg' },
-    { title: 'Her', meta: 'Liked', path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg' },
+  heading: 'A record of how films landed',
+  copy: 'Watched films stay in chronological order with your rating, reaction and private note attached to the viewing.',
+  months: [
+    {
+      label: 'June 2026',
+      entries: [
+        { day: '18', datetime: '2026-06-18', dateLabel: 'June 18, 2026', title: 'Parasite', reaction: 'Loved', note: 'It kept changing shape without ever losing control.', path: LIB_POSTER.Parasite },
+        { day: '7', datetime: '2026-06-07', dateLabel: 'June 7, 2026', title: 'Past Lives', reaction: 'Liked', note: 'Quiet, exact and still lingering.', path: LIB_POSTER['Past Lives'] },
+      ],
+    },
+    {
+      label: 'May 2026',
+      entries: [
+        { day: '29', datetime: '2026-05-29', dateLabel: 'May 29, 2026', title: 'Arrival', reaction: 'Loved', note: 'The emotion arrived before the idea did.', path: LIB_POSTER.Arrival },
+        { day: '11', datetime: '2026-05-11', dateLabel: 'May 11, 2026', title: 'Moonlight', reaction: 'Loved', note: 'Tender without simplifying anything.', path: LIB_POSTER.Moonlight },
+      ],
+    },
   ],
 }
 
-// Anonymous illustrative "followed voices" — no names, no avatars, no percentages,
-// no profile links, no Follow interaction.
+// Anonymous illustrative "followed voices" — no names, no profiles, no avatars, no
+// percentages, no Follow interaction. Each note is a fictional, watched-gated public film
+// note shown only as context (never attributed to a real person or publication).
 export const PEOPLE_EXAMPLE = {
-  copy: 'Follow people whose public film notes you value. Their consented notes may appear as context on watched Film Files, without turning People into a public activity feed.',
+  heading: 'The voices you trust',
+  copy: 'Follow people whose public film notes you value. Their notes may add context after you have watched the same film—without turning discovery into a public activity feed.',
   voices: [
-    'Often shares your response to tender ambiguity',
-    'Frequently overlaps on tonal risk and Korean cinema',
+    { label: 'A followed voice', context: 'Often shares your response to tenderness, restraint and emotional ambiguity.', film: 'Past Lives', note: 'The restraint is what made it stay.' },
+    { label: 'Another followed voice', context: 'Frequently overlaps on tonal risk, social tension and Korean cinema.', film: 'Parasite', note: 'Every turn sharpened what came before it.' },
   ],
 }
 
+// Direct preferences are editable; learned signals are inspectable (not pretend-editable).
+// Status is plain descriptive text — never a switch, field or other interactive control.
 export const PREFERENCES_EXAMPLE = {
-  copy: 'Direct preferences are private and editable. Learned recommendation sources are currently explained read-only rather than edited individually.',
-  controls: [
-    'Mood emphasis',
-    'Preferred and avoided genres',
-    'Runtime and content boundaries',
-    'Trusted and down-ranked directors',
-    'See what currently shapes recommendations',
+  heading: 'Control stays with you',
+  copy: 'Direct preferences are private and editable. Learned recommendation signals remain visible for inspection rather than pretending every inferred pattern is a manual setting.',
+  preferences: [
+    { label: 'Mood emphasis', status: 'Editable', description: 'Adjust how strongly the present mood should shape a choice.' },
+    { label: 'Preferred and avoided genres', status: 'Editable', description: 'Set broad genre preferences without permanently excluding discovery.' },
+    { label: 'Runtime and content boundaries', status: 'Editable', description: 'Keep recommendations within practical time and content limits.' },
+    { label: 'Directors', status: 'Editable', description: 'Trust or down-rank filmmakers directly.' },
+    { label: 'Recommendation influences', status: 'Inspectable', description: 'See the watches, ratings, reactions, saves and skips shaping suggestions.' },
   ],
-  comingSoon: 'Streaming preferences are coming later.',
+  comingSoon: 'Streaming-service preferences are planned, but are not available yet.',
 }
 
 export const TRUST = [

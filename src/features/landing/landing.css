@@ -45,26 +45,16 @@
 .ff-l-btn:active:not(:disabled){transform:translateY(1px)}
 .ff-l-btn:disabled{opacity:.6;cursor:progress}
 
-/* Header */
-.ff-l-header{position:fixed;z-index:180;inset:0 0 auto;height:var(--header);background:color-mix(in srgb,var(--c-canvas) 94%,transparent);border-bottom:1px solid var(--c-border);transition:background .2s,box-shadow .2s}
-.ff-l-header[data-scrolled]{background:var(--c-canvas);box-shadow:0 6px 20px rgba(0,0,0,.22)}
-.ff-l-header-inner{height:100%;display:flex;align-items:center;gap:24px}
-.ff-l-wordmark{font-size:19px;font-weight:600;letter-spacing:.04em;color:var(--c-rose);white-space:nowrap}
-/* Header wordmark: canonical mixed-case "FeelFlick", bolder + tighter than the
-   footer back-cover mark (which keeps the base rule above, unchanged). */
-.ff-l-header .ff-l-wordmark{font-size:20px;font-weight:700;letter-spacing:-.01em}
-.ff-l-nav{display:flex;gap:2px;margin-left:8px}
-.ff-l-nav a{min-height:44px;padding:0 12px;border-radius:10px;display:flex;align-items:center;color:var(--c-text-3);font-size:13px;font-weight:600}
-.ff-l-nav a:hover{background:rgba(245,242,235,.05);color:var(--c-text)}
-.ff-l-header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.ff-l-header-actions .ff-l-btn{min-height:44px}
-/* Compact, restrained header auth action — neutral inverse, no oversized pill, no glow */
-.ff-l-header-cta{padding:0 16px;font-size:14px;border-radius:10px}
-.ff-l-header-cta__short{display:none}
+/* The Landing page header is now the SHARED app header (src/app/header, rendered via
+   SiteHeaderHost) — there is no Landing-specific header markup or CSS. The only
+   ".ff-l-wordmark" left is the footer back-cover mark below. */
+/* Matches the shared app Header wordmark: Inter extra-bold, tight tracking, paper-white. */
+.ff-l-wordmark{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;color:var(--c-text);white-space:nowrap}
 
-/* Hero */
-.ff-landing main{padding-top:var(--header)}
-.ff-l-hero{position:relative;min-height:calc(100svh - var(--header));overflow:hidden;background:radial-gradient(circle at 50% 0%,var(--c-surface-2) 0%,var(--c-surface-1) 34%,var(--c-canvas) 78%)}
+/* Hero — top offset uses the shared header's measured height (--hdr-h, set by the
+   app Header), with the landing's own --header as a pre-measurement fallback. */
+.ff-landing main{padding-top:var(--hdr-h,var(--header))}
+.ff-l-hero{position:relative;min-height:calc(100svh - var(--hdr-h,var(--header)));overflow:hidden;background:radial-gradient(circle at 50% 0%,var(--c-surface-2) 0%,var(--c-surface-1) 34%,var(--c-canvas) 78%)}
 .ff-l-hero-copy{position:relative;z-index:3;padding:100px 0 40px;text-align:center;max-width:920px;margin-inline:auto}
 .ff-l-hero-eyebrow{color:var(--c-rose-text)}
 .ff-l-hero-h1{margin:14px 0 0;font-size:clamp(3.4rem,9vw,7.2rem);line-height:.92;letter-spacing:-.058em;font-weight:700;text-wrap:balance}
@@ -90,12 +80,19 @@
 .ff-l-poster-fallback__t{font-size:13px;font-weight:600;color:var(--c-text);line-height:1.2}
 
 /* Principles strip */
-.ff-l-principles{padding:46px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:var(--c-surface-1)}
-.ff-l-principles-grid{display:grid;grid-template-columns:repeat(3,1fr)}
-.ff-l-principle{padding:0 30px;border-right:1px solid var(--c-border)}
-.ff-l-principle:last-child{border-right:0}
-.ff-l-principle strong{display:block;font-size:1.3rem;font-weight:600;line-height:1.2}
-.ff-l-principle p{margin:8px 0 0;color:var(--c-text-3);font-size:13px;line-height:1.55}
+/* Visually-hidden (screen-reader-only) — for quiet section headings. */
+.ff-l-vh{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* Principles — a quiet editorial manifesto on the page canvas (not a card module):
+   subtle top/bottom dividers, thin vertical column dividers, no surface block. */
+.ff-l-principles{padding:48px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border)}
+.ff-l-principles-grid{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr)}
+.ff-l-principle{padding:0 36px;border-left:1px solid var(--c-border)}
+.ff-l-principle:first-child{padding-left:0;border-left:0}
+.ff-l-principle:last-child{padding-right:0}
+.ff-l-principle__n{display:block;font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--c-rose-text)}
+.ff-l-principle__title{margin:10px 0 0;font-size:1.25rem;font-weight:600;line-height:1.22;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-principle__body{margin:8px 0 0;max-width:34ch;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
 
 /* Generic section + heads */
 .ff-l-section{padding:104px 0;border-top:1px solid var(--c-border)}
@@ -109,15 +106,26 @@
 .ff-l-chip{min-height:34px;padding:0 12px;border:1px solid var(--c-border);border-radius:999px;display:inline-flex;align-items:center;color:var(--c-text-2);font-size:11px}
 .ff-l-chip--muted{color:var(--c-text-3)}
 
-/* Entrances */
+/* Entrances ("How it works") — asymmetric two-column: a left introduction and a right
+   ordered list of entrance rows. Distinct from the three-column principles strip. */
+/* The Hero's "See how it works" anchor lands here — offset for the fixed header so the
+   section heading is visible below it. */
+.ff-l-entrances{scroll-margin-top:calc(var(--hdr-h,var(--header)) + 16px)}
+.ff-l-entrances-grid{display:grid;grid-template-columns:minmax(0,0.62fr) minmax(0,1fr);gap:clamp(40px,6vw,96px);align-items:start}
+.ff-l-entrances-intro{align-self:start}
+.ff-l-entrances-h2{margin:12px 0 0;font-size:clamp(2rem,3vw,3rem);line-height:1.06;letter-spacing:-.03em;font-weight:600;text-wrap:balance;color:var(--c-text)}
+.ff-l-entrances-h2 em{font-weight:400;font-style:italic;letter-spacing:-.02em;color:var(--c-text-2)}
+.ff-l-entrances-lead{margin:18px 0 0;max-width:42ch;color:var(--c-text-2);font-size:14.5px;line-height:1.65}
+
 .ff-l-entrance-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--c-border)}
-.ff-l-entrance{padding:24px 0;border-bottom:1px solid var(--c-border);display:grid;grid-template-columns:64px minmax(0,1fr);gap:24px;align-items:start}
-.ff-l-entrance__n{font-size:11px;color:var(--c-text-3);padding-top:6px}
-.ff-l-entrance__title{margin:0;font-size:clamp(1.6rem,2.6vw,2.6rem);font-weight:600;letter-spacing:-.03em;line-height:1.1}
-.ff-l-entrance__example{margin:8px 0 0;color:var(--c-rose-text);font-size:12px;font-weight:600;letter-spacing:.02em}
-.ff-l-entrance__copy{margin:10px 0 0;color:var(--c-text-3);font-size:14px;line-height:1.6;max-width:760px}
-.ff-l-entrance__maps{color:var(--c-text-2);font-weight:600}
-.ff-l-entrances-cta{margin-top:36px}
+.ff-l-entrance{padding:28px 0;border-bottom:1px solid var(--c-border)}
+.ff-l-entrance:last-child{border-bottom:0;padding-bottom:0}
+.ff-l-entrance__meta{margin:0;display:flex;align-items:baseline;gap:10px}
+.ff-l-entrance__n{font-size:11px;color:var(--c-text-3);font-variant-numeric:tabular-nums}
+.ff-l-entrance__dest{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c-text-2)}
+.ff-l-entrance__title{margin:10px 0 0;font-size:clamp(1.75rem,2.2vw,2.1rem);font-weight:600;letter-spacing:-.03em;line-height:1.12;color:var(--c-text)}
+.ff-l-entrance__example{margin:8px 0 0;color:var(--c-rose-text);font-size:12.5px;font-weight:600;letter-spacing:.01em}
+.ff-l-entrance__copy{margin:10px 0 0;color:var(--c-text-2);font-size:14px;line-height:1.65;max-width:54ch}
 
 /* Tabs (Film File + Library) */
 .ff-l-tablist{display:inline-flex;padding:4px;border:1px solid var(--c-border);border-radius:999px;background:rgba(245,242,235,.02)}
@@ -126,18 +134,20 @@
 .ff-l-tab:hover:not(.is-active){color:var(--c-text)}
 
 /* Film File preview */
-.ff-l-filmfile-layout{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:54px;align-items:center}
+.ff-l-filmfile-layout{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:54px;align-items:start}
 .ff-l-filmfile-panel{margin-top:18px}
 .ff-l-filmfile-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
 .ff-l-filmfile-top{display:grid;grid-template-columns:96px minmax(0,1fr);gap:18px;align-items:center}
 .ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:96px;aspect-ratio:2/3;object-fit:cover;border-radius:8px}
 .ff-l-filmfile-status{color:var(--c-rose-text);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .ff-l-filmfile-title{margin:7px 0 0;font-size:1.7rem;font-weight:600;letter-spacing:-.02em}
-.ff-l-filmfile-summary{margin:8px 0 0;color:var(--c-text-3);font-size:12.5px;line-height:1.5}
+.ff-l-filmfile-summary{margin:8px 0 0;color:var(--c-text-2);font-size:13px;line-height:1.55}
 .ff-l-filmfile-rows{margin:18px 0 0;border-top:1px solid var(--c-border)}
-.ff-l-filmfile-row{padding:13px 0;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;gap:18px;align-items:baseline}
-.ff-l-filmfile-row dt{font-size:12px;font-weight:600;color:var(--c-text)}
-.ff-l-filmfile-row dd{margin:0;color:var(--c-text-3);font-size:11.5px;text-align:right}
+/* Restrained two-column rows (label | value) — left-aligned, editorial, not form fields.
+   Stacks on mobile (see responsive block). */
+.ff-l-filmfile-row{padding:13px 0;border-bottom:1px solid var(--c-border);display:grid;grid-template-columns:minmax(140px,220px) minmax(0,1fr);gap:24px;align-items:baseline}
+.ff-l-filmfile-row dt{font-size:12.5px;font-weight:600;color:var(--c-text)}
+.ff-l-filmfile-row dd{margin:0;color:var(--c-text-2);font-size:12.5px;line-height:1.5}
 .ff-l-filmfile-note{margin:16px 0 0;padding:12px 14px;border-left:2px solid var(--c-border-strong);background:rgba(245,242,235,.03);color:var(--c-text-2);font-size:12px;line-height:1.5}
 
 /* DNA preview */
@@ -154,28 +164,69 @@
 .ff-l-dna-sources-label{margin:20px 0 0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
 .ff-l-dna-sources{margin:10px 0 0;padding:0;list-style:none;display:flex;gap:8px;flex-wrap:wrap}
 
-/* Library preview */
+/* "Your film life" — one private-library specimen; each tab expresses its own job. */
 .ff-l-library-panel{margin-top:18px}
 .ff-l-library-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
-.ff-l-library-copy{margin:0;color:var(--c-text-3);font-size:13px;line-height:1.55;max-width:640px}
-.ff-l-library-chips{margin:14px 0 0;padding:0;list-style:none;display:flex;gap:7px;flex-wrap:wrap}
-.ff-l-poster-row{margin:18px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-.ff-l-poster-item strong{display:block;margin-top:8px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ff-l-poster-item span{display:block;margin-top:3px;color:var(--c-text-3);font-size:10px}
-.ff-l-poster-img,.ff-l-poster-item .ff-l-poster-fallback{aspect-ratio:2/3;object-fit:cover;border-radius:8px;width:100%}
+.ff-l-library-h3{margin:2px 0 0;font-size:1.2rem;font-weight:600;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-library-copy{margin:8px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55;max-width:60ch}
+/* Retrieval tools — quiet explanatory text, not pills or controls. */
+.ff-l-tools{margin:18px 0 0}
+.ff-l-tools__label{margin:0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-tools__list{margin:6px 0 0;padding:0;list-style:none;color:var(--c-text-2);font-size:12.5px;line-height:1.7}
+.ff-l-tools__item{display:inline}
+.ff-l-tools__item:not(:last-child)::after{content:"·";margin:0 9px;color:var(--c-text-3)}
+/* Watchlist — calm visual retrieval grid (no shelf, no carousel, no fade). */
+.ff-l-watch-grid{margin:20px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:16px 14px}
+.ff-l-watch-poster{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px}
+.ff-l-watch-title{display:block;margin-top:9px;font-size:12.5px;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ff-l-watch-meta{display:block;margin-top:2px;color:var(--c-text-3);font-size:10.5px}
+/* Diary — chronological record; entries are rows (date rail · thumbnail · response). */
+.ff-l-diary{margin:20px 0 0}
+.ff-l-diary-month{margin-top:24px}
+.ff-l-diary-month:first-child{margin-top:0}
+.ff-l-diary-month__label{margin:0;position:static;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-diary-list{margin:8px 0 0;padding:0;list-style:none}
+.ff-l-diary-entry{padding:16px 0;border-top:1px solid var(--c-border);display:grid;grid-template-columns:2.2rem 44px minmax(0,1fr);grid-template-areas:"day poster id" "day poster note";column-gap:16px;row-gap:4px;align-items:start}
+.ff-l-diary-entry:first-child{border-top:0;padding-top:2px}
+.ff-l-diary-entry__day{grid-area:day;color:var(--c-text-3);font-size:13px;font-variant-numeric:tabular-nums;line-height:1.3}
+.ff-l-diary-poster{grid-area:poster;width:44px;aspect-ratio:2/3;object-fit:cover;border-radius:6px}
+/* Compact fallback for the small diary thumbnail (base fallback padding is too large here). */
+.ff-l-diary-entry .ff-l-poster-fallback{padding:6px}
+.ff-l-diary-entry .ff-l-poster-fallback .ff-l-poster-fallback__t{font-size:8px;line-height:1.1}
+.ff-l-diary-entry__id{grid-area:id;min-width:0}
+.ff-l-diary-entry__title{display:block;font-size:15px;font-weight:600;color:var(--c-text);line-height:1.25}
+.ff-l-diary-entry__reaction{display:block;margin-top:3px;color:var(--c-rose-text);font-size:11px;font-weight:700;letter-spacing:.04em}
+.ff-l-diary-entry__note{grid-area:note;margin:6px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
 
-/* People + Control */
-.ff-l-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.ff-l-control-h3{margin:10px 0 0;font-size:1.5rem;font-weight:600;letter-spacing:-.02em}
-.ff-l-control-copy{margin:10px 0 0;color:var(--c-text-3);font-size:12.5px;line-height:1.55}
-.ff-l-voices{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:10px}
-.ff-l-voice{padding:12px;border:1px solid var(--c-border);border-radius:12px;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-items:center}
-.ff-l-voice__glyph{width:36px;height:36px;border-radius:50%;background:var(--c-surface-2);border:1px solid var(--c-border)}
-.ff-l-voice strong{display:block;font-size:12px}
-.ff-l-voice span{display:block;margin-top:3px;color:var(--c-text-3);font-size:11px}
-.ff-l-pref-list{margin:18px 0 0;padding:0;list-style:none;display:grid}
-.ff-l-pref-row{padding:13px 0;border-top:1px solid var(--c-border);font-size:12.5px;color:var(--c-text)}
-.ff-l-pref-soon{margin:16px 0 0;font-size:11px;color:var(--c-text-3);font-style:italic}
+/* People + Control — one shared editorial surface, two complementary halves split by a
+   divider (vertical on desktop, horizontal when stacked). No nested cards, no avatars. */
+.ff-l-control-specimen{border:1px solid var(--c-border);border-radius:18px;background:var(--c-surface-1);overflow:hidden}
+.ff-l-control-specimen > .ff-l-example-tag{margin:0;padding:22px 30px 0}
+.ff-l-control-split{display:grid;grid-template-columns:1fr 1fr;align-items:start}
+.ff-l-control-half{padding:18px 30px 30px}
+.ff-l-control-half + .ff-l-control-half{border-left:1px solid var(--c-border)}
+.ff-l-control-h3{margin:0;font-size:1.25rem;font-weight:600;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-control-copy{margin:8px 0 0;color:var(--c-text-2);font-size:13px;line-height:1.55}
+/* Followed voices — anonymous, restrained; typography + spacing, no avatar glyphs. */
+.ff-l-voices{margin:18px 0 0;padding:0;list-style:none}
+.ff-l-voice{padding:18px 0 0}
+.ff-l-voice:first-child{padding-top:0}
+.ff-l-voice + .ff-l-voice{margin-top:18px;border-top:1px solid var(--c-border)}
+.ff-l-voice__label{margin:0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-voice__context{margin:7px 0 0;color:var(--c-text-2);font-size:13px;line-height:1.5}
+.ff-l-voice__film{margin:14px 0 0;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--c-rose-text)}
+.ff-l-voice__note{margin:3px 0 0;color:var(--c-text);font-size:13.5px;line-height:1.5;font-style:italic}
+.ff-l-voice__note::before{content:"\201C"}
+.ff-l-voice__note::after{content:"\201D"}
+/* Preferences — a semantic capability list (dl). Status is plain text, never a control. */
+.ff-l-pref-list{margin:18px 0 0}
+.ff-l-pref-row{padding:14px 0;border-top:1px solid var(--c-border)}
+.ff-l-pref-row:first-child{border-top:0;padding-top:0}
+.ff-l-pref-row__term{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:3px 14px}
+.ff-l-pref-row__name{font-size:13.5px;font-weight:600;color:var(--c-text)}
+.ff-l-pref-row__status{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c-text-3);white-space:nowrap}
+.ff-l-pref-row__desc{margin:5px 0 0;color:var(--c-text-2);font-size:12.5px;line-height:1.5}
+.ff-l-pref-soon{margin:18px 0 0;font-size:11.5px;color:var(--c-text-3);font-style:italic}
 
 /* Trust */
 .ff-l-trust{padding:40px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:var(--c-surface-1)}
@@ -193,14 +244,21 @@
 .ff-l-final-deck{margin:18px auto 0;max-width:600px;color:var(--c-text-3);font-size:14px;line-height:1.6}
 .ff-l-final-actions{margin-top:24px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 
-/* Footer */
-.ff-l-footer{padding:28px 0;border-top:1px solid var(--c-border);background:var(--c-canvas)}
-.ff-l-footer-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.ff-l-footer-tagline{margin:8px 0 0;color:var(--c-text-3);font-size:12px}
-.ff-l-footer-nav{display:flex;gap:18px;flex-wrap:wrap}
-.ff-l-footer-nav a{min-height:44px;display:inline-flex;align-items:center;padding-inline:6px;color:var(--c-text-3);font-size:12px}
+/* Footer — landing back cover: brand + a brief human line on the left, grouped nav
+   columns on the right, then the required TMDB attribution. On-brand tokens; recedes
+   behind the final CTA above. */
+.ff-l-footer{padding:56px 0 28px;border-top:1px solid var(--c-border);background:var(--c-canvas)}
+/* Balanced two-track top: brand block | nav (which holds three even columns). */
+.ff-l-footer-inner{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.9fr);gap:clamp(32px,5vw,72px);align-items:start}
+.ff-l-footer-brand{max-width:36ch}
+.ff-l-footer-tagline{margin:10px 0 0;color:var(--c-text-2);font-size:13.5px}
+.ff-l-footer-note{margin:12px 0 0;color:var(--c-text-3);font-size:12.5px;line-height:1.55;max-width:34ch}
+.ff-l-footer-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px 28px}
+.ff-l-footer-col__title{margin:0 0 8px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-footer-col ul{margin:0;padding:0;list-style:none}
+.ff-l-footer-nav a{min-height:40px;display:inline-flex;align-items:center;color:var(--c-text-2);font-size:13px}
 .ff-l-footer-nav a:hover{color:var(--c-text)}
-.ff-l-footer-legal{margin-top:18px;padding-top:16px;border-top:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.ff-l-footer-legal{margin-top:44px;padding-top:18px;border-top:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
 .ff-l-attrib{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
 .ff-l-tmdb{display:inline-flex;align-items:center;min-width:0;max-width:100%;min-height:44px;padding-block:14px}
 /* width+height attrs reserve a 167×14 box; height:auto + max-width:100% lets the
@@ -217,56 +275,78 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media(max-width:980px){
-  .ff-l-nav{display:none}
-  /* Mobile: wordmark only until the hero's primary CTA scrolls out of view, then a
-     compact auth control is revealed. Hidden state uses visibility (not focusable)
-     + opacity (animatable); reduced-motion collapses the transition globally. */
-  .ff-l-header-cta{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility .2s}
-  .ff-l-header-cta[data-revealed]{visibility:visible;opacity:1;pointer-events:auto}
-  /* Keep the full label in the accessible name (sr-only) while showing the short
-     visible label, so the compact control is still named "Continue with Google". */
-  .ff-l-header-cta__full{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-  .ff-l-header-cta__short{display:inline}
   .ff-l-filmfile-layout,.ff-l-dna-layout{grid-template-columns:1fr;gap:36px}
-  .ff-l-control-grid{grid-template-columns:1fr}
   .ff-l-section-head{grid-template-columns:1fr;gap:18px}
+  .ff-l-watch-grid{grid-template-columns:repeat(3,1fr)}
+  /* People+Control halves stack: the divider becomes horizontal. */
+  .ff-l-control-split{grid-template-columns:1fr}
+  .ff-l-control-half + .ff-l-control-half{border-left:0;border-top:1px solid var(--c-border)}
 }
 @media(max-width:720px){
   .ff-landing{--header:58px}
   .ff-l-shell{width:calc(100% - 28px)}
-  .ff-l-header-inner{gap:12px}
   .ff-l-hero-copy{padding:72px 0 36px}
   .ff-l-hero-h1{font-size:clamp(3rem,15vw,5.2rem);letter-spacing:-.05em}
-  .ff-l-ribbon{width:100%;height:250px;justify-content:flex-start;gap:10px;padding-inline:20px;overflow:hidden;perspective:none;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 80%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 80%,transparent 100%)}
-  .ff-l-ribbon__poster{flex:0 0 140px;border-radius:10px}
+  /* Centre the ribbon so the dominant centre poster (Her) reads first, with the
+     adjacent posters flanking it and the outer pair intentionally cropped + faded at
+     both edges (symmetric side fade + bottom fade). No scroll/swipe — overflow:hidden. */
+  .ff-l-ribbon{width:100%;height:250px;justify-content:center;gap:10px;overflow:hidden;perspective:none;-webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 78%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 78%,transparent);mask-composite:intersect}
+  .ff-l-ribbon__poster{flex:0 0 138px;border-radius:10px}
   .ff-l-ribbon__poster--1{transform:translateY(46px) rotateZ(-3deg)}
   .ff-l-ribbon__poster--2{transform:translateY(18px) rotateZ(-1deg)}
   .ff-l-ribbon__poster--3{flex-basis:160px;transform:none}
   .ff-l-ribbon__poster--4{transform:translateY(18px) rotateZ(1deg)}
   .ff-l-ribbon__poster--5{transform:translateY(46px) rotateZ(3deg)}
-  .ff-l-principles{padding:30px 0}
+  .ff-l-principles{padding:34px 0}
   .ff-l-principles-grid,.ff-l-trust-grid{grid-template-columns:1fr}
-  .ff-l-principle{padding:16px 0;border-right:0;border-bottom:1px solid var(--c-border)}
-  .ff-l-principle:last-child{border-bottom:0}
+  .ff-l-principle{padding:22px 0;border-left:0;border-top:1px solid var(--c-border)}
+  .ff-l-principle:first-child{padding-top:0;border-top:0}
+  .ff-l-principle__body{max-width:none}
   .ff-l-trust-item{padding:16px 0;border-right:0;border-bottom:1px solid var(--c-border)}
   .ff-l-trust-item:last-child{border-bottom:0}
   .ff-l-section{padding:64px 0}
   .ff-l-section-h2{font-size:clamp(2.4rem,11vw,3.6rem)}
   .ff-l-card{padding:18px}
-  .ff-l-entrance{grid-template-columns:38px minmax(0,1fr);gap:14px}
+  .ff-l-control-specimen > .ff-l-example-tag{padding:18px 18px 0}
+  .ff-l-control-half{padding:16px 18px 22px}
+  .ff-l-entrances-grid{grid-template-columns:1fr;gap:28px}
+  .ff-l-entrance{padding:22px 0}
+  .ff-l-entrance__copy{max-width:none}
   .ff-l-dna-trait{grid-template-columns:120px minmax(0,1fr);gap:10px}
   .ff-l-dna-trait__band{grid-column:2;justify-self:start;margin-top:2px}
-  /* Wrap into a grid (no horizontal-scroll region) so there is no focusable
-     scroll container to manage and no overflow. */
-  .ff-l-poster-row{grid-template-columns:repeat(3,1fr);gap:10px}
+  /* Diary entry stacks: date above, then poster + identity, then the note full-width.
+     (Watchlist grid stays a responsive grid — 3 cols from the 980 rule — never a shelf.) */
+  .ff-l-diary-entry{grid-template-columns:44px minmax(0,1fr);grid-template-areas:"day day" "poster id" "note note";column-gap:14px}
+  .ff-l-filmfile-row{grid-template-columns:1fr;gap:4px}
   .ff-l-final{padding:74px 0}
-  .ff-l-footer-inner{flex-direction:column}
+  .ff-l-footer{padding:40px 0 24px}
+  .ff-l-footer-inner{grid-template-columns:1fr;gap:28px}
+  .ff-l-footer-cols{gap:22px 18px}
 }
 @media(max-width:380px){
   .ff-l-filmfile-top{grid-template-columns:72px minmax(0,1fr)}
   .ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:72px}
   .ff-l-dna-trait{grid-template-columns:1fr}
   .ff-l-dna-trait__segments{grid-column:1}
+  .ff-l-watch-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Short landscape (phones turned sideways): compress the hero + flatten/shrink the
+   ribbon so the first fold is not excessively tall. */
+@media (orientation:landscape) and (max-height:560px){
+  .ff-l-hero{min-height:0}
+  .ff-l-hero-copy{padding:22px 0 16px}
+  .ff-l-hero-h1{font-size:clamp(2.3rem,6vw,3.4rem);letter-spacing:-.04em}
+  .ff-l-hero-deck{margin-top:12px}
+  .ff-l-hero-actions{margin-top:16px}
+  .ff-l-hero-proof{margin-top:12px}
+  .ff-l-ribbon{height:188px;perspective:none;overflow:hidden;justify-content:center;-webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 80%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 80%,transparent);mask-composite:intersect}
+  .ff-l-ribbon__poster{flex:0 0 116px}
+  .ff-l-ribbon__poster--1{transform:translateY(34px) rotateZ(-3deg)}
+  .ff-l-ribbon__poster--2{transform:translateY(14px) rotateZ(-1deg)}
+  .ff-l-ribbon__poster--3{flex-basis:132px;transform:none;filter:saturate(.92) brightness(.84)}
+  .ff-l-ribbon__poster--4{transform:translateY(14px) rotateZ(1deg)}
+  .ff-l-ribbon__poster--5{transform:translateY(34px) rotateZ(3deg)}
 }
 
 /* ── Reduced motion ─────────────────────────────────────────────────────── */
@@ -282,8 +362,9 @@
   .ff-l-ribbon{-webkit-mask-image:none;mask-image:none}
   .ff-l-btn{background:ButtonFace!important;border:1px solid ButtonText!important;color:ButtonText!important}
   .ff-l-btn *{color:ButtonText!important}
-  .ff-l-nav a,.ff-l-footer-nav a{color:LinkText!important}
-  .ff-l-card,.ff-l-voice,.ff-l-chip,.ff-l-authstatus,.ff-l-ribbon__poster{border:1px solid CanvasText!important}
+  .ff-l-footer-nav a{color:LinkText!important}
+  .ff-l-card,.ff-l-control-specimen,.ff-l-chip,.ff-l-authstatus,.ff-l-ribbon__poster{border:1px solid CanvasText!important}
+  .ff-l-control-half + .ff-l-control-half{border-color:CanvasText!important}
   /* Tabs use the system Button/selection pairs so the active tab is a consistent,
      high-contrast pair (HighlightText on Highlight) — not authored ivory-on-dark. */
   .ff-l-tab{background:ButtonFace!important;border:1px solid ButtonText!important;color:ButtonText!important}

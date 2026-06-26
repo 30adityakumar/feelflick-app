@@ -9,11 +9,11 @@ export const tmdbPoster = TMDB
 // Decorative hero ribbon posters (aria-hidden; alt=""). The centre (index 2) is the
 // LCP candidate; all others lazy. Title is for the deterministic fallback only.
 export const LANDING_POSTERS = [
-  { path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg', title: 'Past Lives' },
+  { path: '/yihdXomYb5kTeSivtFndMy5iDmf.jpg', title: 'Project Hail Mary' },
   { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', title: 'Parasite' },
-  { path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg', title: 'Arrival' },
-  { path: '/qLnfEmPrDjJfPyyddLJPkXmshkp.jpg', title: 'Moonlight' },
   { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', title: 'Her' },
+  { path: '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', title: 'Interstellar' },
+  { path: '/66A9MqXOyVFCssoloscw79z8Tew.jpg', title: '3 Idiots' },
 ]
 
 export const PRINCIPLES = [

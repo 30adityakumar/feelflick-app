@@ -28,8 +28,15 @@ describe('LANDING_POSTERS — five-film editorial set', () => {
     expect(new Set(LANDING_POSTERS.map(p => p.path)).size).toBe(5)
   })
 
-  it('keeps Arrival as the centre (index 2) film', () => {
-    expect(LANDING_POSTERS[2].title).toBe('Arrival')
+  it('renders the exact requested order with Her at the centre (index 2)', () => {
+    expect(LANDING_POSTERS.map(p => p.title)).toEqual([
+      'Project Hail Mary',
+      'Parasite',
+      'Her',
+      'Interstellar',
+      '3 Idiots',
+    ])
+    expect(LANDING_POSTERS[2].title).toBe('Her')
   })
 })
 

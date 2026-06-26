@@ -79,12 +79,19 @@
 .ff-l-poster-fallback__t{font-size:13px;font-weight:600;color:var(--c-text);line-height:1.2}
 
 /* Principles strip */
-.ff-l-principles{padding:46px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:var(--c-surface-1)}
-.ff-l-principles-grid{display:grid;grid-template-columns:repeat(3,1fr)}
-.ff-l-principle{padding:0 30px;border-right:1px solid var(--c-border)}
-.ff-l-principle:last-child{border-right:0}
-.ff-l-principle strong{display:block;font-size:1.3rem;font-weight:600;line-height:1.2}
-.ff-l-principle p{margin:8px 0 0;color:var(--c-text-3);font-size:13px;line-height:1.55}
+/* Visually-hidden (screen-reader-only) — for quiet section headings. */
+.ff-l-vh{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* Principles — a quiet editorial manifesto on the page canvas (not a card module):
+   subtle top/bottom dividers, thin vertical column dividers, no surface block. */
+.ff-l-principles{padding:48px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border)}
+.ff-l-principles-grid{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr)}
+.ff-l-principle{padding:0 36px;border-left:1px solid var(--c-border)}
+.ff-l-principle:first-child{padding-left:0;border-left:0}
+.ff-l-principle:last-child{padding-right:0}
+.ff-l-principle__n{display:block;font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--c-rose-text)}
+.ff-l-principle__title{margin:10px 0 0;font-size:1.25rem;font-weight:600;line-height:1.22;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-principle__body{margin:8px 0 0;max-width:34ch;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
 
 /* Generic section + heads */
 .ff-l-section{padding:104px 0;border-top:1px solid var(--c-border)}
@@ -225,10 +232,11 @@
   .ff-l-ribbon__poster--3{flex-basis:160px;transform:none}
   .ff-l-ribbon__poster--4{transform:translateY(18px) rotateZ(1deg)}
   .ff-l-ribbon__poster--5{transform:translateY(46px) rotateZ(3deg)}
-  .ff-l-principles{padding:30px 0}
+  .ff-l-principles{padding:34px 0}
   .ff-l-principles-grid,.ff-l-trust-grid{grid-template-columns:1fr}
-  .ff-l-principle{padding:16px 0;border-right:0;border-bottom:1px solid var(--c-border)}
-  .ff-l-principle:last-child{border-bottom:0}
+  .ff-l-principle{padding:22px 0;border-left:0;border-top:1px solid var(--c-border)}
+  .ff-l-principle:first-child{padding-top:0;border-top:0}
+  .ff-l-principle__body{max-width:none}
   .ff-l-trust-item{padding:16px 0;border-right:0;border-bottom:1px solid var(--c-border)}
   .ff-l-trust-item:last-child{border-bottom:0}
   .ff-l-section{padding:64px 0}

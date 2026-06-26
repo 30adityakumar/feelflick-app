@@ -17,9 +17,9 @@ export const LANDING_POSTERS = [
 ]
 
 export const PRINCIPLES = [
-  { title: 'Bounded directions, not endless shelves.', body: 'FeelFlick narrows the field without turning discovery into another infinite feed.' },
-  { title: 'Reasons, not mystery scores.', body: 'See the signals behind personalized choices without a fake compatibility percentage.' },
-  { title: 'Learning from real outcomes.', body: 'Watches, ratings, saves, skips and reactions sharpen the picture over time.' },
+  { title: 'Fewer directions, chosen well.', body: 'FeelFlick narrows the field instead of giving you another endless shelf to scroll.' },
+  { title: 'Reasons you can understand.', body: 'Every personal suggestion comes with the signals behind it—not a mysterious match score.' },
+  { title: 'Taste that keeps evolving.', body: 'Watches, ratings, saves, skips and reactions help the picture become more accurate over time.' },
 ]
 
 // Locked order + mapping: 01 For tonight → Discover, 02 From your taste → Home,

@@ -22,23 +22,24 @@ export const PRINCIPLES = [
   { title: 'Taste that keeps evolving.', body: 'Watches, ratings, saves, skips and reactions help the picture become more accurate over time.' },
 ]
 
-// Locked order + mapping: 01 For tonight → Discover, 02 From your taste → Home,
-// 03 Follow a curiosity → Browse.
+// Locked order + destination: 01 For tonight → Discover, 02 From your taste → Home,
+// 03 Follow a curiosity → Browse. Destinations are editorial labels (explanatory only;
+// not links — Home is not anonymously reachable).
 export const ENTRANCES = [
   {
-    n: '01', title: 'For tonight.', maps: 'Discover',
+    n: '01', destination: 'Discover', title: 'For tonight.',
     example: 'Quiet · two people · under two hours.',
     copy: 'Shape one focused screening around mood, company, time and energy, with a primary direction and a small number of alternatives.',
   },
   {
-    n: '02', title: 'From your taste.', maps: 'Home',
+    n: '02', destination: 'Home', title: 'From your taste.',
     example: 'Because you return to precise, morally complicated films.',
-    copy: 'Explore bounded personalized rows, recurring themes and transparent reasons built from your viewing history and direct preferences.',
+    copy: 'Explore recommendations, recurring themes and transparent reasons grounded in your viewing history and direct preferences.',
   },
   {
-    n: '03', title: 'Follow a curiosity.', maps: 'Browse',
+    n: '03', destination: 'Browse', title: 'Follow a curiosity.',
     example: 'Korean thrillers · 2000s · slow-burn.',
-    copy: 'Browse by genre, era, language, runtime, filmmaker and supported film qualities while keeping the scope you chose.',
+    copy: 'Browse deliberately by genre, era, language, runtime, filmmaker and supported film qualities while preserving the scope you chose.',
   },
 ]
 

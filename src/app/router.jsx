@@ -223,6 +223,11 @@ export const router = sentryCreateBrowserRouter([
   // landmark-nesting issue). RootEntry still gates auth-ready / authed-redirect.
   { path: '/', element: <RootEntry />, errorElement: <ErrorBoundary /> },
 
+  // /about: a TOP-LEVEL route (outside PublicShell), like Landing, so the rebuilt
+  // marketing page owns its own <header>/<main id="main">/<footer> as siblings (shared
+  // SiteHeaderHost + LandingFooter) rather than nesting inside PublicShell's <main>.
+  { path: '/about', element: <LazyRoute Component={About} />, errorElement: <ErrorBoundary /> },
+
   // Public branch (no app chrome) — legal/callback/share/aliases keep PublicShell's <main>.
   {
     element: <PublicShell />,
@@ -237,7 +242,6 @@ export const router = sentryCreateBrowserRouter([
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },
 
       // Legal pages (publicly accessible)
-      { path: 'about', element: <LazyRoute Component={About} /> },
       { path: 'privacy', element: <LazyRoute Component={Privacy} /> },
       { path: 'terms', element: <LazyRoute Component={Terms} /> },
 

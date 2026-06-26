@@ -250,6 +250,12 @@
 .ff-l-footer-attribution{margin:0;color:var(--c-text-2);font-size:11px;line-height:1.5;max-width:440px}
 .ff-l-footer-copy{margin:0;color:var(--c-text-3);font-size:11px;flex:none}
 
+/* About page — reuses the .ff-l-* system; only these few extras are about-specific. */
+.ff-l-about-intro{border-top:0}
+.ff-l-about-grid{margin:28px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ff-l-about-card h3{margin:0;font-size:1.05rem;font-weight:600;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-about-card p{margin:9px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
+
 /* OAuth error surface */
 .ff-l-authstatus{position:fixed;z-index:500;left:50%;bottom:22px;transform:translateX(-50%);max-width:min(560px,calc(100% - 28px));display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--c-border-strong);border-radius:12px;background:var(--c-surface-2);box-shadow:0 18px 60px rgba(0,0,0,.5)}
 .ff-l-authstatus__msg{margin:0;color:var(--c-text);font-size:13px;flex:1 1 220px}
@@ -266,6 +272,7 @@
 @media(max-width:720px){
   .ff-landing{--header:58px}
   .ff-l-shell{width:calc(100% - 28px)}
+  .ff-l-about-grid{grid-template-columns:1fr}
   .ff-l-hero-copy{padding:72px 0 36px}
   .ff-l-hero-h1{font-size:clamp(3rem,15vw,5.2rem);letter-spacing:-.05em}
   /* Centre the ribbon so the dominant centre poster (Her) reads first, with the

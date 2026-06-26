@@ -58,8 +58,12 @@ test('a11y — landing under default, forced-colors and reduced-motion', async (
   await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference' })
 })
 
-test('a11y — about (/about)', async ({ page }) => {
-  await page.goto('/about')
-  await page.waitForLoadState('networkidle')
-  await audit(page, '/about')
+test('a11y — about (/about) under default, forced-colors and reduced-motion', async ({ page }) => {
+  for (const media of [{}, { forcedColors: 'active' }, { reducedMotion: 'reduce' }]) {
+    await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference', ...media })
+    await page.goto('/about')
+    await page.waitForLoadState('networkidle')
+    await audit(page, `about ${JSON.stringify(media)}`)
+  }
+  await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference' })
 })

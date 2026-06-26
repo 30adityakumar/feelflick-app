@@ -1,6 +1,7 @@
 // src/features/landing/components/LandingFooter.jsx
 // Valid legal routes only (/about, /privacy, /terms — no /feedback). Required TMDB
-// attribution notice (textual; no unverified logo asset).
+// attribution: the official local TMDB logo asset (public/brand/tmdb.svg) plus the
+// textual "not endorsed or certified by TMDB" notice (visible even if the image fails).
 export default function LandingFooter() {
   return (
     <footer className="ff-l-footer">

@@ -15,7 +15,7 @@ export default function LandingHero() {
         </p>
         <div className="ff-l-hero-actions">
           <button type="button" className="ff-l-btn ff-l-btn--primary ff-l-btn--lg" onClick={startGoogleAuth} disabled={isAuthenticating}>
-            {isAuthenticating ? 'Opening Google…' : 'Start with Google'}
+            {isAuthenticating ? 'Opening Google…' : 'Continue with Google'}
           </button>
           <a className="ff-l-btn ff-l-btn--ghost ff-l-btn--lg" href="#how-it-works">See how it works</a>
         </div>

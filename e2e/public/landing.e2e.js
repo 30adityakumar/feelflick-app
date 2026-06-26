@@ -6,9 +6,32 @@ test('landing renders for logged-out visitors with the locked positioning', asyn
   await expect(page.getByRole('heading', { level: 1, name: /movies, made personal/i })).toBeVisible({ timeout: 15_000 })
 })
 
-test('landing primary CTA uses the shared Google OAuth wording', async ({ page }) => {
+test('landing auth CTAs use one canonical "Continue with Google" label', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('button', { name: /start with google/i }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: /continue with google/i }).first()).toBeVisible()
+  // The misleadingly different labels are gone.
+  await expect(page.getByRole('button', { name: /start with google/i })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^sign in$/i })).toHaveCount(0)
+})
+
+test('landing head carries the canonical metadata', async ({ page }) => {
+  await page.goto('/')
+  await expect(page).toHaveTitle('FeelFlick — Movies, made personal.')
+  const desc = await page.locator('meta[name="description"]').getAttribute('content')
+  expect(desc).toBe('Personal movie discovery built around your taste, your moment, and your curiosity.')
+})
+
+test('every landing tab aria-controls resolves to a panel in the DOM', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  const dangling = await page.evaluate(() =>
+    [...document.querySelectorAll('[role="tab"]')].filter((t) => {
+      const id = t.getAttribute('aria-controls')
+      return !id || !document.getElementById(id)
+    }).length
+  )
+  expect(dangling, 'tabs whose aria-controls does not resolve').toBe(0)
 })
 
 test('landing carries none of the retired doctrine or false precision', async ({ page }) => {

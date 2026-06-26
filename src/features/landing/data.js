@@ -16,6 +16,15 @@ export const LANDING_POSTERS = [
   { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', title: 'Her' },
 ]
 
+// In-page section navigation, shared by the desktop header and the mobile menu.
+export const LANDING_NAV = [
+  ['How it works', '#how-it-works'],
+  ['Film File', '#film-file'],
+  ['Cinematic DNA', '#cinematic-dna'],
+  ['Library', '#library'],
+  ['People & control', '#people-control'],
+]
+
 export const PRINCIPLES = [
   { title: 'Bounded directions, not endless shelves.', body: 'FeelFlick narrows the field without turning discovery into another infinite feed.' },
   { title: 'Reasons, not mystery scores.', body: 'See the signals behind personalized choices without a fake compatibility percentage.' },

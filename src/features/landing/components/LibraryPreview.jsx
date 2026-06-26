@@ -11,7 +11,6 @@ const DATA = { watchlist: WATCHLIST_EXAMPLE, diary: DIARY_EXAMPLE }
 
 export default function LibraryPreview() {
   const [active, setActive] = useState('watchlist')
-  const data = DATA[active]
   return (
     <section className="ff-l-section ff-l-library" id="library" aria-labelledby="ff-l-library-h">
       <div className="ff-l-shell">
@@ -25,27 +24,36 @@ export default function LibraryPreview() {
         <article className="ff-l-card ff-l-example">
           <p className="ff-l-example-tag">Illustrative private library</p>
           <LandingTabs label="Library view" tabs={TABS} active={active} onChange={setActive} idBase="ff-l-library" />
-          <div
-            className="ff-l-library-panel"
-            role="tabpanel"
-            id={`ff-l-library-panel-${active}`}
-            aria-labelledby={`ff-l-library-tab-${active}`}
-            tabIndex={0}
-          >
-            <p className="ff-l-library-copy">{data.copy}</p>
-            <ul className="ff-l-library-chips" aria-label="Example controls">
-              {data.chips.map((c) => <li key={c} className="ff-l-chip ff-l-chip--muted">{c}</li>)}
-            </ul>
-            <ul className="ff-l-poster-row">
-              {data.films.map((f) => (
-                <li key={f.title} className="ff-l-poster-item">
-                  <Poster path={f.path} title={f.title} size="w185" className="ff-l-poster-img" />
-                  <strong>{f.title}</strong>
-                  <span>{f.meta}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Both panels exist with stable IDs so every tab's aria-controls resolves;
+              the inactive panel is `hidden` (removed from focus order + a11y tree). */}
+          {TABS.map((t) => {
+            const data = DATA[t.id]
+            return (
+              <div
+                key={t.id}
+                className="ff-l-library-panel"
+                role="tabpanel"
+                id={`ff-l-library-panel-${t.id}`}
+                aria-labelledby={`ff-l-library-tab-${t.id}`}
+                tabIndex={0}
+                hidden={t.id !== active}
+              >
+                <p className="ff-l-library-copy">{data.copy}</p>
+                <ul className="ff-l-library-chips" aria-label="Example controls">
+                  {data.chips.map((c) => <li key={c} className="ff-l-chip ff-l-chip--muted">{c}</li>)}
+                </ul>
+                <ul className="ff-l-poster-row">
+                  {data.films.map((f) => (
+                    <li key={f.title} className="ff-l-poster-item">
+                      <Poster path={f.path} title={f.title} size="w185" className="ff-l-poster-img" />
+                      <strong>{f.title}</strong>
+                      <span>{f.meta}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
         </article>
       </div>
     </section>

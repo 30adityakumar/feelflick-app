@@ -1,15 +1,20 @@
 /* src/features/landing/landing.css
  * Route-scoped landing styles (Adaptive Editorial Cinema). Every rule is scoped
  * under .ff-landing so nothing leaks to app routes after the chunk loads. Inter
- * only; ivory command surfaces; rose as a signature; warm-graphite canvas;
- * flat-first. Includes responsive, reduced-motion, forced-colours.
+ * only; deep neutral ink canvas; paper-white type; neutral inverse (ivory) primary
+ * actions; coral-red as a restrained signature only; flat-first. The local --c-*
+ * names ALIAS the canonical --color-* tokens (foundations.css), so a theme change
+ * propagates here. Includes responsive, reduced-motion, forced-colours.
  */
 .ff-landing{
-  --c-canvas:#0f1010;--c-surface-1:#171819;--c-surface-2:#222427;--c-surface-raised:#2e3135;
-  --c-text:#f5f2eb;--c-text-2:#c9c5bc;--c-text-3:#a5a198;
-  --c-border:#3a3d41;--c-border-strong:#747a82;
-  --c-fill:#f0ece4;--c-fill-text:#0f1010;--c-focus:#f5f2eb;
-  --c-rose:#e5636f;--c-rose-text:#ed7a87;
+  /* Aliases of the canonical Adaptive Editorial Cinema tokens. Hex fallbacks are
+     byte-identical to the canonical values so a missing token never breaks the
+     page while theme changes still propagate to the landing. */
+  --c-canvas:var(--color-canvas,#0f1010);--c-surface-1:var(--color-surface-1,#171819);--c-surface-2:var(--color-surface-2,#222427);--c-surface-raised:var(--color-surface-raised,#2e3135);
+  --c-text:var(--color-text-primary,#f5f2eb);--c-text-2:var(--color-text-secondary,#c9c5bc);--c-text-3:var(--color-text-muted,#a5a198);
+  --c-border:var(--color-border-subtle,#3a3d41);--c-border-strong:var(--color-border-strong,#747a82);
+  --c-fill:var(--color-action-primary-fill,#f0ece4);--c-fill-text:var(--color-action-primary-text,#0f1010);--c-focus:var(--color-focus,#f5f2eb);
+  --c-rose:var(--color-brand-accent,#e5636f);--c-rose-text:var(--color-brand-accent-text,#ed7a87);
   --max:1320px;--header:64px;
   min-height:100vh;background:var(--c-canvas);color:var(--c-text);
   font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
@@ -21,8 +26,8 @@
 /* :where() keeps these element resets at zero added specificity so component
    variant classes (.ff-l-btn--primary etc.) always win their own color. */
 .ff-landing :where(button){font:inherit;color:inherit;cursor:pointer}
-.ff-landing :focus-visible{outline:2px solid var(--c-focus);outline-offset:3px}
-.ff-landing ::selection{background:color-mix(in srgb,var(--c-rose) 32%,transparent)}
+.ff-landing :focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.ff-landing ::selection{background:var(--c-surface-raised);color:var(--c-text)}
 body.ff-l-locked{overflow:hidden}
 
 .ff-l-shell{width:min(calc(100% - 56px),var(--max));margin-inline:auto}
@@ -42,15 +47,15 @@ body.ff-l-locked{overflow:hidden}
 .ff-l-btn:disabled{opacity:.6;cursor:progress}
 
 /* Header */
-.ff-l-header{position:fixed;z-index:180;inset:0 0 auto;height:var(--header);background:color-mix(in srgb,var(--c-canvas) 86%,transparent);border-bottom:1px solid var(--c-border);-webkit-backdrop-filter:blur(20px) saturate(120%);backdrop-filter:blur(20px) saturate(120%);transition:background .2s}
-.ff-l-header[data-scrolled]{background:color-mix(in srgb,var(--c-canvas) 97%,transparent);box-shadow:0 8px 30px rgba(0,0,0,.28)}
+.ff-l-header{position:fixed;z-index:180;inset:0 0 auto;height:var(--header);background:color-mix(in srgb,var(--c-canvas) 94%,transparent);border-bottom:1px solid var(--c-border);transition:background .2s,box-shadow .2s}
+.ff-l-header[data-scrolled]{background:var(--c-canvas);box-shadow:0 6px 20px rgba(0,0,0,.22)}
 .ff-l-header-inner{height:100%;display:flex;align-items:center;gap:24px}
 .ff-l-wordmark{font-size:19px;font-weight:600;letter-spacing:.04em;color:var(--c-rose);white-space:nowrap}
 .ff-l-nav{display:flex;gap:2px;margin-left:8px}
 .ff-l-nav a{min-height:44px;padding:0 12px;border-radius:999px;display:flex;align-items:center;color:var(--c-text-3);font-size:12px;font-weight:600}
 .ff-l-nav a:hover{background:rgba(245,242,235,.05);color:var(--c-text)}
 .ff-l-header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.ff-l-header-actions .ff-l-btn{min-height:40px}
+.ff-l-header-actions .ff-l-btn{min-height:44px}
 .ff-l-menu-btn{display:none}
 
 /* Mobile menu */
@@ -131,7 +136,7 @@ body.ff-l-locked{overflow:hidden}
 /* Film File preview */
 .ff-l-filmfile-layout{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:54px;align-items:center}
 .ff-l-filmfile-panel{margin-top:18px}
-.ff-l-filmfile-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:4px}
+.ff-l-filmfile-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
 .ff-l-filmfile-top{display:grid;grid-template-columns:96px minmax(0,1fr);gap:18px;align-items:center}
 .ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:96px;aspect-ratio:2/3;object-fit:cover;border-radius:8px}
 .ff-l-filmfile-status{color:var(--c-rose-text);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
@@ -152,14 +157,14 @@ body.ff-l-locked{overflow:hidden}
 .ff-l-dna-trait__label{font-size:12px}
 .ff-l-dna-trait__segments{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .ff-l-dna-trait__segments i{height:5px;border-radius:999px;background:rgba(245,242,235,.1)}
-.ff-l-dna-trait__segments i.on{background:var(--c-rose)}
+.ff-l-dna-trait__segments i.on{background:var(--c-text-2)}
 .ff-l-dna-trait__band{font-size:10px;color:var(--c-text-3)}
 .ff-l-dna-sources-label{margin:20px 0 0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
 .ff-l-dna-sources{margin:10px 0 0;padding:0;list-style:none;display:flex;gap:8px;flex-wrap:wrap}
 
 /* Library preview */
 .ff-l-library-panel{margin-top:18px}
-.ff-l-library-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:4px}
+.ff-l-library-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
 .ff-l-library-copy{margin:0;color:var(--c-text-3);font-size:13px;line-height:1.55;max-width:640px}
 .ff-l-library-chips{margin:14px 0 0;padding:0;list-style:none;display:flex;gap:7px;flex-wrap:wrap}
 .ff-l-poster-row{margin:18px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
@@ -189,7 +194,7 @@ body.ff-l-locked{overflow:hidden}
 .ff-l-trust-item p{margin:8px 0 0;color:var(--c-text-3);font-size:11.5px;line-height:1.5}
 
 /* Final CTA */
-.ff-l-final{padding:116px 0;text-align:center;border-top:1px solid var(--c-border);background:radial-gradient(48% 60% at 50% 100%,color-mix(in srgb,var(--c-rose) 8%,transparent),transparent 72%),var(--c-canvas)}
+.ff-l-final{padding:116px 0;text-align:center;border-top:1px solid var(--c-border);background:radial-gradient(48% 60% at 50% 100%,color-mix(in srgb,var(--c-surface-2) 65%,transparent),transparent 72%),var(--c-canvas)}
 .ff-l-final-eyebrow{color:var(--c-rose-text)}
 .ff-l-final-h{margin:12px auto 0;max-width:900px;font-size:clamp(3rem,7vw,6.4rem);line-height:.96;letter-spacing:-.05em;font-weight:600}
 .ff-l-final-h em{display:block;font-weight:400;font-style:italic;color:var(--c-text-2)}
@@ -201,11 +206,11 @@ body.ff-l-locked{overflow:hidden}
 .ff-l-footer-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .ff-l-footer-tagline{margin:8px 0 0;color:var(--c-text-3);font-size:12px}
 .ff-l-footer-nav{display:flex;gap:18px;flex-wrap:wrap}
-.ff-l-footer-nav a{min-height:44px;display:inline-flex;align-items:center;color:var(--c-text-3);font-size:12px}
+.ff-l-footer-nav a{min-height:44px;display:inline-flex;align-items:center;padding-inline:6px;color:var(--c-text-3);font-size:12px}
 .ff-l-footer-nav a:hover{color:var(--c-text)}
 .ff-l-footer-legal{margin-top:18px;padding-top:16px;border-top:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
 .ff-l-attrib{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
-.ff-l-tmdb{display:inline-flex;align-items:center;min-width:0;max-width:100%}
+.ff-l-tmdb{display:inline-flex;align-items:center;min-width:0;max-width:100%;min-height:44px;padding-block:14px}
 /* width+height attrs reserve a 167×14 box; height:auto + max-width:100% lets the
    logo scale DOWN proportionally (never distorted) on very narrow widths/200%. */
 .ff-l-tmdb-logo{height:auto;width:167px;max-width:100%;display:block}
@@ -221,7 +226,7 @@ body.ff-l-locked{overflow:hidden}
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media(max-width:980px){
   .ff-l-nav{display:none}
-  .ff-l-menu-btn{display:inline-flex;min-height:40px}
+  .ff-l-menu-btn{display:inline-flex;min-height:44px}
   .ff-l-filmfile-layout,.ff-l-dna-layout{grid-template-columns:1fr;gap:36px}
   .ff-l-control-grid{grid-template-columns:1fr}
   .ff-l-section-head{grid-template-columns:1fr;gap:18px}

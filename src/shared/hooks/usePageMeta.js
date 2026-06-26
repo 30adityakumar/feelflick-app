@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 
-const DEFAULT_TITLE = 'FeelFlick — Movies that match your mood'
-const DEFAULT_DESC = 'Discover movies based on how you feel. Fast, private, and always free.'
+const DEFAULT_TITLE = 'FeelFlick — Movies, made personal.'
+const DEFAULT_DESC =
+  'Personal movie discovery built around your taste, your moment, and your curiosity.'
 const DEFAULT_IMAGE = 'https://app.feelflick.com/og.jpg'
 const BASE_URL = 'https://app.feelflick.com'
 

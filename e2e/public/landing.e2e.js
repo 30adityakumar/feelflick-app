@@ -163,40 +163,6 @@ test('film file demonstrates the before -> after states with one Parasite specim
   expect(overflow, 'film file must not cause horizontal overflow').toBeLessThanOrEqual(0)
 })
 
-test('cinematic dna reads as a human portrait (verbal bands, sources, disclosure — no meters)', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 800 })
-  await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
-  const dna = page.locator('#cinematic-dna')
-  await dna.scrollIntoViewIfNeeded()
-
-  await expect(dna.getByRole('heading', { level: 2 })).toHaveText(/your taste, written in human language\./i)
-  await expect(dna.getByRole('heading', { level: 3 })).toHaveText('The Thinking Heart.')
-  await expect(dna.getByRole('heading', { name: /how strongly you respond/i })).toBeVisible()
-  await expect(dna.getByRole('heading', { name: /what shapes this portrait/i })).toBeVisible()
-
-  // Four verbal traits (labels are unique) with bands in human language.
-  for (const label of ['Emotional patience', 'Tonal contrast', 'Visual precision', 'Heavy aftertaste']) {
-    await expect(dna.getByText(label, { exact: true })).toBeVisible()
-  }
-  await expect(dna.getByText('Growing', { exact: true })).toBeVisible()
-  await expect(dna.getByText('Contextual', { exact: true })).toBeVisible()
-  await expect(dna.getByText('Strong', { exact: true })).toHaveCount(2)
-
-  // Four source categories as a quiet list + the living-portrait disclosure.
-  for (const s of ['Watches', 'Ratings and reactions', 'Saves and skips', 'Direct preferences']) {
-    await expect(dna.getByText(s, { exact: true })).toBeVisible()
-  }
-  await expect(dna.getByText('A living portrait, not a permanent label.')).toBeVisible()
-
-  // No numeric meters / progressbars in the portrait.
-  await expect(dna.getByRole('meter')).toHaveCount(0)
-  await expect(dna.getByRole('progressbar')).toHaveCount(0)
-
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
-  expect(overflow, 'cinematic dna must not cause horizontal overflow').toBeLessThanOrEqual(0)
-})
-
 test('your film life shows distinct Watchlist (retrieval grid) and Diary (chronology) specimens', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')

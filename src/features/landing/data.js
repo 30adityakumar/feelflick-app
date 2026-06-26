@@ -72,12 +72,11 @@ export const FILM_FILE_EXAMPLE = {
 export const DNA_EXAMPLE = {
   archetype: 'The Thinking Heart.',
   statement: 'Tenderness through ambiguity. Beauty with something uneasy underneath.',
-  // Verbal strength bands + human explanations — no numeric levels, no implied 1–5 score.
   traits: [
-    { label: 'Emotional patience', band: 'Strong', description: 'You stay with quiet films that let feeling accumulate rather than announce itself.' },
-    { label: 'Tonal contrast', band: 'Growing', description: 'You often respond when warmth, humour and unease occupy the same story.' },
-    { label: 'Visual precision', band: 'Strong', description: 'Deliberate composition and controlled detail consistently shape how a film lands.' },
-    { label: 'Heavy aftertaste', band: 'Contextual', description: 'You welcome a lingering emotional weight when the moment is right for it.' },
+    { label: 'Emotional patience', level: 4, band: 'Strong' },
+    { label: 'Tonal contrast', level: 3, band: 'Growing' },
+    { label: 'Visual precision', level: 4, band: 'Strong' },
+    { label: 'Heavy aftertaste', level: 3, band: 'Contextual' },
   ],
   sources: ['Watches', 'Ratings and reactions', 'Saves and skips', 'Direct preferences'],
 }

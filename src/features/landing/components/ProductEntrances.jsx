@@ -30,7 +30,7 @@ export default function ProductEntrances() {
         </ul>
         <div className="ff-l-entrances-cta">
           <button type="button" className="ff-l-btn ff-l-btn--primary" onClick={startGoogleAuth} disabled={isAuthenticating}>
-            {isAuthenticating ? 'Opening Google…' : 'Start with Google'}
+            {isAuthenticating ? 'Opening Google…' : 'Continue with Google'}
           </button>
         </div>
       </div>

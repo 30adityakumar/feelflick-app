@@ -1,7 +1,7 @@
 // src/features/landing/components/LandingMobileMenu.jsx
 import { useEffect, useRef } from 'react'
 import { useLandingAuth } from '../LandingAuth'
-import { LANDING_NAV } from './LandingHeader'
+import { LANDING_NAV } from '../data'
 
 export default function LandingMobileMenu({ open, onClose }) {
   const { startGoogleAuth, isAuthenticating } = useLandingAuth()
@@ -13,6 +13,23 @@ export default function LandingMobileMenu({ open, onClose }) {
     if (!open) return undefined
     triggerRef.current = document.activeElement
     document.body.classList.add('ff-l-locked')
+
+    // Compatibility hardening: make the rest of the page inert while the dialog is
+    // open (in addition to aria-modal + the focus trap). Inert every .ff-landing
+    // sibling of the dialog layer, tracking only what we set so cleanup removes
+    // exactly that — never an ancestor of the dialog, never left inert after close.
+    const layer = sheetRef.current?.closest('.ff-l-menu-layer')
+    const root = layer?.parentElement
+    const inerted = []
+    if (root) {
+      for (const child of root.children) {
+        if (child !== layer && !child.hasAttribute('inert')) {
+          child.setAttribute('inert', '')
+          inerted.push(child)
+        }
+      }
+    }
+
     const id = requestAnimationFrame(() => closeRef.current?.focus())
 
     const onKey = (e) => {
@@ -28,6 +45,8 @@ export default function LandingMobileMenu({ open, onClose }) {
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.classList.remove('ff-l-locked')
+      // Remove inert BEFORE restoring focus so the trigger's region is interactive.
+      inerted.forEach((el) => el.removeAttribute('inert'))
       cancelAnimationFrame(id)
       const t = triggerRef.current
       if (t && t.isConnected) requestAnimationFrame(() => t.focus())
@@ -60,9 +79,8 @@ export default function LandingMobileMenu({ open, onClose }) {
           ))}
         </nav>
         <div className="ff-l-menu-actions">
-          <button type="button" className="ff-l-btn ff-l-btn--ghost" onClick={start} disabled={isAuthenticating}>Sign in</button>
           <button type="button" className="ff-l-btn ff-l-btn--primary" onClick={start} disabled={isAuthenticating}>
-            {isAuthenticating ? 'Opening Google…' : 'Start with Google'}
+            {isAuthenticating ? 'Opening Google…' : 'Continue with Google'}
           </button>
         </div>
       </aside>

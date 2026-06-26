@@ -47,6 +47,17 @@ test('a11y — landing (/)', async ({ page }) => {
   await audit(page, 'landing /')
 })
 
+test('a11y — landing under default, forced-colors and reduced-motion', async ({ page }) => {
+  for (const media of [{}, { forcedColors: 'active' }, { reducedMotion: 'reduce' }]) {
+    // Reset, then apply, so each pass is isolated and nothing leaks between runs.
+    await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference', ...media })
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await audit(page, `landing ${JSON.stringify(media)}`)
+  }
+  await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference' })
+})
+
 test('a11y — about (/about)', async ({ page }) => {
   await page.goto('/about')
   await page.waitForLoadState('networkidle')

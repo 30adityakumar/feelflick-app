@@ -135,6 +135,34 @@ test('landing previews use real tab patterns and no fake persistence controls', 
   await expect(page.getByRole('button', { name: /^follow$/i })).toHaveCount(0)
 })
 
+test('film file demonstrates the before -> after states with one Parasite specimen', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  const section = page.locator('#film-file')
+  await section.scrollIntoViewIfNeeded()
+  await expect(section.getByRole('heading', { level: 2 })).toHaveText(/decide before\. reflect after\./i)
+
+  const before = page.locator('#ff-l-filmfile-panel-before')
+  const after = page.locator('#ff-l-filmfile-panel-after')
+  // Default: spoiler-safe before state visible; after state hidden.
+  await expect(before).toBeVisible()
+  await expect(after).toBeHidden()
+  await expect(before.getByText('Before watching · spoiler-safe')).toBeVisible()
+  await expect(before.getByRole('img', { name: 'Parasite poster' })).toBeVisible()
+
+  // Activate "After watching": after state opens, before hides; honest portrait note shows.
+  await page.getByRole('tab', { name: /after watching/i }).click()
+  await expect(after).toBeVisible()
+  await expect(before).toBeHidden()
+  await expect(after.getByText('Watched · reflection open')).toBeVisible()
+  await expect(after.getByText(/Other titles may offer a lighter reflection state/i)).toBeVisible()
+
+  // No horizontal overflow introduced by the state switch.
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+  expect(overflow, 'film file must not cause horizontal overflow').toBeLessThanOrEqual(0)
+})
+
 test('footer links to valid legal routes only (no /feedback) + TMDB attribution', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('.ff-l-footer-nav a[href="/about"]')).toHaveCount(1)

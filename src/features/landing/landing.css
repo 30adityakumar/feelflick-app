@@ -133,18 +133,20 @@
 .ff-l-tab:hover:not(.is-active){color:var(--c-text)}
 
 /* Film File preview */
-.ff-l-filmfile-layout{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:54px;align-items:center}
+.ff-l-filmfile-layout{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:54px;align-items:start}
 .ff-l-filmfile-panel{margin-top:18px}
 .ff-l-filmfile-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
 .ff-l-filmfile-top{display:grid;grid-template-columns:96px minmax(0,1fr);gap:18px;align-items:center}
 .ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:96px;aspect-ratio:2/3;object-fit:cover;border-radius:8px}
 .ff-l-filmfile-status{color:var(--c-rose-text);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .ff-l-filmfile-title{margin:7px 0 0;font-size:1.7rem;font-weight:600;letter-spacing:-.02em}
-.ff-l-filmfile-summary{margin:8px 0 0;color:var(--c-text-3);font-size:12.5px;line-height:1.5}
+.ff-l-filmfile-summary{margin:8px 0 0;color:var(--c-text-2);font-size:13px;line-height:1.55}
 .ff-l-filmfile-rows{margin:18px 0 0;border-top:1px solid var(--c-border)}
-.ff-l-filmfile-row{padding:13px 0;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;gap:18px;align-items:baseline}
-.ff-l-filmfile-row dt{font-size:12px;font-weight:600;color:var(--c-text)}
-.ff-l-filmfile-row dd{margin:0;color:var(--c-text-3);font-size:11.5px;text-align:right}
+/* Restrained two-column rows (label | value) — left-aligned, editorial, not form fields.
+   Stacks on mobile (see responsive block). */
+.ff-l-filmfile-row{padding:13px 0;border-bottom:1px solid var(--c-border);display:grid;grid-template-columns:minmax(140px,220px) minmax(0,1fr);gap:24px;align-items:baseline}
+.ff-l-filmfile-row dt{font-size:12.5px;font-weight:600;color:var(--c-text)}
+.ff-l-filmfile-row dd{margin:0;color:var(--c-text-2);font-size:12.5px;line-height:1.5}
 .ff-l-filmfile-note{margin:16px 0 0;padding:12px 14px;border-left:2px solid var(--c-border-strong);background:rgba(245,242,235,.03);color:var(--c-text-2);font-size:12px;line-height:1.5}
 
 /* DNA preview */
@@ -261,6 +263,7 @@
   /* Wrap into a grid (no horizontal-scroll region) so there is no focusable
      scroll container to manage and no overflow. */
   .ff-l-poster-row{grid-template-columns:repeat(3,1fr);gap:10px}
+  .ff-l-filmfile-row{grid-template-columns:1fr;gap:4px}
   .ff-l-final{padding:74px 0}
   .ff-l-footer-inner{flex-direction:column}
 }

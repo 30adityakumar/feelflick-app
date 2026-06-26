@@ -47,25 +47,25 @@ export const FILM_FILE_EXAMPLE = {
   poster: { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', title: 'Parasite' },
   title: 'Parasite',
   before: {
-    status: 'Spoiler protection on',
-    summary: 'A spoiler-safe decision file: why it fits, what kind of watch it is, where it may be available, and what to expect from the experience.',
+    status: 'Before watching · spoiler-safe',
+    summary: 'A practical decision file: why it may fit, what kind of watch it is, and what to expect—without giving the film away.',
     rows: [
-      ['Why this film', 'Personal fit and expected aftertaste'],
-      ['Experience profile', 'Attention, weight, accessibility, viewing mode'],
-      ['United States availability', 'Where to watch, via TMDB and JustWatch'],
-      ['Cast and context', 'Spoiler-safe people and background'],
+      ['Why this film', 'Personal reasons grounded in your taste and the moment'],
+      ['Experience profile', 'Pace, attention, emotional weight and viewing mode'],
+      ['Where to watch', 'Regional availability via supported providers'],
+      ['Cast and context', 'Useful people and background, kept spoiler-safe'],
     ],
   },
   after: {
-    status: 'Watched · deeper portrait',
-    summary: 'After a settled Watched action, the Film File opens your full reflection and deeper post-watch context. Curated depth varies by title.',
+    status: 'Watched · reflection open',
+    summary: 'The Film File now keeps how the film landed for you and reveals deeper post-watch context where FeelFlick has something meaningful to add.',
     rows: [
       ['Your private response', 'Rating, reaction and a private note'],
-      ['Watched-gated social notes', 'Notes from people you follow, after watching'],
-      ['Generated impressions', 'Clearly labelled, not real reviews'],
-      ['Curated portrait where available', 'A deeper reading for select titles'],
+      ['Followed voices', 'Watched-gated notes from people you follow'],
+      ['Generated impressions', 'Clearly labelled context—not fabricated reviews'],
+      ['Deeper portrait', 'Curated interpretation where genuinely available'],
     ],
-    note: 'Parasite currently has a curated Film Portrait. Other films receive an honest private-reflection state without fabricated analysis.',
+    note: 'Parasite includes a curated Film Portrait. Other titles may offer a lighter reflection state rather than fabricated depth.',
   },
 }
 

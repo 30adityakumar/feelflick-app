@@ -197,6 +197,45 @@ test('cinematic dna reads as a human portrait (verbal bands, sources, disclosure
   expect(overflow, 'cinematic dna must not cause horizontal overflow').toBeLessThanOrEqual(0)
 })
 
+test('your film life shows distinct Watchlist (retrieval grid) and Diary (chronology) specimens', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  const section = page.locator('#library')
+  await section.scrollIntoViewIfNeeded()
+  await expect(section.getByRole('heading', { level: 2 })).toHaveText(/save the future\. remember the past\./i)
+
+  const wl = page.locator('#ff-l-library-panel-watchlist')
+  const di = page.locator('#ff-l-library-panel-diary')
+
+  // Default: Watchlist visible as a retrieval grid (5 films); Diary hidden.
+  await expect(wl).toBeVisible()
+  await expect(di).toBeHidden()
+  await expect(wl.getByRole('heading', { name: /saved for later/i })).toBeVisible()
+  await expect(wl.getByText('Retrieval tools')).toBeVisible()
+  await expect(wl.getByRole('img', { name: 'Past Lives poster' })).toBeVisible()
+  await expect(wl.locator('.ff-l-watch-item')).toHaveCount(5)
+
+  // Activate Diary: chronological record by month appears; Watchlist hides.
+  await page.getByRole('tab', { name: /diary/i }).click()
+  await expect(di).toBeVisible()
+  await expect(wl).toBeHidden()
+  await expect(di.getByRole('heading', { name: /a record of how films landed/i })).toBeVisible()
+  await expect(di.getByRole('heading', { name: 'June 2026' })).toBeVisible()
+  await expect(di.getByRole('heading', { name: 'May 2026' })).toBeVisible()
+  await expect(di.getByText('It kept changing shape without ever losing control.')).toBeVisible()
+  await expect(di.locator('.ff-l-diary-entry')).toHaveCount(4)
+  // Diary is chronological, not the Watchlist poster grid.
+  await expect(di.locator('.ff-l-watch-grid')).toHaveCount(0)
+
+  // Month headings are not sticky (verified against real applied CSS in the browser).
+  const monthPosition = await di.locator('.ff-l-diary-month__label').first().evaluate((el) => getComputedStyle(el).position)
+  expect(monthPosition, 'diary month headings must not be sticky').not.toBe('sticky')
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+  expect(overflow, 'your film life must not cause horizontal overflow').toBeLessThanOrEqual(0)
+})
+
 test('footer links to valid legal routes only (no /feedback) + TMDB attribution', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('.ff-l-footer-nav a[href="/about"]')).toHaveCount(1)

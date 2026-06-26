@@ -82,29 +82,53 @@ export const DNA_EXAMPLE = {
   sources: ['Watches', 'Ratings and reactions', 'Saves and skips', 'Direct preferences'],
 }
 
+// Verified illustrative posters (TMDB paths) — each returns 200 image/jpeg and visually
+// matches the film. Shared by Watchlist + Diary so a film that appears in both always
+// uses one verified path (the old Moonlight /qAwFbsz… path was invalid/404 and is gone).
+const LIB_POSTER = {
+  'Past Lives': '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg',
+  Arrival: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg',
+  Her: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg',
+  Moonlight: '/qLnfEmPrDjJfPyyddLJPkXmshkp.jpg',
+  'Get Out': '/tFXcEccSQMf3lfhfXKSU9iRBpa3.jpg',
+  Parasite: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
+}
+
+// Watchlist = a calm visual retrieval grid of films saved for later. `tools` are static,
+// non-interactive descriptions of supported retrieval (not real controls).
 export const WATCHLIST_EXAMPLE = {
-  copy: 'Films saved for another moment. Search, filter, sort, open a Film File, or remove a title without turning your private library into another recommendation feed.',
-  meta: 'Saved for later',
-  chips: ['Search', 'Mood', 'Recently saved'],
+  heading: 'Saved for later',
+  copy: 'A calm place to find the film you saved when the right mood, company or amount of time arrives.',
+  tools: ['Search by title', 'Filter by mood', 'Recently saved'],
   films: [
-    { title: 'Past Lives', meta: 'Saved', path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg' },
-    { title: 'Arrival', meta: 'Thoughtful', path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg' },
-    { title: 'Her', meta: 'Warm sci-fi', path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg' },
-    { title: 'Moonlight', meta: 'Tender', path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg' },
-    { title: 'Get Out', meta: 'Tense', path: '/tFXcEccSQMf3lfhfXKSU9iRBpa3.jpg' },
+    { title: 'Past Lives', meta: 'Quiet evening', path: LIB_POSTER['Past Lives'] },
+    { title: 'Arrival', meta: 'Thoughtful', path: LIB_POSTER.Arrival },
+    { title: 'Her', meta: 'Warm sci-fi', path: LIB_POSTER.Her },
+    { title: 'Moonlight', meta: 'Tender', path: LIB_POSTER.Moonlight },
+    { title: 'Get Out', meta: 'Tense', path: LIB_POSTER['Get Out'] },
   ],
 }
 
+// Diary = a truthful chronological record grouped by month. Each entry keeps the private
+// reaction + note attached to the viewing. Illustrative private notes, not public reviews.
 export const DIARY_EXAMPLE = {
-  copy: 'A chronological record of what you watched and how it landed. Ratings and reactions stay attached to the viewing rather than becoming a public feed.',
-  meta: 'Watched',
-  chips: ['Search', 'Loved', 'Newest first'],
-  films: [
-    { title: 'Parasite', meta: 'Loved', path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg' },
-    { title: 'Past Lives', meta: 'Liked', path: '/k3waqVXSnvCZWfJYNtdamTgTtTA.jpg' },
-    { title: 'Arrival', meta: 'Loved', path: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg' },
-    { title: 'Moonlight', meta: 'Loved', path: '/qAwFbszz0kRyTuXmMeKQZCX3Q2O.jpg' },
-    { title: 'Her', meta: 'Liked', path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg' },
+  heading: 'A record of how films landed',
+  copy: 'Watched films stay in chronological order with your rating, reaction and private note attached to the viewing.',
+  months: [
+    {
+      label: 'June 2026',
+      entries: [
+        { day: '18', datetime: '2026-06-18', dateLabel: 'June 18, 2026', title: 'Parasite', reaction: 'Loved', note: 'It kept changing shape without ever losing control.', path: LIB_POSTER.Parasite },
+        { day: '7', datetime: '2026-06-07', dateLabel: 'June 7, 2026', title: 'Past Lives', reaction: 'Liked', note: 'Quiet, exact and still lingering.', path: LIB_POSTER['Past Lives'] },
+      ],
+    },
+    {
+      label: 'May 2026',
+      entries: [
+        { day: '29', datetime: '2026-05-29', dateLabel: 'May 29, 2026', title: 'Arrival', reaction: 'Loved', note: 'The emotion arrived before the idea did.', path: LIB_POSTER.Arrival },
+        { day: '11', datetime: '2026-05-11', dateLabel: 'May 11, 2026', title: 'Moonlight', reaction: 'Loved', note: 'Tender without simplifying anything.', path: LIB_POSTER.Moonlight },
+      ],
+    },
   ],
 }
 

@@ -169,15 +169,39 @@
 .ff-l-dna-source::before{content:"";position:absolute;left:0;top:.5em;width:4px;height:4px;border-radius:50%;background:var(--c-text-3)}
 .ff-l-dna-disclosure{margin:24px 0 0;padding-top:16px;border-top:1px solid var(--c-border);color:var(--c-text-3);font-size:12.5px;line-height:1.5}
 
-/* Library preview */
+/* "Your film life" — one private-library specimen; each tab expresses its own job. */
 .ff-l-library-panel{margin-top:18px}
 .ff-l-library-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
-.ff-l-library-copy{margin:0;color:var(--c-text-3);font-size:13px;line-height:1.55;max-width:640px}
-.ff-l-library-chips{margin:14px 0 0;padding:0;list-style:none;display:flex;gap:7px;flex-wrap:wrap}
-.ff-l-poster-row{margin:18px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-.ff-l-poster-item strong{display:block;margin-top:8px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ff-l-poster-item span{display:block;margin-top:3px;color:var(--c-text-3);font-size:10px}
-.ff-l-poster-img,.ff-l-poster-item .ff-l-poster-fallback{aspect-ratio:2/3;object-fit:cover;border-radius:8px;width:100%}
+.ff-l-library-h3{margin:2px 0 0;font-size:1.2rem;font-weight:600;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-library-copy{margin:8px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55;max-width:60ch}
+/* Retrieval tools — quiet explanatory text, not pills or controls. */
+.ff-l-tools{margin:18px 0 0}
+.ff-l-tools__label{margin:0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-tools__list{margin:6px 0 0;padding:0;list-style:none;color:var(--c-text-2);font-size:12.5px;line-height:1.7}
+.ff-l-tools__item{display:inline}
+.ff-l-tools__item:not(:last-child)::after{content:"·";margin:0 9px;color:var(--c-text-3)}
+/* Watchlist — calm visual retrieval grid (no shelf, no carousel, no fade). */
+.ff-l-watch-grid{margin:20px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:16px 14px}
+.ff-l-watch-poster{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px}
+.ff-l-watch-title{display:block;margin-top:9px;font-size:12.5px;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ff-l-watch-meta{display:block;margin-top:2px;color:var(--c-text-3);font-size:10.5px}
+/* Diary — chronological record; entries are rows (date rail · thumbnail · response). */
+.ff-l-diary{margin:20px 0 0}
+.ff-l-diary-month{margin-top:24px}
+.ff-l-diary-month:first-child{margin-top:0}
+.ff-l-diary-month__label{margin:0;position:static;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-diary-list{margin:8px 0 0;padding:0;list-style:none}
+.ff-l-diary-entry{padding:16px 0;border-top:1px solid var(--c-border);display:grid;grid-template-columns:2.2rem 44px minmax(0,1fr);grid-template-areas:"day poster id" "day poster note";column-gap:16px;row-gap:4px;align-items:start}
+.ff-l-diary-entry:first-child{border-top:0;padding-top:2px}
+.ff-l-diary-entry__day{grid-area:day;color:var(--c-text-3);font-size:13px;font-variant-numeric:tabular-nums;line-height:1.3}
+.ff-l-diary-poster{grid-area:poster;width:44px;aspect-ratio:2/3;object-fit:cover;border-radius:6px}
+/* Compact fallback for the small diary thumbnail (base fallback padding is too large here). */
+.ff-l-diary-entry .ff-l-poster-fallback{padding:6px}
+.ff-l-diary-entry .ff-l-poster-fallback .ff-l-poster-fallback__t{font-size:8px;line-height:1.1}
+.ff-l-diary-entry__id{grid-area:id;min-width:0}
+.ff-l-diary-entry__title{display:block;font-size:15px;font-weight:600;color:var(--c-text);line-height:1.25}
+.ff-l-diary-entry__reaction{display:block;margin-top:3px;color:var(--c-rose-text);font-size:11px;font-weight:700;letter-spacing:.04em}
+.ff-l-diary-entry__note{grid-area:note;margin:6px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
 
 /* People + Control */
 .ff-l-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
@@ -235,6 +259,7 @@
   .ff-l-filmfile-layout,.ff-l-dna-layout{grid-template-columns:1fr;gap:36px}
   .ff-l-control-grid{grid-template-columns:1fr}
   .ff-l-section-head{grid-template-columns:1fr;gap:18px}
+  .ff-l-watch-grid{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:720px){
   .ff-landing{--header:58px}
@@ -265,9 +290,9 @@
   .ff-l-entrance{padding:22px 0}
   .ff-l-entrance__copy{max-width:none}
   .ff-l-dna-sources{grid-template-columns:1fr}
-  /* Wrap into a grid (no horizontal-scroll region) so there is no focusable
-     scroll container to manage and no overflow. */
-  .ff-l-poster-row{grid-template-columns:repeat(3,1fr);gap:10px}
+  /* Diary entry stacks: date above, then poster + identity, then the note full-width.
+     (Watchlist grid stays a responsive grid — 3 cols from the 980 rule — never a shelf.) */
+  .ff-l-diary-entry{grid-template-columns:44px minmax(0,1fr);grid-template-areas:"day day" "poster id" "note note";column-gap:14px}
   .ff-l-filmfile-row{grid-template-columns:1fr;gap:4px}
   .ff-l-final{padding:74px 0}
   .ff-l-footer-inner{flex-direction:column}
@@ -275,6 +300,7 @@
 @media(max-width:380px){
   .ff-l-filmfile-top{grid-template-columns:72px minmax(0,1fr)}
   .ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:72px}
+  .ff-l-watch-grid{grid-template-columns:repeat(2,1fr)}
 }
 
 /* Short landscape (phones turned sideways): compress the hero + flatten/shrink the

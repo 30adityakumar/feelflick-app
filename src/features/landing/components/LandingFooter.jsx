@@ -17,8 +17,8 @@ export default function LandingFooter() {
           <span className="ff-l-wordmark">FEELFLICK</span>
           <p className="ff-l-footer-tagline">Movies, made personal.</p>
           <p className="ff-l-footer-note">
-            Built by Aditya Kumar in Toronto, around a belief that recommendations should
-            feel personal.
+            Discovery shaped by your taste, your mood and your curiosity—with reasons you
+            can trust, never an endless feed.
           </p>
         </div>
         <nav className="ff-l-footer-nav" aria-label="Footer">

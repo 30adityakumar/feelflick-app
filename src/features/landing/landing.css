@@ -48,7 +48,8 @@
 /* The Landing page header is now the SHARED app header (src/app/header, rendered via
    SiteHeaderHost) — there is no Landing-specific header markup or CSS. The only
    ".ff-l-wordmark" left is the footer back-cover mark below. */
-.ff-l-wordmark{font-size:19px;font-weight:600;letter-spacing:.04em;color:var(--c-rose);white-space:nowrap}
+/* Matches the shared app Header wordmark: Inter extra-bold, tight tracking, paper-white. */
+.ff-l-wordmark{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;color:var(--c-text);white-space:nowrap}
 
 /* Hero — top offset uses the shared header's measured height (--hdr-h, set by the
    app Header), with the landing's own --header as a pre-measurement fallback. */
@@ -247,14 +248,15 @@
    columns on the right, then the required TMDB attribution. On-brand tokens; recedes
    behind the final CTA above. */
 .ff-l-footer{padding:56px 0 28px;border-top:1px solid var(--c-border);background:var(--c-canvas)}
-.ff-l-footer-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:40px;flex-wrap:wrap}
-.ff-l-footer-brand{max-width:340px}
-.ff-l-footer-tagline{margin:9px 0 0;color:var(--c-text-2);font-size:13px}
-.ff-l-footer-note{margin:12px 0 0;color:var(--c-text-3);font-size:12px;line-height:1.55;max-width:36ch}
-.ff-l-footer-cols{display:grid;grid-template-columns:repeat(3,auto);gap:36px 48px}
-.ff-l-footer-col__title{margin:0 0 10px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+/* Balanced two-track top: brand block | nav (which holds three even columns). */
+.ff-l-footer-inner{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.9fr);gap:clamp(32px,5vw,72px);align-items:start}
+.ff-l-footer-brand{max-width:36ch}
+.ff-l-footer-tagline{margin:10px 0 0;color:var(--c-text-2);font-size:13.5px}
+.ff-l-footer-note{margin:12px 0 0;color:var(--c-text-3);font-size:12.5px;line-height:1.55;max-width:34ch}
+.ff-l-footer-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px 28px}
+.ff-l-footer-col__title{margin:0 0 8px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
 .ff-l-footer-col ul{margin:0;padding:0;list-style:none}
-.ff-l-footer-nav a{min-height:38px;display:inline-flex;align-items:center;color:var(--c-text-2);font-size:13px}
+.ff-l-footer-nav a{min-height:40px;display:inline-flex;align-items:center;color:var(--c-text-2);font-size:13px}
 .ff-l-footer-nav a:hover{color:var(--c-text)}
 .ff-l-footer-legal{margin-top:44px;padding-top:18px;border-top:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
 .ff-l-attrib{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
@@ -318,11 +320,10 @@
   .ff-l-filmfile-row{grid-template-columns:1fr;gap:4px}
   .ff-l-final{padding:74px 0}
   .ff-l-footer{padding:40px 0 24px}
-  .ff-l-footer-inner{flex-direction:column;gap:28px}
-  .ff-l-footer-cols{gap:24px 32px}
+  .ff-l-footer-inner{grid-template-columns:1fr;gap:28px}
+  .ff-l-footer-cols{gap:22px 18px}
 }
 @media(max-width:380px){
-  .ff-l-footer-cols{grid-template-columns:1fr 1fr}
   .ff-l-filmfile-top{grid-template-columns:72px minmax(0,1fr)}
   .ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:72px}
   .ff-l-dna-trait{grid-template-columns:1fr}

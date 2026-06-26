@@ -5,11 +5,11 @@ import LandingFooter from '../components/LandingFooter'
 afterEach(() => cleanup())
 
 describe('LandingFooter', () => {
-  it('shows the brand, tagline and a human line', () => {
+  it('shows the brand, tagline and a supporting line', () => {
     render(<LandingFooter />)
     expect(screen.getByText('FEELFLICK')).toBeInTheDocument()
     expect(screen.getByText('Movies, made personal.')).toBeInTheDocument()
-    expect(screen.getByText(/Built by Aditya Kumar in Toronto/i)).toBeInTheDocument()
+    expect(screen.getByText(/Discovery shaped by your taste, your mood and your curiosity/i)).toBeInTheDocument()
   })
 
   it('groups valid public/legal links into a labelled Footer nav (no /feedback)', () => {

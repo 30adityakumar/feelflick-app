@@ -22,6 +22,51 @@ test('landing head carries the canonical metadata', async ({ page }) => {
   expect(desc).toBe('Personal movie discovery built around your taste, your moment, and your curiosity.')
 })
 
+test('desktop header is simplified: FeelFlick wordmark + one "How it works" link + one CTA, no Menu', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  const header = page.locator('header.ff-l-header')
+  // Canonical mixed-case wordmark (not all-caps FEELFLICK).
+  await expect(header.getByRole('link', { name: /feelflick home/i })).toHaveText('FeelFlick')
+  // Exactly one header nav link, and it is "How it works".
+  await expect(header.locator('.ff-l-nav a')).toHaveCount(1)
+  await expect(header.getByRole('link', { name: /how it works/i })).toHaveAttribute('href', '#how-it-works')
+  for (const gone of [/film file/i, /cinematic dna/i, /^library$/i, /people/i]) {
+    await expect(header.getByRole('link', { name: gone })).toHaveCount(0)
+  }
+  // One compact Continue with Google action; no Menu trigger; no drawer/dialog.
+  await expect(header.getByRole('button', { name: /continue with google/i })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+})
+
+test('mobile header shows only the wordmark initially (no Menu, no visible header CTA)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('header.ff-l-header').getByRole('link', { name: /feelflick home/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  // The header CTA is present in the DOM but not visible while the hero CTA is in view.
+  await expect(page.locator('.ff-l-header-cta')).toBeHidden()
+})
+
+test('mobile header reveals a compact "Continue with Google" once the hero CTA scrolls away', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  const headerCta = page.locator('.ff-l-header-cta')
+  await expect(headerCta).toBeHidden()
+  // Scroll the hero CTA out of view.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await expect(headerCta).toBeVisible()
+  await expect(headerCta).toHaveAccessibleName(/continue with google/i)
+  // Scroll back up — it hides again.
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect(headerCta).toBeHidden()
+})
+
 test('every landing tab aria-controls resolves to a panel in the DOM', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })

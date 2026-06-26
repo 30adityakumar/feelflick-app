@@ -1,6 +1,9 @@
 // src/features/landing/components/DnaPreview.jsx
-// Illustrative Cinematic DNA. No percentages, no confidence number, no fake counts,
-// no correction control. Source categories replace numeric evidence counts.
+// Illustrative Cinematic DNA — a thoughtful, evolving portrait of taste written in human
+// language. No percentages, no confidence number, no numeric meters, no fake counts, no
+// correction control. Verbal strength bands + short explanations replace the old segment
+// meters; source categories are a quiet editorial list, not selectable chips. Closing
+// disclosure makes clear it is a living portrait, not a permanent label.
 import { DNA_EXAMPLE } from '../data'
 
 export default function DnaPreview() {
@@ -11,29 +14,37 @@ export default function DnaPreview() {
           <p className="ff-l-eyebrow">Cinematic DNA</p>
           <h2 id="ff-l-dna-h" className="ff-l-section-h2">Your taste, written in <em>human language.</em></h2>
           <p className="ff-l-section-lede">
-            A private, evidence-led portrait of recurring patterns in how films land for
-            you. Direct preferences remain editable; learned patterns remain inspectable.
+            An evolving portrait of what moves you, what challenges you and what depends on
+            the moment—built from your choices and open to inspection.
           </p>
         </div>
-        <article className="ff-l-card ff-l-example ff-l-dna-card">
+
+        <article className="ff-l-dna-card">
           <p className="ff-l-example-tag">Illustrative Cinematic DNA</p>
           <h3 className="ff-l-dna-archetype">{DNA_EXAMPLE.archetype}</h3>
           <p className="ff-l-dna-statement">{DNA_EXAMPLE.statement}</p>
+
+          <h4 className="ff-l-dna-subhead">How strongly you respond</h4>
           <ul className="ff-l-dna-traits">
             {DNA_EXAMPLE.traits.map((t) => (
               <li key={t.label} className="ff-l-dna-trait">
-                <span className="ff-l-dna-trait__label">{t.label}</span>
-                <span className="ff-l-dna-trait__segments" aria-hidden="true">
-                  {[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= t.level ? 'on' : ''} />)}
-                </span>
-                <span className="ff-l-dna-trait__band">{t.band}</span>
+                <div className="ff-l-dna-trait__head">
+                  <span className="ff-l-dna-trait__label">{t.label}</span>
+                  <span className="ff-l-dna-trait__band">{t.band}</span>
+                </div>
+                <p className="ff-l-dna-trait__desc">{t.description}</p>
               </li>
             ))}
           </ul>
-          <p className="ff-l-dna-sources-label">Built from</p>
+
+          <h4 className="ff-l-dna-subhead">What shapes this portrait</h4>
           <ul className="ff-l-dna-sources">
-            {DNA_EXAMPLE.sources.map((s) => <li key={s} className="ff-l-chip">{s}</li>)}
+            {DNA_EXAMPLE.sources.map((s) => (
+              <li key={s} className="ff-l-dna-source">{s}</li>
+            ))}
           </ul>
+
+          <p className="ff-l-dna-disclosure">A living portrait, not a permanent label.</p>
         </article>
       </div>
     </section>

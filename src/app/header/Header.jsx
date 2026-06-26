@@ -311,7 +311,7 @@ export default function Header({ onOpenSearch }) {
       }`}
     >
       <div className="max-w-[1400px] mx-auto px-4 sm:px-7 lg:px-7">
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-6 lg:gap-7 h-14 sm:h-16">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-6 lg:gap-7 h-14 sm:h-16">
 
           {/* Left: wordmark + morphing nav */}
           <div className="flex items-center gap-6 lg:gap-8 min-w-0">
@@ -336,12 +336,13 @@ export default function Header({ onOpenSearch }) {
 
           {/* Right: bell + (sign in / avatar) */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Mobile-only search trigger (icon) — keeps CenterSearch hidden below lg */}
+            {/* Mobile + tablet search trigger (icon) — keeps CenterSearch hidden
+                below lg. 44×44 practical touch target. */}
             <button
               type="button"
               onClick={onOpenSearch}
               aria-label="Search films"
-              className="lg:hidden w-9 h-9 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/8 transition-all duration-200"
+              className="lg:hidden w-11 h-11 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/8 transition-all duration-200"
             >
               <SearchIcon className="h-[18px] w-[18px]" />
             </button>
@@ -349,15 +350,18 @@ export default function Header({ onOpenSearch }) {
             {/* Bell removed — see file-header comment. Restore alongside the
                 Feed route when /feed ships. */}
 
+            {/* Anonymous Sign in — visible in the top header at EVERY width
+                (mobile included; there is no anonymous bottom bar). Visible label
+                "Sign in"; accessible name "Sign in with Google". 44px min target. */}
             {!user && (
               <button
                 type="button"
                 onClick={signInWithGoogle}
                 disabled={isAuthenticating}
-                className="hidden md:flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:text-white active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 sm:px-4 py-2 min-h-[44px] text-sm font-semibold text-white/80 transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:text-white active:scale-95 disabled:opacity-50"
                 aria-label="Sign in with Google"
               >
-                <LogIn className="h-4 w-4" />
+                <LogIn className="h-4 w-4 shrink-0" />
                 {isAuthenticating ? 'Signing in…' : 'Sign in'}
               </button>
             )}

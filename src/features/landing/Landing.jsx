@@ -4,8 +4,8 @@
 // deterministic (no day/time greeting, no product fetch); one shared OAuth authority.
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import './landing.css'
+import SiteHeaderHost from '@/app/header/SiteHeaderHost'
 import { LandingAuthProvider } from './LandingAuth'
-import LandingHeader from './components/LandingHeader'
 import LandingHero from './components/LandingHero'
 import PrinciplesStrip from './components/PrinciplesStrip'
 import ProductEntrances from './components/ProductEntrances'
@@ -29,7 +29,7 @@ export default function Landing() {
     <LandingAuthProvider>
       <div className="ff-landing">
         <a href="#main" className="ff-l-skip">Skip to content</a>
-        <LandingHeader />
+        <SiteHeaderHost />
         <main id="main">
           <LandingHero />
           <PrinciplesStrip />

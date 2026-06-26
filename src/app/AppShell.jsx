@@ -1,80 +1,20 @@
 // src/app/AppShell.jsx
 import { useEffect, useRef, useState } from 'react'
-import { Outlet, useLocation, NavLink } from 'react-router-dom'
-import { Sparkles, Compass, LogIn } from 'lucide-react'
-import Header from '@/app/header/Header'
-import SearchBar from '@/app/header/components/SearchBar'
+import { Outlet, useLocation } from 'react-router-dom'
 import BottomNav from '@/app/header/components/BottomNav'
+import SiteHeaderHost from '@/app/header/SiteHeaderHost'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePendingDeletion } from '@/shared/hooks/usePendingDeletion'
-import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { identify, resetAnalytics, track } from '@/shared/services/analytics'
 import { redactPath } from '@/shared/services/betaEvents'
 
 export default function AppShell() {
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [headerVisible, setHeaderVisible] = useState(true)
-  const lastScrollY = useRef(0)
-  const ticking = useRef(false)
   const location = useLocation()
   const { user, isAuthenticated } = useAuthSession()
 
-  // Keyboard shortcut for search (/)
+  // Reset scroll + track page view on route change. (Header visibility + the
+  // global search live in SiteHeaderHost, shared with the anonymous Landing.)
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const target = e.target
-        // Don't trigger if user is typing in an input/textarea
-        if (
-          target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable
-        ) {
-          return
-        }
-        e.preventDefault()
-        setSearchOpen(true)
-      }
-      
-      // Escape closes search
-      if (e.key === 'Escape' && searchOpen) {
-        setSearchOpen(false)
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [searchOpen])
-
-  // Smart header hide-on-scroll (Netflix-style)
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!ticking.current) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY
-          
-          // Show header when scrolling up or at top
-          if (currentScrollY < lastScrollY.current || currentScrollY < 100) {
-            setHeaderVisible(true)
-          } 
-          // Hide header when scrolling down (beyond 100px)
-          else if (currentScrollY > 100 && currentScrollY > lastScrollY.current) {
-            setHeaderVisible(false)
-          }
-          
-          lastScrollY.current = currentScrollY
-          ticking.current = false
-        })
-        ticking.current = true
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Reset header visibility on route change + track page view
-  useEffect(() => {
-    setHeaderVisible(true)
     // B1.4: redact dynamic path segments (/profile/:id, /lists/:id, /movie/:id …) so no real
     // user/content id ever reaches analytics in the page path.
     track('page_viewed', { path: redactPath(location.pathname) })
@@ -108,35 +48,26 @@ export default function AppShell() {
         <div className="absolute inset-0" style={{ background: 'var(--color-canvas, #15120f)' }} />
       </div>
 
-      {/* Header - Fixed at top with smart hide */}
-      <div
-        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
-          headerVisible ? 'translate-y-0' : '-translate-y-full'
-        }`}
-      >
-        <Header onOpenSearch={() => setSearchOpen(true)} />
-      </div>
+      {/* Shared fixed header + global search — the same host the anonymous Landing
+          renders, so there is one header implementation, not a copied variant. */}
+      <SiteHeaderHost />
 
-      {/* Page content - Full width. Bottom padding clears the mobile nav:
-          BottomNav (authed) is ~85px tall + safe-area; UnauthMobileNav is
-          h-16 + safe-area. pb-28 (112px) clears both comfortably. */}
+      {/* Page content. Authenticated routes reserve space for the mobile BottomNav
+          (~85px + safe-area). Anonymous app routes have no bottom bar, so they no
+          longer reserve mobile bottom space. */}
       <main
-        className={`relative z-10 w-full ${isAuthenticated ? 'pb-28 md:pb-0' : 'pb-20 md:pb-0'}`}
+        className={`relative z-10 w-full ${isAuthenticated ? 'pb-28 md:pb-0' : ''}`}
         style={{ paddingTop: 'var(--hdr-h, 56px)' }}
       >
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation — BottomNav handles authed users globally.
-          Unauth users keep the older 3-tab inline nav (Discover/Browse/Sign in)
-          since BottomNav assumes an authed session for DNA/Account targets. */}
-      {isAuthenticated ? <BottomNav /> : <UnauthMobileNav />}
+      {/* Mobile bottom navigation — authenticated users only. Anonymous users have
+          no bottom bar; their Search + Sign in live in the shared top header. */}
+      {isAuthenticated && <BottomNav />}
 
       {/* Pending-deletion banner — only when authed AND a request exists. */}
       {isAuthenticated && <PendingDeletionBanner />}
-
-      {/* Global search modal */}
-      <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Loading indicator for route transitions */}
       <RouteLoadingIndicator />
@@ -200,66 +131,6 @@ function PendingDeletionBanner() {
 }
 
 /**
- * Minimal mobile bottom nav for unauthenticated users on public app routes.
- */
-function UnauthMobileNav() {
-  const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
-
-  return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/8 bg-black/95 backdrop-blur-xl"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label="Mobile navigation"
-    >
-      <div className="flex items-center justify-around h-16 px-1">
-        <MobileNavLink to="/discover" icon={Sparkles} label="Discover" />
-        <MobileNavLink to="/browse"   icon={Compass}  label="Browse"   />
-        <MobileNavLink
-          icon={LogIn}
-          label={isAuthenticating ? 'Signing in…' : 'Sign in'}
-          onClick={isAuthenticating ? undefined : signInWithGoogle}
-        />
-      </div>
-    </nav>
-  )
-}
-
-/**
- * Mobile navigation link component
- */
-function MobileNavLink({ to, icon: Icon, label, onClick }) {
-  const location = useLocation()
-  const isActive = location.pathname === to
-  const Component = onClick ? 'button' : NavLink
-
-  return (
-    <Component
-      to={onClick ? undefined : to}
-      onClick={onClick}
-      className={`flex min-w-[56px] flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-colors duration-200 ${
-        isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
-      }`}
-      aria-label={label}
-      aria-current={isActive ? 'page' : undefined}
-    >
-      <div className={`relative flex items-center justify-center transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
-        <Icon
-          className={`h-5 w-5 transition duration-200 ${
-            isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'
-          }`}
-          style={isActive ? { color: 'var(--color-text-primary, #f3ecdf)' } : {}}
-        />
-      </div>
-      <span className={`text-[10px] leading-none font-medium transition-colors duration-200 ${
-        isActive ? 'text-white' : ''
-      }`}>
-        {label}
-      </span>
-    </Component>
-  )
-}
-
-/**
  * Shows a subtle loading indicator during route transitions
  * Apple-inspired, minimal, non-intrusive
  */
@@ -274,7 +145,7 @@ function RouteLoadingIndicator() {
     if (clearTimeoutRef.current) {
       clearTimeout(clearTimeoutRef.current)
     }
-    
+
     // Show loading indicator after a short delay (avoid flash for fast loads)
     setLoading(false) // Reset first
     timeoutRef.current = setTimeout(() => {

@@ -6,13 +6,12 @@ test('landing renders for logged-out visitors with the locked positioning', asyn
   await expect(page.getByRole('heading', { level: 1, name: /movies, made personal/i })).toBeVisible({ timeout: 15_000 })
 })
 
-test('landing auth CTAs use one canonical "Continue with Google" label', async ({ page }) => {
+test('landing marketing CTAs use one canonical "Continue with Google" label', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  // The hero + final marketing CTAs are the canonical "Continue with Google".
   await expect(page.getByRole('button', { name: /continue with google/i }).first()).toBeVisible()
-  // The misleadingly different labels are gone.
   await expect(page.getByRole('button', { name: /start with google/i })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /^sign in$/i })).toHaveCount(0)
 })
 
 test('landing head carries the canonical metadata', async ({ page }) => {
@@ -22,54 +21,68 @@ test('landing head carries the canonical metadata', async ({ page }) => {
   expect(desc).toBe('Personal movie discovery built around your taste, your moment, and your curiosity.')
 })
 
-test('desktop header is minimal: FEELFLICK wordmark + one Google CTA, no nav, no Menu', async ({ page }) => {
+// The Landing header IS the shared app header (src/app/header), rendered via
+// SiteHeaderHost — not a Landing-specific clone.
+test('desktop: Landing uses the shared app header (FEELFLICK + Discover/Browse + Search + Sign in)', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
-  const header = page.locator('header.ff-l-header')
-  // Wordmark reuses the authenticated app identity: uppercase FEELFLICK.
-  await expect(header.getByRole('link', { name: /feelflick home/i })).toHaveText('FEELFLICK')
-  // No header navigation at all (How it works removed; not replaced).
-  await expect(header.locator('nav')).toHaveCount(0)
-  for (const gone of [/how it works/i, /film file/i, /cinematic dna/i, /^library$/i, /people/i]) {
-    await expect(header.getByRole('link', { name: gone })).toHaveCount(0)
-  }
-  // One compact Continue with Google action with the decorative Google mark.
-  const cta = header.getByRole('button', { name: 'Continue with Google' })
-  await expect(cta).toHaveCount(1)
-  await expect(cta.locator('svg.ff-l-gmark[aria-hidden="true"]')).toHaveCount(1)
+
+  const banner = page.getByRole('banner')
+  await expect(banner).toHaveCount(1)
+  await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/')
+  await expect(banner.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
+  await expect(banner.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
+
+  // Shared search launcher + shared Sign in (visible "Sign in", accessible "Sign in with Google").
+  await expect(banner.getByRole('button', { name: /search films/i })).toBeVisible()
+  const signIn = banner.getByRole('button', { name: /sign in with google/i })
+  await expect(signIn).toBeVisible()
+  await expect(signIn).toHaveText(/^Sign in$/)
+
+  // The Landing-specific header CTA is gone: no "Continue with Google" / Menu in the header.
+  await expect(banner.getByRole('button', { name: /continue with google/i })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
-  await expect(page.getByRole('dialog')).toHaveCount(0)
-  // The #how-it-works section + the hero's "See how it works" anchor remain.
-  await expect(page.locator('#how-it-works')).toHaveCount(1)
+
+  // The hero CTA + "See how it works" anchor + #how-it-works section remain.
+  await expect(page.getByRole('button', { name: /continue with google/i }).first()).toBeVisible()
   await expect(page.getByRole('link', { name: /see how it works/i })).toHaveCount(1)
+  await expect(page.locator('#how-it-works')).toHaveCount(1)
 })
 
-test('mobile header shows only the wordmark initially (no Menu, no visible header CTA)', async ({ page }) => {
+test('mobile: shared header shows FEELFLICK + Search + Sign in (no Menu, no bottom bar)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
-  await expect(page.locator('header.ff-l-header').getByRole('link', { name: /feelflick home/i })).toBeVisible()
+
+  const banner = page.getByRole('banner')
+  await expect(banner.getByRole('link', { name: 'FEELFLICK' })).toBeVisible()
+  await expect(banner.getByRole('button', { name: /search films/i })).toBeVisible()
+  const signIn = banner.getByRole('button', { name: /sign in with google/i })
+  await expect(signIn).toBeVisible()
+  await expect(signIn).toHaveText(/^Sign in$/)
+
+  // No Menu trigger, no anonymous bottom navigation.
   await expect(page.getByRole('button', { name: /^menu$/i })).toHaveCount(0)
-  await expect(page.getByRole('dialog')).toHaveCount(0)
-  // The header CTA is present in the DOM but not visible while the hero CTA is in view.
-  await expect(page.locator('.ff-l-header-cta')).toBeHidden()
+  await expect(page.getByRole('navigation', { name: /mobile navigation/i })).toHaveCount(0)
 })
 
-test('mobile header reveals a compact "Continue with Google" once the hero CTA scrolls away', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 })
+test('Landing search is functional (shared SearchBar): click + "/" open, Escape closes', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
-  const headerCta = page.locator('.ff-l-header-cta')
-  await expect(headerCta).toBeHidden()
-  // Scroll the hero CTA out of view.
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-  await expect(headerCta).toBeVisible()
-  await expect(headerCta).toHaveAccessibleName(/continue with google/i)
-  await expect(headerCta.locator('svg.ff-l-gmark')).toHaveCount(1)
-  // Scroll back up — it hides again.
-  await page.evaluate(() => window.scrollTo(0, 0))
-  await expect(headerCta).toBeHidden()
+
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('banner').getByRole('button', { name: /search films/i }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('searchbox', { name: /search movies/i })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+
+  // "/" opens it again when not typing.
+  await page.keyboard.press('/')
+  await expect(page.getByRole('dialog')).toBeVisible()
 })
 
 test('every landing tab aria-controls resolves to a panel in the DOM', async ({ page }) => {

@@ -45,28 +45,15 @@
 .ff-l-btn:active:not(:disabled){transform:translateY(1px)}
 .ff-l-btn:disabled{opacity:.6;cursor:progress}
 
-/* Header */
-.ff-l-header{position:fixed;z-index:180;inset:0 0 auto;height:var(--header);background:color-mix(in srgb,var(--c-canvas) 94%,transparent);border-bottom:1px solid var(--c-border);transition:background .2s,box-shadow .2s}
-.ff-l-header[data-scrolled]{background:var(--c-canvas);box-shadow:0 6px 20px rgba(0,0,0,.22)}
-.ff-l-header-inner{height:100%;display:flex;align-items:center;gap:24px}
+/* The Landing page header is now the SHARED app header (src/app/header, rendered via
+   SiteHeaderHost) — there is no Landing-specific header markup or CSS. The only
+   ".ff-l-wordmark" left is the footer back-cover mark below. */
 .ff-l-wordmark{font-size:19px;font-weight:600;letter-spacing:.04em;color:var(--c-rose);white-space:nowrap}
-/* Header wordmark reuses the authenticated app identity (src/app/header/Header.jsx):
-   uppercase FEELFLICK, heavy Inter (900), paper-white — distinct from the footer
-   back-cover mark above, which keeps its own (coral) base rule unchanged. */
-.ff-l-header .ff-l-wordmark{font-size:20px;font-weight:900;letter-spacing:0;color:var(--c-text);transition:opacity .2s}
-.ff-l-header .ff-l-wordmark:hover{opacity:.85}
-@media(min-width:640px){.ff-l-header .ff-l-wordmark{font-size:24px}}
-.ff-l-header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.ff-l-header-actions .ff-l-btn{min-height:44px}
-/* Compact, restrained header auth action — neutral inverse, no oversized pill, no glow */
-.ff-l-header-cta{padding:0 14px;font-size:14px;border-radius:10px}
-.ff-l-header-cta__short{display:none}
-/* Official Google "G" mark sits before the label; decorative (aria-hidden). */
-.ff-l-gmark{flex:none;width:18px;height:18px;display:block}
 
-/* Hero */
-.ff-landing main{padding-top:var(--header)}
-.ff-l-hero{position:relative;min-height:calc(100svh - var(--header));overflow:hidden;background:radial-gradient(circle at 50% 0%,var(--c-surface-2) 0%,var(--c-surface-1) 34%,var(--c-canvas) 78%)}
+/* Hero — top offset uses the shared header's measured height (--hdr-h, set by the
+   app Header), with the landing's own --header as a pre-measurement fallback. */
+.ff-landing main{padding-top:var(--hdr-h,var(--header))}
+.ff-l-hero{position:relative;min-height:calc(100svh - var(--hdr-h,var(--header)));overflow:hidden;background:radial-gradient(circle at 50% 0%,var(--c-surface-2) 0%,var(--c-surface-1) 34%,var(--c-canvas) 78%)}
 .ff-l-hero-copy{position:relative;z-index:3;padding:100px 0 40px;text-align:center;max-width:920px;margin-inline:auto}
 .ff-l-hero-eyebrow{color:var(--c-rose-text)}
 .ff-l-hero-h1{margin:14px 0 0;font-size:clamp(3.4rem,9vw,7.2rem);line-height:.92;letter-spacing:-.058em;font-weight:700;text-wrap:balance}
@@ -219,15 +206,6 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media(max-width:980px){
-  /* Mobile: wordmark only until the hero's primary CTA scrolls out of view, then a
-     compact auth control is revealed. Hidden state uses visibility (not focusable)
-     + opacity (animatable); reduced-motion collapses the transition globally. */
-  .ff-l-header-cta{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility .2s}
-  .ff-l-header-cta[data-revealed]{visibility:visible;opacity:1;pointer-events:auto}
-  /* Keep the full label in the accessible name (sr-only) while showing the short
-     visible label, so the compact control is still named "Continue with Google". */
-  .ff-l-header-cta__full{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-  .ff-l-header-cta__short{display:inline}
   .ff-l-filmfile-layout,.ff-l-dna-layout{grid-template-columns:1fr;gap:36px}
   .ff-l-control-grid{grid-template-columns:1fr}
   .ff-l-section-head{grid-template-columns:1fr;gap:18px}
@@ -235,7 +213,6 @@
 @media(max-width:720px){
   .ff-landing{--header:58px}
   .ff-l-shell{width:calc(100% - 28px)}
-  .ff-l-header-inner{gap:12px}
   .ff-l-hero-copy{padding:72px 0 36px}
   .ff-l-hero-h1{font-size:clamp(3rem,15vw,5.2rem);letter-spacing:-.05em}
   .ff-l-ribbon{width:100%;height:250px;justify-content:flex-start;gap:10px;padding-inline:20px;overflow:hidden;perspective:none;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 80%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 80%,transparent 100%)}

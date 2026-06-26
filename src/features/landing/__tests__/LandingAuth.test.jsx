@@ -11,7 +11,7 @@ vi.mock('@/shared/hooks/useGoogleAuth', () => ({
 
 import { LandingAuthProvider } from '../LandingAuth'
 import LandingAuthStatus from '../components/LandingAuthStatus'
-import LandingHeader from '../components/LandingHeader'
+import LandingHero from '../components/LandingHero'
 import LandingFinalCTA from '../components/LandingFinalCTA'
 
 beforeEach(() => {
@@ -41,7 +41,7 @@ describe('Landing auth surface', () => {
   it('uses one canonical "Continue with Google" label per region and shares one pending state', () => {
     render(
       <LandingAuthProvider>
-        <LandingHeader />
+        <LandingHero />
         <LandingFinalCTA />
       </LandingAuthProvider>
     )
@@ -49,7 +49,7 @@ describe('Landing auth surface', () => {
     expect(screen.queryByRole('button', { name: /^sign in$/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /start with google/i })).toBeNull()
     const ctas = screen.getAllByRole('button', { name: /continue with google/i })
-    expect(ctas.length).toBeGreaterThanOrEqual(2) // header + final
+    expect(ctas.length).toBeGreaterThanOrEqual(2) // hero + final
     ctas.forEach((b) => expect(b).not.toBeDisabled())
   })
 
@@ -57,7 +57,7 @@ describe('Landing auth surface', () => {
     hookState.isAuthenticating = true
     render(
       <LandingAuthProvider>
-        <LandingHeader />
+        <LandingHero />
         <LandingFinalCTA />
       </LandingAuthProvider>
     )

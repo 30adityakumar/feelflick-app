@@ -31,12 +31,17 @@ function buildTasteLine({ hasMoods, hasGenres, hasRatings, hasFilms }) {
 }
 
 // === Celebration reveal ====================================================
-// The final onboarding surface + ~12s write-cover before /discover. A calm,
-// personal editorial reveal — mood atmosphere → your mood pills → a taste line →
-// your poster mosaic → "Tonight is yours." → one coaching beat. NO infinite
-// motion: every entrance resolves once and then settles. AmbientGlow + static
-// grain are the only ambient layers. The frozen 12s hold + 900ms fade-out are
-// owned upstream by Onboarding.jsx; this component only reads `fadingOut`.
+// The final onboarding surface — a write-cover before /home. A calm, personal
+// editorial reveal — mood atmosphere → your mood pills → a taste line → your
+// poster mosaic → "Tonight is yours." → one coaching beat. NO infinite motion:
+// every entrance resolves once and then settles. AmbientGlow + static grain are
+// the only ambient layers.
+//
+// Timing is owned upstream by Onboarding.jsx: it holds for an ADAPTIVE floor
+// (max(floor, setup work); floor 8s, 2s under reduced motion) — not a fixed clock
+// — then runs the 900ms fade-out via `fadingOut`. This component also reads
+// `ready`/`onEnter` to render the optional "See your picks" skip once setup
+// resolves, so the user can leave before the floor.
 //
 // Internal stage timeline (NORMAL motion, seconds from mount; every delay
 // collapses to 0 under prefers-reduced-motion, F2.20):
@@ -47,11 +52,11 @@ function buildTasteLine({ hasMoods, hasGenres, hasRatings, hasFilms }) {
 //   3.0  poster mosaic (stagger)
 //   4.9  "Tonight is yours."
 //   6.3  coaching beat ("Next up")
-// Settles ~7s, then holds for ~5s reading time until the upstream fade at ~12s.
+// Settles ~7.7s.
 const EASE = [0.16, 1, 0.3, 1]                          // quartOut — long settle, no overshoot
 const SPRING = { type: 'spring', stiffness: 70, damping: 18, mass: 0.9 }
 
-export default function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fadingOut = false }) {
+export default function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fadingOut = false, ready = false, onEnter = () => {} }) {
   const reduced = useReducedMotion()
 
   // Selected mood objects (RGB triplets, labels).
@@ -116,12 +121,12 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 0.9, y: 0 }}
           transition={{ duration: reduced ? 0.4 : 0.9, delay: reduced ? 0 : 0.4, ease: EASE }}
-          className="ob-eyebrow inline-flex items-center text-purple-200/80"
+          className="ob-eyebrow inline-flex items-center text-[var(--color-brand-accent-text,#ed7a87)]"
         >
           <span
             aria-hidden="true"
             className="mr-2.5 inline-block h-px w-5 align-middle"
-            style={{ background: 'rgba(192,132,252,0.5)' }}
+            style={{ background: 'rgba(229,99,111,0.5)' }}
           />
           Your taste, tuned
         </motion.p>
@@ -229,26 +234,26 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
             style={{ textWrap: 'balance', letterSpacing: '-0.02em' }}
           >
             Tonight is{' '}
-            <em className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text italic text-transparent">
+            <em className="italic text-[var(--color-brand-accent-text,#ed7a87)]">
               yours.
             </em>
           </h1>
         </motion.div>
 
-        {/* Coaching — the lead-out beat, accurate to what /discover opens with
-           (re-asks the night's mood, then reveals one cased pick). No Mark
-           Watched / next-day-cadence promise. Held for reading time before fade. */}
+        {/* Coaching — the lead-out beat, accurate to what /home opens with
+           (your personalized picks for tonight, seeded by the onboarding signals).
+           No watch-logging or next-day-cadence promise. Held for reading time before fade. */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduced ? 0.5 : 1.4, delay: reduced ? 0 : 6.3, ease: EASE }}
           className="mt-8 max-w-[460px] sm:mt-10"
         >
-          <p className="ob-eyebrow inline-flex items-center text-purple-200/65">
+          <p className="ob-eyebrow inline-flex items-center text-[var(--color-brand-accent-text,#ed7a87)]">
             <span
               aria-hidden="true"
               className="mr-2.5 inline-block h-px w-5 align-middle"
-              style={{ background: 'rgba(192,132,252,0.5)' }}
+              style={{ background: 'rgba(229,99,111,0.5)' }}
             />
             Next up
           </p>
@@ -256,9 +261,30 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
             className="mt-4 text-[14px] leading-[1.6] text-white/72 sm:mt-5 sm:text-[15px]"
             style={{ textWrap: 'pretty' }}
           >
-            Tell us how tonight feels. A few quick questions, then one film for your night &mdash; with the case for why it fits.
+            Your taste is in. Up next, your picks for tonight &mdash; shaped by everything you just shared.
           </p>
         </motion.div>
+
+        {/* Skip / enter — appears once setup is ready (writes + home prefetch done), so the
+           user can leave for /home immediately instead of waiting out the reveal. If they
+           don't, Onboarding auto-advances at the floor. */}
+        {ready && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0.3 : 0.6, ease: EASE }}
+            className="mt-9 sm:mt-11"
+          >
+            <button
+              type="button"
+              onClick={onEnter}
+              className="ob-focus inline-flex items-center gap-2 rounded-xl border border-transparent bg-[var(--color-action-primary-fill,#f0ece4)] px-6 h-11 text-sm font-semibold text-[var(--color-action-primary-text,#0f1010)] transition-opacity duration-200 hover:opacity-90"
+            >
+              See your picks
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   )

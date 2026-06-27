@@ -1,17 +1,17 @@
 // src/features/onboarding/Onboarding.jsx
 // FeelFlick — Onboarding V2 (mood-reactive). Mounted at /onboarding.
 //
-// Flow (4 steps): on completion the FIRST landing is /discover — cold-start, since
-// /home needs watch history to feel personal; returning users route to /home.
+// Flow (4 steps): on completion the FIRST landing is /home (the personalized home
+// for tonight, seeded by the onboarding signals + prefetched on finish).
 //   1. Mood baseline
 //   2. Genres
 //   3. Films
-//   4. Quick rate → completeOnboarding → /discover
+//   4. Quick rate → completeOnboarding → /home
 //
 // Auth + completion logic mirrors the legacy Onboarding.jsx exactly so existing Supabase
 // metadata + PostAuthGate continue to work.
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
@@ -51,10 +51,15 @@ export default function Onboarding() {
 
   const [checking, setChecking] = useState(true)
   const [celebrate, setCelebrate] = useState(false)
-  // Drives the celebration → /discover exit animation. When flipped to true, the
+  // Drives the celebration → /home exit animation. When flipped to true, the
   // celebration content fades to opacity 0; the black backdrop remains until
   // navigate fires. Smooths what was previously a hard cut.
   const [fadingOut, setFadingOut] = useState(false)
+  // Setup work (completeOnboarding + home prefetch) has resolved — reveals the
+  // "See your picks" skip control and arms the floor auto-advance.
+  const [setupReady, setSetupReady] = useState(false)
+  const advancingRef = useRef(false)   // guards advance() against double-firing (auto + manual)
+  const autoTimerRef = useRef(null)    // floor auto-advance timer
   // _loading kept for parity with callsites; the celebration screen is the
   // visible loading state, but we still flip the flag for any downstream prop.
   const [, setLoading] = useState(false)
@@ -151,38 +156,61 @@ export default function Onboarding() {
     })
   }
 
-  // Minimum time the celebration screen stays up (ms). The reveal sequence
-  // takes roughly this long — we hold here even if Supabase finishes early
-  // so the brand moment always lands. Calmer pacing (longer durations, more
-  // overlap) keeps it readable for dyslexic users and predictable for OCD-
-  // sensitive ones — both groups benefit from slower, intentional motion.
-  // Bumped from 7500 → 12000 in the /discover handoff revision so the new
-  // Stage 5 coaching block ("Mark Watched on films you already know…") has
-  // 4–5s of reading time before fade-out. The longer hold also dampens the
-  // celebration → /discover seam by giving the eye more time to settle
-  // before the route swap.
-  const CELEBRATION_MIN_MS = 12000
+  // Floor the celebration stays up so the staggered reveal lands (it fully settles
+  // ~7.7s; the coaching block appears at 6.3s). Duration is otherwise driven by the
+  // actual setup work — we never hold past it on a fixed clock, never cut it short.
+  // Reduced motion collapses the choreography to instant, so its floor is short
+  // (no point holding a static screen). Replaces the prior flat 12s hold.
+  const CELEBRATION_FLOOR_MS = 8000
+  const CELEBRATION_FLOOR_REDUCED_MS = 2000
+
+  // Fade the celebration out and hand off to /home. Idempotent — shared by the floor
+  // auto-advance and the user tapping "See your picks", guarded so the two can't
+  // double-navigate. ORDER MATTERS — navigate BEFORE flipping the auth metadata:
+  // PostAuthGate has a rule `if (isOnboarded && pathname === '/onboarding') →
+  // <Navigate to="/home" />`. Flipping first would fire that rule (location still
+  // '/onboarding') before our own navigate; navigating first makes its pathname
+  // check false (no double-nav). The 900ms fade (skipped under reduced motion) lets
+  // us cross from full black into /home's dark canvas rather than a router blink.
+  const advance = useCallback(async () => {
+    if (advancingRef.current) return
+    advancingRef.current = true
+    if (autoTimerRef.current) { clearTimeout(autoTimerRef.current); autoTimerRef.current = null }
+    setFadingOut(true)
+    if (!reduced) await new Promise(r => setTimeout(r, 900))
+    navigate('/home', { replace: true, state: { fromOnboarding: true } })
+    // Flip the auth metadata after navigating. advance() runs detached (auto timer
+    // or button click), so guard it: a late failure must not become an unhandled
+    // rejection, and we keep the onboarding_error telemetry the prior in-try call
+    // had. completeOnboarding already wrote onboarding_complete=true, so
+    // PostAuthGate's DB fallback still treats the user as onboarded.
+    try {
+      await markOnboardingAuthComplete()
+    } catch (e) {
+      console.error('Auth onboarding flip failed post-navigate (non-fatal):', e)
+      trackEvent(EVENTS.onboarding_error, { surface: 'onboarding', source: 'auth_flip', error_kind: errorKind(e) })
+    }
+  }, [navigate, reduced])
+
+  // Clear a pending auto-advance timer on unmount.
+  useEffect(() => () => { if (autoTimerRef.current) clearTimeout(autoTimerRef.current) }, [])
 
   async function handleFinish() {
     setError('')
-    // Flip into celebration mode IMMEDIATELY — the staggered reveal is the
-    // cover for the Supabase writes happening underneath.
+    // Flip into celebration mode IMMEDIATELY — the staggered reveal is the cover
+    // for the Supabase writes happening underneath.
     setCelebrate(true)
     setLoading(true)
-    const celebrationStartedAt = Date.now()
+    const startedAt = Date.now()
 
     try {
       try {
         localStorage.setItem(MOODS_LS_KEY, JSON.stringify(moods))
       } catch { /* private mode, quota — non-fatal */ }
 
-      // Run completeOnboarding + home-data prefetch in parallel.
-      // CRITICAL: pass markAuthComplete=false. If we let the service flip the
-      // auth metadata now, PostAuthGate fires onAuthStateChange the moment the
-      // metadata changes and auto-navigates /onboarding → /home, killing the
-      // celebration mid-reveal. We hold the flip until after the celebration's
-      // min duration below.
-      const userId = session?.user?.id
+      // Run completeOnboarding + home-data prefetch in parallel. CRITICAL: pass
+      // markAuthComplete=false so PostAuthGate doesn't auto-navigate mid-reveal —
+      // advance() flips the auth metadata itself, after navigating.
       await Promise.all([
         completeOnboarding({
           session, selectedGenres, favoriteMovies, ratings, moods,
@@ -195,58 +223,15 @@ export default function Onboarding() {
 
       clearDraft(userId) // completion → drop this user's scoped draft + legacy key
 
-      // Hold for the remainder of the celebration min duration so the reveal
-      // animation always has room to land.
-      const elapsed = Date.now() - celebrationStartedAt
-      const remainder = Math.max(0, CELEBRATION_MIN_MS - elapsed)
-      if (remainder > 0) await new Promise(r => setTimeout(r, remainder))
-
-      // Begin the fade-out — celebration content tweens to opacity 0 while the
-      // black backdrop stays. /discover then covers the seam with its own
-      // black overlay that fades up slowly (~1.4s) to reveal the page.
-      // The result is a smooth dim → full black → unhurried rise transition,
-      // around 2.3s of dark continuity that reads as cinematic intent rather
-      // than a router blink. Match the 900ms tween duration in
-      // CelebrationReveal (particles + main content opacity transitions).
-      const reducedAtFade = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
-      setFadingOut(true)
-      if (!reducedAtFade) {
-        await new Promise(r => setTimeout(r, 900))
-      }
-
-      // First landing goes to /discover, not /home.
-      //
-      // Reasoning: /home is at its best with history — the Briefing's
-      // engine reranking, the personal lists (director / similar / genre /
-      // fit / actor), the DNA portrait, and the taste-twin pulse all need
-      // ≥5 logged films before they feel personal. A fresh user with zero
-      // history sees DNA's "Patterns forming…", twin pulse hidden (no
-      // twins), and personal lists falling back to static CURATED_LISTS —
-      // /home reads as generic on day 1.
-      //
-      // /discover delivers the core promise ("I feel X → give me a film")
-      // in one screen using the just-collected onboarding signals
-      // (taste_baseline_moods + favorites + genre prefs). After the user
-      // logs/skips/rates their first few films, /home earns its space and
-      // becomes the natural landing on subsequent sessions — RootEntry +
-      // PostAuthGate route authenticated returners to /home as usual.
-      //
-      // ORDER MATTERS — navigate BEFORE flipping the auth metadata:
-      // PostAuthGate has a rule `if (isOnboarded && pathname === '/onboarding')
-      // → <Navigate to="/home" />`. If we flip first, that rule fires the
-      // next render (location still '/onboarding') and the user sees a
-      // glimpse of /home before our navigate('/discover') takes over.
-      // Navigating first changes location to '/discover' so when the auth
-      // listener fires moments later the rule's pathname check is false.
-      navigate('/discover', {
-        replace: true,
-        state: { fromOnboarding: true, movieCount: favoriteMovies.length, moods },
-      })
-
-      // Flip the auth metadata after the route change has committed.
-      // PostAuthGate's onAuthStateChange listener will re-evaluate and fall
-      // through (pathname is now '/discover'), so no double-navigate.
-      await markOnboardingAuthComplete()
+      // Work done: reveal the "See your picks" skip so the user can leave now, and
+      // auto-advance once the reveal has had room to land (the floor). Total auto =
+      // max(floor, work) — adaptive: waits for slow work, never cuts the reveal, and
+      // never holds on a fixed clock. If the user taps the skip first, advance()'s
+      // guard makes this timer a no-op.
+      setSetupReady(true)
+      const floor = reduced ? CELEBRATION_FLOOR_REDUCED_MS : CELEBRATION_FLOOR_MS
+      const remainder = Math.max(0, floor - (Date.now() - startedAt))
+      autoTimerRef.current = setTimeout(() => { advance() }, remainder)
     } catch (e) {
       console.error('Onboarding save failed:', e)
       trackEvent(EVENTS.onboarding_error, { surface: 'onboarding', source: 'finish', error_kind: errorKind(e) })
@@ -263,7 +248,7 @@ export default function Onboarding() {
     return <BrandSplash />
   }
 
-  // Celebration → /discover. Staggered reveals double as cover for the Supabase
+  // Celebration → /home. Staggered reveals double as cover for the Supabase
   // writes happening underneath (~1-3s) so the wait feels intentional.
   if (celebrate) {
     return (
@@ -273,6 +258,8 @@ export default function Onboarding() {
         favoriteMovies={favoriteMovies}
         ratings={ratings}
         fadingOut={fadingOut}
+        ready={setupReady}
+        onEnter={advance}
       />
     )
   }

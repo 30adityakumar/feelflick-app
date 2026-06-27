@@ -91,25 +91,39 @@ describe('MoviesStep — editorial grid layout', () => {
     expect(within(region).getByRole('button', { name: /remove beta/i })).toBeInTheDocument()
   })
 
-  it('hides the anchors zone when no films are selected', () => {
+  it('always shows the anchors carousel with numbered ghost slots for the minimum', () => {
     render(<MoviesStep {...props({ favoriteMovies: [] })} />)
-    expect(screen.queryByRole('region', { name: /your anchors/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: /your anchors/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /your anchors/i })).toBeInTheDocument()
+    // 0 picked → 5 numbered ghost slots, no remove buttons, "0 of 5"
+    expect(screen.getAllByTestId('anchor-ghost')).toHaveLength(5)
+    expect(screen.queryByRole('button', { name: /^remove /i })).not.toBeInTheDocument()
+    expect(screen.getByText('0 of 5')).toBeInTheDocument()
   })
 
-  it('renders 5 progress pips with Math.min(count, 5) filled', () => {
+  it('fills the strip with picks + ghost slots for the remaining minimum', () => {
     render(<MoviesStep {...props({ favoriteMovies: [film(1, 'A'), film(2, 'B'), film(3, 'C')], isMovieSelected: () => true })} />)
-    const pips = screen.getByTestId('anchor-pips')
-    expect(pips.children).toHaveLength(5)
-    expect([...pips.children].filter(s => s.className.includes('bg-purple-400'))).toHaveLength(3)
+    const region = screen.getByRole('region', { name: /your anchors/i })
+    expect(within(region).getAllByRole('button', { name: /^remove /i })).toHaveLength(3)
+    expect(screen.getAllByTestId('anchor-ghost')).toHaveLength(2) // 5 - 3
+    expect(screen.getByText('3 of 5')).toBeInTheDocument()
   })
 
-  it('caps filled pips at 5 when more than 5 anchors exist', () => {
+  it('at exactly the minimum (5): no ghosts, counter flips to "added"', () => {
+    const films = Array.from({ length: 5 }, (_, i) => film(i + 1, `F${i + 1}`))
+    render(<MoviesStep {...props({ favoriteMovies: films, isMovieSelected: () => true })} />)
+    const region = screen.getByRole('region', { name: /your anchors/i })
+    expect(within(region).getAllByRole('button', { name: /^remove /i })).toHaveLength(5)
+    expect(screen.queryByTestId('anchor-ghost')).not.toBeInTheDocument()
+    expect(screen.getByText('5 added')).toBeInTheDocument()
+  })
+
+  it('shows no ghost slots once the minimum is met — 5 is a floor, not a cap', () => {
     const films = Array.from({ length: 7 }, (_, i) => film(i + 1, `F${i + 1}`))
     render(<MoviesStep {...props({ favoriteMovies: films, isMovieSelected: () => true })} />)
-    const pips = screen.getByTestId('anchor-pips')
-    expect(pips.children).toHaveLength(5)
-    expect([...pips.children].filter(s => s.className.includes('bg-purple-400'))).toHaveLength(5)
+    const region = screen.getByRole('region', { name: /your anchors/i })
+    expect(within(region).getAllByRole('button', { name: /^remove /i })).toHaveLength(7)
+    expect(screen.queryByTestId('anchor-ghost')).not.toBeInTheDocument()
+    expect(screen.getByText('7 added')).toBeInTheDocument()
   })
 })
 

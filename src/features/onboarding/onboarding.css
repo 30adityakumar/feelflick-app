@@ -1,12 +1,22 @@
 /* src/features/onboarding/onboarding.css
- * Scoped to .onboarding — Newsreader for display, Inter for UI.
- * Fonts load globally via index.html.
+ * Scoped to .onboarding — Inter only (Adaptive Editorial Cinema; hierarchy via
+ * scale/weight/tracking, not a separate serif voice). Fonts load globally via index.html.
  * Tailwind utilities still apply; this file only adds what Tailwind can't express tersely.
  */
 
 .onboarding .ob-display {
-  font-family: var(--font-editorial), Georgia, serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   letter-spacing: -0.02em;
+}
+
+/* Keyboard focus — AEC paper-white outline matching the app-wide :focus-visible
+ * rule (src/styles/globals.css), forced-colors-safe. Applied explicitly to every
+ * onboarding control that previously carried a purple ring, so each shows an equal
+ * paper-white indicator in place of the old ring (the global rule still covers any
+ * control without this class). */
+.onboarding .ob-focus:focus-visible {
+  outline: 2px solid var(--color-focus, #f5f2eb);
+  outline-offset: 3px;
 }
 
 /* Editorial step typography — onboarding-local, echoing the landing's
@@ -20,7 +30,7 @@
 }
 
 .onboarding .ob-headline {
-  font-family: var(--font-editorial), Georgia, serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-weight: 400;
   font-size: clamp(30px, 4.8vw, 48px);
   letter-spacing: -0.035em;
@@ -38,15 +48,37 @@
   scrollbar-color: rgba(70, 66, 61, 0.6) transparent;
 }
 
+/* Anchors carousel — a horizontal, snap-scrolling strip of picked-film posters +
+ * numbered ghost slots. Scrolls only when the posters + remaining min-slots overflow
+ * (mobile, or > the visible width); on a wide screen with ≤5 it shows without scrolling.
+ * scroll-padding leaves room for the ob-focus outline on the first/last card; the
+ * thin horizontal scrollbar mirrors .ob-scroll. */
+.onboarding .ob-anchor-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 6px;
+  padding: 6px 6px 10px;       /* room so the focus outline (3px offset) isn't clipped + scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(70, 66, 61, 0.6) transparent;
+}
+.onboarding .ob-anchor-scroll::-webkit-scrollbar { height: 6px; }
+.onboarding .ob-anchor-scroll::-webkit-scrollbar-thumb {
+  background: rgba(70, 66, 61, 0.6);
+  border-radius: 999px;
+}
+.onboarding .ob-anchor-scroll::-webkit-scrollbar-track { background: transparent; }
+.onboarding .ob-anchor-slot { flex: none; scroll-snap-align: start; }
+
 /* Mood-signature atmosphere. --ob-accent-rgb (a single deterministic mood
- * signature, brand-purple fallback) is set on the .onboarding root in
- * Onboarding.jsx; the soft/border tints derive from it. Used ONLY for ambient
- * tinting (faint edge vignette + a 1px top hairline) — never foreground chrome,
- * CTAs, or headlines. The recolor tween collapses under the global
- * prefers-reduced-motion reset (index.css), so no JS motion is needed. */
+ * signature, neutral-ink fallback when no mood is selected) is set on the
+ * .onboarding root in Onboarding.jsx; the soft/border tints derive from it. Used
+ * ONLY for ambient tinting (faint edge vignette + a 1px top hairline) — never
+ * foreground chrome, CTAs, or headlines. The recolor tween collapses under the
+ * global prefers-reduced-motion reset (index.css), so no JS motion is needed. */
 .onboarding {
-  --ob-accent-soft: rgba(var(--ob-accent-rgb, 168, 85, 247), 0.10);
-  --ob-accent-border: rgba(var(--ob-accent-rgb, 168, 85, 247), 0.22);
+  --ob-accent-soft: rgba(var(--ob-accent-rgb, 46, 49, 53), 0.10);
+  --ob-accent-border: rgba(var(--ob-accent-rgb, 46, 49, 53), 0.22);
 }
 
 .onboarding .ob-atmosphere {

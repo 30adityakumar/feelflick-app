@@ -35,14 +35,14 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
           subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl"
         >
           The vibe you{' '}
-          <em className="italic font-light text-purple-300">
+          <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
             live in.
           </em>
         </StepHeader>
       }
       footer={
         <StepFooter
-          statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-purple-400' : 'text-white/30'}`}
+          statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-[var(--color-text-secondary,#c9c5bc)]' : 'text-white/30'}`}
           status={
             count === 0
               ? `Pick at least ${MIN_MOODS} mood${MIN_MOODS === 1 ? '' : 's'} to continue`
@@ -77,7 +77,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
                 whileTap={reduced ? undefined : { scale: 0.97 }}
                 aria-pressed={on}
                 aria-disabled={dimmed || undefined}
-                className={`relative text-left p-4 sm:p-5 rounded-2xl overflow-hidden transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${dimmed ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                className={`ob-focus relative text-left p-4 sm:p-5 rounded-2xl overflow-hidden transition-all ${dimmed ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 style={{
                   background: on ? `rgba(${m.rgb}, 0.16)` : 'rgba(255,255,255,0.03)',
                   border: `1px solid ${on ? `rgba(${m.rgb}, 0.6)` : 'rgba(255,255,255,0.1)'}`,

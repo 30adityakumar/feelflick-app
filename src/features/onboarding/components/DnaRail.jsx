@@ -4,8 +4,9 @@
 // chrome row: FEELFLICK wordmark + a desktop-only "Cinematic DNA" kicker + the
 // single brand-gradient progressbar rail + a compact Mood/Genre/Film/Rated tally
 // + the 01/04 counter. The rail is the only horizontal rule (no second hairline,
-// no panel/chips/card). Brand gradient stays on the foreground; mood stays
-// ambient (AmbientGlow / --ob-accent-rgb), never tinting this chrome.
+// no panel/chips/card). Wordmark is paper-white, progress is the coral signature
+// (the one allowed coral role here); mood stays ambient (AmbientGlow /
+// --ob-accent-rgb), never tinting this chrome.
 
 import { motion, useReducedMotion } from 'framer-motion'
 
@@ -30,11 +31,11 @@ export default function DnaRail({ step, moods, genres, films, ratings }) {
 
   return (
     <div className="flex-none px-5 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-3 flex items-center gap-3 sm:gap-4">
-      {/* Identity (left) — wordmark verbatim (Outfit 600, +0.04em, brand gradient,
-          no font-extrabold/black) + a desktop-only micro-kicker naming the artifact. */}
+      {/* Identity (left) — wordmark (Inter 600, +0.04em, paper-white to match the
+          shipped app header) + a desktop-only micro-kicker naming the artifact. */}
       <div className="flex-none flex items-center gap-2.5">
         <span
-          className="ob-display text-[13px] sm:text-[15px] font-semibold bg-linear-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent"
+          className="ob-display text-[13px] sm:text-[15px] font-semibold text-[var(--color-text-primary,#f5f2eb)]"
           style={{ letterSpacing: '0.04em' }}
         >
           FEELFLICK
@@ -57,7 +58,7 @@ export default function DnaRail({ step, moods, genres, films, ratings }) {
         aria-label="Onboarding progress"
       >
         <motion.div
-          className="h-full rounded-full bg-linear-to-r from-purple-600 to-pink-500"
+          className="h-full rounded-full bg-[var(--color-brand-accent,#e5636f)]"
           initial={false}
           animate={{ width: `${fraction * 100}%` }}
           transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 100, damping: 20 }}

@@ -150,14 +150,14 @@ export default function MoviesStep({
           subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed"
         >
           What have you{' '}
-          <em className="italic font-light text-purple-300">
+          <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
             loved?
           </em>
         </StepHeader>
       }
       footer={
         <StepFooter
-          statusClassName={`text-xs font-medium transition-colors duration-200 ${canFinish ? 'text-purple-400' : 'text-white/30'}`}
+          statusClassName={`text-xs font-medium transition-colors duration-200 ${canFinish ? 'text-[var(--color-text-secondary,#c9c5bc)]' : 'text-white/30'}`}
           status={
             count === 0
               ? `Select at least ${MIN_MOVIES} films to continue`
@@ -190,7 +190,7 @@ export default function MoviesStep({
             onKeyDown={handleSearchKeyDown}
             placeholder="Search any film…"
             aria-label="Search for a film to add"
-            className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:ring-1 focus:ring-purple-400/50 focus:border-purple-400/30 transition-all"
+            className="ob-focus w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:border-white/25 transition-all"
           />
           {query && (
             <button
@@ -219,8 +219,8 @@ export default function MoviesStep({
         )}
       </div>
 
-      {/* Body — one vertical scroll (no horizontal shelves): the curated
-         Suggestions grid + the editorial "Your anchors" zone. */}
+      {/* Body — one vertical scroll: the always-visible "Your anchors" carousel
+         (the goal) on top, then the curated Suggestions grid to fill it. */}
       <div className="ob-scroll flex-1 min-h-0 overflow-y-auto px-6 space-y-6 pb-4">
         {error && (
           <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm text-center">
@@ -228,9 +228,48 @@ export default function MoviesStep({
           </div>
         )}
 
+        {/* Your anchors — the user's collection. A horizontal carousel of poster
+           cards (tap to remove) + numbered ghost slots for the remaining minimum.
+           5 is the floor, not a cap: extra picks append and the strip scrolls. */}
+        <section aria-labelledby="ob-anchors-h">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h3 id="ob-anchors-h" className="text-xs font-semibold uppercase tracking-widest text-white/70">
+              Your anchors
+            </h3>
+            <span className="text-xs font-medium tabular-nums text-white/45">
+              {count < MIN_MOVIES ? `${count} of ${MIN_MOVIES}` : `${count} added`}
+            </span>
+          </div>
+          {/* List semantics only when there are real picks — at 0 the strip is
+             ghost-only (all aria-hidden), so we skip role=list to avoid a named
+             empty list for screen readers. */}
+          <div className="ob-anchor-scroll gap-3 sm:gap-4" {...(count > 0 ? { role: 'list', 'aria-label': 'Your anchor films' } : {})}>
+            {favoriteMovies.map(m => (
+              <div key={m.id} role="listitem" className="ob-anchor-slot w-24 sm:w-28">
+                <MovieCard movie={m} isSelected hideMeta onClick={() => removeMovie(m.id)} />
+              </div>
+            ))}
+            {/* Ghost slots for the remaining minimum — numbered by absolute position;
+               decorative. The counter above shows the running count, and the DnaRail
+               tally announces film progress to assistive tech. */}
+            {Array.from({ length: Math.max(0, MIN_MOVIES - count) }).map((_, i) => (
+              <div
+                key={`ghost-${i}`}
+                aria-hidden="true"
+                data-testid="anchor-ghost"
+                className="ob-anchor-slot w-24 sm:w-28"
+              >
+                <div className="aspect-2/3 w-full rounded-lg border border-dashed border-white/15 grid place-items-center text-sm font-medium tabular-nums text-white/30">
+                  {count + i + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Suggestions — system curation */}
         <section aria-labelledby="ob-suggestions-h">
-          <h3 id="ob-suggestions-h" className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
+          <h3 id="ob-suggestions-h" className="text-xs font-semibold uppercase tracking-widest text-white/45 mb-3">
             Suggestions
           </h3>
           {poolLoading ? (
@@ -264,41 +303,6 @@ export default function MoviesStep({
             </div>
           )}
         </section>
-
-        {/* Your anchors — the user's earned collection, a distinct editorial zone */}
-        {favoriteMovies.length > 0 && (
-          <section
-            aria-labelledby="ob-anchors-h"
-            className="rounded-2xl border border-purple-400/20 bg-purple-500/[0.05] p-4"
-          >
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h3 id="ob-anchors-h" className="text-xs font-semibold uppercase tracking-widest text-purple-200/80">
-                Your anchors
-              </h3>
-              {/* Visual progress toward the 5-film minimum (footer carries the exact count). */}
-              <div className="flex items-center gap-1.5" aria-hidden="true" data-testid="anchor-pips">
-                {Array.from({ length: MIN_MOVIES }).map((_, i) => (
-                  <span
-                    key={i}
-                    className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                      i < Math.min(count, MIN_MOVIES) ? 'bg-purple-400' : 'bg-white/15'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
-              {favoriteMovies.map(m => (
-                <MovieCard
-                  key={m.id}
-                  movie={m}
-                  isSelected={true}
-                  onClick={() => removeMovie(m.id)}
-                />
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </StepShell>
   )

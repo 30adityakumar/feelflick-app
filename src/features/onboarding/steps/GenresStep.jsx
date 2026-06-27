@@ -26,9 +26,9 @@ function GenreTile({ genre, isSelected, onClick }) {
       variants={reduced ? undefined : tileVariants}
       whileTap={reduced ? undefined : { scale: 0.96 }}
       aria-pressed={isSelected}
-      className={`text-left rounded-2xl px-4 py-3.5 min-h-[44px] border transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+      className={`ob-focus text-left rounded-2xl px-4 py-3.5 min-h-[44px] border transition-all ${
         isSelected
-          ? 'bg-linear-to-br from-purple-500/18 to-pink-500/12 border-purple-400/55 shadow-[0_4px_16px_rgba(168,85,247,0.16),inset_0_0_0_1px_rgba(168,85,247,0.35)]'
+          ? 'bg-white/[0.10] border-white/45 shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(245,242,235,0.22)]'
           : 'bg-white/[0.05] border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.08] hover:border-white/20'
       }`}
     >
@@ -54,7 +54,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl"
         >
           Which{' '}
-          <em className="italic font-light text-purple-300">
+          <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
             territories
           </em>
           {' '}do you live in?
@@ -62,7 +62,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
       }
       footer={
         <StepFooter
-          statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-purple-400' : 'text-white/30'}`}
+          statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-[var(--color-text-secondary,#c9c5bc)]' : 'text-white/30'}`}
           status={
             count === 0
               ? `Select at least ${MIN_GENRES} to continue`

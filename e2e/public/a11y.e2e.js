@@ -67,3 +67,13 @@ test('a11y — about (/about) under default, forced-colors and reduced-motion', 
   }
   await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference' })
 })
+
+test('a11y — privacy (/privacy) under default, forced-colors and reduced-motion', async ({ page }) => {
+  for (const media of [{}, { forcedColors: 'active' }, { reducedMotion: 'reduce' }]) {
+    await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference', ...media })
+    await page.goto('/privacy')
+    await page.waitForLoadState('networkidle')
+    await audit(page, `privacy ${JSON.stringify(media)}`)
+  }
+  await page.emulateMedia({ forcedColors: 'none', reducedMotion: 'no-preference' })
+})

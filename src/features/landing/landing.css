@@ -256,6 +256,33 @@
 .ff-l-about-card h3{margin:0;font-size:1.05rem;font-weight:600;letter-spacing:-.01em;color:var(--c-text)}
 .ff-l-about-card p{margin:9px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
 
+/* Legal pages (Privacy / Terms) — a readable editorial document column, not the marketing
+   section scale. Reuses the .ff-landing tokens; coral only for links. */
+.ff-l-legal{width:min(calc(100% - 48px),72ch);margin-inline:auto;padding:clamp(48px,8vw,96px) 0 88px}
+.ff-l-legal-head{margin:0 0 8px;padding-bottom:28px;border-bottom:1px solid var(--c-border)}
+.ff-l-legal-title{margin:6px 0 0;font-size:clamp(2rem,4.4vw,2.9rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;color:var(--c-text)}
+.ff-l-legal-updated{margin:12px 0 0;color:var(--c-text-3);font-size:12.5px}
+.ff-l-legal section{margin-top:40px}
+.ff-l-legal h2{margin:0;font-size:1.45rem;font-weight:600;letter-spacing:-.02em;color:var(--c-text);line-height:1.2}
+.ff-l-legal h3{margin:24px 0 0;font-size:1.02rem;font-weight:600;color:var(--c-text)}
+.ff-l-legal p{margin:14px 0 0;color:var(--c-text-2);font-size:15px;line-height:1.7}
+.ff-l-legal ul{margin:12px 0 0;padding-left:20px;color:var(--c-text-2);font-size:15px;line-height:1.7}
+.ff-l-legal li{margin:4px 0}
+/* Coral underline applies to in-prose links only — NOT button anchors (.ff-l-btn) in the
+   contact actions, which would otherwise be overridden (coral-on-ivory fails AA). */
+.ff-l-legal p a,.ff-l-legal li a{color:var(--c-rose-text);text-decoration:underline;text-underline-offset:2px}
+.ff-l-legal p a:hover,.ff-l-legal li a:hover{color:var(--c-text)}
+.ff-l-legal strong{color:var(--c-text);font-weight:600}
+.ff-l-legal-fine{font-size:12.5px;color:var(--c-text-3);line-height:1.6}
+/* Restrained callout for emphasis blocks (the "never do" list + the security caveat). */
+.ff-l-legal-note{margin:14px 0 0;padding:16px 18px;border-left:2px solid var(--c-border-strong);background:rgba(245,242,235,.03);border-radius:0 8px 8px 0}
+.ff-l-legal-note,.ff-l-legal-note p{color:var(--c-text-2);font-size:14px;line-height:1.6}
+.ff-l-legal-note ul{margin:0;color:var(--c-text-2);font-size:14px}
+.ff-l-legal-note p{margin:0}
+/* Contact close. */
+.ff-l-legal-contact{margin-top:48px;padding-top:28px;border-top:1px solid var(--c-border)}
+.ff-l-legal-actions{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px}
+
 /* OAuth error surface */
 .ff-l-authstatus{position:fixed;z-index:500;left:50%;bottom:22px;transform:translateX(-50%);max-width:min(560px,calc(100% - 28px));display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--c-border-strong);border-radius:12px;background:var(--c-surface-2);box-shadow:0 18px 60px rgba(0,0,0,.5)}
 .ff-l-authstatus__msg{margin:0;color:var(--c-text);font-size:13px;flex:1 1 220px}

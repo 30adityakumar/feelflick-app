@@ -1,14 +1,18 @@
 import { test, expect } from '@playwright/test'
 
-// F1-B regression gate: keyboard-focus visibility on TopNav (public-page chrome)
-// and the 404 page, asserted via COMPUTED STYLE — never className (className
-// assertions previously passed while Tailwind v4 ring layers rendered fully
-// transparent). Sibling of home-focus.e2e.js (F1-A) which guards /home.
+// Regression gate: keyboard-focus visibility on the shared public Header chrome
+// (SiteHeaderHost, rendered on /about and the other public pages) and on the 404
+// page, asserted via COMPUTED STYLE — never className (className assertions
+// previously passed while Tailwind v4 ring layers rendered fully transparent).
 //
-// Mechanism note: some elements get a working focus ring (TopNav links), others'
-// rings collapse and rely on the global :focus-visible outline now that their
-// focus:outline-none suppression is removed (TopNav Sign In / menu CTA). The
-// assertion is mechanism-agnostic: SOME visible indicator must compute.
+// The shared Header applies one focus-visible treatment (paper-white outline) to
+// every control; this proves it actually computes. Runs logged-out (public
+// project) because the anonymous Sign in CTA only renders for signed-out users —
+// authenticated users see the avatar menu instead. Sibling of home-focus.e2e.js
+// which guards /home.
+//
+// Mechanism note: the assertion is mechanism-agnostic — SOME visible indicator
+// (a real outline OR a non-transparent box-shadow ring) must compute.
 
 async function focusedIndicator(locator) {
   return await locator.evaluate((el) => {
@@ -35,29 +39,29 @@ async function focusedIndicator(locator) {
   })
 }
 
-test('TopNav and 404 keyboard focus is visible — computed style, not className', async ({ page }) => {
+test('public Header + 404 keyboard focus is visible — computed style, not className', async ({ page }) => {
   // One real keypress per page sets Chrome's keyboard modality so programmatic
   // focus() matches :focus-visible, as real Tab navigation does.
 
-  // --- TopNav on /about (public chrome) ---
+  // --- shared Header on /about (public chrome, signed-out) ---
   await page.goto('/about')
-  await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible({ timeout: 15_000 })
+  const signIn = page.getByRole('button', { name: /sign in with google/i }).first()
+  await expect(signIn).toBeVisible({ timeout: 15_000 })
   await page.keyboard.press('Tab')
 
-  const signIn = page.locator('button.md\\:inline-flex', { hasText: /sign in/i }).first()
   const signInState = await focusedIndicator(signIn)
-  expect(signInState.focusVisible, 'Sign In should match :focus-visible').toBe(true)
+  expect(signInState.focusVisible, 'Sign in should match :focus-visible').toBe(true)
   expect(
     signInState.visible,
-    `TopNav Sign In must show a visible focus indicator; got outline=[${signInState.outline}] boxShadow=[${signInState.boxShadow}]`
+    `Header Sign in must show a visible focus indicator; got outline=[${signInState.outline}] boxShadow=[${signInState.boxShadow}]`
   ).toBe(true)
 
-  const navLink = page.locator('nav a, header a', { hasText: /how it works/i }).first()
+  const navLink = page.getByRole('link', { name: /discover|browse/i }).first()
   if (await navLink.count()) {
     const linkState = await focusedIndicator(navLink)
     expect(
       linkState.visible,
-      `TopNav nav link must keep its visible focus treatment; got outline=[${linkState.outline}] boxShadow=[${linkState.boxShadow}]`
+      `Header nav link must keep its visible focus treatment; got outline=[${linkState.outline}] boxShadow=[${linkState.boxShadow}]`
     ).toBe(true)
   }
 

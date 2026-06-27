@@ -1,295 +1,248 @@
 // src/features/legal/Privacy.jsx
+// Privacy policy, rebuilt in the Adaptive Editorial Cinema direction to match the new
+// website. A TOP-LEVEL route (outside PublicShell) that owns its own
+// <header>/<main id="main">/<footer> as siblings, reusing the SAME shared header
+// (SiteHeaderHost) + footer (LandingFooter) as the landing. This is a PRESENTATION rebuild
+// only: every legal disclosure is preserved verbatim and the "Last updated" date is
+// unchanged. No purple/pink gradients, no Lucide icons, no glass boxes — the .ff-landing
+// tokens + .ff-l-legal-* document styles carry the look.
 import { Link } from 'react-router-dom'
-import { Shield, Lock, EyeOff, FileText, Mail, AlertTriangle, Globe } from 'lucide-react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import TopNav from '@/components/layout/TopNav'
-import Footer from '@/components/layout/Footer'
+import '../landing/landing.css'
+import SiteHeaderHost from '@/app/header/SiteHeaderHost'
+import LandingFooter from '@/features/landing/components/LandingFooter'
 
 export default function Privacy() {
   usePageMeta({
     title: 'Privacy — FeelFlick',
     description: "FeelFlick's privacy policy: what we collect, what we don't, and how your taste data is used to improve your recommendations only.",
+    url: 'https://app.feelflick.com/privacy',
   })
+
   return (
-    <>
-      <TopNav />
-      <div className="relative min-h-screen bg-black text-white">
-      {/* Hero */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-purple-600/20 via-black to-pink-600/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(168,85,247,0.25),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_90%,rgba(236,72,153,0.18),transparent_55%)]" />
+    <div className="ff-landing">
+      <a href="#main" className="ff-l-skip">Skip to content</a>
+      <SiteHeaderHost />
+      <main id="main">
+        <article className="ff-l-legal" aria-labelledby="ff-l-privacy-h">
+          <header className="ff-l-legal-head">
+            <p className="ff-l-eyebrow">Legal</p>
+            <h1 id="ff-l-privacy-h" className="ff-l-legal-title">Privacy Policy</h1>
+            <p className="ff-l-legal-updated">Last updated: November 15, 2025</p>
+          </header>
 
-        <div className="relative mx-auto max-w-4xl px-4 md:px-8 pt-32 md:pt-40 pb-20 md:pb-28 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-5">
-            <Shield className="h-4 w-4 text-purple-300" />
-            <span className="text-sm font-semibold text-white/80">Privacy Policy</span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 bg-linear-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-            Your privacy comes first
-          </h1>
-
-          <p className="text-white/70 text-base md:text-lg max-w-2xl mx-auto">
-            Last updated: November 15, 2025
-          </p>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative mx-auto max-w-5xl px-4 md:px-8 pb-20 space-y-12 md:space-y-16">
-        {/* Intro */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
-          <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
-            <Lock className="h-6 w-6 text-purple-300" />
-            Overview
-          </h2>
-          <p className="text-white/70 leading-relaxed mb-3">
-            At FeelFlick, privacy is a core product value — not an afterthought. This policy explains what we collect, why we collect it, and how we protect your information when you use FeelFlick.
-          </p>
-          <p className="text-white/70 leading-relaxed">
-            By using FeelFlick, you agree to this Privacy Policy. If you do not agree, please do not use the service.
-          </p>
-        </section>
-
-        {/* What we collect */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-black mb-2">Information we collect</h2>
-            <p className="text-white/70 text-sm">
-              We only collect information we need to provide mood‑based movie recommendations, keep your account working, and protect the service from abuse.
+          <section aria-labelledby="ff-l-privacy-overview">
+            <h2 id="ff-l-privacy-overview">Overview</h2>
+            <p>
+              At FeelFlick, privacy is a core product value — not an afterthought. This policy
+              explains what we collect, why we collect it, and how we protect your information
+              when you use FeelFlick.
             </p>
-          </div>
+            <p>
+              By using FeelFlick, you agree to this Privacy Policy. If you do not agree, please
+              do not use the service.
+            </p>
+          </section>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Account Info */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
-              <h3 className="text-lg font-bold mb-2">Account information</h3>
-              <p className="text-white/70 text-sm leading-relaxed mb-3">
-                When you sign up with Google OAuth, we receive:
-              </p>
-              <ul className="list-disc list-inside text-white/70 text-sm space-y-1">
-                <li>Your name</li>
-                <li>Your email address</li>
-              </ul>
-              <p className="text-white/70 text-sm mt-3">
-                We never see or store your Google password.
-              </p>
-            </div>
+          <section aria-labelledby="ff-l-privacy-collect">
+            <h2 id="ff-l-privacy-collect">Information we collect</h2>
+            <p>
+              We only collect information we need to provide mood-based movie recommendations,
+              keep your account working, and protect the service from abuse.
+            </p>
 
-            {/* Usage Data */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
-              <h3 className="text-lg font-bold mb-2">Usage & viewing data</h3>
-              <p className="text-white/70 text-sm leading-relaxed mb-3">
-                To power personalized recommendations and your account features, we store:
-              </p>
-              <ul className="list-disc list-inside text-white/70 text-sm space-y-1">
-                <li>Movies you view in the app</li>
-                <li>Movies you add to your watchlist</li>
-                <li>Movies you mark as watched</li>
-                <li>Your saved preferences (such as genres or moods)</li>
-              </ul>
-            </div>
-
-            {/* Technical Info */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
-              <h3 className="text-lg font-bold mb-2">Technical information</h3>
-              <p className="text-white/70 text-sm leading-relaxed mb-3">
-                To keep FeelFlick secure and functioning properly, we may collect:
-              </p>
-              <ul className="list-disc list-inside text-white/70 text-sm space-y-1">
-                <li>Browser type and version</li>
-                <li>Device information</li>
-                <li>IP address and general location (country/region)</li>
-                <li>Log data related to errors and security events</li>
-              </ul>
-            </div>
-
-            {/* No sensitive categories */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
-              <h3 className="text-lg font-bold mb-2">What we do NOT intentionally collect</h3>
-              <p className="text-white/70 text-sm leading-relaxed mb-3">
-                We do not intentionally collect sensitive categories of personal data such as health information, political opinions, or religious beliefs.
-              </p>
-              <p className="text-white/70 text-sm leading-relaxed">
-                Please do not share sensitive personal information with us through support messages or feedback forms.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* How we use data */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
-          <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
-            <FileText className="h-6 w-6 text-purple-300" />
-            How we use your information
-          </h2>
-          <p className="text-white/70 text-sm leading-relaxed mb-4">
-            We use your information solely to provide and improve FeelFlick. Typical uses include:
-          </p>
-          <ul className="list-disc list-inside text-white/70 text-sm space-y-1 mb-4">
-            <li>Providing mood‑based movie recommendations tailored to you</li>
-            <li>Saving and syncing your watchlist and viewing history across devices</li>
-            <li>Improving recommendation quality, search, and overall product experience</li>
-            <li>Sending important service‑related notifications (for example, critical changes or security alerts)</li>
-            <li>Detecting, preventing, and responding to fraud, abuse, and security incidents</li>
-            <li>Complying with legal obligations where applicable</li>
-          </ul>
-          <p className="text-white/70 text-sm leading-relaxed">
-            We do not use your personal data for advertising or sell it to anyone.
-          </p>
-        </section>
-
-        {/* Taste-match discovery (F8.2) */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
-          <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
-            <FileText className="h-6 w-6 text-purple-300" />
-            Taste-match discovery
-          </h2>
-          <p className="text-white/70 text-sm leading-relaxed mb-4">
-            FeelFlick can suggest other members with compatible film taste. This is for signed-in
-            members only, and you take part only if you turn on <span className="text-white/90">Appear in
-            taste-match discovery</span> in your Account settings.
-          </p>
-          <ul className="list-disc list-inside text-white/70 text-sm space-y-1 mb-4">
-            <li>When you opt in, other signed-in members may see your name, avatar, your top
-              film-taste tags, and your film count as a suggested match.</li>
-            <li>Your watched film titles and dates, your Diary, your ratings, your reviews, and your
-              generated Cinematic DNA reflection are <span className="text-white/90">not</span> included.</li>
-            <li>You can withdraw from discovery at any time by turning the setting off.</li>
-          </ul>
-        </section>
-
-        {/* What we never do */}
-        <section className="rounded-2xl bg-white/5 border border-purple-500/40 bg-linear-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-sm p-6 md:p-8">
-          <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
-            <EyeOff className="h-6 w-6 text-pink-300" />
-            What we never do
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4 text-sm text-white/80">
-            <ul className="list-disc list-inside space-y-1">
-              <li>We never sell your personal data.</li>
-              <li>We do not share your viewing habits with advertisers.</li>
-              <li>We do not track you across other websites.</li>
+            <h3>Account information</h3>
+            <p>When you sign up with Google OAuth, we receive:</p>
+            <ul>
+              <li>Your name</li>
+              <li>Your email address</li>
             </ul>
-            <ul className="list-disc list-inside space-y-1">
-              <li>We do not show ads inside FeelFlick.</li>
-              <li>We do not buy third‑party data about you to profile you.</li>
-              <li>We do not allow third parties to use your data for their own marketing.</li>
+            <p>We never see or store your Google password.</p>
+
+            <h3>Usage &amp; viewing data</h3>
+            <p>To power personalized recommendations and your account features, we store:</p>
+            <ul>
+              <li>Movies you view in the app</li>
+              <li>Movies you add to your watchlist</li>
+              <li>Movies you mark as watched</li>
+              <li>Your saved preferences (such as genres or moods)</li>
             </ul>
-          </div>
-        </section>
 
-        {/* Third parties & security */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-6">
-          <h2 className="text-2xl md:text-3xl font-black mb-2">Third‑party services & security</h2>
+            <h3>Technical information</h3>
+            <p>To keep FeelFlick secure and functioning properly, we may collect:</p>
+            <ul>
+              <li>Browser type and version</li>
+              <li>Device information</li>
+              <li>IP address and general location (country/region)</li>
+              <li>Log data related to errors and security events</li>
+            </ul>
 
-          <div className="space-y-3 text-sm text-white/70 leading-relaxed">
+            <h3>What we do NOT intentionally collect</h3>
             <p>
-              We use trusted infrastructure providers to run FeelFlick. Today, that includes Supabase (authentication, database, hosting) and TMDB (movie metadata and artwork).
-            </p>
-            <p>
-              <span className="font-semibold text-white/85">Usage analytics &amp; error monitoring.</span> We use PostHog for privacy-safe product analytics and Sentry for error monitoring, to understand reliability and usability during our beta. We do <span className="font-semibold">not</span> send your email, name, search text, reviews, Diary entries, or Cinematic DNA reflection to PostHog &mdash; only a stable internal account identifier and coarse, non-identifying usage events. Where session replay is used, all text and form inputs are masked so private content is not captured. You can turn product analytics off any time in Account &rarr; Privacy.
-            </p>
-            <p>
-              These providers process data on our behalf under strict contractual and security obligations. We do not grant them permission to use your personal information for their own marketing.
+              We do not intentionally collect sensitive categories of personal data such as
+              health information, political opinions, or religious beliefs.
             </p>
             <p>
-              We use industry‑standard security measures to protect your data, including encryption in transit (HTTPS) and encryption at rest where available from our providers.
+              Please do not share sensitive personal information with us through support
+              messages or feedback forms.
             </p>
-          </div>
+          </section>
 
-          <div className="rounded-xl bg-black/40 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-4 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-300 mt-0.5" />
-            <p className="text-xs text-white/70 leading-relaxed">
-              No online service can guarantee absolute security. We work continuously to protect your data but cannot promise that unauthorized access, hacking, or other breaches will never occur.
+          <section aria-labelledby="ff-l-privacy-use">
+            <h2 id="ff-l-privacy-use">How we use your information</h2>
+            <p>We use your information solely to provide and improve FeelFlick. Typical uses include:</p>
+            <ul>
+              <li>Providing mood-based movie recommendations tailored to you</li>
+              <li>Saving and syncing your watchlist and viewing history across devices</li>
+              <li>Improving recommendation quality, search, and overall product experience</li>
+              <li>Sending important service-related notifications (for example, critical changes or security alerts)</li>
+              <li>Detecting, preventing, and responding to fraud, abuse, and security incidents</li>
+              <li>Complying with legal obligations where applicable</li>
+            </ul>
+            <p>We do not use your personal data for advertising or sell it to anyone.</p>
+          </section>
+
+          <section aria-labelledby="ff-l-privacy-taste">
+            <h2 id="ff-l-privacy-taste">Taste-match discovery</h2>
+            <p>
+              FeelFlick can suggest other members with compatible film taste. This is for
+              signed-in members only, and you take part only if you turn on{' '}
+              <strong>Appear in taste-match discovery</strong> in your Account settings.
             </p>
-          </div>
-        </section>
+            <ul>
+              <li>When you opt in, other signed-in members may see your name, avatar, your top film-taste tags, and your film count as a suggested match.</li>
+              <li>Your watched film titles and dates, your Diary, your ratings, your reviews, and your generated Cinematic DNA reflection are <strong>not</strong> included.</li>
+              <li>You can withdraw from discovery at any time by turning the setting off.</li>
+            </ul>
+          </section>
 
-        {/* Data retention & location */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-5">
-          <h2 className="text-2xl md:text-3xl font-black mb-2">Data retention & location</h2>
-          <p className="text-white/70 text-sm leading-relaxed">
-            We keep your data for as long as your account is active or as needed to provide FeelFlick. If you delete your account, we delete or anonymize your personal data within a reasonable period, except where we are legally required to keep certain records.
-          </p>
-          <p className="text-white/70 text-sm leading-relaxed flex items-center gap-2">
-            <Globe className="h-4 w-4 text-purple-300" />
-            Our infrastructure is currently hosted in data centers operated by our providers, which may be located outside your country of residence. By using FeelFlick, you consent to this cross‑border data processing.
-          </p>
-        </section>
+          <section aria-labelledby="ff-l-privacy-never">
+            <h2 id="ff-l-privacy-never">What we never do</h2>
+            <div className="ff-l-legal-note">
+              <ul>
+                <li>We never sell your personal data.</li>
+                <li>We do not share your viewing habits with advertisers.</li>
+                <li>We do not track you across other websites.</li>
+                <li>We do not show ads inside FeelFlick.</li>
+                <li>We do not buy third-party data about you to profile you.</li>
+                <li>We do not allow third parties to use your data for their own marketing.</li>
+              </ul>
+            </div>
+          </section>
 
-        {/* Your rights */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-4">
-          <h2 className="text-2xl md:text-3xl font-black mb-2">Your rights & choices</h2>
-          <p className="text-white/70 text-sm leading-relaxed">
-            Depending on your location and applicable law, you may have some or all of the rights below. We apply these principles broadly as a matter of good practice, even where not legally required.
-          </p>
-          <ul className="list-disc list-inside text-white/70 text-sm space-y-1">
-            <li>Access the personal data we hold about you.</li>
-            <li>Correct inaccurate or incomplete information.</li>
-            <li>Delete your account and associated personal data.</li>
-            <li>Export your watchlist and viewing history in a portable format.</li>
-            <li>Opt out of personalized recommendations (which may reduce product quality).</li>
-          </ul>
-          <p className="text-white/70 text-sm leading-relaxed">
-            To exercise any of these rights, contact us at <span className="font-mono text-white">privacy@feelflick.com</span> from the email associated with your account so we can verify your identity.
-          </p>
-        </section>
+          <section aria-labelledby="ff-l-privacy-third">
+            <h2 id="ff-l-privacy-third">Third-party services &amp; security</h2>
+            <p>
+              We use trusted infrastructure providers to run FeelFlick. Today, that includes
+              Supabase (authentication, database, hosting) and TMDB (movie metadata and artwork).
+            </p>
+            <p>
+              <strong>Usage analytics &amp; error monitoring.</strong> We use PostHog for
+              privacy-safe product analytics and Sentry for error monitoring, to understand
+              reliability and usability during our beta. We do <strong>not</strong> send your
+              email, name, search text, reviews, Diary entries, or Cinematic DNA reflection to
+              PostHog — only a stable internal account identifier and coarse, non-identifying
+              usage events. Where session replay is used, all text and form inputs are masked so
+              private content is not captured. You can turn product analytics off any time in
+              Account → Privacy.
+            </p>
+            <p>
+              These providers process data on our behalf under strict contractual and security
+              obligations. We do not grant them permission to use your personal information for
+              their own marketing.
+            </p>
+            <p>
+              We use industry-standard security measures to protect your data, including
+              encryption in transit (HTTPS) and encryption at rest where available from our
+              providers.
+            </p>
+            <p className="ff-l-legal-note">
+              No online service can guarantee absolute security. We work continuously to protect
+              your data but cannot promise that unauthorized access, hacking, or other breaches
+              will never occur.
+            </p>
+          </section>
 
-        {/* Children */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-3">
-          <h2 className="text-2xl md:text-3xl font-black mb-2">Children&apos;s privacy</h2>
-          <p className="text-white/70 text-sm leading-relaxed">
-            FeelFlick is not intended for children under 13, and we do not knowingly collect personal information from children under 13.
-          </p>
-          <p className="text-white/70 text-sm leading-relaxed">
-            If you believe a child has created an account or provided us with personal information, please contact us immediately so we can delete the data.
-          </p>
-        </section>
+          <section aria-labelledby="ff-l-privacy-retention">
+            <h2 id="ff-l-privacy-retention">Data retention &amp; location</h2>
+            <p>
+              We keep your data for as long as your account is active or as needed to provide
+              FeelFlick. If you delete your account, we delete or anonymize your personal data
+              within a reasonable period, except where we are legally required to keep certain
+              records.
+            </p>
+            <p>
+              Our infrastructure is currently hosted in data centers operated by our providers,
+              which may be located outside your country of residence. By using FeelFlick, you
+              consent to this cross-border data processing.
+            </p>
+          </section>
 
-        {/* Changes & legal protections */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-4">
-          <h2 className="text-2xl md:text-3xl font-black mb-2">Changes, disclaimers & legal terms</h2>
-          <p className="text-white/70 text-sm leading-relaxed">
-            We may update this Privacy Policy from time to time as we add features, change providers, or as laws evolve. When we make material changes, we will notify you by email or through a prominent in‑app notice.
-          </p>
-          <p className="text-white/70 text-sm leading-relaxed">
-            Your continued use of FeelFlick after changes take effect means you agree to the revised policy.
-          </p>
-          <p className="text-white/70 text-xs leading-relaxed">
-            This Privacy Policy is provided for transparency and product explanation and is not legal advice. FeelFlick is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, to the fullest extent permitted by applicable law. Where permitted, our total liability arising out of or relating to this Policy or your use of FeelFlick is limited to the amount you have paid us (if any) for using the service in the twelve months before the dispute.
-          </p>
-        </section>
+          <section aria-labelledby="ff-l-privacy-rights">
+            <h2 id="ff-l-privacy-rights">Your rights &amp; choices</h2>
+            <p>
+              Depending on your location and applicable law, you may have some or all of the
+              rights below. We apply these principles broadly as a matter of good practice, even
+              where not legally required.
+            </p>
+            <ul>
+              <li>Access the personal data we hold about you.</li>
+              <li>Correct inaccurate or incomplete information.</li>
+              <li>Delete your account and associated personal data.</li>
+              <li>Export your watchlist and viewing history in a portable format.</li>
+              <li>Opt out of personalized recommendations (which may reduce product quality).</li>
+            </ul>
+            <p>
+              To exercise any of these rights, contact us at{' '}
+              <a href="mailto:privacy@feelflick.com">privacy@feelflick.com</a> from the email
+              associated with your account so we can verify your identity.
+            </p>
+          </section>
 
-        {/* Contact */}
-        <section className="rounded-2xl bg-linear-to-br from-purple-600/30 to-pink-600/30 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-black mb-3 flex items-center justify-center gap-2">
-            <Mail className="h-6 w-6 text-white" />
-            Questions about privacy?
-          </h2>
-          <p className="text-white/80 text-sm md:text-base mb-6 max-w-xl mx-auto leading-relaxed">
-            If you have questions, concerns, or requests related to your data or this Privacy Policy, reach out any time.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="mailto:privacy@feelflick.com"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-black/40 border border-white/20 text-white font-semibold text-sm md:text-base hover:bg-black/60 hover:scale-105 active:scale-95 transition-all shadow-lg"
-            >
-              <Mail className="h-4 w-4" />
-              privacy@feelflick.com
-            </a>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/10 border border-white/20 text-white font-semibold text-sm md:text-base hover:bg-white/20 hover:scale-105 active:scale-95 transition-all"
-            >
-              Back to Home
-            </Link>
-          </div>
-        </section>
-      </div>
+          <section aria-labelledby="ff-l-privacy-children">
+            <h2 id="ff-l-privacy-children">Children&apos;s privacy</h2>
+            <p>
+              FeelFlick is not intended for children under 13, and we do not knowingly collect
+              personal information from children under 13.
+            </p>
+            <p>
+              If you believe a child has created an account or provided us with personal
+              information, please contact us immediately so we can delete the data.
+            </p>
+          </section>
+
+          <section aria-labelledby="ff-l-privacy-changes">
+            <h2 id="ff-l-privacy-changes">Changes, disclaimers &amp; legal terms</h2>
+            <p>
+              We may update this Privacy Policy from time to time as we add features, change
+              providers, or as laws evolve. When we make material changes, we will notify you by
+              email or through a prominent in-app notice.
+            </p>
+            <p>Your continued use of FeelFlick after changes take effect means you agree to the revised policy.</p>
+            <p className="ff-l-legal-fine">
+              This Privacy Policy is provided for transparency and product explanation and is not
+              legal advice. FeelFlick is provided &quot;as is&quot; and &quot;as available&quot;
+              without warranties of any kind, to the fullest extent permitted by applicable law.
+              Where permitted, our total liability arising out of or relating to this Policy or
+              your use of FeelFlick is limited to the amount you have paid us (if any) for using
+              the service in the twelve months before the dispute.
+            </p>
+          </section>
+
+          <section className="ff-l-legal-contact" aria-labelledby="ff-l-privacy-contact">
+            <h2 id="ff-l-privacy-contact">Questions about privacy?</h2>
+            <p>
+              If you have questions, concerns, or requests related to your data or this Privacy
+              Policy, reach out any time.
+            </p>
+            <div className="ff-l-legal-actions">
+              <a className="ff-l-btn ff-l-btn--primary" href="mailto:privacy@feelflick.com">privacy@feelflick.com</a>
+              <Link className="ff-l-btn ff-l-btn--ghost" to="/">Back to home</Link>
+            </div>
+          </section>
+        </article>
+      </main>
+      <LandingFooter />
     </div>
-    <Footer />
-    </>
   )
 }

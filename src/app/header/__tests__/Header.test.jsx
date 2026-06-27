@@ -112,10 +112,11 @@ describe('Header — authenticated', () => {
     authState = { user: { id: 'u1', email: 'a@b.com', user_metadata: { name: 'Ada' } }, isAuthenticated: true }
   })
 
-  it('wordmark links to /home with authenticated nav (Tonight/Discover/DNA)', () => {
+  it('wordmark links to /home with authenticated nav (Home/Browse/Discover/DNA)', () => {
     renderHeader()
     expect(screen.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/home')
-    expect(screen.getByRole('link', { name: 'Tonight' })).toHaveAttribute('href', '/home')
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/home')
+    expect(screen.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
     expect(screen.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
     expect(screen.getByRole('link', { name: 'DNA' })).toHaveAttribute('href', '/profile')
   })

@@ -14,20 +14,16 @@ describe('BottomNav — IA v2 contract', () => {
     expect(heroTabs).toHaveLength(1)
   })
 
-  it('makes the Briefing (/home) the hero, labeled "Tonight"', () => {
+  it('makes the Briefing (/home) the hero, labeled "Home"', () => {
     const [hero] = heroTabs
     expect(hero.path).toBe('/home')
-    expect(hero.label).toBe('Tonight')
+    expect(hero.label).toBe('Home')
   })
 
   it('keeps Discover present but NOT the hero (it is a supporting surface)', () => {
     const discover = TABS.find(t => t.path === '/discover')
     expect(discover).toBeTruthy()
     expect(discover.hero).toBeFalsy()
-  })
-
-  it('does not label the primary destination "Home"', () => {
-    expect(TABS.some(t => t.label === 'Home')).toBe(false)
   })
 
   it('keeps all five destinations reachable', () => {

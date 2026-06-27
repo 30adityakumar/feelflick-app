@@ -48,6 +48,28 @@
   scrollbar-color: rgba(70, 66, 61, 0.6) transparent;
 }
 
+/* Anchors carousel — a horizontal, snap-scrolling strip of picked-film posters +
+ * numbered ghost slots. Scrolls only when the posters + remaining min-slots overflow
+ * (mobile, or > the visible width); on a wide screen with ≤5 it shows without scrolling.
+ * scroll-padding leaves room for the ob-focus outline on the first/last card; the
+ * thin horizontal scrollbar mirrors .ob-scroll. */
+.onboarding .ob-anchor-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 6px;
+  padding: 6px 6px 10px;       /* room so the focus outline (3px offset) isn't clipped + scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(70, 66, 61, 0.6) transparent;
+}
+.onboarding .ob-anchor-scroll::-webkit-scrollbar { height: 6px; }
+.onboarding .ob-anchor-scroll::-webkit-scrollbar-thumb {
+  background: rgba(70, 66, 61, 0.6);
+  border-radius: 999px;
+}
+.onboarding .ob-anchor-scroll::-webkit-scrollbar-track { background: transparent; }
+.onboarding .ob-anchor-slot { flex: none; scroll-snap-align: start; }
+
 /* Mood-signature atmosphere. --ob-accent-rgb (a single deterministic mood
  * signature, neutral-ink fallback when no mood is selected) is set on the
  * .onboarding root in Onboarding.jsx; the soft/border tints derive from it. Used

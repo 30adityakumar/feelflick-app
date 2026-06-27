@@ -3,8 +3,10 @@ import { Check } from 'lucide-react'
 
 import { tmdbImg } from '@/shared/api/tmdb'
 
-// Grid card: poster + title + year below (not overlaid). Fills its grid track.
-export default function MovieCard({ movie, isSelected, onClick }) {
+// Grid card: poster + title + year below (not overlaid). Fills its grid/track width.
+// hideMeta → poster-only (used by the compact anchors carousel, where the remove
+// button's aria-label already names the film and the title block would add clutter).
+export default function MovieCard({ movie, isSelected, onClick, hideMeta = false }) {
   const [loaded, setLoaded] = useState(false)
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
 
@@ -38,14 +40,16 @@ export default function MovieCard({ movie, isSelected, onClick }) {
           </div>
         )}
       </div>
-      <div className="px-0.5">
-        <p className={`text-[11px] font-medium leading-tight line-clamp-2 transition-colors ${
-          isSelected ? 'text-white' : 'text-white/80'
-        }`}>
-          {movie.title}
-        </p>
-        {year && <p className="text-[10px] text-white/35 mt-0.5">{year}</p>}
-      </div>
+      {!hideMeta && (
+        <div className="px-0.5">
+          <p className={`text-[11px] font-medium leading-tight line-clamp-2 transition-colors ${
+            isSelected ? 'text-white' : 'text-white/80'
+          }`}>
+            {movie.title}
+          </p>
+          {year && <p className="text-[10px] text-white/35 mt-0.5">{year}</p>}
+        </div>
+      )}
     </button>
   )
 }

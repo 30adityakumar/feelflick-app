@@ -100,8 +100,8 @@ describe('CelebrationReveal — content + data variants', () => {
     expect(screen.getByText(/your first signals are in/i)).toBeInTheDocument()
     expect(screen.getByText(/from your picks/i)).toBeInTheDocument()
     expect(screen.getByText(/next up/i)).toBeInTheDocument()
-    expect(screen.getByText(/tell us how tonight feels/i)).toBeInTheDocument()
-    expect(screen.getByText(/one film for your night/i)).toBeInTheDocument()
+    expect(screen.getByText(/your taste is in/i)).toBeInTheDocument()
+    expect(screen.getByText(/your picks for tonight/i)).toBeInTheDocument()
   })
 
   it.each([
@@ -132,7 +132,7 @@ describe('CelebrationReveal — reduced motion (structure; visual timing is Play
     render(<CelebrationReveal {...props()} />)
     expect(document.querySelectorAll('[role="status"]')).toHaveLength(1)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
-    expect(screen.getByText(/tell us how tonight feels/i)).toBeInTheDocument()
+    expect(screen.getByText(/your picks for tonight/i)).toBeInTheDocument()
     expect(document.querySelectorAll('img')).toHaveLength(5)
   })
 })
@@ -171,7 +171,7 @@ describe('CelebrationReveal — retained editorial spine', () => {
     expect(screen.getByText(/from your picks/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/tonight is\s*yours\./i)
     expect(screen.getByText('Next up')).toBeInTheDocument()
-    expect(screen.getByText(/with the case for why it fits/i)).toBeInTheDocument()
+    expect(screen.getByText(/shaped by everything you just shared/i)).toBeInTheDocument()
   })
 
   it('shows the selected mood pills (by their real labels)', () => {

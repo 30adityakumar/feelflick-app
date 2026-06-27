@@ -1,12 +1,12 @@
 // src/features/onboarding/Onboarding.jsx
 // FeelFlick — Onboarding V2 (mood-reactive). Mounted at /onboarding.
 //
-// Flow (4 steps): on completion the FIRST landing is /discover — cold-start, since
-// /home needs watch history to feel personal; returning users route to /home.
+// Flow (4 steps): on completion the FIRST landing is /home (the personalized home
+// for tonight, seeded by the onboarding signals + prefetched on finish).
 //   1. Mood baseline
 //   2. Genres
 //   3. Films
-//   4. Quick rate → completeOnboarding → /discover
+//   4. Quick rate → completeOnboarding → /home
 //
 // Auth + completion logic mirrors the legacy Onboarding.jsx exactly so existing Supabase
 // metadata + PostAuthGate continue to work.
@@ -51,7 +51,7 @@ export default function Onboarding() {
 
   const [checking, setChecking] = useState(true)
   const [celebrate, setCelebrate] = useState(false)
-  // Drives the celebration → /discover exit animation. When flipped to true, the
+  // Drives the celebration → /home exit animation. When flipped to true, the
   // celebration content fades to opacity 0; the black backdrop remains until
   // navigate fires. Smooths what was previously a hard cut.
   const [fadingOut, setFadingOut] = useState(false)
@@ -156,11 +156,9 @@ export default function Onboarding() {
   // so the brand moment always lands. Calmer pacing (longer durations, more
   // overlap) keeps it readable for dyslexic users and predictable for OCD-
   // sensitive ones — both groups benefit from slower, intentional motion.
-  // Bumped from 7500 → 12000 in the /discover handoff revision so the new
-  // Stage 5 coaching block ("Mark Watched on films you already know…") has
-  // 4–5s of reading time before fade-out. The longer hold also dampens the
-  // celebration → /discover seam by giving the eye more time to settle
-  // before the route swap.
+  // Bumped from 7500 → 12000 so the Stage 5 coaching block has 4–5s of reading
+  // time before fade-out. The longer hold also dampens the celebration → /home
+  // seam by giving the eye more time to settle before the route swap.
   const CELEBRATION_MIN_MS = 12000
 
   async function handleFinish() {
@@ -202,50 +200,35 @@ export default function Onboarding() {
       if (remainder > 0) await new Promise(r => setTimeout(r, remainder))
 
       // Begin the fade-out — celebration content tweens to opacity 0 while the
-      // black backdrop stays. /discover then covers the seam with its own
-      // black overlay that fades up slowly (~1.4s) to reveal the page.
-      // The result is a smooth dim → full black → unhurried rise transition,
-      // around 2.3s of dark continuity that reads as cinematic intent rather
-      // than a router blink. Match the 900ms tween duration in
-      // CelebrationReveal (particles + main content opacity transitions).
+      // black backdrop stays, so we navigate from full black into /home (whose
+      // PageDepth canvas is already dark), reading as cinematic continuity rather
+      // than a router blink. Match the 900ms tween duration in CelebrationReveal
+      // (particles + main content opacity transitions).
       const reducedAtFade = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
       setFadingOut(true)
       if (!reducedAtFade) {
         await new Promise(r => setTimeout(r, 900))
       }
 
-      // First landing goes to /discover, not /home.
-      //
-      // Reasoning: /home is at its best with history — the Briefing's
-      // engine reranking, the personal lists (director / similar / genre /
-      // fit / actor), the DNA portrait, and the taste-twin pulse all need
-      // ≥5 logged films before they feel personal. A fresh user with zero
-      // history sees DNA's "Patterns forming…", twin pulse hidden (no
-      // twins), and personal lists falling back to static CURATED_LISTS —
-      // /home reads as generic on day 1.
-      //
-      // /discover delivers the core promise ("I feel X → give me a film")
-      // in one screen using the just-collected onboarding signals
-      // (taste_baseline_moods + favorites + genre prefs). After the user
-      // logs/skips/rates their first few films, /home earns its space and
-      // becomes the natural landing on subsequent sessions — RootEntry +
-      // PostAuthGate route authenticated returners to /home as usual.
+      // First landing goes to /home — the user's personalized home for tonight
+      // (its hero pick + personal rows + DNA are seeded by the onboarding signals
+      // just written by completeOnboarding, and prefetchHomeData above warms it so
+      // it's ready on arrival).
       //
       // ORDER MATTERS — navigate BEFORE flipping the auth metadata:
       // PostAuthGate has a rule `if (isOnboarded && pathname === '/onboarding')
-      // → <Navigate to="/home" />`. If we flip first, that rule fires the
-      // next render (location still '/onboarding') and the user sees a
-      // glimpse of /home before our navigate('/discover') takes over.
-      // Navigating first changes location to '/discover' so when the auth
-      // listener fires moments later the rule's pathname check is false.
-      navigate('/discover', {
+      // → <Navigate to="/home" />`. If we flip first, that rule fires the next
+      // render (location still '/onboarding') before our own navigate runs.
+      // Navigating first changes location to '/home' so when the auth listener
+      // fires moments later the rule's pathname check is false (no double-nav).
+      navigate('/home', {
         replace: true,
-        state: { fromOnboarding: true, movieCount: favoriteMovies.length, moods },
+        state: { fromOnboarding: true },
       })
 
       // Flip the auth metadata after the route change has committed.
       // PostAuthGate's onAuthStateChange listener will re-evaluate and fall
-      // through (pathname is now '/discover'), so no double-navigate.
+      // through (pathname is now '/home'), so no double-navigate.
       await markOnboardingAuthComplete()
     } catch (e) {
       console.error('Onboarding save failed:', e)
@@ -263,7 +246,7 @@ export default function Onboarding() {
     return <BrandSplash />
   }
 
-  // Celebration → /discover. Staggered reveals double as cover for the Supabase
+  // Celebration → /home. Staggered reveals double as cover for the Supabase
   // writes happening underneath (~1-3s) so the wait feels intentional.
   if (celebrate) {
     return (

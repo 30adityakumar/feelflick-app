@@ -2,7 +2,7 @@
 // F2.20 — locks the FROZEN onboarding finish ordering under test WITHOUT editing
 // Onboarding.jsx. Drives the real handleFinish via the rating step's 700ms
 // auto-finish and asserts: completeOnboarding({markAuthComplete:false}) + prefetch
-// run, then after the 12s hold, navigate('/discover') fires BEFORE
+// run, then after the 12s hold, navigate('/home') fires BEFORE
 // markOnboardingAuthComplete(). Runs under reduced-motion so framer skips its
 // infinite animations during the fake-timer advance (the ordering is identical;
 // reduced-motion only skips the 900ms fade wait, which Onboarding does by design).
@@ -74,7 +74,7 @@ async function driveToFinish() {
 }
 
 describe('Onboarding finish flow — frozen ordering', () => {
-  it('completeOnboarding(markAuthComplete:false) + prefetch, then /discover BEFORE markOnboardingAuthComplete', async () => {
+  it('completeOnboarding(markAuthComplete:false) + prefetch, then /home BEFORE markOnboardingAuthComplete', async () => {
     vi.useFakeTimers()
     await driveToFinish()
     // 700ms auto-finish → handleFinish → 12000ms hold → (fade skipped under reduced) → nav → auth
@@ -87,12 +87,12 @@ describe('Onboarding finish flow — frozen ordering', () => {
 
     const log = names()
     const completeIdx = log.indexOf('completeOnboarding')
-    const navIdx = h.calls.findIndex(c => c[0] === 'navigate' && c[1] === '/discover')
+    const navIdx = h.calls.findIndex(c => c[0] === 'navigate' && c[1] === '/home')
     const authIdx = log.indexOf('markOnboardingAuthComplete')
     expect(completeIdx).toBeGreaterThanOrEqual(0)
     expect(navIdx).toBeGreaterThan(completeIdx)   // navigate only after completion resolves
     expect(authIdx).toBeGreaterThan(navIdx)        // auth flip AFTER navigation
-    expect(h.navigate.mock.calls.every(c => c[0] === '/discover')).toBe(true) // sole destination
+    expect(h.navigate.mock.calls.every(c => c[0] === '/home')).toBe(true) // sole destination
   })
 
   it('does NOT navigate or flip auth before the 12s hold elapses', async () => {

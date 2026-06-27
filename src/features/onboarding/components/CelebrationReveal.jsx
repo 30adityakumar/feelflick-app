@@ -31,7 +31,7 @@ function buildTasteLine({ hasMoods, hasGenres, hasRatings, hasFilms }) {
 }
 
 // === Celebration reveal ====================================================
-// The final onboarding surface + ~12s write-cover before /discover. A calm,
+// The final onboarding surface + ~12s write-cover before /home. A calm,
 // personal editorial reveal — mood atmosphere → your mood pills → a taste line →
 // your poster mosaic → "Tonight is yours." → one coaching beat. NO infinite
 // motion: every entrance resolves once and then settles. AmbientGlow + static
@@ -235,9 +235,9 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
           </h1>
         </motion.div>
 
-        {/* Coaching — the lead-out beat, accurate to what /discover opens with
-           (re-asks the night's mood, then reveals one cased pick). No Mark
-           Watched / next-day-cadence promise. Held for reading time before fade. */}
+        {/* Coaching — the lead-out beat, accurate to what /home opens with
+           (your personalized picks for tonight, seeded by the onboarding signals).
+           No watch-logging or next-day-cadence promise. Held for reading time before fade. */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -256,7 +256,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
             className="mt-4 text-[14px] leading-[1.6] text-white/72 sm:mt-5 sm:text-[15px]"
             style={{ textWrap: 'pretty' }}
           >
-            Tell us how tonight feels. A few quick questions, then one film for your night &mdash; with the case for why it fits.
+            Your taste is in. Up next, your picks for tonight &mdash; shaped by everything you just shared.
           </p>
         </motion.div>
       </motion.div>

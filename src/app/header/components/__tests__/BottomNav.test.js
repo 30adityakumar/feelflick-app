@@ -2,39 +2,38 @@ import { describe, expect, it } from 'vitest'
 
 import { TABS } from '../BottomNav'
 
-// IA v2 contract (F2) — see docs/ia-v2-decision-record.md.
-// The mobile bottom nav must make the nightly pick / Briefing the prime action,
-// NOT Discover (a supporting surface). These are config-level assertions on the
-// IA contract, not brittle visual-wording checks: the `hero` flag + the primary
-// label ARE the product contract this phase establishes.
-describe('BottomNav — IA v2 contract', () => {
-  const heroTabs = TABS.filter(t => t.hero)
-
-  it('has exactly one hero (prime) tab', () => {
-    expect(heroTabs).toHaveLength(1)
+// Mobile bottom-nav IA contract: five EQUAL tabs (no hero), in a fixed order, each
+// wired to its real route. Config-level assertions on the contract, not brittle
+// visual-wording checks.
+describe('BottomNav — IA contract', () => {
+  it('has five equal tabs with no hero', () => {
+    expect(TABS).toHaveLength(5)
+    expect(TABS.some(t => t.hero)).toBe(false)
   })
 
-  it('makes the Briefing (/home) the hero, labeled "Home"', () => {
-    const [hero] = heroTabs
-    expect(hero.path).toBe('/home')
-    expect(hero.label).toBe('Home')
+  it('orders them Home · Browse · Discover · DNA · Account', () => {
+    expect(TABS.map(t => t.label)).toEqual(['Home', 'Browse', 'Discover', 'DNA', 'Account'])
   })
 
-  it('keeps Discover present but NOT the hero (it is a supporting surface)', () => {
-    const discover = TABS.find(t => t.path === '/discover')
-    expect(discover).toBeTruthy()
-    expect(discover.hero).toBeFalsy()
+  it('wires each tab to its real route (DNA → /profile, Account → /account)', () => {
+    const byLabel = Object.fromEntries(TABS.map(t => [t.label, t.path]))
+    expect(byLabel).toEqual({
+      Home: '/home',
+      Browse: '/browse',
+      Discover: '/discover',
+      DNA: '/profile',
+      Account: '/account',
+    })
   })
 
   it('keeps all five destinations reachable', () => {
     const paths = TABS.map(t => t.path)
     expect(paths).toEqual(
-      expect.arrayContaining(['/browse', '/discover', '/home', '/profile', '/account']),
+      expect.arrayContaining(['/home', '/browse', '/discover', '/profile', '/account']),
     )
   })
 
-  it('centers the hero among five tabs (one thumb-tap)', () => {
-    expect(TABS).toHaveLength(5)
-    expect(TABS[2].hero).toBe(true)
+  it('gives every tab an icon', () => {
+    expect(TABS.every(t => Boolean(t.Icon))).toBe(true)
   })
 })

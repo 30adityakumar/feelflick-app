@@ -1,6 +1,7 @@
 // src/app/header/components/BottomNav.jsx
 // FeelFlick — Mobile bottom navigation.
-// Five EQUAL tabs (no hero): Home · Browse · Discover · DNA · Account.
+// Five EQUAL tabs (no hero): Home · Browse · Discover · DNA · You.
+// "You" → /you (the mobile account hub: the desktop avatar-dropdown list as a page).
 // A flat, full-width dock (top hairline on solid ink) — not a floating glass capsule.
 // The active tab gets a coral top-line + a quiet neutral field + paper-white icon/label
 // + aria-current; redundant non-colour cues (incl. a forced-colors outline in BottomNav.css
@@ -13,13 +14,13 @@ import { Home, LayoutGrid, Compass, Fingerprint, User } from 'lucide-react'
 import './BottomNav.css'
 
 // Exported as the mobile IA contract (asserted in __tests__/BottomNav.test.js):
-// five equal destinations in this order; DNA → /profile (Cinematic DNA), Account → /account.
+// five equal destinations in this order; DNA → /profile (Cinematic DNA), You → /you (mobile account hub).
 export const TABS = [
   { id: 'home',     label: 'Home',     path: '/home',     match: ['/home'],     Icon: Home       },
   { id: 'browse',   label: 'Browse',   path: '/browse',   match: ['/browse'],   Icon: LayoutGrid },
   { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'], Icon: Compass    },
   { id: 'dna',      label: 'DNA',      path: '/profile',  match: ['/profile'],  Icon: Fingerprint},
-  { id: 'account',  label: 'Account',  path: '/account',  match: ['/account'],  Icon: User       },
+  { id: 'you',      label: 'You',      path: '/you',      match: ['/you'],      Icon: User       },
 ]
 
 /**

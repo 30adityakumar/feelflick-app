@@ -130,4 +130,21 @@ describe('Header — authenticated', () => {
     expect(screen.queryByRole('button', { name: /sign in/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /open menu/i })).toBeNull()
   })
+
+  it('avatar dropdown lists the full account menu (shared config) + feedback + sign out', () => {
+    renderHeader()
+    fireEvent.click(screen.getByRole('button', { name: /account menu/i }))
+    const menu = document.getElementById('ff-account-menu')
+    expect(menu).toBeTruthy()
+    const links = Object.fromEntries(
+      [...menu.querySelectorAll('a[href]')].map(a => [a.textContent.trim(), a.getAttribute('href')]),
+    )
+    expect(links).toMatchObject({
+      Account: '/account', Browse: '/browse', Watchlist: '/watchlist', Diary: '/history',
+      People: '/people', Lists: '/lists', Settings: '/preferences',
+    })
+    expect(within(menu).getByRole('link', { name: /send feedback/i }))
+      .toHaveAttribute('href', expect.stringMatching(/^mailto:/))
+    expect(within(menu).getByRole('button', { name: /sign out/i })).toBeInTheDocument()
+  })
 })

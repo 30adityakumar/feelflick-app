@@ -11,25 +11,25 @@ describe('BottomNav — IA contract', () => {
     expect(TABS.some(t => t.hero)).toBe(false)
   })
 
-  it('orders them Home · Browse · Discover · DNA · Account', () => {
-    expect(TABS.map(t => t.label)).toEqual(['Home', 'Browse', 'Discover', 'DNA', 'Account'])
+  it('orders them Home · Browse · Discover · DNA · You', () => {
+    expect(TABS.map(t => t.label)).toEqual(['Home', 'Browse', 'Discover', 'DNA', 'You'])
   })
 
-  it('wires each tab to its real route (DNA → /profile, Account → /account)', () => {
+  it('wires each tab to its real route (DNA → /profile, You → /you hub)', () => {
     const byLabel = Object.fromEntries(TABS.map(t => [t.label, t.path]))
     expect(byLabel).toEqual({
       Home: '/home',
       Browse: '/browse',
       Discover: '/discover',
       DNA: '/profile',
-      Account: '/account',
+      You: '/you',
     })
   })
 
   it('keeps all five destinations reachable', () => {
     const paths = TABS.map(t => t.path)
     expect(paths).toEqual(
-      expect.arrayContaining(['/home', '/browse', '/discover', '/profile', '/account']),
+      expect.arrayContaining(['/home', '/browse', '/discover', '/profile', '/you']),
     )
   })
 

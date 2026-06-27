@@ -16,15 +16,13 @@
 
 import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import {
-  Search as SearchIcon, LogOut, User as UserIcon, Settings,
-  Bookmark, Clock, Users, ListVideo, LogIn, Mail, LayoutGrid, Menu, X,
-} from 'lucide-react'
+import { Search as SearchIcon, LogOut, LogIn, Mail, Menu, X } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { clearDraft } from '@/features/onboarding/draft'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
+import { ACCOUNT_MENU, FEEDBACK_HREF } from '@/shared/lib/accountMenu'
 
 // Ambient accent — ivory secondary (neutral chrome, not a brand colour).
 const AMBIENT_HEX = '#beb8ad'
@@ -215,15 +213,11 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
           </div>
 
           <div className="py-1.5">
-            <DropdownLink to="/account"     icon={UserIcon}    onClick={() => setOpen(false)}>Account</DropdownLink>
-            <DropdownLink to="/browse"      icon={LayoutGrid}  onClick={() => setOpen(false)}>Browse</DropdownLink>
-            <DropdownLink to="/watchlist"   icon={Bookmark}    onClick={() => setOpen(false)}>Watchlist</DropdownLink>
-            <DropdownLink to="/history"     icon={Clock}       onClick={() => setOpen(false)}>Diary</DropdownLink>
-            <DropdownLink to="/people"      icon={Users}       onClick={() => setOpen(false)}>People</DropdownLink>
-            <DropdownLink to="/lists"       icon={ListVideo}   onClick={() => setOpen(false)}>Lists</DropdownLink>
-            <DropdownLink to="/preferences" icon={Settings}    onClick={() => setOpen(false)}>Settings</DropdownLink>
+            {ACCOUNT_MENU.map(({ label, to, Icon }) => (
+              <DropdownLink key={to} to={to} icon={Icon} onClick={() => setOpen(false)}>{label}</DropdownLink>
+            ))}
             <a
-              href="mailto:hello@feelflick.com?subject=Feelflick%20feedback"
+              href={FEEDBACK_HREF}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}

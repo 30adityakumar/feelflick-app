@@ -35,7 +35,17 @@
 .ff-home__empty-sub { margin: 0; font-size: 14px; color: var(--ts-text-muted, #8d887f); }
 
 .ff-home__skeleton { padding-bottom: 48px; }
-.ff-home__skel-hero { height: min(64svh, 560px); background: var(--ts-surface-1, #1a1714); }
+/* Mirror the contained hero geometry so the skeleton doesn't cause a layout jump on load. */
+.ff-home__skel-hero {
+  box-sizing: border-box;
+  width: calc(100% - 2 * var(--ff-pad, 20px));
+  max-width: calc(1440px - 2 * var(--ff-pad, 20px));
+  margin: 14px auto 0;
+  border-radius: 18px;
+  min-height: min(72svh, 560px);
+  background: var(--ts-surface-1, #1a1714);
+}
+@media (min-width: 961px) { .ff-home__skel-hero { margin-top: 18px; min-height: min(74svh, 620px); } }
 .ff-home__skel-section { margin-top: 44px; }
 .ff-home__skel-head { width: 220px; height: 26px; border-radius: 8px; background: rgba(255,255,255,0.06); margin-bottom: 18px; }
 .ff-home__skel-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
@@ -45,17 +55,23 @@
 @keyframes ffHomePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
 /* === Hero ================================================================= */
-/* Full-bleed: cancel AppShell <main>'s top padding so the backdrop runs under
-   the fixed translucent header. Only applies when a hero is present (first child). */
+/* Contained editorial "stage": starts cleanly BELOW the fixed header (no negative
+   margin / no bleed-under-header), inset to the page gutter and bounded like the
+   rows below (.ff-home__body), with a soft radius. Backdrop, scrim and carousel
+   controls clip to the rounded card via overflow:hidden. */
 .ff-hero {
   position: relative;
-  margin-top: calc(-1 * var(--hdr-h, 56px));
-  min-height: min(86svh, 720px);
+  box-sizing: border-box;
+  width: calc(100% - 2 * var(--ff-pad, 20px));
+  max-width: calc(1440px - 2 * var(--ff-pad, 20px));
+  margin: 14px auto 0;
+  border-radius: 18px;
+  min-height: min(72svh, 560px);
   display: flex;
   isolation: isolate;
   overflow: hidden;
 }
-@media (min-width: 961px) { .ff-hero { min-height: min(78svh, 760px); } }
+@media (min-width: 961px) { .ff-hero { margin-top: 18px; min-height: min(74svh, 620px); } }
 
 .ff-hero__media { position: absolute; inset: 0; z-index: 0; }
 .ff-hero__img {
@@ -77,11 +93,11 @@
 
 .ff-hero__content {
   position: relative; z-index: 2;
-  width: 100%; max-width: 1440px; margin-inline: auto;
-  padding-inline: var(--ff-pad);
+  width: 100%;
+  padding-inline: clamp(20px, 3.4vw, 44px);
   display: flex; align-items: flex-end; justify-content: flex-start;
-  padding-top: calc(var(--hdr-h, 56px) + 28px);
-  padding-bottom: 92px;
+  padding-top: 56px;
+  padding-bottom: 84px;
 }
 
 .ff-hero__panel { width: min(100%, 640px); }
@@ -99,7 +115,7 @@
 @media (min-width: 961px) { .ff-hero__title { font-size: clamp(4rem, 6.4vw, 7.4rem); } }
 .ff-hero__meta {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 14px;
-  color: var(--ts-text-muted, #8d887f); font-size: 12px; font-weight: 600;
+  color: var(--ts-text-secondary, #beb8ad); font-size: 12px; font-weight: 600;
   letter-spacing: 0.12em; text-transform: uppercase;
 }
 .ff-hero__meta i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: 0.7; display: inline-block; margin-right: 10px; }
@@ -144,27 +160,27 @@
   backdrop-filter: blur(10px); transition: background 0.18s ease, border-color 0.18s ease;
 }
 .ff-hero__arrow:hover { background: rgba(8,9,9,0.82); border-color: rgba(255,255,255,0.46); }
-.ff-hero__arrow--prev { left: 0; border-left: 0; border-radius: 0 12px 12px 0; }
-.ff-hero__arrow--next { right: 0; border-right: 0; border-radius: 12px 0 0 12px; }
+.ff-hero__arrow--prev { left: 10px; border-radius: 12px; }
+.ff-hero__arrow--next { right: 10px; border-radius: 12px; }
 @media (max-width: 560px) { .ff-hero__arrow { width: 38px; height: 50px; } }
 
 .ff-hero__dots { position: absolute; left: 50%; bottom: 20px; z-index: 5; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
 .ff-hero__dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: rgba(255,255,255,0.4); transition: width 0.18s ease, background 0.18s ease; }
 .ff-hero__dot.is-active { width: 22px; background: #fff; }
-@media (min-width: 961px) { .ff-hero__dots { left: auto; right: var(--ff-pad); transform: none; bottom: 26px; } }
+@media (min-width: 961px) { .ff-hero__dots { left: auto; right: 24px; transform: none; bottom: 24px; } }
 
-/* Desktop hero: clean artwork on the left, scrim + content confined to the right. */
+/* Desktop hero: content anchors bottom-LEFT. Darken the bottom + a little of the
+   left so the reason/title read over the darkest corner; top-right artwork stays clean. */
 @media (min-width: 961px) {
   .ff-hero__scrim {
-    left: auto; right: 0; width: 62%;
-    background: linear-gradient(
-      to left,
-      rgba(15,16,16,0.985) 0%, rgba(15,16,16,0.96) 22%, rgba(15,16,16,0.82) 46%,
-      rgba(15,16,16,0.42) 70%, rgba(15,16,16,0) 100%
-    );
+    background:
+      linear-gradient(to top,
+        rgba(15,16,16,0.96) 0%, rgba(15,16,16,0.72) 30%, rgba(15,16,16,0.18) 56%, rgba(15,16,16,0) 80%),
+      linear-gradient(to right,
+        rgba(15,16,16,0.74) 0%, rgba(15,16,16,0.30) 34%, rgba(15,16,16,0) 62%);
   }
-  .ff-hero__content { justify-content: flex-end; padding-bottom: 84px; }
-  .ff-hero__panel { width: min(44vw, 620px); margin-left: auto; }
+  .ff-hero__content { justify-content: flex-start; padding-bottom: 60px; }
+  .ff-hero__panel { width: min(46vw, 640px); }
 }
 
 /* === Shortcut strip ======================================================= */

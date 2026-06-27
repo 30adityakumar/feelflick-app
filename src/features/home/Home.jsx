@@ -4,7 +4,7 @@
 // the scoped Thoughtful-Seatmate foundation (<ThoughtfulRoot> + neutral
 // <PageDepth> canvas), four things:
 //
-//   1. HomeHero            — a full-bleed cinematic backdrop carousel of ≤3
+//   1. HomeHero            — a contained editorial backdrop carousel of ≤3
 //                            personally-grounded standouts (grounded reason only).
 //   2. HomeShortcutStrip   — Discover / Browse / Log shortcuts, after the hero.
 //   3. HomeRecommendationSection[] — bounded, poster-led groups.

@@ -1,5 +1,5 @@
 // src/features/home/components/HomeHero.jsx
-// The redesigned Home hero: a full-bleed cinematic backdrop with a small,
+// The redesigned Home hero: a contained editorial cinematic backdrop with a small,
 // bounded carousel of personally-grounded standout picks (≤3). Every hero film
 // MUST carry a specific, grounded reason — generic "Picked for you" candidates
 // are filtered out upstream in Home, never shown here.
@@ -13,9 +13,10 @@
 //                        then advance to the next standout (session-hidden)
 //   • per-active-film 'hero' surface impression + a polite SR live region.
 //
-// Desktop: artwork stays clean on the left; the scrim + content live on the
-// right. Mobile: content sits at the bottom over a bottom-up scrim; swipe +
-// dots move between standouts. Reduced motion → instant updates (CSS-gated).
+// A contained editorial "stage": it starts cleanly below the fixed header and is
+// inset/bounded like the rows below. Content anchors bottom-LEFT over a scrim on
+// every device (artwork stays clean top-right on desktop); swipe + dots move
+// between standouts. Reduced motion → instant updates (CSS-gated).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -105,7 +106,10 @@ function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }
 
   if (!film) return null
   const reason = film._reason?.text
-  const meta = [yearOf(film), formatRuntime(film.runtime), film.director_name && film.director_name !== 'Unknown' ? film.director_name : null].filter(Boolean)
+  // Lean factual line: year · genre · runtime (the only genre in home data is the
+  // single primary_genre). Director is not shown here — it surfaces in director-type
+  // reasons ("More from …") and on the Film File.
+  const meta = [yearOf(film), film.primary_genre || null, formatRuntime(film.runtime)].filter(Boolean)
 
   return (
     <div className="ff-hero__panel">

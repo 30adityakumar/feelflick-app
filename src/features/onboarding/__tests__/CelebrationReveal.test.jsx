@@ -5,7 +5,7 @@
 // jsdom checks structure + the source-level motion/artifact contracts only.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, fireEvent } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -184,6 +184,22 @@ describe('CelebrationReveal — retained editorial spine', () => {
     render(<CelebrationReveal {...props({ ratings: {} })} />)
     expect(screen.getByText(/the films you chose/i)).toBeInTheDocument()
     expect(screen.queryByText(/how those films landed/i)).toBeNull()
+  })
+})
+
+describe('CelebrationReveal — skip control', () => {
+  it('renders no skip button until setup is ready', () => {
+    render(<CelebrationReveal {...props()} />) // ready defaults to false
+    expect(screen.queryByRole('button', { name: /see your picks/i })).toBeNull()
+  })
+
+  it('shows "See your picks" once ready and calls onEnter when clicked', () => {
+    const onEnter = vi.fn()
+    render(<CelebrationReveal {...props({ ready: true, onEnter })} />)
+    const btn = screen.getByRole('button', { name: /see your picks/i })
+    expect(btn).toBeInTheDocument()
+    fireEvent.click(btn)
+    expect(onEnter).toHaveBeenCalledTimes(1)
   })
 })
 

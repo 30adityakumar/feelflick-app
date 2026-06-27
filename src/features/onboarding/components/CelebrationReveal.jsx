@@ -31,12 +31,17 @@ function buildTasteLine({ hasMoods, hasGenres, hasRatings, hasFilms }) {
 }
 
 // === Celebration reveal ====================================================
-// The final onboarding surface + ~12s write-cover before /home. A calm,
-// personal editorial reveal — mood atmosphere → your mood pills → a taste line →
-// your poster mosaic → "Tonight is yours." → one coaching beat. NO infinite
-// motion: every entrance resolves once and then settles. AmbientGlow + static
-// grain are the only ambient layers. The frozen 12s hold + 900ms fade-out are
-// owned upstream by Onboarding.jsx; this component only reads `fadingOut`.
+// The final onboarding surface — a write-cover before /home. A calm, personal
+// editorial reveal — mood atmosphere → your mood pills → a taste line → your
+// poster mosaic → "Tonight is yours." → one coaching beat. NO infinite motion:
+// every entrance resolves once and then settles. AmbientGlow + static grain are
+// the only ambient layers.
+//
+// Timing is owned upstream by Onboarding.jsx: it holds for an ADAPTIVE floor
+// (max(floor, setup work); floor 8s, 2s under reduced motion) — not a fixed clock
+// — then runs the 900ms fade-out via `fadingOut`. This component also reads
+// `ready`/`onEnter` to render the optional "See your picks" skip once setup
+// resolves, so the user can leave before the floor.
 //
 // Internal stage timeline (NORMAL motion, seconds from mount; every delay
 // collapses to 0 under prefers-reduced-motion, F2.20):
@@ -47,11 +52,11 @@ function buildTasteLine({ hasMoods, hasGenres, hasRatings, hasFilms }) {
 //   3.0  poster mosaic (stagger)
 //   4.9  "Tonight is yours."
 //   6.3  coaching beat ("Next up")
-// Settles ~7s, then holds for ~5s reading time until the upstream fade at ~12s.
+// Settles ~7.7s.
 const EASE = [0.16, 1, 0.3, 1]                          // quartOut — long settle, no overshoot
 const SPRING = { type: 'spring', stiffness: 70, damping: 18, mass: 0.9 }
 
-export default function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fadingOut = false }) {
+export default function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fadingOut = false, ready = false, onEnter = () => {} }) {
   const reduced = useReducedMotion()
 
   // Selected mood objects (RGB triplets, labels).
@@ -259,6 +264,27 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
             Your taste is in. Up next, your picks for tonight &mdash; shaped by everything you just shared.
           </p>
         </motion.div>
+
+        {/* Skip / enter — appears once setup is ready (writes + home prefetch done), so the
+           user can leave for /home immediately instead of waiting out the reveal. If they
+           don't, Onboarding auto-advances at the floor. */}
+        {ready && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0.3 : 0.6, ease: EASE }}
+            className="mt-9 sm:mt-11"
+          >
+            <button
+              type="button"
+              onClick={onEnter}
+              className="ob-focus inline-flex items-center gap-2 rounded-xl border border-transparent bg-[var(--color-action-primary-fill,#f0ece4)] px-6 h-11 text-sm font-semibold text-[var(--color-action-primary-text,#0f1010)] transition-opacity duration-200 hover:opacity-90"
+            >
+              See your picks
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   )

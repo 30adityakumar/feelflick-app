@@ -228,9 +228,10 @@ export const router = sentryCreateBrowserRouter([
   // SiteHeaderHost + LandingFooter) rather than nesting inside PublicShell's <main>.
   { path: '/about', element: <LazyRoute Component={About} />, errorElement: <ErrorBoundary /> },
 
-  // /privacy: also a TOP-LEVEL route (like /about + Landing) so the rebuilt legal page owns
-  // its own <header>/<main id="main">/<footer> (shared SiteHeaderHost + LandingFooter).
+  // /privacy + /terms: also TOP-LEVEL routes (like /about + Landing) so the rebuilt legal
+  // pages own their own <header>/<main id="main">/<footer> (shared SiteHeaderHost + LandingFooter).
   { path: '/privacy', element: <LazyRoute Component={Privacy} />, errorElement: <ErrorBoundary /> },
+  { path: '/terms', element: <LazyRoute Component={Terms} />, errorElement: <ErrorBoundary /> },
 
   // Public branch (no app chrome) — legal/callback/share/aliases keep PublicShell's <main>.
   {
@@ -245,8 +246,6 @@ export const router = sentryCreateBrowserRouter([
       // OAuth callback route - MUST come before legacy auth redirects
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },
 
-      // Legal pages (publicly accessible)
-      { path: 'terms', element: <LazyRoute Component={Terms} /> },
 
       // Share Studio — downloadable "Tonight's Pick" card (demo data for now)
       { path: 'share', element: <LazyRoute Component={ShareStudio} /> },

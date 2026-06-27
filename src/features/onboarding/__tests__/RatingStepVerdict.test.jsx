@@ -64,12 +64,12 @@ describe('RatingStep — editorial verdict controls', () => {
     expect(screen.getByRole('button', { name: 'Okay' })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('gives every verdict control a ≥44px target + focus-visible ring', () => {
+  it('gives every verdict control a ≥44px target + focus-visible affordance', () => {
     render(<RatingStep {...props()} />)
     for (const label of ['Okay', 'Liked', 'Loved']) {
       const cls = screen.getByRole('button', { name: label }).getAttribute('class')
       expect(cls).toMatch(/min-h-\[48px\]/)
-      expect(cls).toMatch(/focus-visible:ring-2/)
+      expect(cls).toMatch(/ob-focus/)
     }
   })
 })

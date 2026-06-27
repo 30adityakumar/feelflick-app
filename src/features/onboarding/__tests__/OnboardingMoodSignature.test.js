@@ -7,9 +7,9 @@ import { deriveMoodSignature } from '../components/AmbientGlow'
 import { MOODS } from '../data'
 
 describe('deriveMoodSignature', () => {
-  it('returns the restrained brand-purple default when no moods are selected', () => {
-    expect(deriveMoodSignature([])).toBe('168, 85, 247')
-    expect(deriveMoodSignature()).toBe('168, 85, 247')
+  it('returns the neutral-ink default when no moods are selected', () => {
+    expect(deriveMoodSignature([])).toBe('46, 49, 53')
+    expect(deriveMoodSignature()).toBe('46, 49, 53')
   })
 
   it('returns the single mood rgb exactly (no blend)', () => {
@@ -34,7 +34,7 @@ describe('deriveMoodSignature', () => {
   })
 
   it('ignores unknown mood keys, falling back to the default when none are valid', () => {
-    expect(deriveMoodSignature(['bogus'])).toBe('168, 85, 247')
+    expect(deriveMoodSignature(['bogus'])).toBe('46, 49, 53')
     // a valid + invalid key resolves to just the valid mood
     expect(deriveMoodSignature(['cozy', 'bogus'])).toBe('236, 72, 153')
   })

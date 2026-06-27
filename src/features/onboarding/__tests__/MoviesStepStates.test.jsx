@@ -101,7 +101,7 @@ describe('MoviesStep — editorial grid layout', () => {
     render(<MoviesStep {...props({ favoriteMovies: [film(1, 'A'), film(2, 'B'), film(3, 'C')], isMovieSelected: () => true })} />)
     const pips = screen.getByTestId('anchor-pips')
     expect(pips.children).toHaveLength(5)
-    expect([...pips.children].filter(s => s.className.includes('bg-purple-400'))).toHaveLength(3)
+    expect([...pips.children].filter(s => s.className.includes('bg-[var(--color-brand-accent'))).toHaveLength(3)
   })
 
   it('caps filled pips at 5 when more than 5 anchors exist', () => {
@@ -109,7 +109,7 @@ describe('MoviesStep — editorial grid layout', () => {
     render(<MoviesStep {...props({ favoriteMovies: films, isMovieSelected: () => true })} />)
     const pips = screen.getByTestId('anchor-pips')
     expect(pips.children).toHaveLength(5)
-    expect([...pips.children].filter(s => s.className.includes('bg-purple-400'))).toHaveLength(5)
+    expect([...pips.children].filter(s => s.className.includes('bg-[var(--color-brand-accent'))).toHaveLength(5)
   })
 })
 

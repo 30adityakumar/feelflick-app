@@ -150,14 +150,14 @@ export default function MoviesStep({
           subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed"
         >
           What have you{' '}
-          <em className="italic font-light text-purple-300">
+          <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
             loved?
           </em>
         </StepHeader>
       }
       footer={
         <StepFooter
-          statusClassName={`text-xs font-medium transition-colors duration-200 ${canFinish ? 'text-purple-400' : 'text-white/30'}`}
+          statusClassName={`text-xs font-medium transition-colors duration-200 ${canFinish ? 'text-[var(--color-text-secondary,#c9c5bc)]' : 'text-white/30'}`}
           status={
             count === 0
               ? `Select at least ${MIN_MOVIES} films to continue`
@@ -190,7 +190,7 @@ export default function MoviesStep({
             onKeyDown={handleSearchKeyDown}
             placeholder="Search any film…"
             aria-label="Search for a film to add"
-            className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:ring-1 focus:ring-purple-400/50 focus:border-purple-400/30 transition-all"
+            className="ob-focus w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:border-white/25 transition-all"
           />
           {query && (
             <button
@@ -230,7 +230,7 @@ export default function MoviesStep({
 
         {/* Suggestions — system curation */}
         <section aria-labelledby="ob-suggestions-h">
-          <h3 id="ob-suggestions-h" className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
+          <h3 id="ob-suggestions-h" className="text-xs font-semibold uppercase tracking-widest text-white/45 mb-3">
             Suggestions
           </h3>
           {poolLoading ? (
@@ -269,10 +269,10 @@ export default function MoviesStep({
         {favoriteMovies.length > 0 && (
           <section
             aria-labelledby="ob-anchors-h"
-            className="rounded-2xl border border-purple-400/20 bg-purple-500/[0.05] p-4"
+            className="rounded-2xl border border-white/12 bg-white/[0.04] p-4"
           >
             <div className="flex items-center justify-between gap-3 mb-3">
-              <h3 id="ob-anchors-h" className="text-xs font-semibold uppercase tracking-widest text-purple-200/80">
+              <h3 id="ob-anchors-h" className="text-xs font-semibold uppercase tracking-widest text-white/70">
                 Your anchors
               </h3>
               {/* Visual progress toward the 5-film minimum (footer carries the exact count). */}
@@ -281,7 +281,7 @@ export default function MoviesStep({
                   <span
                     key={i}
                     className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                      i < Math.min(count, MIN_MOVIES) ? 'bg-purple-400' : 'bg-white/15'
+                      i < Math.min(count, MIN_MOVIES) ? 'bg-[var(--color-brand-accent,#e5636f)]' : 'bg-white/15'
                     }`}
                   />
                 ))}

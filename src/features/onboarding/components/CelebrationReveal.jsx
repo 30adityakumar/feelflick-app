@@ -116,12 +116,12 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 0.9, y: 0 }}
           transition={{ duration: reduced ? 0.4 : 0.9, delay: reduced ? 0 : 0.4, ease: EASE }}
-          className="ob-eyebrow inline-flex items-center text-purple-200/80"
+          className="ob-eyebrow inline-flex items-center text-[var(--color-brand-accent-text,#ed7a87)]"
         >
           <span
             aria-hidden="true"
             className="mr-2.5 inline-block h-px w-5 align-middle"
-            style={{ background: 'rgba(192,132,252,0.5)' }}
+            style={{ background: 'rgba(229,99,111,0.5)' }}
           />
           Your taste, tuned
         </motion.p>
@@ -229,7 +229,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
             style={{ textWrap: 'balance', letterSpacing: '-0.02em' }}
           >
             Tonight is{' '}
-            <em className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text italic text-transparent">
+            <em className="italic text-[var(--color-brand-accent-text,#ed7a87)]">
               yours.
             </em>
           </h1>
@@ -244,11 +244,11 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
           transition={{ duration: reduced ? 0.5 : 1.4, delay: reduced ? 0 : 6.3, ease: EASE }}
           className="mt-8 max-w-[460px] sm:mt-10"
         >
-          <p className="ob-eyebrow inline-flex items-center text-purple-200/65">
+          <p className="ob-eyebrow inline-flex items-center text-[var(--color-brand-accent-text,#ed7a87)]">
             <span
               aria-hidden="true"
               className="mr-2.5 inline-block h-px w-5 align-middle"
-              style={{ background: 'rgba(192,132,252,0.5)' }}
+              style={{ background: 'rgba(229,99,111,0.5)' }}
             />
             Next up
           </p>

@@ -14,11 +14,11 @@ export default function MovieCard({ movie, isSelected, onClick }) {
       onClick={onClick}
       aria-pressed={isSelected}
       aria-label={`${isSelected ? 'Remove' : 'Select'} ${movie.title}`}
-      className="w-full flex flex-col gap-1.5 text-left focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
+      className="ob-focus w-full flex flex-col gap-1.5 text-left rounded-lg group"
     >
       <div className={`relative aspect-2/3 w-full rounded-lg overflow-hidden transition-shadow duration-200 ${
         isSelected
-          ? 'ring-2 ring-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.4)]'
+          ? 'ring-2 ring-white/80'
           : 'ring-1 ring-white/6 group-hover:ring-white/20'
       }`}>
         {!loaded && <div className="absolute inset-0 animate-pulse bg-white/4" />}
@@ -31,16 +31,16 @@ export default function MovieCard({ movie, isSelected, onClick }) {
           } ${isSelected ? 'brightness-75' : 'group-hover:brightness-110'}`}
           onLoad={() => setLoaded(true)}
         />
-        {isSelected && <div className="absolute inset-0 bg-purple-600/15" />}
+        {isSelected && <div className="absolute inset-0 bg-black/20" />}
         {isSelected && (
-          <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-purple-500 flex items-center justify-center shadow">
-            <Check className="h-3 w-3 text-white stroke-3" />
+          <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-[var(--color-action-primary-fill,#f0ece4)] flex items-center justify-center shadow">
+            <Check className="h-3 w-3 text-[var(--color-action-primary-text,#0f1010)] stroke-3" />
           </div>
         )}
       </div>
       <div className="px-0.5">
         <p className={`text-[11px] font-medium leading-tight line-clamp-2 transition-colors ${
-          isSelected ? 'text-purple-300' : 'text-white/80'
+          isSelected ? 'text-white' : 'text-white/80'
         }`}>
           {movie.title}
         </p>

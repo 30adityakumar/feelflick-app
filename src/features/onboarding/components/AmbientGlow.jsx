@@ -6,8 +6,8 @@ import { useMemo } from 'react'
 
 import { MOODS } from '../data'
 
-const DEFAULT_PRIMARY = '168, 85, 247'   // purple
-const DEFAULT_SECONDARY = '236, 72, 153' // pink
+const DEFAULT_PRIMARY = '46, 49, 53'   // neutral ink (surface-raised) — no mood selected
+const DEFAULT_SECONDARY = '46, 49, 53' // neutral ink — no mood selected
 
 function rgbForKey(key) {
   return MOODS.find(m => m.key === key)?.rgb ?? DEFAULT_PRIMARY
@@ -19,7 +19,7 @@ function rgbForKey(key) {
  * from the dual-radial glow this component renders (left untouched so the shared
  * AmbientGlow — also used by CelebrationReveal — is byte-identical).
  *
- * Rules: 0 moods → restrained brand purple; 1 → that mood's existing rgb; ≥2 →
+ * Rules: 0 moods → neutral ink; 1 → that mood's existing rgb; ≥2 →
  * a deterministic, order-independent component-wise average. Mood keys, labels,
  * and meaning are not changed; only existing rgb data is read.
  *

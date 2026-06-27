@@ -18,12 +18,13 @@ import { tmdbImg } from '@/shared/api/tmdb'
 import { SENTIMENT_RATINGS } from '@/features/onboarding/data'
 
 // Ascending editorial verdicts — Okay → Liked → Loved (left to right). Keys must
-// match SENTIMENT_RATINGS; `rgb` drives each tier's tint/border/elevation, with
-// Loved as the gentle brand apex.
+// match SENTIMENT_RATINGS; `rgb` drives each tier's tint/border/elevation as a
+// neutral paper ramp (muted → secondary → ivory), with Loved as the ivory apex
+// (the AEC decision tone). No brand hue — verdicts are ratings, never coral.
 const SENTIMENTS = [
-  { key: 'okay',  label: 'Okay',  rgb: '150, 150, 162' },
-  { key: 'liked', label: 'Liked', rgb: '168, 85, 247' },
-  { key: 'loved', label: 'Loved', rgb: '236, 72, 153' },
+  { key: 'okay',  label: 'Okay',  rgb: '150, 146, 138' },
+  { key: 'liked', label: 'Liked', rgb: '201, 197, 188' },
+  { key: 'loved', label: 'Loved', rgb: '240, 236, 228' },
 ]
 
 const ratingToSentiment = (rating) => {
@@ -149,7 +150,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70 sm:mb-4 rounded focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          className="ob-focus mb-3 flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70 sm:mb-4 rounded"
         >
           <ChevronLeft className="h-4 w-4" />
           Back
@@ -164,14 +165,14 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
           {allRated ? (
             <>
               Nice — all{' '}
-              <em className="italic font-light text-purple-300">
+              <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
                 rated.
               </em>
             </>
           ) : (
             <>
               How did this one{' '}
-              <em className="italic font-light text-purple-300">
+              <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
                 land?
               </em>
             </>
@@ -199,7 +200,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         <div className="mx-auto flex h-full w-full max-w-md items-center justify-center">
           <div
             {...stageProps}
-            className="relative h-full max-h-full aspect-2/3 rounded-2xl focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="ob-focus relative h-full max-h-full aspect-2/3 rounded-2xl"
           >
             <AnimatePresence mode="wait" initial={false}>
               {allRated ? (
@@ -215,7 +216,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
                   transition={{ duration: 0.3 }}
                   className="grid h-full place-items-center"
                 >
-                  <Sparkles className="h-10 w-10 text-purple-400/70 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+                  <Sparkles className="h-10 w-10 text-white/40 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
                 </motion.div>
               ) : (
                 <SwipeableFilmCard
@@ -246,7 +247,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
             <button
               type="button"
               onClick={handleSkip}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-full px-4 text-sm font-medium text-white/50 transition-colors hover:text-white/80 focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              className="ob-focus inline-flex min-h-[44px] items-center justify-center rounded-full px-4 text-sm font-medium text-white/50 transition-colors hover:text-white/80"
             >
               Skip for now
             </button>
@@ -390,7 +391,7 @@ function SentimentRow({ active, dragHint, onRate, reduced }) {
             whileTap={reduced ? undefined : { scale: 0.97 }}
             animate={dragHint === s.key ? { scale: 1.03 } : { scale: 1 }}
             transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className={`min-h-[48px] rounded-xl px-2 text-center text-sm tracking-tight transition-colors focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+            className={`ob-focus min-h-[48px] rounded-xl px-2 text-center text-sm tracking-tight transition-colors ${
               apex ? 'font-semibold text-white' : `font-medium ${on ? 'text-white' : 'text-white/75'}`
             }`}
             style={{

@@ -156,8 +156,8 @@ describe('RatingStep — guard, auto-finish, focus, reduced motion', () => {
 
   it('gives the sentiment buttons and Skip a focus-visible affordance', () => {
     render(<RatingStep {...props()} />)
-    expect(screen.getByRole('button', { name: 'Loved' }).className).toMatch(/focus-visible:ring-2/)
-    expect(screen.getByRole('button', { name: /skip for now/i }).className).toMatch(/focus-visible:ring-2/)
+    expect(screen.getByRole('button', { name: 'Loved' }).className).toMatch(/ob-focus/)
+    expect(screen.getByRole('button', { name: /skip for now/i }).className).toMatch(/ob-focus/)
   })
 
   it('makes the rating stage keyboard-focusable with a descriptive label', () => {

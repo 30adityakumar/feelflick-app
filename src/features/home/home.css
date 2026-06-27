@@ -35,17 +35,22 @@
 .ff-home__empty-sub { margin: 0; font-size: 14px; color: var(--ts-text-muted, #8d887f); }
 
 .ff-home__skeleton { padding-bottom: 48px; }
-/* Mirror the contained hero geometry so the skeleton doesn't cause a layout jump on load. */
+/* Mirror hero geometry: mobile full-bleed, desktop contained — no layout jump on load. */
 .ff-home__skel-hero {
-  box-sizing: border-box;
-  width: calc(100% - 2 * var(--ff-pad, 20px));
-  max-width: calc(1440px - 2 * var(--ff-pad, 20px));
-  margin: 14px auto 0;
-  border-radius: 18px;
-  min-height: min(72svh, 560px);
+  width: 100%;
+  min-height: min(74svh, 620px);
   background: var(--ts-surface-1, #1a1714);
 }
-@media (min-width: 961px) { .ff-home__skel-hero { margin-top: 18px; min-height: min(74svh, 620px); } }
+@media (min-width: 961px) {
+  .ff-home__skel-hero {
+    box-sizing: border-box;
+    width: calc(100% - 2 * var(--ff-pad, 32px));
+    max-width: calc(1440px - 2 * var(--ff-pad, 32px));
+    margin: 18px auto 0;
+    border-radius: 18px;
+    min-height: min(74svh, 620px);
+  }
+}
 .ff-home__skel-section { margin-top: 44px; }
 .ff-home__skel-head { width: 220px; height: 26px; border-radius: 8px; background: rgba(255,255,255,0.06); margin-bottom: 18px; }
 .ff-home__skel-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
@@ -59,19 +64,25 @@
    margin / no bleed-under-header), inset to the page gutter and bounded like the
    rows below (.ff-home__body), with a soft radius. Backdrop, scrim and carousel
    controls clip to the rounded card via overflow:hidden. */
+/* Mobile: full-bleed so the artwork has cinematic width and the lower near-black
+   zone flows edge-to-edge. Desktop: contained editorial card (inset + radius). */
 .ff-hero {
   position: relative;
   box-sizing: border-box;
-  width: calc(100% - 2 * var(--ff-pad, 20px));
-  max-width: calc(1440px - 2 * var(--ff-pad, 20px));
-  margin: 14px auto 0;
-  border-radius: 18px;
-  min-height: min(72svh, 560px);
+  width: 100%;
+  min-height: min(74svh, 620px);
   display: flex;
   isolation: isolate;
   overflow: hidden;
 }
-@media (min-width: 961px) { .ff-hero { margin-top: 18px; min-height: min(74svh, 620px); } }
+@media (min-width: 961px) {
+  .ff-hero {
+    width: calc(100% - 2 * var(--ff-pad, 32px));
+    max-width: calc(1440px - 2 * var(--ff-pad, 32px));
+    margin: 18px auto 0;
+    border-radius: 18px;
+  }
+}
 
 .ff-hero__media { position: absolute; inset: 0; z-index: 0; }
 .ff-hero__img {
@@ -81,13 +92,16 @@
 @media (prefers-reduced-motion: reduce) { .ff-hero__img { animation: none; } }
 @keyframes ffHeroFade { from { opacity: 0; } to { opacity: 1; } }
 
-/* Mobile: content sits at the bottom → scrim rises from the bottom. */
+/* Mobile: deep bottom-up scrim. The lowest ~25% is near-black — content, actions,
+   and dots all sit against a dark ground that blends seamlessly into the artwork
+   above (no visible band or separator). */
 .ff-hero__scrim {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba(15,16,16,0.985) 0%, rgba(15,16,16,0.96) 22%, rgba(15,16,16,0.78) 42%,
-    rgba(15,16,16,0.30) 60%, rgba(15,16,16,0) 78%
+    rgba(10,11,11,0.99) 0%, rgba(10,11,11,0.94) 14%, rgba(12,13,13,0.80) 28%,
+    rgba(15,16,16,0.52) 44%, rgba(15,16,16,0.20) 60%,
+    rgba(15,16,16,0.04) 73%, rgba(15,16,16,0) 84%
   );
 }
 
@@ -97,7 +111,7 @@
   padding-inline: clamp(20px, 3.4vw, 44px);
   display: flex; align-items: flex-end; justify-content: flex-start;
   padding-top: 56px;
-  padding-bottom: 84px;
+  padding-bottom: 96px;
 }
 
 .ff-hero__panel { width: min(100%, 640px); }
@@ -152,34 +166,42 @@
   .ff-hero__skip span { display: none; }
 }
 
-/* Hero carousel controls */
+/* Hero carousel controls — minimal embedded chevrons.
+   Desktop: transparent at rest (low-opacity icon only), soft dark circle on hover/focus.
+   Mobile: hidden — swipe left/right + dots are the only navigation. */
 .ff-hero__arrow {
   position: absolute; top: 50%; z-index: 5; transform: translateY(-50%);
-  width: 44px; height: 56px; display: flex; align-items: center; justify-content: center;
-  border: 1px solid rgba(255,255,255,0.2); background: rgba(8,9,9,0.45); color: #fff;
-  backdrop-filter: blur(10px); transition: background 0.18s ease, border-color 0.18s ease;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent; border-radius: 50%;
+  color: rgba(255,255,255,0.50);
+  transition: background 0.14s ease, color 0.14s ease;
 }
-.ff-hero__arrow:hover { background: rgba(8,9,9,0.82); border-color: rgba(255,255,255,0.46); }
-.ff-hero__arrow--prev { left: 10px; border-radius: 12px; }
-.ff-hero__arrow--next { right: 10px; border-radius: 12px; }
-@media (max-width: 560px) { .ff-hero__arrow { width: 38px; height: 50px; } }
+.ff-hero__arrow:hover { background: rgba(6,7,7,0.46); color: rgba(255,255,255,0.90); }
+.ff-hero__arrow:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.70); outline-offset: 2px;
+  color: rgba(255,255,255,0.90);
+}
+.ff-hero__arrow--prev { left: 10px; }
+.ff-hero__arrow--next { right: 10px; }
+@media (max-width: 960px) { .ff-hero__arrow { display: none; } }
 
 .ff-hero__dots { position: absolute; left: 50%; bottom: 20px; z-index: 5; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
 .ff-hero__dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: rgba(255,255,255,0.4); transition: width 0.18s ease, background 0.18s ease; }
 .ff-hero__dot.is-active { width: 22px; background: #fff; }
 @media (min-width: 961px) { .ff-hero__dots { left: auto; right: 24px; transform: none; bottom: 24px; } }
 
-/* Desktop hero: content anchors bottom-LEFT. Darken the bottom + a little of the
-   left so the reason/title read over the darkest corner; top-right artwork stays clean. */
+/* Desktop: content anchors bottom-LEFT inside the contained card. Stronger bottom
+   and left scrims ensure the reason/title/actions read clearly over any backdrop;
+   artwork stays clean top-right. */
 @media (min-width: 961px) {
   .ff-hero__scrim {
     background:
       linear-gradient(to top,
-        rgba(15,16,16,0.96) 0%, rgba(15,16,16,0.72) 30%, rgba(15,16,16,0.18) 56%, rgba(15,16,16,0) 80%),
+        rgba(15,16,16,0.92) 0%, rgba(15,16,16,0.62) 26%, rgba(15,16,16,0.14) 50%, rgba(15,16,16,0) 66%),
       linear-gradient(to right,
-        rgba(15,16,16,0.74) 0%, rgba(15,16,16,0.30) 34%, rgba(15,16,16,0) 62%);
+        rgba(15,16,16,0.90) 0%, rgba(15,16,16,0.68) 22%, rgba(15,16,16,0.28) 44%, rgba(15,16,16,0) 66%);
   }
-  .ff-hero__content { justify-content: flex-start; padding-bottom: 60px; }
+  .ff-hero__content { justify-content: flex-start; padding-bottom: 64px; }
   .ff-hero__panel { width: min(46vw, 640px); }
 }
 

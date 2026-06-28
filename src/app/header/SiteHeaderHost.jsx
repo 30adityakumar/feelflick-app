@@ -17,6 +17,13 @@ export default function SiteHeaderHost() {
   const ticking = useRef(false)
   const location = useLocation()
 
+  // Allow any part of the app to trigger search via a lightweight custom event.
+  useEffect(() => {
+    const onEvent = () => setSearchOpen(true)
+    window.addEventListener('ff:open-search', onEvent)
+    return () => window.removeEventListener('ff:open-search', onEvent)
+  }, [])
+
   // Cmd/Ctrl+K (command-palette convention) opens search from anywhere; "/" opens it
   // when the user is not typing; Escape closes it.
   useEffect(() => {

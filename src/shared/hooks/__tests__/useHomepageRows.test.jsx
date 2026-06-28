@@ -75,7 +75,9 @@ describe('useHomepageRows', () => {
     delete globalThis.__feelflick_auth_store_v1__
   })
 
-  it('cold tier enables only the always-on facets (top of taste, hidden gems, top genre)', async () => {
+  it('every facet row is enabled once the profile is ready, even for cold tier', async () => {
+    // Enablement no longer gates on tier — the builders + cold-start affinity decide
+    // whether a row has content, so every onboarded user gets a chance at every row.
     mockUseUserTier.mockReturnValue({ tier: 'cold', watchCount: 2, loading: false })
 
     render(<Probe userId="user-cold" />)
@@ -84,12 +86,10 @@ describe('useHomepageRows', () => {
       expect(mockGetTopOfYourTasteRow).toHaveBeenCalled()
       expect(mockGetHiddenGemsRow).toHaveBeenCalled()
       expect(mockGetTopGenreRow).toHaveBeenCalled()
+      expect(mockGetStillInOrbitRow).toHaveBeenCalled()
+      expect(mockGetMoodRow).toHaveBeenCalled()
+      expect(mockGetSignatureTonesRow).toHaveBeenCalled()
     })
-
-    // Watch-dependent facets stay off for cold users.
-    expect(mockGetStillInOrbitRow).not.toHaveBeenCalled()
-    expect(mockGetMoodRow).not.toHaveBeenCalled()
-    expect(mockGetSignatureTonesRow).not.toHaveBeenCalled()
   })
 
   it('warming tier enables the orbit, mood, and signature-tones facets', async () => {

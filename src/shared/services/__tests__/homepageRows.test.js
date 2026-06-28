@@ -63,6 +63,7 @@ import {
   getWatchlistRow,
   getCriticsSwoonedRow,
 } from '../homepageRows'
+import { scoreMovieV3 } from '@/shared/services/scoringV3'
 
 // Helper: mock supabase chained query builder
 function mockChainedQuery(result) {
@@ -83,6 +84,9 @@ function mockChainedQuery(result) {
 describe('homepageRows service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Stable default score (clearAllMocks keeps the impl, but be explicit so a
+    // per-test override can't leak across tests).
+    scoreMovieV3.mockReturnValue({ final: 75, breakdown: { quality: 75 }, weights_used: {} })
   })
 
   describe('getStillInOrbitRow', () => {
@@ -189,6 +193,45 @@ describe('homepageRows service', () => {
       expect(result).toHaveProperty('subtitle')
       expect(result).toHaveProperty('lead')
       expect(result).toHaveProperty('kind')
+    })
+
+    it('guarantees population: fills to the display target even when NO film clears the personal floor', async () => {
+      // Every film scores below the 60 floor — previously the row hid; now it tops
+      // up from the same on-title pool to the display count (5).
+      scoreMovieV3.mockReturnValue({ final: 50, breakdown: { quality: 50 }, weights_used: {} })
+      const profile = {
+        affinity: { mood_tags: [{ tag: 'tense', count: 5 }, { tag: 'dark', count: 4 }], tone_tags: [] },
+        _legacy: { watchedMovieIds: [], moodSignature: { recentMoodTags: [{ tag: 'tense', weight: 5 }], recentToneTags: [] } },
+      }
+      mockFrom.mockReturnValue(mockChainedQuery({
+        data: Array.from({ length: 8 }, (_, i) => ({
+          id: i + 1, tmdb_id: (i + 1) * 10, title: `Film ${i + 1}`,
+          poster_path: '/p.jpg', primary_genre: 'Drama', mood_tags: ['tense'], ff_audience_rating: 80,
+        })),
+        error: null,
+      }))
+
+      const result = await getMoodRow('user-1', profile)
+      expect(result.films).toHaveLength(5)
+    })
+
+    it('still hides only when the candidate pool is smaller than the minimum', async () => {
+      scoreMovieV3.mockReturnValue({ final: 50, breakdown: {}, weights_used: {} })
+      const profile = {
+        affinity: { mood_tags: [{ tag: 'tense', count: 5 }], tone_tags: [] },
+        _legacy: { watchedMovieIds: [], moodSignature: { recentMoodTags: [{ tag: 'tense', weight: 5 }], recentToneTags: [] } },
+      }
+      // Only 2 candidates — below the minFilms floor (4) → row genuinely hides.
+      mockFrom.mockReturnValue(mockChainedQuery({
+        data: [
+          { id: 1, tmdb_id: 10, title: 'A', poster_path: '/p.jpg', primary_genre: 'Drama', mood_tags: ['tense'], ff_audience_rating: 80 },
+          { id: 2, tmdb_id: 20, title: 'B', poster_path: '/p.jpg', primary_genre: 'Drama', mood_tags: ['tense'], ff_audience_rating: 80 },
+        ],
+        error: null,
+      }))
+
+      const result = await getMoodRow('user-1', profile)
+      expect(result.films).toEqual([])
     })
   })
 

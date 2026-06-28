@@ -46,6 +46,10 @@ const ROW_SELECT_FIELDS = `
 // If fewer than MIN_ROW_FILMS survive, the row hides entirely.
 const MIN_PERSONAL_SCORE = 60
 const MIN_ROW_FILMS = 6
+// How many films a guaranteed (fillToTarget) row tops up to — matches the count
+// HomeRecommendationSection actually renders (MAX_FILMS), so every shown card is a
+// real, on-title, quality-tier pick even when personalization is thin.
+const ROW_DISPLAY_TARGET = 5
 
 // Genre ID → DB name mapping (subset needed for query-level genre filters).
 // The movies.genres column stores names like "Science Fiction", not IDs.
@@ -71,7 +75,7 @@ const GENRE_ID_TO_NAME = {
  * @param {string} [rowType] - key from ROW_WEIGHTS (e.g. 'TOP_OF_TASTE', 'MOOD_ROW')
  * @returns {Object[]}
  */
-function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType, { skipDiversity = false, minFilms = MIN_ROW_FILMS, nonce = 0 } = {}) {
+function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType, { skipDiversity = false, minFilms = MIN_ROW_FILMS, nonce = 0, fillToTarget = false, displayTarget = limit } = {}) {
   if (!profile || !scoringContext) {
     return candidates.slice(0, limit).map(movie => ({
       ...movie,
@@ -92,9 +96,28 @@ function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pick
   })
   scored.sort((a, b) => b._score - a._score)
 
-  // Personal match floor — cut low-scoring filler
+  // Personal match floor — the preferred set + ranking signal.
   let qualified = scored.filter(m => m._score >= MIN_PERSONAL_SCORE)
-  if (qualified.length < minFilms) return []
+
+  if (fillToTarget) {
+    // GUARANTEED POPULATION (opt-in): the row's candidate pool is already
+    // category- and quality-tier-filtered, so the floor only governs
+    // PERSONALIZATION strength, not eligibility or title-fit. Rather than hide the
+    // row when few films clear the floor, top it up with the next-best-scoring
+    // films from the SAME on-title pool until it reaches the display target. Only
+    // hide when the pool genuinely can't fill the minimum.
+    if (scored.length < minFilms) return []
+    if (qualified.length < displayTarget) {
+      const have = new Set(qualified.map(m => m.id))
+      for (const m of scored) {
+        if (qualified.length >= displayTarget) break
+        if (!have.has(m.id)) qualified.push(m)
+      }
+    }
+  } else if (qualified.length < minFilms) {
+    // Default behavior: hide the row when too few films clear the floor.
+    return []
+  }
 
   // Nonce-based pool rotation for shuffle: shift the starting point in the scored
   // pool so diversifyRow picks a different set of films on each shuffle.
@@ -236,7 +259,7 @@ export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'TopOfTaste', limit, {
         label: 'Top of your taste',
         type: 'top_of_taste',
-      }, 'TOP_OF_TASTE', { minFilms: 4, nonce })
+      }, 'TOP_OF_TASTE', { minFilms: 4, nonce, fillToTarget: true, displayTarget: ROW_DISPLAY_TARGET })
 
       // Attach per-film reason from dominant scoring dimension
       for (const film of films) {
@@ -316,7 +339,7 @@ export async function getCriticsSwoonedRow(userId, profile, limit = 20, opts = {
       return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'CriticsSwooned', limit, {
         label: 'Critics swooned. Audiences shrugged.',
         type: 'critics_swooned',
-      }, 'CRITICS', { nonce })
+      }, 'CRITICS', { nonce, minFilms: 4, fillToTarget: true, displayTarget: ROW_DISPLAY_TARGET })
     } catch (err) {
       console.error('[getCriticsSwoonedRow] failed:', err)
       return []
@@ -373,7 +396,7 @@ export async function getPeoplesChampionsRow(userId, profile, limit = 20, opts =
       return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'PeoplesChampions', limit, {
         label: "The people's champions",
         type: 'peoples_champions',
-      }, 'CRITICS', { nonce })
+      }, 'CRITICS', { nonce, minFilms: 4, fillToTarget: true, displayTarget: ROW_DISPLAY_TARGET })
     } catch (err) {
       console.error('[getPeoplesChampionsRow] failed:', err)
       return []
@@ -603,7 +626,10 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
 
       if (recentTags.length === 0) return empty
 
-      const topMoodTags = recentTags.slice(0, 3).map(m => m.tag)
+      // Title-abidance: fetch overlaps the SAME top-2 moods the row title shows
+      // (moodSignatureLabel uses the top 2), so every film matches a labeled mood
+      // rather than only a third, unshown tag.
+      const topMoodTags = recentTags.slice(0, 2).map(m => m.tag)
       const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
 
       if (import.meta.env.DEV) {
@@ -611,7 +637,7 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
           topMoodTags.join(','), v3MoodTags.length > 0 ? 'v3' : 'legacy')
       }
 
-      // Fetch films with mood_tags overlapping any of top-3 tags
+      // Fetch films with mood_tags overlapping the user's top-2 moods
       let query = supabase
         .from('movies')
         .select(ROW_SELECT_FIELDS)
@@ -633,7 +659,7 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'MoodRow', limit, {
         label: topMoodTags[0] ? `Films that feel ${topMoodTags[0]}` : 'Films for your mood',
         type: 'mood_row',
-      }, 'MOOD_ROW', { nonce })
+      }, 'MOOD_ROW', { nonce, minFilms: 4, fillToTarget: true, displayTarget: ROW_DISPLAY_TARGET })
 
       // Boost multi-tag matches
       for (const f of films) {
@@ -881,7 +907,7 @@ export async function getHiddenGemsRow(userId, profile, limit = 20, opts = {}) {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'HiddenGems', limit, {
         label: 'Hidden gems for you',
         type: 'hidden_gems',
-      }, 'TOP_OF_TASTE', { minFilms: 4, nonce })
+      }, 'TOP_OF_TASTE', { minFilms: 4, nonce, fillToTarget: true, displayTarget: ROW_DISPLAY_TARGET })
 
       return { films }
     } catch (err) {
@@ -947,7 +973,7 @@ export async function getTopGenreRow(userId, profile, limit = 20, opts = {}) {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'TopGenre', limit, {
         label: `Your top genre · ${genre.name}`,
         type: 'top_genre',
-      }, 'TOP_OF_TASTE', { minFilms: 4, nonce })
+      }, 'TOP_OF_TASTE', { minFilms: 4, nonce, fillToTarget: true, displayTarget: ROW_DISPLAY_TARGET })
 
       return { films, genre }
     } catch (err) {
@@ -1009,7 +1035,7 @@ export async function getSignatureTonesRow(userId, profile, limit = 20, opts = {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'SignatureTones', limit, {
         label: 'Signature tones',
         type: 'signature_tones',
-      }, 'MOOD_ROW', { minFilms: 4, nonce })
+      }, 'MOOD_ROW', { minFilms: 4, nonce, fillToTarget: true, displayTarget: ROW_DISPLAY_TARGET })
 
       return { films, tones: topTones }
     } catch (err) {

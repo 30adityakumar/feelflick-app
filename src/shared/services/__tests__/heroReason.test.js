@@ -147,10 +147,19 @@ describe('generateHeroReason', () => {
     expect(result.text).toBe('Exceptional sci-fi — matched to your taste.')
   })
 
-  it('falls back to generic when no dimension qualifies', () => {
+  it('falls back to an honest editorial reason (not generic) when no dimension qualifies but a genre exists', () => {
     const breakdown = makeBreakdown({ embedding: 40, director_genre: 40, mood: 40, fit: 40, quality: 40 })
 
-    const result = generateHeroReason(makeMovie(), breakdown, makeProfile(), new Map())
+    const result = generateHeroReason(makeMovie({ primary_genre: 'Drama' }), breakdown, makeProfile(), new Map())
+    // Quality-grounded, makes NO personal claim — and is non-'generic' so the hero/row still shows it.
+    expect(result.type).toBe('editorial')
+    expect(result.text).toBe('A standout drama for tonight.')
+  })
+
+  it('only falls back to generic when no dimension qualifies AND there is no genre', () => {
+    const breakdown = makeBreakdown({ embedding: 40, director_genre: 40, mood: 40, fit: 40, quality: 40 })
+
+    const result = generateHeroReason(makeMovie({ primary_genre: null }), breakdown, makeProfile(), new Map())
     expect(result).toEqual({ type: 'generic', text: 'Picked for you' })
   })
 

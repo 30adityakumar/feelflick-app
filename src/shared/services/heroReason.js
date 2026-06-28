@@ -98,6 +98,14 @@ export function generateHeroReason(movie, breakdown, profile, seedNeighborMap) {
     return { type: 'quality', text: `Exceptional ${movie.primary_genre.toLowerCase()} — matched to your taste.` }
   }
 
+  // Honest editorial fallback: when no personal dimension is strong enough to
+  // claim, ground the pick in the film's own quality instead of hiding it (the
+  // hero/row only shows non-'generic' reasons). Makes NO personal claim — never
+  // "for your taste" here, since by definition no taste dimension qualified.
+  if (movie.primary_genre) {
+    return { type: 'editorial', text: `A standout ${movie.primary_genre.toLowerCase()} for tonight.` }
+  }
+
   return { type: 'generic', text: 'Picked for you' }
 }
 

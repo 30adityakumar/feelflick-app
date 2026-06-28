@@ -316,6 +316,41 @@ describe('computeUserProfileV3', () => {
     expect(profile._legacy).toBeDefined()
     expect(profile._legacy.genres).toBeDefined()
   })
+
+  it('cold-start: derives mood/tone affinity from onboarding picks when there is no non-onboarding history', async () => {
+    // Onboarding-only user: every history row is source 'onboarding'. Without the
+    // cold-start fallback, affinity.mood_tags/tone_tags would be empty and the
+    // Mood-signature / Signature-tones rows (and their titles) could never render.
+    const onboardingOnlyHistory = Array.from({ length: 5 }, (_, i) => ({
+      movie_id: 7000 + i,
+      source: 'onboarding',
+      watched_at: '2026-03-01T00:00:00Z',
+      watch_duration_minutes: 120,
+      movies: {
+        id: 7000 + i, tmdb_id: 70000 + i, original_language: 'en', runtime: 120, release_year: 2020,
+        director_name: 'Dir', genres: ['Drama'], primary_genre: 'Drama', fit_profile: 'crowd_pleaser',
+        mood_tags: ['heartwarming', 'uplifting'], tone_tags: ['earnest', 'warm'],
+      },
+    }))
+
+    mockFrom.mockImplementation((table) => {
+      if (table === 'user_profiles_computed') {
+        return mockChainedQuery({ data: { profile: mockLegacyProfile, seed_films: [], computed_at: new Date().toISOString(), data_points: 5, confidence: 'low' }, error: null })
+      }
+      if (table === 'user_history') return mockChainedQuery({ data: onboardingOnlyHistory, error: null })
+      if (table === 'user_preferences') return mockChainedQuery({ data: ONBOARDING_PREFS, error: null })
+      // No ratings, watchlist, or impressions for a freshly-onboarded user.
+      return mockChainedQuery({ data: [], error: null })
+    })
+    mockRpc.mockResolvedValue({ data: [], error: null })
+
+    const profile = await computeUserProfileV3(TEST_USER_ID)
+
+    // Non-onboarding history is empty, but the fallback populated affinity from onboarding.
+    expect(profile.meta.total_watches).toBe(0)
+    expect(profile.affinity.mood_tags.map(t => t.tag)).toContain('heartwarming')
+    expect(profile.affinity.tone_tags.map(t => t.tag)).toContain('earnest')
+  })
 })
 
 describe('getCommunityHighSkipSet', () => {

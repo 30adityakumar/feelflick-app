@@ -190,13 +190,13 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   const orbit = useRowQuery(
     `orbit-${profileKey}-${nOrbit}`,
     () => getStillInOrbitRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nOrbit }),
-    hasProfile && hasContext && tier !== 'cold',
+    hasProfile && hasContext,
   )
 
   const mood = useRowQuery(
     `mood-${profileKey}-${nMood}`,
     () => getMoodRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nMood }),
-    hasProfile && hasContext && tier !== 'cold',
+    hasProfile && hasContext,
   )
 
   const hiddenGems = useRowQuery(
@@ -214,7 +214,7 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   const signatureTones = useRowQuery(
     `signature-tones-${profileKey}-${nSignatureTones}`,
     () => getSignatureTonesRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nSignatureTones }),
-    hasProfile && hasContext && tier !== 'cold',
+    hasProfile && hasContext,
   )
 
   // === Cross-row soft dedup ===
@@ -226,9 +226,12 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   const deduped = useMemo(() => {
     const shownIds = new Set()
 
+    // Dedup threshold = the row display count (5): now that rows are guaranteed to
+    // populate, allow dedup to keep removing cross-row repeats down to the number
+    // actually shown, rather than the old min-row size (6).
     function dedupFilms(films) {
       if (!films || films.length === 0) return films
-      const result = softDedupe(films, shownIds)
+      const result = softDedupe(films, shownIds, 5)
       result.forEach(f => { if (f?.id) shownIds.add(f.id) })
       return result
     }

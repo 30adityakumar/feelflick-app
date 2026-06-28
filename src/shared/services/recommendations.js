@@ -86,7 +86,7 @@ import { shouldFilterByBoundaries } from './boundaries'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.17' // GATED_GENRES expanded (+ War, Music, Western, TV Movie). Bumped so cached profiles re-derive exclusions with the wider gate set.
+const ENGINE_VERSION = '2.18' // Cold-start mood/tone affinity fallback (onboarding-only users derive mood_tags/tone_tags from onboarding picks). Bumped so cached profiles re-derive affinity.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -962,36 +962,44 @@ export async function computeUserProfileV3(userId, options = {}) {
     }))
     .sort((a, b) => b.count - a.count)
 
-  // Mood tags: last 20 watches, rating-weighted, top 10 with weighted_count >= 2.0
-  const recent20 = nonOnboardingHistory.slice(0, 20)
-  const moodTagCounts = new Map()
-  const toneTagCounts = new Map()
-  for (const h of recent20) {
-    const r = ratingByMovieId.get(h.movie_id)
-    const s = sentimentByMovieId.get(h.movie_id)
-    let effectiveRating = 5 // unrated completed watch default
-    if (r) effectiveRating = r.rating
-    else if (s && SENTIMENT_RATING[s]) effectiveRating = SENTIMENT_RATING[s]
-    const w = V3_RATING_WEIGHT[effectiveRating] ?? 1
-
-    for (const tag of (h.movies?.mood_tags || [])) {
-      moodTagCounts.set(tag, (moodTagCounts.get(tag) || 0) + Math.abs(w))
+  // Mood/tone tags: rating-weighted counts over a set of history rows.
+  function accumulateTagCounts(rows) {
+    const moodCounts = new Map()
+    const toneCounts = new Map()
+    for (const h of rows) {
+      const r = ratingByMovieId.get(h.movie_id)
+      const s = sentimentByMovieId.get(h.movie_id)
+      let effectiveRating = 5 // unrated completed watch default
+      if (r) effectiveRating = r.rating
+      else if (s && SENTIMENT_RATING[s]) effectiveRating = SENTIMENT_RATING[s]
+      const w = V3_RATING_WEIGHT[effectiveRating] ?? 1
+      for (const tag of (h.movies?.mood_tags || [])) {
+        moodCounts.set(tag, (moodCounts.get(tag) || 0) + Math.abs(w))
+      }
+      for (const tag of (h.movies?.tone_tags || [])) {
+        toneCounts.set(tag, (toneCounts.get(tag) || 0) + Math.abs(w))
+      }
     }
-    for (const tag of (h.movies?.tone_tags || [])) {
-      toneTagCounts.set(tag, (toneTagCounts.get(tag) || 0) + Math.abs(w))
-    }
+    return { moodCounts, toneCounts }
   }
-  const moodTags = [...moodTagCounts.entries()]
+  const topTagsFrom = (counts, n) => [...counts.entries()]
     .filter(([, count]) => count >= 2.0)
     .map(([tag, count]) => ({ tag, count: Math.round(count * 10) / 10 }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
+    .slice(0, n)
 
-  const toneTags = [...toneTagCounts.entries()]
-    .filter(([, count]) => count >= 2.0)
-    .map(([tag, count]) => ({ tag, count: Math.round(count * 10) / 10 }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6)
+  // Primary source: last 20 NON-onboarding watches, rating-weighted (weighted_count >= 2.0).
+  let { moodCounts, toneCounts } = accumulateTagCounts(nonOnboardingHistory.slice(0, 20))
+  // Cold-start fallback: an onboarding-only user has no non-onboarding history, so
+  // mood/tone affinity — and therefore the Mood-signature / Signature-tones rows
+  // AND their titles (moodSignatureLabel/signatureTonesLabel read affinity) — would
+  // be empty. Derive from the onboarding picks instead; explicit onboarding signals
+  // are valid taste evidence for sparse profiles (recommendation-engine cold-start).
+  if (moodCounts.size === 0 && toneCounts.size === 0 && totalWatches === 0) {
+    ({ moodCounts, toneCounts } = accumulateTagCounts(history.filter(h => h.source === 'onboarding')))
+  }
+  const moodTags = topTagsFrom(moodCounts, 10)
+  const toneTags = topTagsFrom(toneCounts, 6)
 
   // Genre combos: pairs co-occurring >= 2 times
   const genrePairCounts = new Map()

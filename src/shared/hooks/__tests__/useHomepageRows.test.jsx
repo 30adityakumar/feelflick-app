@@ -36,8 +36,6 @@ vi.mock('@/shared/services/recommendations', () => ({
 
 // Mock all homepageRows service functions
 const mockGetTopOfYourTasteRow = vi.fn().mockResolvedValue({ films: [], subtitle: null })
-const mockGetCriticsSwoonedRow = vi.fn().mockResolvedValue([])
-const mockGetPeoplesChampionsRow = vi.fn().mockResolvedValue([])
 const mockGetStillInOrbitRow = vi.fn().mockResolvedValue({ films: [], seed: null })
 const mockGetMoodRow = vi.fn().mockResolvedValue({ films: [], title: 'Films for your mood', subtitle: null, lead: null, kind: 'mood' })
 const mockGetHiddenGemsRow = vi.fn().mockResolvedValue({ films: [] })
@@ -46,8 +44,6 @@ const mockGetSignatureTonesRow = vi.fn().mockResolvedValue({ films: [], tones: [
 
 vi.mock('@/shared/services/homepageRows', () => ({
   getTopOfYourTasteRow: (...args) => mockGetTopOfYourTasteRow(...args),
-  getCriticsSwoonedRow: (...args) => mockGetCriticsSwoonedRow(...args),
-  getPeoplesChampionsRow: (...args) => mockGetPeoplesChampionsRow(...args),
   getStillInOrbitRow: (...args) => mockGetStillInOrbitRow(...args),
   getMoodRow: (...args) => mockGetMoodRow(...args),
   getHiddenGemsRow: (...args) => mockGetHiddenGemsRow(...args),

@@ -21,7 +21,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
 import { useHomepageRows } from '@/shared/hooks/useHomepageRows'
-import { moodSignatureLabel, signatureTonesLabel } from '@/shared/services/rowSubtitles'
+import { moodSignatureLabel, signatureTonesLabel, dnaSignalsFromProfile } from '@/shared/services/rowSubtitles'
 import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
 
 import { HomeDataProvider, useHomeData } from './useHomeData'
@@ -96,7 +96,7 @@ function HomeBody() {
 
   const { loading: dnaLoading, error: dnaError, dna } = useHomeData()
   const rows = useHomepageRows(userId)
-  const { tier, rotationVariant, profile, profileReady, profileError } = rows
+  const { profile, profileReady, profileError } = rows
 
   useEffect(() => { trackEvent(EVENTS.home_opened, { surface: 'home' }) }, []) // funnel entry (preserved)
 
@@ -114,7 +114,6 @@ function HomeBody() {
   // placed between the two emotion-driven facets (mood signature / signature tones)
   // so they don't read back-to-back. Labels derive from the same v3 profile the
   // rows used — never invented (no thematic motifs: that data doesn't exist).
-  const isPeoples = tier === 'engaged' && rotationVariant === 'B'
   const moodLabel = moodSignatureLabel(profile)
   const tonesLabel = signatureTonesLabel(profile)
   const topGenreName = rows.topGenre.data?.genre?.name || null
@@ -163,25 +162,38 @@ function HomeBody() {
         note: 'Learned from the stylistic tones — like cerebral, atmospheric, or noir — that recur across your highly rated and saved films.',
         films: filmsOf(rows.signatureTones.data),
       },
-      // Broad / editorial — honest fallback, deliberately LAST (thin-profile safety net).
-      {
-        key: isPeoples ? 'peoples_champions' : 'critics_swooned',
-        title: isPeoples ? 'Loved by audiences' : 'Critics swooned',
-        note: isPeoples
-          ? 'Widely loved by viewers — a broader pick, lighter on personalization.'
-          : 'Critically adored titles — a broader pick, lighter on personalization.',
-        films: filmsOf(rows.criticSplit.data),
-      },
+      // The broad editorial "Critics swooned / Loved by audiences" fallback was
+      // removed: it surfaced the same niche-critic films for every user (samey,
+      // lightly personalized) and is redundant now that the personal facet rows are
+      // guaranteed to populate. True-empty users still get the honest empty state.
     ]
     return defs
       .map(d => ({ ...d, films: (d.films || []).filter(f => f && !heroIds.has(f.id)) }))
       .filter(d => d.title && d.films.length > 0)
-  }, [rows, heroIds, isPeoples, moodLabel, tonesLabel, topGenreName])
+  }, [rows, heroIds, moodLabel, tonesLabel, topGenreName])
+
+  // Keep the Cinematic DNA strip consistent with the facet rows. The strip's base
+  // `dna` comes from the 24h-cached taste fingerprint, which excludes onboarding and
+  // lags for thin profiles — so it could read "still taking shape" while the rows
+  // below confidently show Mood/Tone facets. Override its taste signals with the
+  // SAME v3 affinity the rows use (cold-start onboarding fallback included); fall
+  // back to the fingerprint when there's no affinity signal (genuinely empty users).
+  const dnaForStrip = useMemo(() => {
+    if (!dna) return dna
+    const sig = dnaSignalsFromProfile(profile)
+    if (!sig) return dna
+    return {
+      ...dna,
+      motifs: sig.motifs ?? dna.motifs,
+      topMoods: sig.topMoods ?? dna.topMoods,
+      topFit: sig.topFit ?? dna.topFit,
+    }
+  }, [dna, profile])
 
   // === States ===
   const isError = Boolean(dnaError || profileError)
   const anyRowLoading = [
-    rows.topOfTaste, rows.hiddenGems, rows.orbit, rows.mood, rows.topGenre, rows.signatureTones, rows.criticSplit,
+    rows.topOfTaste, rows.hiddenGems, rows.orbit, rows.mood, rows.topGenre, rows.signatureTones,
   ].some(r => r.loading)
   const loading = !isError && (dnaLoading || !profileReady || anyRowLoading)
   const hasContent = heroFilms.length > 0 || sections.length > 0
@@ -221,7 +233,7 @@ function HomeBody() {
                   />
                 ))
               )}
-              <HomeDnaStrip dna={dna} />
+              <HomeDnaStrip dna={dnaForStrip} />
             </div>
           </>
         )}

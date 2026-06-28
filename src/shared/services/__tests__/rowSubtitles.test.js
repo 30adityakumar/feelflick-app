@@ -6,6 +6,7 @@ import {
   moodRowSubtitle,
   moodSignatureLabel,
   signatureTonesLabel,
+  dnaSignalsFromProfile,
 } from '../rowSubtitles'
 
 describe('topOfTasteSubtitle', () => {
@@ -211,5 +212,41 @@ describe('signatureTonesLabel', () => {
     const result = signatureTonesLabel(profile)
     expect(result).toBe('Cerebral, atmospheric & noir')
     expect(result).not.toContain('gritty')
+  })
+})
+
+// ============================================================================
+// dnaSignalsFromProfile (keeps the DNA strip consistent with the facet rows)
+// ============================================================================
+describe('dnaSignalsFromProfile', () => {
+  it('returns null when there is no affinity signal (so the strip keeps the honest fingerprint state)', () => {
+    expect(dnaSignalsFromProfile(null)).toBeNull()
+    expect(dnaSignalsFromProfile({})).toBeNull()
+    expect(dnaSignalsFromProfile({ affinity: {} })).toBeNull()
+    expect(dnaSignalsFromProfile({ affinity: { mood_tags: [], tone_tags: [] } })).toBeNull()
+  })
+
+  it('derives motifs (tones), moods, and fit from the same v3 affinity the rows use', () => {
+    const profile = {
+      affinity: {
+        tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }, { tag: 'gritty' }],
+        mood_tags: [{ tag: 'tense', weight: 3 }, { tag: 'melancholic', weight: 2 }],
+        fit_profiles: [{ profile: 'arthouse' }, { profile: 'crowd-pleaser' }],
+      },
+    }
+    const sig = dnaSignalsFromProfile(profile)
+    expect(sig.motifs).toEqual(['Cerebral', 'Atmospheric', 'Noir']) // capped at 3, sentence-cased
+    expect(sig.topMoods).toEqual([
+      { label: 'Tense', weight: 3 },
+      { label: 'Melancholic', weight: 2 },
+    ])
+    expect(sig.topFit).toBe('arthouse')
+  })
+
+  it('populates from a single facet (a thin profile with moods but no tones)', () => {
+    const sig = dnaSignalsFromProfile({ affinity: { mood_tags: [{ tag: 'tender' }] } })
+    expect(sig.motifs).toBeNull()
+    expect(sig.topMoods).toEqual([{ label: 'Tender', weight: 0 }])
+    expect(sig.topFit).toBeNull()
   })
 })

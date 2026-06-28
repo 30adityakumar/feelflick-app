@@ -54,6 +54,15 @@ const MIN_ROW_FILMS = 6
 // toward 3000 if the row feels too obscure for mainstream-taste users.
 const HIDDEN_GEM_VOTE_CEILING = 1500
 
+// "Because you loved X" (orbit) similarity floor — a neighbour must be at least this
+// cosine-similar to the seed to belong in the row. 0.55 is the embedding curve's noise
+// floor (curveSimilarity: below 0.55 contributes 0 to the embedding score), so anything
+// below it isn't a real thematic match — it was only padding the row out to length.
+// If fewer than ORBIT_MIN_FILMS neighbours clear the floor, the row hides rather than
+// dilute the strong "Because you loved X" promise with weak matches.
+const ORBIT_COSINE_FLOOR = 0.55
+const ORBIT_MIN_FILMS = 3
+
 // Genre ID → DB name mapping (subset needed for query-level genre filters).
 // The movies.genres column stores names like "Science Fiction", not IDs.
 const GENRE_ID_TO_NAME = {
@@ -498,7 +507,7 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
       const resolvedProfile = profile || await computeUserProfileV3(userId)
       const watchedIds = resolvedProfile?._legacy?.watchedMovieIds || []
 
-      // 1. Find best seed: highest user rating (>= 8/10)
+      // 1. Candidate seeds: the user's loved films (>= 8/10), most-loved first.
       const { data: ratings, error: ratingsError } = await supabase
         .from('user_ratings')
         .select('movie_id, rating, rated_at, movies!inner(id, title)')
@@ -512,37 +521,45 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
         console.warn('[getStillInOrbitRow] ratings query error:', ratingsError)
       }
 
-      let seed = null
-      if (ratings?.length > 0) {
-        const r = ratings[0]
-        seed = { id: r.movies.id, title: r.movies.title }
+      const candidateSeeds = (ratings || [])
+        .filter(r => r.movies?.id)
+        .map(r => ({ id: r.movies.id, title: r.movies.title }))
+      if (candidateSeeds.length === 0) return { films: [], seed: null }
+
+      const excludedNames = new Set(resolvedProfile?._legacy?.exclusions?.genreNames || [])
+      const genreOk = (m) => {
+        if (excludedNames.size === 0) return true
+        const genres = Array.isArray(m.genres) ? m.genres : []
+        if (genres.length === 0) return true
+        return !genres.some(g => excludedNames.has(typeof g === 'string' ? g : g?.name || ''))
       }
 
+      // 2. Pick the most-loved seed that actually HAS a real orbit — enough genuine
+      //    neighbours clearing the cosine floor (>= ORBIT_COSINE_FLOOR; below it a
+      //    neighbour adds nothing to the embedding score and only pads the row). A
+      //    niche top film with a sparse embedding neighbourhood is skipped in favour
+      //    of the next loved film with a genuine neighbourhood, rather than padding
+      //    the "Because you loved X" promise with weak matches. If no loved film has
+      //    enough real neighbours, the row hides entirely (never falls back to generic).
+      let seed = null
+      let filtered = null
+      for (const cand of candidateSeeds) {
+        const { data: matches, error: rpcErr } = await supabase
+          .rpc('get_seed_neighbors', {
+            seed_ids: [cand.id],
+            exclude_ids: watchedIds,
+            top_n: limit + 10,
+            min_ff_rating: QUALITY_TIERS.CONTEXT.ff_audience_rating_min,
+          })
+        if (rpcErr) throw rpcErr
+        const onTheme = (matches || []).filter(m => (m.similarity || 0) >= ORBIT_COSINE_FLOOR && genreOk(m))
+        if (onTheme.length >= ORBIT_MIN_FILMS) {
+          seed = cand
+          filtered = onTheme
+          break
+        }
+      }
       if (!seed) return { films: [], seed: null }
-
-      // 2. Embedding similarity via RPC
-      const { data: matches, error: rpcErr } = await supabase
-        .rpc('get_seed_neighbors', {
-          seed_ids: [seed.id],
-          exclude_ids: watchedIds,
-          top_n: limit + 10,
-          min_ff_rating: QUALITY_TIERS.CONTEXT.ff_audience_rating_min,
-        })
-
-      if (rpcErr) throw rpcErr
-      // Strict: no embedding matches → don't show the row at all (never fall back to generic)
-      if (!matches || matches.length === 0) return { films: [], seed: null }
-
-      // 3. Client-side genre exclusion for RPC results (can't use DB-level for RPCs)
-      const excludedNames = new Set(resolvedProfile?._legacy?.exclusions?.genreNames || [])
-      const filtered = excludedNames.size > 0
-        ? matches.filter(m => {
-          const genres = Array.isArray(m.genres) ? m.genres : []
-          if (genres.length === 0) return true
-          return !genres.some(g => excludedNames.has(typeof g === 'string' ? g : g?.name || ''))
-        })
-        : matches
-      if (filtered.length === 0) return { films: [], seed: null }
 
       // 4. get_seed_neighbors returns ONLY { id, similarity, matched_seed_id } —
       //    no display fields (poster/title/tmdb_id/meta) and no scoring fields.
@@ -956,12 +973,18 @@ export async function getTopGenreRow(userId, profile, limit = 20, opts = {}) {
 
       const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
 
+      // Genre-DEFINED, not genre-adjacent: match on primary_genre (the film's
+      // dominant genre) rather than the genres array. Array-contains admitted
+      // multi-genre blockbusters where the genre is secondary (Interstellar/Gladiator
+      // under "Drama"), making this row blur into "Your taste, distilled". Anchoring
+      // on primary_genre makes it read as genuine <genre> films and keeps the three
+      // taste rows distinct (taste = cross-genre, gems = low-exposure, genre = in-genre).
       let query = supabase
         .from('movies')
         .select(ROW_SELECT_FIELDS)
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
-        .or(`genres.cs.${JSON.stringify([genre.name])}`)
+        .eq('primary_genre', genre.name)
       query = applyQualityFloor(query, 'CONTEXT')
       query = applyAllExclusions(query, resolvedProfile)
 

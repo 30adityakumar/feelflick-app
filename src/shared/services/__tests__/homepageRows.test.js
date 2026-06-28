@@ -110,44 +110,116 @@ describe('homepageRows service', () => {
       expect(result.films).toEqual([])
     })
 
+    // Shared mock builders for the orbit row (seed lookup → RPC neighbours → hydrate).
+    const orbitProfile = () => ({
+      affinity: {},
+      _legacy: { watchedMovieIds: [], exclusions: { genreNames: [] } },
+    })
+    const orbitRatingsChain = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [{ movie_id: 500, rating: 9, rated_at: '2026-01-01', movies: { id: 500, title: 'Seed Movie' } }],
+        error: null,
+      }),
+    })
+    // Enrichment query: .in('id', ids) is terminal — returns a row per requested id.
+    const orbitMoviesChain = () => ({
+      select: vi.fn().mockReturnThis(),
+      in: vi.fn().mockImplementation((_col, ids) => Promise.resolve({
+        data: ids.map(id => ({
+          id, tmdb_id: id * 100, title: `Neighbor ${id}`, poster_path: `/n${id}.jpg`,
+          release_year: 2020, director_name: 'Dir', primary_genre: 'Drama', mood_tags: [], tone_tags: [], fit_profile: 'arthouse',
+        })),
+        error: null,
+      })),
+    })
+
     it('enriches seed-neighbour films with full movie rows (poster/title/tmdb_id) + keeps similarity', async () => {
       // get_seed_neighbors returns ONLY { id, similarity, matched_seed_id } — no
       // display fields — so the row MUST hydrate from a full movies fetch or the
       // cards render empty. This guards that hydration.
-      const profile = {
-        affinity: {},
-        _legacy: { watchedMovieIds: [], exclusions: { genreNames: [] } },
-      }
-      const ratingsChain = {
+      mockFrom.mockImplementation((table) => (table === 'user_ratings' ? orbitRatingsChain() : orbitMoviesChain()))
+      mockRpc.mockResolvedValue({ data: [
+        { id: 11, similarity: 0.9, matched_seed_id: 500 },
+        { id: 12, similarity: 0.8, matched_seed_id: 500 },
+        { id: 13, similarity: 0.7, matched_seed_id: 500 },
+      ], error: null })
+
+      const result = await getStillInOrbitRow('user-1', orbitProfile())
+      expect(result.seed).toEqual({ id: 500, title: 'Seed Movie' })
+      expect(result.films).toHaveLength(3)
+      // The card-critical display fields are present (the bug was their absence).
+      expect(result.films[0]).toMatchObject({ tmdb_id: expect.any(Number), title: expect.stringMatching(/^Neighbor/), poster_path: expect.any(String) })
+      // The RPC's similarity survives the merge (drives the orbit hybrid score).
+      expect(result.films.map(f => f.similarity).sort()).toEqual([0.7, 0.8, 0.9])
+    })
+
+    it('hides the row when fewer than the minimum neighbours clear the cosine floor', async () => {
+      // Niche seed: only 2 neighbours are genuinely similar (>= 0.55); the rest are
+      // noise. The "Because you loved X" promise can't stand on 2 weak matches, so
+      // the row hides entirely rather than pad with sub-floor films.
+      mockFrom.mockImplementation((table) => (table === 'user_ratings' ? orbitRatingsChain() : orbitMoviesChain()))
+      mockRpc.mockResolvedValue({ data: [
+        { id: 11, similarity: 0.62, matched_seed_id: 500 },
+        { id: 12, similarity: 0.57, matched_seed_id: 500 },
+        { id: 13, similarity: 0.49, matched_seed_id: 500 },
+        { id: 14, similarity: 0.31, matched_seed_id: 500 },
+      ], error: null })
+
+      const result = await getStillInOrbitRow('user-1', orbitProfile())
+      expect(result.films).toEqual([])
+    })
+
+    it('drops sub-floor neighbours but still shows the row when >= the minimum clear it', async () => {
+      // 3 neighbours clear 0.55, one is below — the row shows the 3 real matches and
+      // never the padding film.
+      mockFrom.mockImplementation((table) => (table === 'user_ratings' ? orbitRatingsChain() : orbitMoviesChain()))
+      mockRpc.mockResolvedValue({ data: [
+        { id: 11, similarity: 0.90, matched_seed_id: 500 },
+        { id: 12, similarity: 0.70, matched_seed_id: 500 },
+        { id: 13, similarity: 0.56, matched_seed_id: 500 },
+        { id: 14, similarity: 0.40, matched_seed_id: 500 }, // below floor → padding
+      ], error: null })
+
+      const result = await getStillInOrbitRow('user-1', orbitProfile())
+      expect(result.films).toHaveLength(3)
+      expect(result.films.map(f => f.id)).not.toContain(14)
+      expect(result.films.every(f => f.similarity >= 0.55)).toBe(true)
+    })
+
+    it('skips a niche top seed and seeds on the next loved film with a real neighbourhood', async () => {
+      // Two loved films: the most-loved (id 500) is niche — too few neighbours clear
+      // the floor — so the row should seed on the next loved film (id 600) that does.
+      const ratingsTwoSeeds = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         gte: vi.fn().mockReturnThis(),
         order: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue({
-          data: [{ movie_id: 500, rating: 9, rated_at: '2026-01-01', movies: { id: 500, title: 'Seed Movie' } }],
-          error: null,
-        }),
-      }
-      // Enrichment query: .in('id', …) is terminal (awaited directly).
-      const moviesChain = {
-        select: vi.fn().mockReturnThis(),
-        in: vi.fn().mockResolvedValue({
           data: [
-            { id: 11, tmdb_id: 1111, title: 'Neighbor One', poster_path: '/n1.jpg', release_year: 2020, director_name: 'Dir', mood_tags: [], tone_tags: [], fit_profile: 'arthouse' },
+            { movie_id: 500, rating: 10, rated_at: '2026-02-01', movies: { id: 500, title: 'Niche Favorite' } },
+            { movie_id: 600, rating: 9, rated_at: '2026-01-01', movies: { id: 600, title: 'Well Connected' } },
           ],
           error: null,
         }),
       }
-      mockFrom.mockImplementation((table) => (table === 'user_ratings' ? ratingsChain : moviesChain))
-      mockRpc.mockResolvedValue({ data: [{ id: 11, similarity: 0.9, matched_seed_id: 500 }], error: null })
+      mockFrom.mockImplementation((table) => (table === 'user_ratings' ? ratingsTwoSeeds : orbitMoviesChain()))
+      // First RPC call (seed 500) → sparse; second (seed 600) → a real neighbourhood.
+      mockRpc
+        .mockResolvedValueOnce({ data: [{ id: 11, similarity: 0.61, matched_seed_id: 500 }], error: null })
+        .mockResolvedValueOnce({ data: [
+          { id: 21, similarity: 0.88, matched_seed_id: 600 },
+          { id: 22, similarity: 0.74, matched_seed_id: 600 },
+          { id: 23, similarity: 0.58, matched_seed_id: 600 },
+        ], error: null })
 
-      const result = await getStillInOrbitRow('user-1', profile)
-      expect(result.seed).toEqual({ id: 500, title: 'Seed Movie' })
-      expect(result.films).toHaveLength(1)
-      // The card-critical display fields are present (the bug was their absence).
-      expect(result.films[0]).toMatchObject({ id: 11, tmdb_id: 1111, title: 'Neighbor One', poster_path: '/n1.jpg' })
-      // The RPC's similarity survives the merge (drives the orbit hybrid score).
-      expect(result.films[0].similarity).toBe(0.9)
+      const result = await getStillInOrbitRow('user-1', orbitProfile())
+      expect(result.seed).toEqual({ id: 600, title: 'Well Connected' })
+      expect(result.films).toHaveLength(3)
+      expect(result.films.map(f => f.id).sort()).toEqual([21, 22, 23])
     })
   })
 

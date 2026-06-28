@@ -13,8 +13,6 @@ import { computeUserProfileV3 } from '@/shared/services/recommendations'
 import { precomputeScoringContext } from '@/shared/services/scoringV3'
 import {
   getTopOfYourTasteRow,
-  getCriticsSwoonedRow,
-  getPeoplesChampionsRow,
   getStillInOrbitRow,
   getMoodRow,
   getHiddenGemsRow,
@@ -108,7 +106,6 @@ function useRowQuery(key, fetchFn, enabled) {
  *   mood: { data: { films: Object[], title, subtitle }|null, loading, error },
  *   topGenre: { data: { films: Object[], genre: { id, name }|null }|null, loading, error },
  *   signatureTones: { data: { films: Object[], tones: string[] }|null, loading, error },
- *   criticSplit: { data: Object[]|null, loading, error },
  * }}
  */
 export function useHomepageRows(userId, shuffleNonces = {}) {
@@ -160,7 +157,6 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   // Per-surface nonces (default 0) — incrementing busts cache + rotates pool
   const nTopOfTaste = shuffleNonces.topOfTaste ?? 0
   const nMood = shuffleNonces.mood ?? 0
-  const nCriticSplit = shuffleNonces.criticSplit ?? 0
   const nOrbit = shuffleNonces.orbit ?? 0
   const nHiddenGems = shuffleNonces.hiddenGems ?? 0
   const nTopGenre = shuffleNonces.topGenre ?? 0
@@ -174,17 +170,6 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
     (hasProfile && hasContext) || !userId,
   )
 
-  const criticSplit = useRowQuery(
-    `critic-split-${profileKey}-${rotationVariant}-${tier}-${nCriticSplit}`,
-    () => {
-      const opts = { ...(hasContext ? { scoringContext } : {}), nonce: nCriticSplit }
-      if (tier === 'engaged' && rotationVariant === 'B') {
-        return getPeoplesChampionsRow(userId, profile, 20, opts)
-      }
-      return getCriticsSwoonedRow(userId, profile, 20, opts)
-    },
-    (hasProfile && hasContext || !userId) && tier !== null,
-  )
 
   const orbit = useRowQuery(
     `orbit-${profileKey}-${nOrbit}`,
@@ -218,10 +203,8 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
 
   // === Cross-row soft dedup ===
   // Apply in render priority order so each row claims its films before the next.
-  // Hero films are exempt from contributing (deduped against in Home). The
-  // editorial fallback (criticSplit) is deduped LAST so the personal facet rows
-  // win any shared film. Hidden gems is low-exposure and rarely collides, so it
-  // sits just before the editorial fallback.
+  // Hero films are exempt from contributing (deduped against in Home). Hidden gems
+  // is low-exposure and rarely collides, so it sits last.
   const deduped = useMemo(() => {
     const shownIds = new Set()
 
@@ -245,7 +228,7 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
       return ordered
     }
 
-    // Order: TopOfTaste → Orbit → Mood → TopGenre → SignatureTones → HiddenGems → CriticSplit
+    // Order: TopOfTaste → Orbit → Mood → TopGenre → SignatureTones → HiddenGems
     const dTopOfTaste = topOfTaste.data
       ? { ...topOfTaste.data, films: dedupFilms(topOfTaste.data.films, DISPLAY_COUNT + HERO_RESERVE) }
       : topOfTaste.data
@@ -264,10 +247,9 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
     const dHiddenGems = hiddenGems.data
       ? { ...hiddenGems.data, films: dedupFilms(hiddenGems.data.films) }
       : hiddenGems.data
-    const dCriticSplit = dedupFilms(criticSplit.data)
 
-    return { dTopOfTaste, dOrbit, dMood, dTopGenre, dSignatureTones, dHiddenGems, dCriticSplit }
-  }, [topOfTaste.data, orbit.data, mood.data, topGenre.data, signatureTones.data, hiddenGems.data, criticSplit.data])
+    return { dTopOfTaste, dOrbit, dMood, dTopGenre, dSignatureTones, dHiddenGems }
+  }, [topOfTaste.data, orbit.data, mood.data, topGenre.data, signatureTones.data, hiddenGems.data])
 
   return {
     tier,
@@ -286,6 +268,5 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
     mood: { ...mood, data: deduped.dMood },
     topGenre: { ...topGenre, data: deduped.dTopGenre },
     signatureTones: { ...signatureTones, data: deduped.dSignatureTones },
-    criticSplit: { ...criticSplit, data: deduped.dCriticSplit },
   }
 }

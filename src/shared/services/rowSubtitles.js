@@ -134,3 +134,30 @@ export function signatureTonesLabel(profile) {
   const rest = tags.slice(0, -1)
   return `${cap(rest[0])}${rest.length > 1 ? ', ' + rest.slice(1).join(', ') : ''} & ${last}`
 }
+
+/**
+ * DNA-strip taste signals derived from the SAME v3 affinity the facet rows use,
+ * so the Cinematic DNA strip can't say "still taking shape" while the rows below
+ * it confidently show Mood/Tone facets. Shaped to match the fingerprint-derived
+ * `dna` object (motifs = tones, topMoods, topFit) so HomeDnaStrip consumes either
+ * source uniformly. Returns null when there's no real affinity signal — then the
+ * caller keeps the (honest, possibly-empty) fingerprint dna untouched.
+ *
+ * @param {Object|null} profile - v3 user profile
+ * @returns {{ motifs: string[]|null, topMoods: {label:string, weight:number}[]|null, topFit: string|null }|null}
+ */
+export function dnaSignalsFromProfile(profile) {
+  const aff = profile?.affinity
+  if (!aff) return null
+  const motifs = (aff.tone_tags || []).slice(0, 3).map(t => cap(t.tag)).filter(Boolean)
+  const topMoods = (aff.mood_tags || []).slice(0, 6)
+    .map(m => ({ label: cap(m.tag), weight: m.weight ?? m.count ?? 0 }))
+    .filter(m => m.label)
+  const topFit = aff.fit_profiles?.[0]?.profile || null
+  if (motifs.length === 0 && topMoods.length === 0) return null
+  return {
+    motifs: motifs.length ? motifs : null,
+    topMoods: topMoods.length ? topMoods : null,
+    topFit,
+  }
+}

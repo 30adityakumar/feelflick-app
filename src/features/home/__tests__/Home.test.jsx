@@ -53,7 +53,6 @@ function fullRows(over = {}) {
     mood: row({ films: [{ id: 20 }, { id: 21 }], title: 'Films that feel tender', subtitle: 's' }),
     topGenre: row({ films: [{ id: 80 }, { id: 81 }], genre: { id: 18, name: 'Drama' } }),
     signatureTones: row({ films: [{ id: 90 }, { id: 91 }], tones: ['cerebral', 'atmospheric', 'noir'] }),
-    criticSplit: row([{ id: 50 }, { id: 51 }]),
     ...over,
   }
 }
@@ -96,7 +95,6 @@ describe('Home — state machine', () => {
       orbit: row({ films: [], seed: null }), mood: row({ films: [], title: null }),
       topGenre: row({ films: [], genre: null }),
       signatureTones: row({ films: [], tones: [] }),
-      criticSplit: row([]),
     }
     renderHome()
     expect(screen.getByText(/recommendations are still warming up/i)).toBeInTheDocument()
@@ -121,7 +119,7 @@ describe('Home — hero + rows', () => {
     expect(top.textContent).toBe('2,5')
   })
 
-  it('orders facet rows first, editorial fallback last, with top genre between the emotion rows', () => {
+  it('orders the facet rows with top genre between the two emotion rows (no editorial fallback)', () => {
     const { container } = renderHome()
     const order = [...container.querySelectorAll('[data-testid^="row-"]')].map(n => n.getAttribute('data-testid'))
     expect(order).toEqual([
@@ -131,7 +129,6 @@ describe('Home — hero + rows', () => {
       'row-mood_signature',
       'row-top_genre',
       'row-signature_tones',
-      'row-critics_swooned',
     ])
   })
 

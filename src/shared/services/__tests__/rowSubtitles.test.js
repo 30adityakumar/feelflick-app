@@ -244,22 +244,37 @@ describe('dnaSignalsFromProfile', () => {
     expect(sig.topFit).toBe('arthouse')
   })
 
-  it('suppresses the emerging fit on a tie (no arbitrary leader dressed as a lean)', () => {
+  it('breaks a count-tie by distinctiveness (the rarer, more characterful fit leads)', () => {
     const sig = dnaSignalsFromProfile({
       affinity: {
         tone_tags: [{ tag: 'cold' }],
-        fit_profiles: [{ profile: 'challenging_art', count: 2 }, { profile: 'prestige_drama', count: 2 }],
+        // tied at 2 films each, but challenging_art (3.1% of catalog) is far rarer than
+        // prestige_drama (17.6%) → distinctiveness picks it instead of arbitrary order.
+        fit_profiles: [{ profile: 'prestige_drama', count: 2 }, { profile: 'challenging_art', count: 2 }],
       },
     })
-    expect(sig.topFit).toBeNull()       // 2 vs 2 is a tie → no emerging chip
-    expect(sig.motifs).toEqual(['Cold']) // the real signal still shows
+    expect(sig.topFit).toBe('challenging_art')
+    expect(sig.motifs).toEqual(['Cold'])
   })
 
-  it('shows a single fit even without a runner-up', () => {
+  it('demotes a common high-count fit below a distinctive one for the emerging chip', () => {
     const sig = dnaSignalsFromProfile({
-      affinity: { tone_tags: [{ tag: 'warm' }], fit_profiles: [{ profile: 'comfort_watch', count: 3 }] },
+      affinity: {
+        tone_tags: [{ tag: 'warm' }],
+        // genre_popcorn leads by count but is on 26% of the catalog; arthouse (3.8%) wins on lift.
+        fit_profiles: [{ profile: 'genre_popcorn', count: 4 }, { profile: 'arthouse', count: 3 }],
+      },
     })
-    expect(sig.topFit).toBe('comfort_watch')
+    expect(sig.topFit).toBe('arthouse')
+  })
+
+  it('shows a single fit even without a runner-up, and none when there are no fits', () => {
+    expect(dnaSignalsFromProfile({
+      affinity: { tone_tags: [{ tag: 'warm' }], fit_profiles: [{ profile: 'comfort_watch', count: 3 }] },
+    }).topFit).toBe('comfort_watch')
+    expect(dnaSignalsFromProfile({
+      affinity: { tone_tags: [{ tag: 'warm' }], fit_profiles: [] },
+    }).topFit).toBeNull()
   })
 
   it('populates from a single facet (a thin profile with moods but no tones)', () => {

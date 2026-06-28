@@ -5,6 +5,7 @@
  */
 
 import { FIT_HUMAN_LABELS } from './heroReason'
+import { distinctivenessScore } from './tagDistinctiveness'
 
 // === SHORT FIT LABELS (for subtitle copy) ===
 
@@ -153,13 +154,17 @@ export function dnaSignalsFromProfile(profile) {
   const topMoods = (aff.mood_tags || []).slice(0, 6)
     .map(m => ({ label: cap(m.tag), weight: m.weight ?? m.count ?? 0 }))
     .filter(m => m.label)
-  // The "emerging" fit lean is the single least-reliable signal in the strip, so
-  // only surface it when it's a CLEAR leader. fit_profiles is sorted by count
-  // (promoted entries float up), so if the top two share the same count it's a tie
-  // and naming one as "emerging" would dress arbitrary sort order as a real lean.
-  const fits = aff.fit_profiles || []
-  const topFitIsClear = fits.length > 0 && (fits.length === 1 || (fits[0].count ?? 0) > (fits[1]?.count ?? 0))
-  const topFit = topFitIsClear ? (fits[0].profile || null) : null
+  // The "emerging" fit lean is the single least-reliable signal in the strip. Pick the
+  // most DISTINCTIVE fit (count × catalog IDF), so a generic-but-common lean like
+  // genre_popcorn (26% of films) yields to a characterful one (arthouse 3.8%), and only
+  // surface it when it's a CLEAR leader — a genuine lift tie (equal score) is suppressed
+  // rather than dressing arbitrary order as a real lean. (affinity.fit_profiles order is
+  // left untouched here because fit-adjacency scoring + heroReason read it positionally.)
+  const fits = (aff.fit_profiles || []).filter(f => f?.profile)
+  const rankedFits = [...fits].sort((a, b) => distinctivenessScore('fit', b) - distinctivenessScore('fit', a))
+  const topFitIsClear = rankedFits.length === 1 ||
+    (rankedFits.length > 1 && distinctivenessScore('fit', rankedFits[0]) > distinctivenessScore('fit', rankedFits[1]))
+  const topFit = (rankedFits.length > 0 && topFitIsClear) ? rankedFits[0].profile : null
   if (motifs.length === 0 && topMoods.length === 0) return null
   return {
     motifs: motifs.length ? motifs : null,

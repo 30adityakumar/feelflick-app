@@ -77,6 +77,7 @@ import { applyAllExclusions, applyExclusionsNoLanguage, filterExclusionsClientSi
 import { applyQualityFloor, QUALITY_TIERS } from './qualityTiers'
 import { scoreMovieV3, precomputeScoringContext } from './scoringV3'
 import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fitAdjacency'
+import { rankByDistinctiveness } from './tagDistinctiveness'
 import { buildSkipWeightMap, buildCooldownSet } from './skipSignals'
 import { selectHeroCandidates, dayHashIndex } from './diversity'
 import { heroEraFloor, generateHeroReason, tieBreakSort } from './heroReason'
@@ -86,7 +87,7 @@ import { shouldFilterByBoundaries } from './boundaries'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.18' // Cold-start mood/tone affinity fallback (onboarding-only users derive mood_tags/tone_tags from onboarding picks). Bumped so cached profiles re-derive affinity.
+const ENGINE_VERSION = '2.19' // Distinctiveness re-rank: affinity mood_tags/tone_tags ordered by count×catalog-IDF (de-generic), not raw count. Same top-N set (scoring-neutral) — re-orders labels/chips + mood/tone row top-2/3 selection. Bumped so cached profiles re-derive affinity order.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -998,8 +999,14 @@ export async function computeUserProfileV3(userId, options = {}) {
   if (moodCounts.size === 0 && toneCounts.size === 0 && totalWatches === 0) {
     ({ moodCounts, toneCounts } = accumulateTagCounts(history.filter(h => h.source === 'onboarding')))
   }
-  const moodTags = topTagsFrom(moodCounts, 10)
-  const toneTags = topTagsFrom(toneCounts, 6)
+  // Re-rank the user's strongest mood/tone tags by DISTINCTIVENESS (count × catalog
+  // IDF), not raw count, so labels/chips/rows lead with characterful signals instead
+  // of near-universal ones (e.g. tone "earnest" is on 53.7% of the catalog). This only
+  // re-orders the SAME top-N set, so scoring — which consumes the full set (scoringV3
+  // userMoodSet/userToneSet) — is unchanged; only presentation + the mood/tone rows'
+  // top-2/3 selection shift toward the user's distinctive taste.
+  const moodTags = rankByDistinctiveness(topTagsFrom(moodCounts, 10), 'mood')
+  const toneTags = rankByDistinctiveness(topTagsFrom(toneCounts, 6), 'tone')
 
   // Genre combos: pairs co-occurring >= 2 times
   const genrePairCounts = new Map()

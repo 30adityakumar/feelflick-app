@@ -348,6 +348,52 @@ export function discoverMovies({
 }
 
 /**
+ * Pick the best transparent title logo from a TMDb `images.logos` array.
+ * Pure + deterministic so it can be unit-tested without the network.
+ * Preference order:
+ *   1. language — English ('en') > language-neutral (null) > anything else
+ *   2. format   — PNG over SVG (predictable intrinsic sizing + transparency in <img>)
+ *   3. quality  — higher vote_average, then wider asset
+ * Returns the chosen `file_path`, or null when there is no usable logo.
+ */
+export function selectBestLogo(logos) {
+  if (!Array.isArray(logos)) return null
+  const scored = logos
+    .filter(l => l && typeof l.file_path === 'string' && l.file_path)
+    .map(l => ({
+      path: l.file_path,
+      lang: l.iso_639_1 === 'en' ? 2 : (l.iso_639_1 == null ? 1 : 0),
+      png: /\.png$/i.test(l.file_path) ? 1 : 0,
+      vote: Number(l.vote_average) || 0,
+      width: Number(l.width) || 0,
+    }))
+  if (!scored.length) return null
+  scored.sort((a, b) => b.lang - a.lang || b.png - a.png || b.vote - a.vote || b.width - a.width)
+  return scored[0].path
+}
+
+/**
+ * Best-effort fetch of a movie's official transparent title logo URL.
+ * Returns the original-size URL of the best English / language-neutral logo, or
+ * null when none exists or the request fails. Never throws — the hero falls back
+ * to its text title. Cached for 12h (logos are stable).
+ */
+export async function getTitleLogoUrl(id, { signal, size = 'original' } = {}) {
+  if (!id) return null
+  try {
+    const data = await fetchJson(`/movie/${id}/images`, {
+      params: { include_image_language: 'en,null' },
+      ttl: TTL.SLOW,
+      signal,
+    })
+    const path = selectBestLogo(data?.logos)
+    return path ? logoImg(path, size) : null
+  } catch {
+    return null // best-effort: no logo → text-title fallback
+  }
+}
+
+/**
  * Get detailed movie info (append videos/images if desired)
  */
 export function getMovieDetails(id, { append = 'videos,images,recommendations,credits,keywords', signal } = {}) {
@@ -586,6 +632,17 @@ export function backdropSrcSet(path, sizes = ['w780', 'w1280', 'original']) {
  */
 export function profileImg(path, size = 'w185') {
   return tmdbImg(path, size)
+}
+
+/**
+ * Title-logo (transparent title treatment) URL helper.
+ * Logo sizes: w45, w92, w154, w185, w300, w500, original.
+ * Unlike tmdbImg, a missing path returns '' (not a transparent pixel) so callers
+ * can treat "no logo" as a clean fall-through to the text title.
+ */
+export function logoImg(path, size = 'original') {
+  if (!path) return ''
+  return `${IMG_BASE}/${size}${path}`
 }
 
 /**

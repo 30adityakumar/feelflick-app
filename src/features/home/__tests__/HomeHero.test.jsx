@@ -79,6 +79,66 @@ describe('HomeHero — carousel navigation + active film', () => {
   })
 })
 
+describe('HomeHero — official title logo', () => {
+  const LOGO = 'https://image.tmdb.org/t/p/original/cjSEGVvYryWuHA5jjdGy4WSaTWF.png'
+  const withLogo = (extra = {}) => [{ ...FILMS[0], titleLogoUrl: LOGO, ...extra }]
+
+  it('shows the text title until the logo loads, then swaps to the decorative logo (title stays an accessible heading)', () => {
+    const { container } = renderHero(withLogo())
+    const img = container.querySelector('.ff-hero__title-logo')
+    expect(img).toBeInTheDocument()
+    expect(img).toHaveAttribute('alt', '')                 // decorative — not a second title for SR
+    expect(img).toHaveAttribute('aria-hidden', 'true')
+
+    // Before load: the text heading is the visible title (not hidden), logo not yet shown.
+    const h2 = screen.getByRole('heading', { level: 2 })
+    expect(h2).toHaveTextContent('Alpha')
+    expect(h2).toHaveClass('ff-hero__title')
+    expect(h2).not.toHaveClass('sr-only')
+    expect(img).not.toHaveClass('is-ready')
+
+    // After load: logo becomes visible, heading is visually hidden but still in the a11y tree.
+    fireEvent.load(img)
+    const h2After = screen.getByRole('heading', { level: 2 })
+    expect(h2After).toHaveTextContent('Alpha')             // one accessible title, still present
+    expect(h2After).toHaveClass('sr-only')
+    expect(h2After).not.toHaveClass('ff-hero__title')
+    expect(container.querySelector('.ff-hero__title-logo')).toHaveClass('is-ready')
+  })
+
+  it('renders the text title (no logo) when no titleLogoUrl is provided', () => {
+    const { container } = renderHero()
+    expect(container.querySelector('.ff-hero__title-logo')).not.toBeInTheDocument()
+    const h2 = screen.getByRole('heading', { level: 2 })
+    expect(h2).toHaveTextContent('Alpha')
+    expect(h2).toHaveClass('ff-hero__title')
+  })
+
+  it('restores the text title when the logo fails to load (broken asset)', () => {
+    const { container } = renderHero(withLogo())
+    fireEvent.error(container.querySelector('.ff-hero__title-logo'))
+    expect(container.querySelector('.ff-hero__title-logo')).not.toBeInTheDocument()
+    const h2 = screen.getByRole('heading', { level: 2 })
+    expect(h2).toHaveTextContent('Alpha')
+    expect(h2).toHaveClass('ff-hero__title')
+    expect(h2).not.toHaveClass('sr-only')
+  })
+
+  it('treats an empty / whitespace logo URL as no logo (text title)', () => {
+    const { container } = renderHero(withLogo({ titleLogoUrl: '   ' }))
+    expect(container.querySelector('.ff-hero__title-logo')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2 })).toHaveClass('ff-hero__title')
+  })
+
+  it('keeps exactly one accessible title for the film (no duplicate exposure)', () => {
+    const { container } = renderHero(withLogo())
+    fireEvent.load(container.querySelector('.ff-hero__title-logo'))
+    // The logo is aria-hidden; the only thing exposing the title is the single heading.
+    expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(1)
+    expect(screen.getAllByText('Alpha')).toHaveLength(1)
+  })
+})
+
 describe('HomeHero — actions preserve real behaviour', () => {
   it('Open Film File records a clicked outcome then navigates to /movie/:tmdbId', () => {
     renderHero()

@@ -24,6 +24,7 @@ import { useHomepageRows } from '@/shared/hooks/useHomepageRows'
 import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
 
 import { HomeDataProvider, useHomeData } from './useHomeData'
+import { useHeroTitleLogos } from './hooks/useHeroTitleLogos'
 import HomeHero from './components/HomeHero'
 import HomeShortcutStrip from './components/HomeShortcutStrip'
 import HomeRecommendationSection from './components/HomeRecommendationSection'
@@ -105,6 +106,18 @@ function HomeBody() {
     [rows.topOfTaste.data],
   )
   const heroIds = useMemo(() => new Set(heroFilms.map(f => f.id)), [heroFilms])
+
+  // Enrich the hero standouts with their official transparent title logo (when
+  // one is available). Best-effort: films without a logo keep their original ref
+  // (and render their text title), so this only adds work, never removes a pick.
+  const heroLogos = useHeroTitleLogos(heroFilms)
+  const heroFilmsWithLogos = useMemo(
+    () => heroFilms.map(f => {
+      const url = heroLogos.get(f.id)
+      return url ? { ...f, titleLogoUrl: url } : f
+    }),
+    [heroFilms, heroLogos],
+  )
 
   // === Rows — personal first, broad/editorial only as honest fallbacks ===
   // The row engine already cross-deduped films across rows (in its own priority
@@ -193,7 +206,7 @@ function HomeBody() {
           <HomeSkeleton />
         ) : (
           <>
-            {heroFilms.length > 0 ? <HomeHero films={heroFilms} user={authUser} /> : null}
+            {heroFilms.length > 0 ? <HomeHero films={heroFilmsWithLogos} user={authUser} /> : null}
             <div className="ff-home__body">
               <HomeShortcutStrip />
               {isEmpty ? (

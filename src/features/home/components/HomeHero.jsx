@@ -50,12 +50,23 @@ function yearOf(film) {
 
 // === One hero standout — owns its save/watched writes + optimistic-revert =====
 function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }) {
+  // The film prop gains `titleLogoUrl` once the logo resolves (a new object ref).
+  // useUserMovieStatus keys its sync on the movie identity, so hand it a ref that
+  // is stable across that cosmetic enrichment — id/tmdb_id don't change when the
+  // logo arrives — to avoid a redundant watchlist/watched re-read. This slide is
+  // keyed on the film id upstream, so the frozen ref is always the right film.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const statusMovie = useMemo(() => film, [film?.id, film?.tmdb_id])
   const {
     isInWatchlist, isWatched, loading: statusLoading, toggleWatchlist, toggleWatched, internalId,
-  } = useUserMovieStatus({ user, movie: film, internalMovieId: film?.id, source: 'carousel_row' })
+  } = useUserMovieStatus({ user, movie: statusMovie, internalMovieId: film?.id, source: 'carousel_row' })
 
   const [watchedState, setWatchedState] = useState('idle') // idle | saving | watched | error
   const [saveState, setSaveState] = useState('idle')       // idle | saving | error
+  // Title-logo state. This slide remounts per film (keyed on active.id upstream),
+  // so these reset naturally between standouts — no per-film reset effect needed.
+  const [logoReady, setLogoReady] = useState(false)        // logo image finished loading
+  const [logoFailed, setLogoFailed] = useState(false)      // logo image errored → text fallback
   const watchPendingRef = useRef(false)
   const savePendingRef = useRef(null)                      // null | 'add' | 'remove'
   const advanceTimerRef = useRef(null)
@@ -111,10 +122,28 @@ function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }
   // reasons ("More from …") and on the Film File.
   const meta = [yearOf(film), film.primary_genre || null, formatRuntime(film.runtime)].filter(Boolean)
 
+  // Official transparent title logo, when one is available and loads cleanly.
+  // The text <h2> is always rendered (the single accessible title): it stays
+  // visible until the logo has loaded, then becomes visually hidden so the logo
+  // and text title are never both visible. A load failure restores the text.
+  const logoUrl = typeof film.titleLogoUrl === 'string' ? film.titleLogoUrl.trim() : ''
+  const showLogo = Boolean(logoUrl) && logoReady && !logoFailed
+
   return (
     <div className="ff-hero__panel">
       <div className="ff-hero__kicker">Top pick for you</div>
-      <h2 className="ff-hero__title">{film.title}</h2>
+      <h2 className={showLogo ? 'sr-only' : 'ff-hero__title'}>{film.title}</h2>
+      {logoUrl && !logoFailed ? (
+        <img
+          className={`ff-hero__title-logo${logoReady ? ' is-ready' : ''}`}
+          src={logoUrl}
+          alt=""
+          aria-hidden="true"
+          draggable="false"
+          onLoad={() => setLogoReady(true)}
+          onError={() => setLogoFailed(true)}
+        />
+      ) : null}
       {meta.length > 0 ? (
         <div className="ff-hero__meta">
           {meta.map((bit, i) => (

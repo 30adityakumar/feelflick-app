@@ -110,14 +110,14 @@
 }
 
 .ff-hero__content {
-  position: relative; z-index: 2;
-  width: 100%;
+  /* Structurally anchored to the hero bottom — content is always flush with the lower
+     edge regardless of viewport height, with only the dots clearance as bottom padding. */
+  position: absolute; left: 0; right: 0; bottom: 0;
+  z-index: 2;
   padding-inline: clamp(20px, 3.4vw, 44px);
-  display: flex; align-items: flex-end; justify-content: flex-start;
-  padding-top: 56px;
-  /* Mobile: anchor the whole block lower into the dark zone (off the subject's torso)
-     while keeping comfortable room below the actions and above the dots. */
-  padding-bottom: 70px;
+  /* Mobile: dots are 8px tall at bottom 20px → top at 28px from hero bottom.
+     50px padding-bottom puts the action row 22px above the dots. */
+  padding-bottom: 50px;
 }
 
 .ff-hero__panel { width: min(100%, 640px); }
@@ -211,7 +211,8 @@
       linear-gradient(to right,
         rgba(15,16,16,0.93) 0%, rgba(15,16,16,0.74) 28%, rgba(15,16,16,0.34) 52%, rgba(15,16,16,0) 80%);
   }
-  .ff-hero__content { justify-content: flex-start; padding-bottom: 64px; }
+  /* Desktop: action row sits 52px above the hero bottom (within the 48–56px target). */
+  .ff-hero__content { padding-bottom: 52px; }
   .ff-hero__panel { width: min(46vw, 640px); }
 }
 

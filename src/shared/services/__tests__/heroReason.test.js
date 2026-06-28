@@ -107,7 +107,7 @@ describe('generateHeroReason', () => {
 
     const result = generateHeroReason(movie, breakdown, makeProfile(), seedMap)
     expect(result.type).toBe('seed')
-    expect(result.text).toBe('Because you loved Inception')
+    expect(result.text).toBe('Because you loved Inception.')
     expect(result.seedId).toBe(5)
   })
 
@@ -117,7 +117,7 @@ describe('generateHeroReason', () => {
 
     const result = generateHeroReason(movie, breakdown, makeProfile(), new Map())
     expect(result.type).toBe('director')
-    expect(result.text).toBe('More from Denis Villeneuve')
+    expect(result.text).toBe('Because your ratings keep rewarding Denis Villeneuve.')
   })
 
   it('returns mood reason when mood dominates', () => {
@@ -126,7 +126,7 @@ describe('generateHeroReason', () => {
 
     const result = generateHeroReason(makeMovie(), breakdown, profile, new Map())
     expect(result.type).toBe('mood')
-    expect(result.text).toBe('Matches your taste for cerebral films')
+    expect(result.text).toBe('For your taste in cerebral films.')
   })
 
   it('returns fit reason when fit is 100', () => {
@@ -135,7 +135,7 @@ describe('generateHeroReason', () => {
 
     const result = generateHeroReason(makeMovie(), breakdown, profile, new Map())
     expect(result.type).toBe('fit')
-    expect(result.text).toBe('A prestige drama for you')
+    expect(result.text).toBe('A prestige drama suited to your taste.')
   })
 
   it('returns quality reason when quality dominates', () => {
@@ -144,7 +144,7 @@ describe('generateHeroReason', () => {
 
     const result = generateHeroReason(movie, breakdown, makeProfile(), new Map())
     expect(result.type).toBe('quality')
-    expect(result.text).toBe('Sci-Fi at its best')
+    expect(result.text).toBe('Exceptional sci-fi — matched to your taste.')
   })
 
   it('falls back to generic when no dimension qualifies', () => {
@@ -161,7 +161,7 @@ describe('generateHeroReason', () => {
 
     const result = generateHeroReason(movie, breakdown, makeProfile(), seedMap)
     expect(result.type).toBe('seed')
-    expect(result.text).toBe('Because you loved Blade Runner')
+    expect(result.text).toBe('Because you loved Blade Runner.')
   })
 })
 

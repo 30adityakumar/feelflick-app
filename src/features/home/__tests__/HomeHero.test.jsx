@@ -79,7 +79,7 @@ describe('HomeHero — carousel navigation + active film', () => {
   })
 })
 
-describe('HomeHero — language + description', () => {
+describe('HomeHero — language chip', () => {
   it('adds the spoken language to the meta for a non-English film', () => {
     renderHero([{ ...FILMS[0], original_language: 'fr' }])
     expect(screen.getByText('French')).toBeInTheDocument()
@@ -97,20 +97,6 @@ describe('HomeHero — language + description', () => {
   it('falls back to the upper-cased code for an unknown language', () => {
     renderHero([{ ...FILMS[0], original_language: 'zz' }])
     expect(screen.getByText('ZZ')).toBeInTheDocument()
-  })
-
-  it('renders the movie description when an overview is present', () => {
-    const { container } = renderHero([{ ...FILMS[0], overview: 'A rancher torments his brother’s new wife.' }])
-    const desc = container.querySelector('.ff-hero__description')
-    expect(desc).toBeInTheDocument()
-    expect(desc).toHaveTextContent('A rancher torments his brother’s new wife.')
-  })
-
-  it('omits the description when there is no overview (and ignores whitespace)', () => {
-    const { container, rerender } = renderHero()
-    expect(container.querySelector('.ff-hero__description')).not.toBeInTheDocument()
-    rerender(<MemoryRouter><HomeHero films={[{ ...FILMS[0], overview: '   ' }]} user={USER} /></MemoryRouter>)
-    expect(container.querySelector('.ff-hero__description')).not.toBeInTheDocument()
   })
 })
 

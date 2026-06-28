@@ -121,16 +121,16 @@ function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }
 
   if (!film) return null
   const reason = film._reason?.text
-  // Lean factual line: year · genre · runtime · language (language only when it's
-  // not English). The only genre in home data is the single primary_genre. Director
-  // is not shown here — it surfaces in director-type reasons and on the Film File.
   const meta = [yearOf(film), film.primary_genre || null, formatRuntime(film.runtime), languageLabel(film)].filter(Boolean)
-  const overview = typeof film.overview === 'string' ? film.overview.trim() : ''
+  // Title-length class drives desktop font-size tiers so long titles scale down
+  // gracefully without truncation or layout disruption.
+  const titleLen = (film.title || '').length
+  const titleSizeClass = titleLen <= 20 ? 'title-s' : titleLen <= 35 ? 'title-m' : 'title-l'
 
   return (
     <div className="ff-hero__panel">
       <div className="ff-hero__kicker">Top pick for you</div>
-      <h2 className="ff-hero__title">{film.title}</h2>
+      <h2 className={`ff-hero__title ${titleSizeClass}`}>{film.title}</h2>
       {meta.length > 0 ? (
         <div className="ff-hero__meta">
           {meta.map((bit, i) => (
@@ -139,7 +139,6 @@ function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }
         </div>
       ) : null}
       {reason ? <p className="ff-hero__reason">{reason}</p> : null}
-      {overview ? <p className="ff-hero__description">{overview}</p> : null}
 
       <div className="ff-hero__actions">
         <Button variant="primary" size="md" className="ff-hero__primary" onClick={() => onOpen(film)}>

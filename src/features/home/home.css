@@ -130,9 +130,16 @@
 .ff-hero__title {
   margin: 0; font-weight: 600; letter-spacing: -0.03em; line-height: 0.96;
   color: var(--ts-text-primary, #f3ecdf); text-wrap: balance;
-  font-size: clamp(3.1rem, 11vw, 4.6rem);
+  /* Mobile: uniform range — fits most titles within 2–3 lines */
+  font-size: clamp(38px, 10vw, 48px);
 }
-@media (min-width: 961px) { .ff-hero__title { font-size: clamp(4rem, 6.4vw, 7.4rem); } }
+/* Desktop: three length-aware tiers so long titles scale down rather than
+   push the content block upward. Class applied in HomeHeroSlide. */
+@media (min-width: 961px) {
+  .ff-hero__title { font-size: clamp(3rem, 5.8vw, 4.5rem); }            /* medium fallback */
+  .ff-hero__title.title-s { font-size: clamp(3.5rem, 6.8vw, 5rem); }   /* ≤20 chars: up to 80px */
+  .ff-hero__title.title-l { font-size: clamp(2.5rem, 4.8vw, 4rem); }   /* >35 chars: up to 64px */
+}
 
 .ff-hero__meta {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 14px;
@@ -145,15 +152,6 @@
   max-width: 560px; margin: 18px 0 0; color: var(--ts-text-secondary, #beb8ad);
   font-size: clamp(0.95rem, 1.1vw, 1.05rem); line-height: 1.55; text-wrap: pretty;
 }
-
-/* Movie synopsis — secondary to the personalized reason: a touch smaller, more
-   muted, and clamped so a long overview can't blow out the bottom-anchored block. */
-.ff-hero__description {
-  max-width: 560px; margin: 12px 0 0; color: var(--ts-text-muted, #a5a198);
-  font-size: clamp(0.85rem, 1vw, 0.95rem); line-height: 1.5;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
-}
-@media (max-width: 560px) { .ff-hero__description { -webkit-line-clamp: 2; } }
 
 .ff-hero__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
 .ff-hero__primary :where(span) { display: inline-flex; align-items: center; gap: 8px; }
@@ -185,22 +183,23 @@
 /* Hero carousel controls — minimal embedded chevrons.
    Desktop: transparent at rest (low-opacity icon only), soft dark circle on hover/focus.
    Mobile: hidden — swipe left/right + dots are the only navigation. */
+/* Desktop carousel arrows: icon centered in the hit area, no visible chrome at
+   rest. Soft dark fill + full opacity on hover/focus only. Both arrows are
+   symmetrical — same resting color, same hover treatment, same positioning. */
 .ff-hero__arrow {
   position: absolute; top: 50%; z-index: 5; transform: translateY(-50%);
-  width: 44px; height: 44px; display: flex; align-items: center;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
   border: none; background: transparent; border-radius: 50%;
-  color: rgba(255,255,255,0.55);
-  transition: background 0.14s ease, color 0.14s ease;
+  color: rgba(255,255,255,0.50);
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.ff-hero__arrow:hover { background: rgba(6,7,7,0.50); color: rgba(255,255,255,0.95); }
+.ff-hero__arrow:hover { background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.95); }
 .ff-hero__arrow:focus-visible {
   outline: 2px solid rgba(255,255,255,0.75); outline-offset: 2px;
-  background: rgba(6,7,7,0.50); color: rgba(255,255,255,0.95);
+  background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.95);
 }
-/* Hug the outer edges and push the chevron outward so the left control reads as an
-   edge affordance over the artwork — never tucked against the bottom-left content. */
-.ff-hero__arrow--prev { left: 6px; justify-content: flex-start; padding-left: 4px; }
-.ff-hero__arrow--next { right: 6px; justify-content: flex-end; padding-right: 4px; }
+.ff-hero__arrow--prev { left: 8px; }
+.ff-hero__arrow--next { right: 8px; }
 @media (max-width: 960px) { .ff-hero__arrow { display: none; } }
 
 .ff-hero__dots { position: absolute; left: 50%; bottom: 20px; z-index: 5; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }

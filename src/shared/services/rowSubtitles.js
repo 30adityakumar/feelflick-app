@@ -95,3 +95,42 @@ export function moodRowSubtitle(profile) {
   const rest = tags.slice(0, -1)
   return `Drawing from your taste for ${rest.join(', ')} and ${last} films`
 }
+
+// ============================================================================
+// FACET LABELS (mood signature · tones)
+// ============================================================================
+
+/** Sentence-case the first letter only (tags are stored lower-case). */
+function cap(s) {
+  return typeof s === 'string' && s.length ? s[0].toUpperCase() + s.slice(1) : s
+}
+
+/**
+ * Compact label for the "Mood signature" row title — the user's top 1–2
+ * rating-weighted mood tags, e.g. "Tense & melancholic".
+ *
+ * @param {Object|null} profile - v3 user profile
+ * @returns {string|null}
+ */
+export function moodSignatureLabel(profile) {
+  const tags = (profile?.affinity?.mood_tags || []).slice(0, 2).map(m => m.tag).filter(Boolean)
+  if (tags.length === 0) return null
+  if (tags.length === 1) return cap(tags[0])
+  return `${cap(tags[0])} & ${tags[1]}`
+}
+
+/**
+ * Compact label for the "Signature tones" row title — the user's top 2–3
+ * rating-weighted tone tags, e.g. "Cerebral, atmospheric & noir".
+ *
+ * @param {Object|null} profile - v3 user profile
+ * @returns {string|null}
+ */
+export function signatureTonesLabel(profile) {
+  const tags = (profile?.affinity?.tone_tags || []).slice(0, 3).map(t => t.tag).filter(Boolean)
+  if (tags.length === 0) return null
+  if (tags.length === 1) return cap(tags[0])
+  const last = tags[tags.length - 1]
+  const rest = tags.slice(0, -1)
+  return `${cap(rest[0])}${rest.length > 1 ? ', ' + rest.slice(1).join(', ') : ''} & ${last}`
+}

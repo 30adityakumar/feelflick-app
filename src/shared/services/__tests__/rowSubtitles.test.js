@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { topOfTasteSubtitle, moodRowTitle, moodRowSubtitle } from '../rowSubtitles'
+import {
+  topOfTasteSubtitle,
+  moodRowTitle,
+  moodRowSubtitle,
+  moodSignatureLabel,
+  signatureTonesLabel,
+} from '../rowSubtitles'
 
 describe('topOfTasteSubtitle', () => {
   it('returns null for null/empty profile', () => {
@@ -136,5 +142,74 @@ describe('moodRowSubtitle', () => {
     const result = moodRowSubtitle(profile)
     expect(result).toBe('Drawing from your taste for tense, dark and gritty films')
     expect(result).not.toContain('brooding')
+  })
+})
+
+// ============================================================================
+// moodSignatureLabel
+// ============================================================================
+
+describe('moodSignatureLabel', () => {
+  it('returns null for null/empty mood data', () => {
+    expect(moodSignatureLabel(null)).toBeNull()
+    expect(moodSignatureLabel({ affinity: {} })).toBeNull()
+    expect(moodSignatureLabel({ affinity: { mood_tags: [] } })).toBeNull()
+  })
+
+  it('sentence-cases a single mood tag', () => {
+    expect(moodSignatureLabel({ affinity: { mood_tags: [{ tag: 'tense' }] } })).toBe('Tense')
+  })
+
+  it('joins the top two mood tags with an ampersand (only the first is capped)', () => {
+    const profile = { affinity: { mood_tags: [{ tag: 'tense' }, { tag: 'melancholic' }] } }
+    expect(moodSignatureLabel(profile)).toBe('Tense & melancholic')
+  })
+
+  it('caps at two tags even with more', () => {
+    const profile = {
+      affinity: { mood_tags: [{ tag: 'tense' }, { tag: 'melancholic' }, { tag: 'gritty' }] },
+    }
+    const result = moodSignatureLabel(profile)
+    expect(result).toBe('Tense & melancholic')
+    expect(result).not.toContain('gritty')
+  })
+})
+
+// ============================================================================
+// signatureTonesLabel
+// ============================================================================
+
+describe('signatureTonesLabel', () => {
+  it('returns null for null/empty tone data', () => {
+    expect(signatureTonesLabel(null)).toBeNull()
+    expect(signatureTonesLabel({ affinity: {} })).toBeNull()
+    expect(signatureTonesLabel({ affinity: { tone_tags: [] } })).toBeNull()
+  })
+
+  it('sentence-cases a single tone tag', () => {
+    expect(signatureTonesLabel({ affinity: { tone_tags: [{ tag: 'cerebral' }] } })).toBe('Cerebral')
+  })
+
+  it('joins two tones with an ampersand', () => {
+    const profile = { affinity: { tone_tags: [{ tag: 'cerebral' }, { tag: 'noir' }] } }
+    expect(signatureTonesLabel(profile)).toBe('Cerebral & noir')
+  })
+
+  it('joins three tones with a comma and ampersand', () => {
+    const profile = {
+      affinity: { tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }] },
+    }
+    expect(signatureTonesLabel(profile)).toBe('Cerebral, atmospheric & noir')
+  })
+
+  it('caps at three tones even with more', () => {
+    const profile = {
+      affinity: {
+        tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }, { tag: 'gritty' }],
+      },
+    }
+    const result = signatureTonesLabel(profile)
+    expect(result).toBe('Cerebral, atmospheric & noir')
+    expect(result).not.toContain('gritty')
   })
 })

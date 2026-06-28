@@ -24,7 +24,7 @@ test.describe('Home — redesign journey', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Home — your picks for tonight')
     await expect(shortcuts(page)).toBeVisible()
     await expect(page.getByRole('link', { name: /Match the moment/i })).toHaveAttribute('href', '/discover')
-    await expect(page.getByText('Cinematic DNA')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Cinematic DNA' })).toBeVisible()
   })
 
   test('the shortcut links keep visible keyboard focus (computed style, not className)', async ({ page }) => {

@@ -48,6 +48,19 @@ function yearOf(film) {
   return ''
 }
 
+// Display the spoken language only when it's NOT English (English is the implicit
+// default, so showing it would be noise). Maps the ISO-639-1 code to a readable
+// name ('fr' → 'French'); falls back to the upper-cased code if Intl can't resolve it.
+function languageLabel(film) {
+  const code = film?.original_language
+  if (!code || code === 'en') return null
+  try {
+    const name = new Intl.DisplayNames(['en'], { type: 'language' }).of(code)
+    if (name && name.toLowerCase() !== code.toLowerCase()) return name
+  } catch { /* Intl.DisplayNames unavailable — fall through to the code */ }
+  return code.toUpperCase()
+}
+
 // === One hero standout — owns its save/watched writes + optimistic-revert =====
 function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }) {
   // The film prop gains `titleLogoUrl` once the logo resolves (a new object ref).
@@ -117,10 +130,11 @@ function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }
 
   if (!film) return null
   const reason = film._reason?.text
-  // Lean factual line: year · genre · runtime (the only genre in home data is the
-  // single primary_genre). Director is not shown here — it surfaces in director-type
-  // reasons ("More from …") and on the Film File.
-  const meta = [yearOf(film), film.primary_genre || null, formatRuntime(film.runtime)].filter(Boolean)
+  // Lean factual line: year · genre · runtime · language (language only when it's
+  // not English). The only genre in home data is the single primary_genre. Director
+  // is not shown here — it surfaces in director-type reasons and on the Film File.
+  const meta = [yearOf(film), film.primary_genre || null, formatRuntime(film.runtime), languageLabel(film)].filter(Boolean)
+  const overview = typeof film.overview === 'string' ? film.overview.trim() : ''
 
   // Official transparent title logo, when one is available and loads cleanly.
   // The text <h2> is always rendered (the single accessible title): it stays
@@ -152,6 +166,7 @@ function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }
         </div>
       ) : null}
       {reason ? <p className="ff-hero__reason">{reason}</p> : null}
+      {overview ? <p className="ff-hero__description">{overview}</p> : null}
 
       <div className="ff-hero__actions">
         <Button variant="primary" size="md" className="ff-hero__primary" onClick={() => onOpen(film)}>

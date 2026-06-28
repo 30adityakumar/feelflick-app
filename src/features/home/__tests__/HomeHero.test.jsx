@@ -79,6 +79,41 @@ describe('HomeHero — carousel navigation + active film', () => {
   })
 })
 
+describe('HomeHero — language + description', () => {
+  it('adds the spoken language to the meta for a non-English film', () => {
+    renderHero([{ ...FILMS[0], original_language: 'fr' }])
+    expect(screen.getByText('French')).toBeInTheDocument()
+    // factual meta still present
+    expect(screen.getByText('2020')).toBeInTheDocument()
+    expect(screen.getByText('Drama')).toBeInTheDocument()
+  })
+
+  it('does not show a language chip for an English film', () => {
+    renderHero([{ ...FILMS[0], original_language: 'en' }])
+    expect(screen.queryByText('English')).not.toBeInTheDocument()
+    expect(screen.queryByText('EN')).not.toBeInTheDocument()
+  })
+
+  it('falls back to the upper-cased code for an unknown language', () => {
+    renderHero([{ ...FILMS[0], original_language: 'zz' }])
+    expect(screen.getByText('ZZ')).toBeInTheDocument()
+  })
+
+  it('renders the movie description when an overview is present', () => {
+    const { container } = renderHero([{ ...FILMS[0], overview: 'A rancher torments his brother’s new wife.' }])
+    const desc = container.querySelector('.ff-hero__description')
+    expect(desc).toBeInTheDocument()
+    expect(desc).toHaveTextContent('A rancher torments his brother’s new wife.')
+  })
+
+  it('omits the description when there is no overview (and ignores whitespace)', () => {
+    const { container, rerender } = renderHero()
+    expect(container.querySelector('.ff-hero__description')).not.toBeInTheDocument()
+    rerender(<MemoryRouter><HomeHero films={[{ ...FILMS[0], overview: '   ' }]} user={USER} /></MemoryRouter>)
+    expect(container.querySelector('.ff-hero__description')).not.toBeInTheDocument()
+  })
+})
+
 describe('HomeHero — official title logo', () => {
   const LOGO = 'https://image.tmdb.org/t/p/original/cjSEGVvYryWuHA5jjdGy4WSaTWF.png'
   const withLogo = (extra = {}) => [{ ...FILMS[0], titleLogoUrl: LOGO, ...extra }]

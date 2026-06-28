@@ -34,16 +34,16 @@ export function heroEraFloor(profile) {
 
 /** Human-readable labels for fit profiles. */
 export const FIT_HUMAN_LABELS = {
-  prestige_drama: 'A prestige drama for you',
-  genre_popcorn: 'Genre done right',
-  crowd_pleaser: 'A crowd-pleaser you haven\'t seen',
-  challenging_art: 'Something to sink into',
-  arthouse: 'An arthouse pick',
-  festival_discovery: 'A festival find',
-  cult_classic: 'A cult classic',
-  comfort_watch: 'Easy comfort',
-  franchise_entry: 'Franchise, done well',
-  niche_world_cinema: 'World cinema for you',
+  prestige_drama: 'A prestige drama suited to your taste.',
+  genre_popcorn: 'Well-crafted genre entertainment — for your taste.',
+  crowd_pleaser: 'Widely loved, and not yet in your history.',
+  challenging_art: 'Something to sink into tonight.',
+  arthouse: 'An arthouse pick — for what you tend to love.',
+  festival_discovery: 'A festival find — for your taste in discovery.',
+  cult_classic: 'A cult classic that fits your taste.',
+  comfort_watch: 'Easy, comfortable watching for tonight.',
+  franchise_entry: 'A strong franchise entry — no prior viewing needed.',
+  niche_world_cinema: 'World cinema matched to your taste.',
 }
 
 /**
@@ -74,18 +74,18 @@ export function generateHeroReason(movie, breakdown, profile, seedNeighborMap) {
       const sorted = [...seedMatches.entries()].sort((a, b) => b[1].cosine - a[1].cosine)
       const seedTitle = sorted[0][1].seedTitle || movie.matched_seed_title
       if (seedTitle) {
-        return { type: 'seed', text: `Because you loved ${seedTitle}`, seedId: sorted[0][0] }
+        return { type: 'seed', text: `Because you loved ${seedTitle}.`, seedId: sorted[0][0] }
       }
     }
   }
 
   if (top.key === 'director_genre' && top.val >= 90 && movie.director_name) {
-    return { type: 'director', text: `More from ${movie.director_name}` }
+    return { type: 'director', text: `Because your ratings keep rewarding ${movie.director_name}.` }
   }
 
   if (top.key === 'mood' && top.val >= 85) {
     const tag = profile?.affinity?.mood_tags?.[0]?.tag
-    if (tag) return { type: 'mood', text: `Matches your taste for ${tag} films` }
+    if (tag) return { type: 'mood', text: `For your taste in ${tag} films.` }
   }
 
   if (top.key === 'fit' && top.val === 100) {
@@ -95,7 +95,15 @@ export function generateHeroReason(movie, breakdown, profile, seedNeighborMap) {
   }
 
   if (top.key === 'quality' && top.val >= 85 && movie.primary_genre) {
-    return { type: 'quality', text: `${movie.primary_genre} at its best` }
+    return { type: 'quality', text: `Exceptional ${movie.primary_genre.toLowerCase()} — matched to your taste.` }
+  }
+
+  // Honest editorial fallback: when no personal dimension is strong enough to
+  // claim, ground the pick in the film's own quality instead of hiding it (the
+  // hero/row only shows non-'generic' reasons). Makes NO personal claim — never
+  // "for your taste" here, since by definition no taste dimension qualified.
+  if (movie.primary_genre) {
+    return { type: 'editorial', text: `A standout ${movie.primary_genre.toLowerCase()} for tonight.` }
   }
 
   return { type: 'generic', text: 'Picked for you' }

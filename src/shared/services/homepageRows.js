@@ -46,6 +46,22 @@ const ROW_SELECT_FIELDS = `
 // If fewer than MIN_ROW_FILMS survive, the row hides entirely.
 const MIN_PERSONAL_SCORE = 60
 const MIN_ROW_FILMS = 6
+// "Hidden gems" exposure ceiling — a film needs FEWER than this many TMDB votes to
+// count as low-exposure / "less obvious". Calibrated to the catalog (vote_count
+// median ~434, p90 ~4.7k): 1500 keeps ~3.4k CONTEXT-quality candidates while
+// excluding the broadly-famous tier. The prior `popularity < 25` gate passed 98.6%
+// of the catalog (a no-op), so the row surfaced blockbusters. Tuneable: raise
+// toward 3000 if the row feels too obscure for mainstream-taste users.
+const HIDDEN_GEM_VOTE_CEILING = 1500
+
+// "Because you loved X" (orbit) similarity floor — a neighbour must be at least this
+// cosine-similar to the seed to belong in the row. 0.55 is the embedding curve's noise
+// floor (curveSimilarity: below 0.55 contributes 0 to the embedding score), so anything
+// below it isn't a real thematic match — it was only padding the row out to length.
+// If fewer than ORBIT_MIN_FILMS neighbours clear the floor, the row hides rather than
+// dilute the strong "Because you loved X" promise with weak matches.
+const ORBIT_COSINE_FLOOR = 0.55
+const ORBIT_MIN_FILMS = 3
 
 // Genre ID → DB name mapping (subset needed for query-level genre filters).
 // The movies.genres column stores names like "Science Fiction", not IDs.
@@ -71,7 +87,7 @@ const GENRE_ID_TO_NAME = {
  * @param {string} [rowType] - key from ROW_WEIGHTS (e.g. 'TOP_OF_TASTE', 'MOOD_ROW')
  * @returns {Object[]}
  */
-function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType, { skipDiversity = false, minFilms = MIN_ROW_FILMS, nonce = 0 } = {}) {
+function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType, { skipDiversity = false, minFilms = MIN_ROW_FILMS, nonce = 0, fillToTarget = false } = {}) {
   if (!profile || !scoringContext) {
     return candidates.slice(0, limit).map(movie => ({
       ...movie,
@@ -92,9 +108,30 @@ function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pick
   })
   scored.sort((a, b) => b._score - a._score)
 
-  // Personal match floor — cut low-scoring filler
+  // Personal match floor — the preferred set + ranking signal.
   let qualified = scored.filter(m => m._score >= MIN_PERSONAL_SCORE)
-  if (qualified.length < minFilms) return []
+
+  if (fillToTarget) {
+    // GUARANTEED POPULATION (opt-in): the row's candidate pool is already
+    // category- and quality-tier-filtered, so the floor only governs
+    // PERSONALIZATION strength, not eligibility or title-fit. Rather than hide the
+    // row when few films clear the floor, top it up with the next-best-scoring
+    // films from the SAME on-title pool — up to the full fetch `limit`, not just the
+    // ~5 shown, so cross-row dedup has headroom to swap out repeats and still leave
+    // distinct films to display. Only hide when the pool genuinely can't fill the
+    // minimum.
+    if (scored.length < minFilms) return []
+    if (qualified.length < limit) {
+      const have = new Set(qualified.map(m => m.id))
+      for (const m of scored) {
+        if (qualified.length >= limit) break
+        if (!have.has(m.id)) qualified.push(m)
+      }
+    }
+  } else if (qualified.length < minFilms) {
+    // Default behavior: hide the row when too few films clear the floor.
+    return []
+  }
 
   // Nonce-based pool rotation for shuffle: shift the starting point in the scored
   // pool so diversifyRow picks a different set of films on each shuffle.
@@ -236,7 +273,7 @@ export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'TopOfTaste', limit, {
         label: 'Top of your taste',
         type: 'top_of_taste',
-      }, 'TOP_OF_TASTE', { minFilms: 4, nonce })
+      }, 'TOP_OF_TASTE', { minFilms: 4, nonce, fillToTarget: true })
 
       // Attach per-film reason from dominant scoring dimension
       for (const film of films) {
@@ -316,7 +353,7 @@ export async function getCriticsSwoonedRow(userId, profile, limit = 20, opts = {
       return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'CriticsSwooned', limit, {
         label: 'Critics swooned. Audiences shrugged.',
         type: 'critics_swooned',
-      }, 'CRITICS', { nonce })
+      }, 'CRITICS', { nonce, minFilms: 4, fillToTarget: true })
     } catch (err) {
       console.error('[getCriticsSwoonedRow] failed:', err)
       return []
@@ -373,7 +410,7 @@ export async function getPeoplesChampionsRow(userId, profile, limit = 20, opts =
       return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'PeoplesChampions', limit, {
         label: "The people's champions",
         type: 'peoples_champions',
-      }, 'CRITICS', { nonce })
+      }, 'CRITICS', { nonce, minFilms: 4, fillToTarget: true })
     } catch (err) {
       console.error('[getPeoplesChampionsRow] failed:', err)
       return []
@@ -470,7 +507,7 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
       const resolvedProfile = profile || await computeUserProfileV3(userId)
       const watchedIds = resolvedProfile?._legacy?.watchedMovieIds || []
 
-      // 1. Find best seed: highest user rating (>= 8/10)
+      // 1. Candidate seeds: the user's loved films (>= 8/10), most-loved first.
       const { data: ratings, error: ratingsError } = await supabase
         .from('user_ratings')
         .select('movie_id, rating, rated_at, movies!inner(id, title)')
@@ -484,50 +521,64 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
         console.warn('[getStillInOrbitRow] ratings query error:', ratingsError)
       }
 
-      let seed = null
-      if (ratings?.length > 0) {
-        const r = ratings[0]
-        seed = { id: r.movies.id, title: r.movies.title }
+      const candidateSeeds = (ratings || [])
+        .filter(r => r.movies?.id)
+        .map(r => ({ id: r.movies.id, title: r.movies.title }))
+      if (candidateSeeds.length === 0) return { films: [], seed: null }
+
+      const excludedNames = new Set(resolvedProfile?._legacy?.exclusions?.genreNames || [])
+      const genreOk = (m) => {
+        if (excludedNames.size === 0) return true
+        const genres = Array.isArray(m.genres) ? m.genres : []
+        if (genres.length === 0) return true
+        return !genres.some(g => excludedNames.has(typeof g === 'string' ? g : g?.name || ''))
       }
 
+      // 2. Pick the most-loved seed that actually HAS a real orbit — enough genuine
+      //    neighbours clearing the cosine floor (>= ORBIT_COSINE_FLOOR; below it a
+      //    neighbour adds nothing to the embedding score and only pads the row). A
+      //    niche top film with a sparse embedding neighbourhood is skipped in favour
+      //    of the next loved film with a genuine neighbourhood, rather than padding
+      //    the "Because you loved X" promise with weak matches. If no loved film has
+      //    enough real neighbours, the row hides entirely (never falls back to generic).
+      let seed = null
+      let filtered = null
+      for (const cand of candidateSeeds) {
+        const { data: matches, error: rpcErr } = await supabase
+          .rpc('get_seed_neighbors', {
+            seed_ids: [cand.id],
+            exclude_ids: watchedIds,
+            top_n: limit + 10,
+            min_ff_rating: QUALITY_TIERS.CONTEXT.ff_audience_rating_min,
+          })
+        if (rpcErr) throw rpcErr
+        const onTheme = (matches || []).filter(m => (m.similarity || 0) >= ORBIT_COSINE_FLOOR && genreOk(m))
+        if (onTheme.length >= ORBIT_MIN_FILMS) {
+          seed = cand
+          filtered = onTheme
+          break
+        }
+      }
       if (!seed) return { films: [], seed: null }
 
-      // 2. Embedding similarity via RPC
-      const { data: matches, error: rpcErr } = await supabase
-        .rpc('get_seed_neighbors', {
-          seed_ids: [seed.id],
-          exclude_ids: watchedIds,
-          top_n: limit + 10,
-          min_ff_rating: QUALITY_TIERS.CONTEXT.ff_audience_rating_min,
-        })
-
-      if (rpcErr) throw rpcErr
-      // Strict: no embedding matches → don't show the row at all (never fall back to generic)
-      if (!matches || matches.length === 0) return { films: [], seed: null }
-
-      // 3. Client-side genre exclusion for RPC results (can't use DB-level for RPCs)
-      const excludedNames = new Set(resolvedProfile?._legacy?.exclusions?.genreNames || [])
-      const filtered = excludedNames.size > 0
-        ? matches.filter(m => {
-          const genres = Array.isArray(m.genres) ? m.genres : []
-          if (genres.length === 0) return true
-          return !genres.some(g => excludedNames.has(typeof g === 'string' ? g : g?.name || ''))
-        })
-        : matches
-      if (filtered.length === 0) return { films: [], seed: null }
-
-      // 4. RPC doesn't return mood_tags, tone_tags, fit_profile, *_score_100.
-      //    Fetch these scoring fields in a secondary query and merge.
+      // 4. get_seed_neighbors returns ONLY { id, similarity, matched_seed_id } —
+      //    no display fields (poster/title/tmdb_id/meta) and no scoring fields.
+      //    Fetch the full movie rows for the neighbour ids and merge, keeping the
+      //    RPC's similarity + matched_seed_id. Without this the cards render empty
+      //    (no poster, no title) and navigation falls back to the wrong id.
       const orbitIds = filtered.map(m => m.id)
-      const { data: scoringMeta } = await supabase
+      const { data: orbitMovies } = await supabase
         .from('movies')
-        .select('id, mood_tags, tone_tags, fit_profile, pacing_score_100, intensity_score_100, emotional_depth_score_100')
+        .select(ROW_SELECT_FIELDS)
         .in('id', orbitIds)
-      const metaById = new Map((scoringMeta || []).map(m => [m.id, m]))
-      const enriched = filtered.map(m => {
-        const meta = metaById.get(m.id)
-        return meta ? { ...m, ...meta } : m
-      })
+      const movieById = new Map((orbitMovies || []).map(mv => [mv.id, mv]))
+      const enriched = filtered
+        .map(m => {
+          const full = movieById.get(m.id)
+          return full ? { ...full, similarity: m.similarity, matched_seed_id: m.matched_seed_id } : null
+        })
+        .filter(Boolean)
+      if (enriched.length === 0) return { films: [], seed: null }
 
       const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
       const scored = enriched.map(movie => {
@@ -597,7 +648,10 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
 
       if (recentTags.length === 0) return empty
 
-      const topMoodTags = recentTags.slice(0, 3).map(m => m.tag)
+      // Title-abidance: fetch overlaps the SAME top-2 moods the row title shows
+      // (moodSignatureLabel uses the top 2), so every film matches a labeled mood
+      // rather than only a third, unshown tag.
+      const topMoodTags = recentTags.slice(0, 2).map(m => m.tag)
       const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
 
       if (import.meta.env.DEV) {
@@ -605,7 +659,7 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
           topMoodTags.join(','), v3MoodTags.length > 0 ? 'v3' : 'legacy')
       }
 
-      // Fetch films with mood_tags overlapping any of top-3 tags
+      // Fetch films with mood_tags overlapping the user's top-2 moods
       let query = supabase
         .from('movies')
         .select(ROW_SELECT_FIELDS)
@@ -627,7 +681,7 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'MoodRow', limit, {
         label: topMoodTags[0] ? `Films that feel ${topMoodTags[0]}` : 'Films for your mood',
         type: 'mood_row',
-      }, 'MOOD_ROW', { nonce })
+      }, 'MOOD_ROW', { nonce, minFilms: 4, fillToTarget: true })
 
       // Boost multi-tag matches
       for (const f of films) {
@@ -819,6 +873,201 @@ export async function getSignatureDirectorRow(userId, profile, limit = 20, opts 
     } catch (err) {
       console.error('[getSignatureDirectorRow] failed:', err)
       return { films: [], director: null, subtitle: null }
+    }
+  })
+}
+
+// ============================================================================
+// ROW: HIDDEN GEMS FOR YOU
+// ============================================================================
+
+/**
+ * Lower-exposure films that still score highly against the user's taste.
+ * "Hidden" = genuinely low-exposure (fewer than HIDDEN_GEM_VOTE_CEILING TMDB votes);
+ * "for you" = ranked by the same v3 taste scoring as Top of Taste, so the picks
+ * are less obvious but unmistakably the user's. Honest discovery, never random.
+ * Returns { films } — empty if fewer than 4 low-exposure films qualify.
+ *
+ * @param {string|null} userId
+ * @param {Object|null} profile
+ * @param {number} [limit=20]
+ * @returns {Promise<{ films: Object[] }>}
+ */
+export async function getHiddenGemsRow(userId, profile, limit = 20, opts = {}) {
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('hidden_gems', userId || 'guest', { limit, nonce })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const resolvedProfile = profile || (userId ? await computeUserProfileV3(userId) : null)
+      const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
+
+      // Low-exposure gate in SQL: only genuinely lesser-known films (vote_count
+      // below the ceiling), still CONTEXT-quality, ordered by rating so the row
+      // surfaces the best "less obvious" films before v3 taste scoring re-ranks.
+      // (Replaces the old `popularity < 25 OR discovery_potential >= 50` filter,
+      // whose popularity arm passed ~all of the catalog, letting blockbusters in.)
+      let query = supabase
+        .from('movies')
+        .select(ROW_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .lt('vote_count', HIDDEN_GEM_VOTE_CEILING)
+      query = applyQualityFloor(query, 'CONTEXT')
+      query = applyAllExclusions(query, resolvedProfile)
+
+      const { data, error } = await query
+        .order('ff_audience_rating', { ascending: false })
+        .limit(limit * 6)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
+
+      const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
+      const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'HiddenGems', limit, {
+        label: 'Hidden gems for you',
+        type: 'hidden_gems',
+      }, 'TOP_OF_TASTE', { minFilms: 4, nonce, fillToTarget: true })
+
+      return { films }
+    } catch (err) {
+      console.error('[getHiddenGemsRow] failed:', err)
+      return { films: [] }
+    }
+  })
+}
+
+// ============================================================================
+// ROW: YOUR TOP GENRE
+// ============================================================================
+
+/**
+ * High-scoring films within the user's single most-watched genre. Genre ranking
+ * comes from the legacy genre profile (genres.preferred, ranked by weighted
+ * watch + rating) — the same source the Under-90 row uses for its genre filter.
+ * Returns { films, genre: { id, name } } — empty if no mappable top genre or
+ * fewer than 4 films qualify.
+ *
+ * @param {string|null} userId
+ * @param {Object|null} profile
+ * @param {number} [limit=20]
+ * @returns {Promise<{ films: Object[], genre: { id: number, name: string }|null }>}
+ */
+export async function getTopGenreRow(userId, profile, limit = 20, opts = {}) {
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('top_genre', userId || 'guest', { limit, nonce })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const resolvedProfile = profile || (userId ? await computeUserProfileV3(userId) : null)
+
+      // Highest-ranked preferred genre that maps to a DB genre name.
+      const preferredIds = resolvedProfile?._legacy?.genres?.preferred || []
+      let genre = null
+      for (const id of preferredIds) {
+        const name = GENRE_ID_TO_NAME[id]
+        if (name) { genre = { id, name }; break }
+      }
+      if (!genre) return { films: [], genre: null }
+
+      const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
+
+      // Genre-DEFINED, not genre-adjacent: match on primary_genre (the film's
+      // dominant genre) rather than the genres array. Array-contains admitted
+      // multi-genre blockbusters where the genre is secondary (Interstellar/Gladiator
+      // under "Drama"), making this row blur into "Your taste, distilled". Anchoring
+      // on primary_genre makes it read as genuine <genre> films and keeps the three
+      // taste rows distinct (taste = cross-genre, gems = low-exposure, genre = in-genre).
+      let query = supabase
+        .from('movies')
+        .select(ROW_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .eq('primary_genre', genre.name)
+      query = applyQualityFloor(query, 'CONTEXT')
+      query = applyAllExclusions(query, resolvedProfile)
+
+      const { data, error } = await query
+        .order('ff_audience_rating', { ascending: false })
+        .limit(limit * 4)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
+
+      const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
+      const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'TopGenre', limit, {
+        label: `Your top genre · ${genre.name}`,
+        type: 'top_genre',
+      }, 'TOP_OF_TASTE', { minFilms: 4, nonce, fillToTarget: true })
+
+      return { films, genre }
+    } catch (err) {
+      console.error('[getTopGenreRow] failed:', err)
+      return { films: [], genre: null }
+    }
+  })
+}
+
+// ============================================================================
+// ROW: SIGNATURE TONES
+// ============================================================================
+
+/**
+ * Films matching the stylistic tone_tags that recur in the user's highly-rated
+ * and saved films (cerebral, atmospheric, noir, …). This is an honest, tone-based
+ * facet of taste — NOT thematic "motifs" (no thematic-affinity data exists, so we
+ * never invent motif labels). Returns { films, tones } — empty if no tone signal
+ * or fewer than 4 films qualify.
+ *
+ * @param {string|null} userId
+ * @param {Object|null} profile
+ * @param {number} [limit=20]
+ * @returns {Promise<{ films: Object[], tones: string[] }>}
+ */
+export async function getSignatureTonesRow(userId, profile, limit = 20, opts = {}) {
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('signature_tones', userId || 'guest', { limit, nonce })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      if (!userId) return { films: [], tones: [] }
+      const resolvedProfile = profile || await computeUserProfileV3(userId)
+
+      const toneTags = resolvedProfile?.affinity?.tone_tags || []
+      if (toneTags.length === 0) return { films: [], tones: [] }
+
+      const topTones = toneTags.slice(0, 3).map(t => t.tag)
+      const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
+
+      let query = supabase
+        .from('movies')
+        .select(ROW_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .overlaps('tone_tags', topTones)
+      query = applyQualityFloor(query, 'CONTEXT')
+      query = applyAllExclusions(query, resolvedProfile)
+
+      const { data, error } = await query
+        .order('ff_audience_rating', { ascending: false })
+        .limit(limit * 4)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
+
+      const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
+      const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'SignatureTones', limit, {
+        label: 'Signature tones',
+        type: 'signature_tones',
+      }, 'MOOD_ROW', { minFilms: 4, nonce, fillToTarget: true })
+
+      return { films, tones: topTones }
+    } catch (err) {
+      console.error('[getSignatureTonesRow] failed:', err)
+      return { films: [], tones: [] }
     }
   })
 }

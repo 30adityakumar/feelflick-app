@@ -34,6 +34,13 @@ const renderHome = () => render(<MemoryRouter><Home /></MemoryRouter>)
 function fullRows(over = {}) {
   return {
     tier: 'engaged', rotationVariant: 'A', profileReady: true, profileError: false,
+    // Profile drives the facet labels (mood signature / signature tones).
+    profile: {
+      affinity: {
+        mood_tags: [{ tag: 'tense' }, { tag: 'melancholic' }],
+        tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }],
+      },
+    },
     topOfTaste: row({ films: [
       { id: 1, _reason: { type: 'director', text: 'r1' } },   // grounded → hero
       { id: 2, _reason: { type: 'generic', text: 'Picked for you' } }, // generic → NOT hero
@@ -41,12 +48,11 @@ function fullRows(over = {}) {
       { id: 4, _reason: { type: 'quality', text: 'r4' } },
       { id: 5, _reason: { type: 'fit', text: 'r5' } },
     ], subtitle: 'sub' }),
+    hiddenGems: row({ films: [{ id: 70 }, { id: 71 }] }),
     orbit: row({ films: [{ id: 10 }, { id: 11 }], seed: { id: 99, title: 'Seed Film' } }),
     mood: row({ films: [{ id: 20 }, { id: 21 }], title: 'Films that feel tender', subtitle: 's' }),
-    director: row({ films: [{ id: 30 }, { id: 31 }], director: { name: 'Dir X' }, subtitle: null }),
-    watchlist: row({ films: [{ id: 40 }, { id: 41 }] }),
-    criticSplit: row([{ id: 50 }, { id: 51 }]),
-    under90: row([{ id: 60 }, { id: 61 }]),
+    topGenre: row({ films: [{ id: 80 }, { id: 81 }], genre: { id: 18, name: 'Drama' } }),
+    signatureTones: row({ films: [{ id: 90 }, { id: 91 }], tones: ['cerebral', 'atmospheric', 'noir'] }),
     ...over,
   }
 }
@@ -83,11 +89,12 @@ describe('Home — state machine', () => {
 
   it('shows an honest cold/empty state (still with shortcuts + DNA) when there is no content', () => {
     rows = {
-      tier: 'cold', rotationVariant: 'A', profileReady: true, profileError: false,
+      tier: 'cold', rotationVariant: 'A', profile: null, profileReady: true, profileError: false,
       topOfTaste: row({ films: [], subtitle: null }),
+      hiddenGems: row({ films: [] }),
       orbit: row({ films: [], seed: null }), mood: row({ films: [], title: null }),
-      director: row({ films: [], director: null }), watchlist: row({ films: [] }),
-      criticSplit: row([]), under90: row([]),
+      topGenre: row({ films: [], genre: null }),
+      signatureTones: row({ films: [], tones: [] }),
     }
     renderHome()
     expect(screen.getByText(/recommendations are still warming up/i)).toBeInTheDocument()
@@ -112,24 +119,25 @@ describe('Home — hero + rows', () => {
     expect(top.textContent).toBe('2,5')
   })
 
-  it('orders personal rows before broad/editorial fallbacks', () => {
+  it('orders the facet rows with top genre between the two emotion rows (no editorial fallback)', () => {
     const { container } = renderHome()
     const order = [...container.querySelectorAll('[data-testid^="row-"]')].map(n => n.getAttribute('data-testid'))
     expect(order).toEqual([
       'row-top_of_taste',
+      'row-hidden_gems',
       'row-still_in_orbit',
-      'row-mood_row',
-      'row-signature_director',
-      'row-watchlist',
-      'row-critics_swooned',
-      'row-under_90',
+      'row-mood_signature',
+      'row-top_genre',
+      'row-signature_tones',
     ])
   })
 
-  it('titles the orbit row from the seed and the director row from the filmmaker', () => {
+  it('titles facet rows from the profile and the orbit seed (never invented)', () => {
     renderHome()
     expect(screen.getByLabelText('Because you loved Seed Film')).toBeInTheDocument()
-    expect(screen.getByLabelText('More from Dir X')).toBeInTheDocument()
+    expect(screen.getByLabelText('Mood signature · Tense & melancholic')).toBeInTheDocument()
+    expect(screen.getByLabelText('Your top genre · Drama')).toBeInTheDocument()
+    expect(screen.getByLabelText('Signature tones · Cerebral, atmospheric & noir')).toBeInTheDocument()
   })
 
   it('does not render its own app navigation (chrome is owned by AppShell)', () => {

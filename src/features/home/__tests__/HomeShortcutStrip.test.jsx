@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 import HomeShortcutStrip from '../components/HomeShortcutStrip'
 
 describe('HomeShortcutStrip', () => {
-  it('renders the three shortcuts pointing at the real routes', () => {
+  it('renders the three shortcuts with correct destinations', () => {
     render(<MemoryRouter><HomeShortcutStrip /></MemoryRouter>)
     const nav = screen.getByRole('navigation', { name: 'Quick actions' })
     expect(nav).toBeInTheDocument()
@@ -17,7 +17,17 @@ describe('HomeShortcutStrip', () => {
     const browse = screen.getByRole('link', { name: /Browse your way/i })
     expect(browse).toHaveAttribute('href', '/browse')
 
-    const log = screen.getByRole('link', { name: /Log a movie/i })
-    expect(log).toHaveAttribute('href', '/browse')
+    // Log a movie is a button that opens global search, not a nav link.
+    const log = screen.getByRole('button', { name: /Log a movie/i })
+    expect(log).toBeInTheDocument()
+  })
+
+  it('dispatches ff:open-search when Log a movie is clicked', () => {
+    render(<MemoryRouter><HomeShortcutStrip /></MemoryRouter>)
+    const listener = vi.fn()
+    window.addEventListener('ff:open-search', listener)
+    fireEvent.click(screen.getByRole('button', { name: /Log a movie/i }))
+    expect(listener).toHaveBeenCalledTimes(1)
+    window.removeEventListener('ff:open-search', listener)
   })
 })

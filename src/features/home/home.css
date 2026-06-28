@@ -35,7 +35,22 @@
 .ff-home__empty-sub { margin: 0; font-size: 14px; color: var(--ts-text-muted, #8d887f); }
 
 .ff-home__skeleton { padding-bottom: 48px; }
-.ff-home__skel-hero { height: min(64svh, 560px); background: var(--ts-surface-1, #1a1714); }
+/* Mirror hero geometry: mobile full-bleed, desktop contained — no layout jump on load. */
+.ff-home__skel-hero {
+  width: 100%;
+  min-height: min(78svh, 660px);
+  background: var(--ts-surface-1, #1a1714);
+}
+@media (min-width: 961px) {
+  .ff-home__skel-hero {
+    box-sizing: border-box;
+    width: calc(100% - 2 * var(--ff-pad, 32px));
+    max-width: calc(1440px - 2 * var(--ff-pad, 32px));
+    margin: 18px auto 0;
+    border-radius: 18px;
+    min-height: min(74svh, 620px);
+  }
+}
 .ff-home__skel-section { margin-top: 44px; }
 .ff-home__skel-head { width: 220px; height: 26px; border-radius: 8px; background: rgba(255,255,255,0.06); margin-bottom: 18px; }
 .ff-home__skel-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
@@ -45,17 +60,33 @@
 @keyframes ffHomePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
 /* === Hero ================================================================= */
-/* Full-bleed: cancel AppShell <main>'s top padding so the backdrop runs under
-   the fixed translucent header. Only applies when a hero is present (first child). */
+/* Contained editorial "stage": starts cleanly BELOW the fixed header (no negative
+   margin / no bleed-under-header), inset to the page gutter and bounded like the
+   rows below (.ff-home__body), with a soft radius. Backdrop, scrim and carousel
+   controls clip to the rounded card via overflow:hidden. */
+/* Mobile: full-bleed so the artwork has cinematic width and the lower near-black
+   zone flows edge-to-edge. Desktop: contained editorial card (inset + radius). */
 .ff-hero {
   position: relative;
-  margin-top: calc(-1 * var(--hdr-h, 56px));
-  min-height: min(86svh, 720px);
+  box-sizing: border-box;
+  width: 100%;
+  /* Mobile runs a touch taller so the bottom-anchored content drops clear of the
+     subject (content falls faster than the cover-scaled artwork) and the lower
+     near-black zone has room. Desktop keeps its original dimensions below. */
+  min-height: min(78svh, 660px);
   display: flex;
   isolation: isolate;
   overflow: hidden;
 }
-@media (min-width: 961px) { .ff-hero { min-height: min(78svh, 760px); } }
+@media (min-width: 961px) {
+  .ff-hero {
+    width: calc(100% - 2 * var(--ff-pad, 32px));
+    max-width: calc(1440px - 2 * var(--ff-pad, 32px));
+    margin: 18px auto 0;
+    min-height: min(74svh, 620px);
+    border-radius: 18px;
+  }
+}
 
 .ff-hero__media { position: absolute; inset: 0; z-index: 0; }
 .ff-hero__img {
@@ -65,23 +96,28 @@
 @media (prefers-reduced-motion: reduce) { .ff-hero__img { animation: none; } }
 @keyframes ffHeroFade { from { opacity: 0; } to { opacity: 1; } }
 
-/* Mobile: content sits at the bottom → scrim rises from the bottom. */
+/* Mobile: deep bottom-up scrim. The lower portion holds reliable darkness behind the
+   title / meta / reason / actions / dots, then fades smoothly upward so the subject's
+   face + upper body stay clear — one continuous wash, no hard-edged black strip. */
 .ff-hero__scrim {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba(15,16,16,0.985) 0%, rgba(15,16,16,0.96) 22%, rgba(15,16,16,0.78) 42%,
-    rgba(15,16,16,0.30) 60%, rgba(15,16,16,0) 78%
+    rgba(8,9,9,0.99) 0%, rgba(9,10,10,0.97) 16%, rgba(11,12,12,0.88) 30%,
+    rgba(13,14,14,0.62) 45%, rgba(15,16,16,0.30) 58%,
+    rgba(15,16,16,0.10) 72%, rgba(15,16,16,0) 86%
   );
 }
 
 .ff-hero__content {
-  position: relative; z-index: 2;
-  width: 100%; max-width: 1440px; margin-inline: auto;
-  padding-inline: var(--ff-pad);
-  display: flex; align-items: flex-end; justify-content: flex-start;
-  padding-top: calc(var(--hdr-h, 56px) + 28px);
-  padding-bottom: 92px;
+  /* Structurally anchored to the hero bottom — content is always flush with the lower
+     edge regardless of viewport height, with only the dots clearance as bottom padding. */
+  position: absolute; left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  padding-inline: clamp(20px, 3.4vw, 44px);
+  /* Mobile: dots are 8px tall at bottom 20px → top at 28px from hero bottom.
+     50px padding-bottom puts the action row 22px above the dots. */
+  padding-bottom: 50px;
 }
 
 .ff-hero__panel { width: min(100%, 640px); }
@@ -94,13 +130,21 @@
 .ff-hero__title {
   margin: 0; font-weight: 600; letter-spacing: -0.03em; line-height: 0.96;
   color: var(--ts-text-primary, #f3ecdf); text-wrap: balance;
-  font-size: clamp(3.1rem, 11vw, 4.6rem);
+  /* Mobile: uniform range — fits most titles within 2–3 lines */
+  font-size: clamp(38px, 10vw, 48px);
 }
-@media (min-width: 961px) { .ff-hero__title { font-size: clamp(4rem, 6.4vw, 7.4rem); } }
+/* Desktop: three length-aware tiers so long titles scale down rather than
+   push the content block upward. Class applied in HomeHeroSlide. */
+@media (min-width: 961px) {
+  .ff-hero__title { font-size: clamp(3rem, 5.8vw, 4.5rem); }            /* medium fallback */
+  .ff-hero__title.title-s { font-size: clamp(3.5rem, 6.8vw, 5rem); }   /* ≤20 chars: up to 80px */
+  .ff-hero__title.title-l { font-size: clamp(2.5rem, 4.8vw, 4rem); }   /* >35 chars: up to 64px */
+}
+
 .ff-hero__meta {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 14px;
-  color: var(--ts-text-muted, #8d887f); font-size: 12px; font-weight: 600;
-  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ts-text-secondary, #beb8ad); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
 }
 .ff-hero__meta i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: 0.7; display: inline-block; margin-right: 10px; }
 .ff-hero__meta > span { display: inline-flex; align-items: center; }
@@ -136,35 +180,49 @@
   .ff-hero__skip span { display: none; }
 }
 
-/* Hero carousel controls */
+/* Hero carousel controls — minimal embedded chevrons.
+   Desktop: transparent at rest (low-opacity icon only), soft dark circle on hover/focus.
+   Mobile: hidden — swipe left/right + dots are the only navigation. */
+/* Desktop carousel arrows: icon centered in the hit area, no visible chrome at
+   rest. Soft dark fill + full opacity on hover/focus only. Both arrows are
+   symmetrical — same resting color, same hover treatment, same positioning. */
 .ff-hero__arrow {
   position: absolute; top: 50%; z-index: 5; transform: translateY(-50%);
-  width: 44px; height: 56px; display: flex; align-items: center; justify-content: center;
-  border: 1px solid rgba(255,255,255,0.2); background: rgba(8,9,9,0.45); color: #fff;
-  backdrop-filter: blur(10px); transition: background 0.18s ease, border-color 0.18s ease;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent; border-radius: 50%;
+  color: rgba(255,255,255,0.50);
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.ff-hero__arrow:hover { background: rgba(8,9,9,0.82); border-color: rgba(255,255,255,0.46); }
-.ff-hero__arrow--prev { left: 0; border-left: 0; border-radius: 0 12px 12px 0; }
-.ff-hero__arrow--next { right: 0; border-right: 0; border-radius: 12px 0 0 12px; }
-@media (max-width: 560px) { .ff-hero__arrow { width: 38px; height: 50px; } }
+.ff-hero__arrow:hover { background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.95); }
+.ff-hero__arrow:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.75); outline-offset: 2px;
+  background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.95);
+}
+.ff-hero__arrow--prev { left: 8px; }
+.ff-hero__arrow--next { right: 8px; }
+@media (max-width: 960px) { .ff-hero__arrow { display: none; } }
 
 .ff-hero__dots { position: absolute; left: 50%; bottom: 20px; z-index: 5; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
 .ff-hero__dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: rgba(255,255,255,0.4); transition: width 0.18s ease, background 0.18s ease; }
 .ff-hero__dot.is-active { width: 22px; background: #fff; }
-@media (min-width: 961px) { .ff-hero__dots { left: auto; right: var(--ff-pad); transform: none; bottom: 26px; } }
+@media (min-width: 961px) { .ff-hero__dots { left: auto; right: 24px; transform: none; bottom: 24px; } }
 
-/* Desktop hero: clean artwork on the left, scrim + content confined to the right. */
+/* Desktop: content anchors bottom-LEFT inside the contained card. Stronger bottom
+   and left scrims ensure the reason/title/actions read clearly over any backdrop;
+   artwork stays clean top-right. */
 @media (min-width: 961px) {
   .ff-hero__scrim {
-    left: auto; right: 0; width: 62%;
-    background: linear-gradient(
-      to left,
-      rgba(15,16,16,0.985) 0%, rgba(15,16,16,0.96) 22%, rgba(15,16,16,0.82) 46%,
-      rgba(15,16,16,0.42) 70%, rgba(15,16,16,0) 100%
-    );
+    background:
+      /* subtle bottom wash — keeps the action row legible without muting center/right */
+      linear-gradient(to top,
+        rgba(15,16,16,0.46) 0%, rgba(15,16,16,0.18) 22%, rgba(15,16,16,0) 42%),
+      /* strong left rail — extended to 80% so the reason's right edge (~fx 0.42-0.49) stays covered */
+      linear-gradient(to right,
+        rgba(15,16,16,0.93) 0%, rgba(15,16,16,0.74) 28%, rgba(15,16,16,0.34) 52%, rgba(15,16,16,0) 80%);
   }
-  .ff-hero__content { justify-content: flex-end; padding-bottom: 84px; }
-  .ff-hero__panel { width: min(44vw, 620px); margin-left: auto; }
+  /* Desktop: action row sits 52px above the hero bottom (within the 48–56px target). */
+  .ff-hero__content { padding-bottom: 52px; }
+  .ff-hero__panel { width: min(46vw, 640px); }
 }
 
 /* === Shortcut strip ======================================================= */
@@ -181,6 +239,7 @@
   display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 14px 16px;
   border: 1px solid var(--ts-border-subtle, #2f2b27); border-radius: 14px;
   background: var(--ts-surface-1, #16130f); color: inherit;
+  cursor: pointer; font: inherit; text-align: left;
   transition: background 0.18s ease, border-color 0.18s ease;
 }
 .ff-shortcut:hover { background: var(--ts-surface-2, #221d18); border-color: var(--ts-border-strong, #46423d); }
@@ -216,12 +275,13 @@
 @media (max-width: 720px) { .ff-hsection__sub { display: none; } }
 
 .ff-hsection__info {
-  width: 26px; height: 26px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
-  border: 1px solid var(--ts-border-strong, #46423d); border-radius: 50%; background: transparent;
-  color: var(--ts-text-muted, #8d887f); font-size: 0.76rem; font-weight: 700; font-style: italic;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; padding: 2px;
+  color: var(--ts-text-muted, #8d887f);
+  transition: color 0.18s ease;
 }
-.ff-hsection__info:hover { color: var(--ts-text-primary, #f3ecdf); border-color: var(--ts-text-muted, #8d887f); background: rgba(255,255,255,0.04); }
+.ff-hsection__info:hover { color: var(--ts-text-primary, #f3ecdf); }
+.ff-hsection__info:focus-visible { outline: 2px solid var(--ts-focus, #f3ecdf); outline-offset: 2px; border-radius: 50%; }
 .ff-hsection__note {
   margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--ts-border-subtle, #2f2b27); border-radius: 12px;
   background: rgba(255,255,255,0.025); color: var(--ts-text-secondary, #beb8ad); font-size: 0.78rem; line-height: 1.5; max-width: 720px;
@@ -251,55 +311,99 @@
   border: 1px solid rgba(255,255,255,0.08); background: var(--ts-surface-1, #16130f);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.ff-hcard:hover, .ff-hcard:focus-within { transform: translateY(-4px); border-color: rgba(255,255,255,0.3); box-shadow: 0 18px 48px rgba(0,0,0,0.55); z-index: 2; }
-.ff-hcard__scrim { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(0deg, rgba(10,10,11,0.95) 0%, rgba(10,10,11,0.6) 26%, transparent 56%); }
+/* Subtle scale — no dramatic lift. z-index keeps it above siblings during hover. */
+.ff-hcard:hover, .ff-hcard:focus-within { transform: scale(1.015); border-color: rgba(255,255,255,0.16); box-shadow: 0 6px 24px rgba(0,0,0,0.45); z-index: 2; }
+
+/* Scrim: gradual bottom-up fade so artwork shows through the upper poster while
+   title + meta stay legible over any backdrop color. Strengthens slightly on hover. */
+.ff-hcard__scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(0deg, rgba(10,10,11,0.97) 0%, rgba(10,10,11,0.78) 22%, rgba(10,10,11,0.35) 42%, transparent 64%);
+  transition: background 0.2s ease;
+}
+.ff-hcard:hover .ff-hcard__scrim,
+.ff-hcard:focus-within .ff-hcard__scrim {
+  background: linear-gradient(0deg, rgba(10,10,11,0.99) 0%, rgba(10,10,11,0.88) 24%, rgba(10,10,11,0.50) 46%, transparent 67%);
+}
+
 .ff-hcard__link { position: absolute; inset: 0; z-index: 2; border: 0; padding: 0; background: transparent; cursor: pointer; }
 .ff-hcard__link:focus-visible { outline: 2px solid var(--ts-focus, #f3ecdf); outline-offset: -3px; }
 
+/* Desktop: actions hidden at rest, revealed on hover/focus-within via opacity
+   transition. Mobile overrides below make them always visible at reduced weight. */
 .ff-hcard__actions {
   position: absolute; top: 10px; right: 10px; z-index: 4; display: flex; gap: 7px;
   opacity: 0; transform: translateY(-4px); transition: opacity 0.18s ease, transform 0.18s ease;
 }
 .ff-hcard:hover .ff-hcard__actions, .ff-hcard:focus-within .ff-hcard__actions { opacity: 1; transform: none; }
+
 .ff-hcard__icon {
   width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-  border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(7,8,8,0.68); color: #fff;
-  transition: background 0.18s ease;
+  border: 1px solid rgba(255,255,255,0.28); border-radius: 10px; background: rgba(7,8,8,0.70); color: #fff;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.ff-hcard__icon:hover { background: rgba(7,8,8,0.92); }
-.ff-hcard__icon.is-active { background: var(--color-action-primary-fill, #efe7d7); border-color: var(--color-action-primary-fill, #efe7d7); color: var(--color-action-primary-text, #221b13); }
+.ff-hcard__icon:hover { background: rgba(7,8,8,0.92); border-color: rgba(255,255,255,0.45); }
+/* Active: restrained — darker bg, slightly brighter border + icon. Filled bookmark
+   and check icon communicate state; no bright white or ivory fill needed. */
+.ff-hcard__icon.is-active { background: rgba(7,8,8,0.90); border-color: rgba(255,255,255,0.55); color: rgba(255,255,255,0.95); }
 .ff-hcard__icon:disabled { opacity: 0.6; cursor: default; }
 .ff-hcard__icon:focus-visible { outline: 2px solid var(--ts-focus, #f3ecdf); outline-offset: 2px; }
 
-.ff-hcard__info { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 16px 12px 12px; pointer-events: none; }
+.ff-hcard__info { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 14px 12px 12px; pointer-events: none; }
 .ff-hcard__title { margin: 0; font-size: 0.9rem; line-height: 1.2; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ff-hcard__meta { margin-top: 4px; font-size: 0.64rem; color: rgba(255,255,255,0.78); letter-spacing: 0.02em; }
-.ff-hcard__reason { margin: 8px 0 0; font-size: 0.66rem; line-height: 1.4; color: rgba(255,255,255,0.82); opacity: 0; transition: opacity 0.18s ease; }
-.ff-hcard:hover .ff-hcard__reason, .ff-hcard:focus-within .ff-hcard__reason { opacity: 1; }
+.ff-hcard__meta { margin-top: 4px; font-size: 0.64rem; color: rgba(255,255,255,0.75); letter-spacing: 0.02em; }
+
+/* Mobile: actions always visible, smaller and more opaque than the earlier
+   44px treatment. 36px circle with reduced transparency; icon colour visible
+   enough to be noticed but not dominant against the poster. */
 @media (max-width: 720px) {
-  .ff-hcard__actions { opacity: 1; transform: none; }
-  .ff-hcard__reason { display: none; }
+  .ff-hcard__actions { opacity: 1; transform: none; top: 8px; right: 8px; gap: 5px; }
+  .ff-hcard__icon {
+    width: 36px; height: 36px;
+    border: none; border-radius: 50%;
+    background: rgba(0,0,0,0.60); color: rgba(255,255,255,0.80);
+  }
+  .ff-hcard__icon:hover { background: rgba(0,0,0,0.75); border: none; }
+  .ff-hcard__icon.is-active { background: rgba(0,0,0,0.72); border: none; color: rgba(255,255,255,0.95); }
 }
 
 /* === Cinematic DNA strip ================================================= */
+/* The deliberate "close" to Home: a lifted panel (surface-2, above the page) so it
+   reads as an intentional sign-off, not a footer. Colours use canonical Adaptive
+   Editorial Cinema tokens (the fallback hexes mirror foundations.css). */
 .ff-dna {
-  margin-top: 52px; padding: 22px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px 22px;
-  border: 1px solid var(--ts-border-subtle, #2f2b27); border-radius: 16px; background: var(--ts-surface-1, #16130f);
+  margin-top: 52px; padding: 22px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px;
+  border: 1px solid var(--ts-border-subtle, #3a3d41); border-radius: 16px; background: var(--ts-surface-2, #222427);
 }
-.ff-dna__copy { min-width: 220px; }
-.ff-dna__label { color: var(--ts-text-secondary, #beb8ad); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
-.ff-dna__state { display: block; margin-top: 6px; font-size: 1.12rem; font-weight: 600; color: var(--ts-text-primary, #f3ecdf); }
-.ff-dna__tags { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 240px; }
+.ff-dna__copy { min-width: 220px; flex: 1 1 220px; }
+.ff-dna__label { color: var(--ts-text-secondary, #c9c5bc); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.ff-dna__state { display: block; margin-top: 6px; font-size: 1.12rem; font-weight: 600; color: var(--ts-text-primary, #f5f2eb); }
+.ff-dna__tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 240px; }
 .ff-dna__tag {
   display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 999px;
-  border: 1px solid var(--ts-border-strong, #46423d); color: var(--ts-text-secondary, #beb8ad); font-size: 0.7rem;
+  border: 1px solid var(--ts-border-strong, #747a82); color: var(--ts-text-secondary, #c9c5bc); font-size: 0.74rem;
 }
-.ff-dna__tag.is-emerging { border-style: dashed; color: var(--ts-text-muted, #8d887f); }
-.ff-dna__forming { font-size: 0.78rem; color: var(--ts-text-muted, #8d887f); font-style: italic; }
+/* Emerging lean: a developing signal, not established evidence. The distinction is
+   carried by the legible "· still forming" text (AA), with the dashed border as a
+   redundant, non-color cue — never relying on dashed-vs-solid alone. */
+.ff-dna__tag.is-emerging { border-style: dashed; }
+.ff-dna__tag-kind { color: var(--ts-text-secondary, #c9c5bc); font-style: italic; }
+.ff-dna__forming { margin: 0; font-size: 0.82rem; color: var(--ts-text-secondary, #c9c5bc); font-style: italic; flex: 1 1 240px; }
+.ff-dna__door { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .ff-dna__cta {
   display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
-  border: 1px solid var(--ts-border-strong, #46423d); border-radius: 11px; background: rgba(8,9,9,0.4);
-  color: var(--ts-text-primary, #f3ecdf); font-size: 0.82rem; font-weight: 700;
+  border: 1px solid var(--ts-border-strong, #747a82); border-radius: 11px; background: rgba(8,9,9,0.4);
+  color: var(--ts-text-primary, #f5f2eb); font-size: 0.82rem; font-weight: 700; text-align: center;
   transition: background 0.18s ease, border-color 0.18s ease;
 }
-.ff-dna__cta:hover { background: rgba(25,27,28,0.6); border-color: rgba(255,255,255,0.4); }
+.ff-dna__cta:hover { background: rgba(255,255,255,0.06); border-color: var(--ts-text-secondary, #c9c5bc); }
+.ff-dna__cta:focus-visible { outline: 2px solid var(--ts-focus, #f5f2eb); outline-offset: 2px; }
+.ff-dna__hint { font-size: 0.72rem; color: var(--ts-text-muted, #a5a198); }
+
+@media (max-width: 560px) {
+  .ff-dna { margin-top: 36px; padding: 18px 16px; gap: 14px; }
+  .ff-dna__state { font-size: 1.04rem; }
+  .ff-dna__door { align-items: stretch; width: 100%; }
+  .ff-dna__cta { width: 100%; }
+  .ff-dna__hint { text-align: center; }
+}

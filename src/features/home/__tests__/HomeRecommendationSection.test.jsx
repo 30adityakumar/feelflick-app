@@ -10,7 +10,7 @@ import HomeRecommendationSection from '../components/HomeRecommendationSection'
 
 const mk = (n) => Array.from({ length: n }, (_, i) => ({ id: i + 1, title: `F${i + 1}` }))
 const renderSection = (props = {}) => render(
-  <HomeRecommendationSection rowKey="top_of_taste" title="Top of your taste" subtitle="Leaning into prestige dramas" note="How this was determined." films={mk(5)} {...props} />,
+  <HomeRecommendationSection rowKey="top_of_taste" title="Your taste, distilled" subtitle="Leaning into prestige dramas" note="How this was determined." films={mk(5)} {...props} />,
 )
 
 beforeEach(() => vi.clearAllMocks())
@@ -18,7 +18,7 @@ beforeEach(() => vi.clearAllMocks())
 describe('HomeRecommendationSection', () => {
   it('renders the title, subtitle and a card per film', () => {
     renderSection()
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Top of your taste')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Your taste, distilled')
     expect(screen.getByText('Leaning into prestige dramas')).toBeInTheDocument()
     expect(screen.getAllByTestId('card')).toHaveLength(5)
   })

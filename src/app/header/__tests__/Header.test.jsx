@@ -112,10 +112,11 @@ describe('Header — authenticated', () => {
     authState = { user: { id: 'u1', email: 'a@b.com', user_metadata: { name: 'Ada' } }, isAuthenticated: true }
   })
 
-  it('wordmark links to /home with authenticated nav (Tonight/Discover/DNA)', () => {
+  it('wordmark links to /home with authenticated nav (Home/Browse/Discover/DNA)', () => {
     renderHeader()
     expect(screen.getByRole('link', { name: 'FEELFLICK' })).toHaveAttribute('href', '/home')
-    expect(screen.getByRole('link', { name: 'Tonight' })).toHaveAttribute('href', '/home')
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/home')
+    expect(screen.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
     expect(screen.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
     expect(screen.getByRole('link', { name: 'DNA' })).toHaveAttribute('href', '/profile')
   })
@@ -128,5 +129,22 @@ describe('Header — authenticated', () => {
     expect(account.className).toMatch(/min-h-\[44px\]/)
     expect(screen.queryByRole('button', { name: /sign in/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /open menu/i })).toBeNull()
+  })
+
+  it('avatar dropdown lists the full account menu (shared config) + feedback + sign out', () => {
+    renderHeader()
+    fireEvent.click(screen.getByRole('button', { name: /account menu/i }))
+    const menu = document.getElementById('ff-account-menu')
+    expect(menu).toBeTruthy()
+    const links = Object.fromEntries(
+      [...menu.querySelectorAll('a[href]')].map(a => [a.textContent.trim(), a.getAttribute('href')]),
+    )
+    expect(links).toMatchObject({
+      Account: '/account', Browse: '/browse', Watchlist: '/watchlist', Diary: '/history',
+      People: '/people', Lists: '/lists', Settings: '/preferences',
+    })
+    expect(within(menu).getByRole('link', { name: /send feedback/i }))
+      .toHaveAttribute('href', expect.stringMatching(/^mailto:/))
+    expect(within(menu).getByRole('button', { name: /sign out/i })).toBeInTheDocument()
   })
 })

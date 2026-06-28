@@ -20,34 +20,23 @@ vi.mock('../atoms', () => ({ SmartImg: ({ film }) => <img alt={film?.title || ''
 
 import HomeMovieCard from '../components/HomeMovieCard'
 
-const FILM = { id: 7, tmdb_id: 700, title: 'Reason Film', release_year: 2022, director_name: 'Some Dir', _reason: { type: 'director', text: 'More from Some Dir' } }
-const renderCard = (film = FILM) => render(<MemoryRouter><HomeMovieCard film={film} index={0} rowTitle="Top of your taste" /></MemoryRouter>)
+const FILM = { id: 7, tmdb_id: 700, title: 'Reason Film', release_year: 2022, director_name: 'Some Dir' }
+const renderCard = (film = FILM) => render(<MemoryRouter><HomeMovieCard film={film} index={0} rowTitle="Your taste, distilled" /></MemoryRouter>)
 
 beforeEach(() => { vi.clearAllMocks(); status.isInWatchlist = false; status.isWatched = false })
 
 describe('HomeMovieCard', () => {
-  it('renders title, meta and the grounded reason', () => {
+  it('renders title and meta (year · director)', () => {
     renderCard()
     expect(screen.getByText('Reason Film')).toBeInTheDocument()
     expect(screen.getByText('2022 · Some Dir')).toBeInTheDocument()
-    expect(screen.getByText('More from Some Dir')).toBeInTheDocument()
-  })
-
-  it('omits the reason when the engine reason is generic', () => {
-    renderCard({ ...FILM, _reason: { type: 'generic', text: 'Picked for you' } })
-    expect(screen.queryByText('Picked for you')).not.toBeInTheDocument()
-  })
-
-  it('omits the reason when there is no reason at all', () => {
-    renderCard({ ...FILM, _reason: null })
-    expect(screen.queryByText('More from Some Dir')).not.toBeInTheDocument()
   })
 
   it('opening the card records a clicked outcome, tracks the click, and navigates', () => {
     renderCard()
     fireEvent.click(screen.getByLabelText('Open Film File for Reason Film'))
     expect(updateImpression).toHaveBeenCalledWith('u1', 7, 'clicked')
-    expect(track).toHaveBeenCalledWith('card_clicked', expect.objectContaining({ movie_id: 700, row_title: 'Top of your taste' }))
+    expect(track).toHaveBeenCalledWith('card_clicked', expect.objectContaining({ movie_id: 700, row_title: 'Your taste, distilled' }))
     expect(navigate).toHaveBeenCalledWith('/movie/700')
   })
 

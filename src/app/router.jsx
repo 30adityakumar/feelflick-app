@@ -23,6 +23,7 @@ const MovieDetail = lazy(() => import('@/features/movie/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
 const Onboarding = lazy(() => import('@/features/onboarding/Onboarding'))
 const Account = lazy(() => import('@/features/account/Account'))
+const YouMenu = lazy(() => import('@/features/account/YouMenu'))
 const Preferences = lazy(() => import('@/features/preferences/Preferences'))
 const Watchlist = lazy(() => import('@/features/watchlist/Watchlist'))
 const History = lazy(() => import('@/features/history/History'))
@@ -328,6 +329,7 @@ export const router = sentryCreateBrowserRouter([
                 errorElement: <ErrorBoundary />,
                 children: [
                   { path: 'home', element: <LazyRoute Component={Home} />, errorElement: <ErrorBoundary /> },
+                  { path: 'you', element: <LazyRoute Component={YouMenu} />, errorElement: <ErrorBoundary /> },
                   { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
                   { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
                   { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },

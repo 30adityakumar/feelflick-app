@@ -297,13 +297,17 @@ describe('Fit profile adjacency scoring', () => {
     const genreFilm = result.films.find(m => m.title === 'Genre Film')
 
     expect(crowdFilm).toBeDefined()
-    // challenging_art scored 55, below 60 floor → cut
-    expect(artFilm).toBeUndefined()
     expect(genreFilm).toBeDefined()
+    // top_of_taste is a guaranteed (fillToTarget) row, so the clashing-fit film is
+    // no longer hard-cut by the 60 floor — it's kept as lower-ranked buffer fill.
+    // The differentiation now shows in the SCORE/ORDER, not exclusion.
+    expect(artFilm).toBeDefined()
+    expect(crowdFilm._score).toBeGreaterThan(artFilm._score) // dominant fit outranks clashing fit
 
     // v3 scores directly from scoreMovieV3
     expect(crowdFilm._score).toBe(80)
     expect(genreFilm._score).toBe(75)
+    expect(artFilm._score).toBe(55)
 
     // Crowd film should rank highest (80 > 75)
     expect(result.films[0].title).toBe('Crowd Film')

@@ -1,5 +1,5 @@
 // src/features/home/components/HomeHero.jsx
-// The redesigned Home hero: a full-bleed cinematic backdrop with a small,
+// The redesigned Home hero: a contained editorial cinematic backdrop with a small,
 // bounded carousel of personally-grounded standout picks (≤3). Every hero film
 // MUST carry a specific, grounded reason — generic "Picked for you" candidates
 // are filtered out upstream in Home, never shown here.
@@ -13,9 +13,10 @@
 //                        then advance to the next standout (session-hidden)
 //   • per-active-film 'hero' surface impression + a polite SR live region.
 //
-// Desktop: artwork stays clean on the left; the scrim + content live on the
-// right. Mobile: content sits at the bottom over a bottom-up scrim; swipe +
-// dots move between standouts. Reduced motion → instant updates (CSS-gated).
+// A contained editorial "stage": it starts cleanly below the fixed header and is
+// inset/bounded like the rows below. Content anchors bottom-LEFT over a scrim on
+// every device (artwork stays clean top-right on desktop); swipe + dots move
+// between standouts. Reduced motion → instant updates (CSS-gated).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -47,11 +48,26 @@ function yearOf(film) {
   return ''
 }
 
+// Display the spoken language only when it's NOT English (English is the implicit
+// default, so showing it would be noise). Maps the ISO-639-1 code to a readable
+// name ('fr' → 'French'); falls back to the upper-cased code if Intl can't resolve it.
+function languageLabel(film) {
+  const code = film?.original_language
+  if (!code || code === 'en') return null
+  try {
+    const name = new Intl.DisplayNames(['en'], { type: 'language' }).of(code)
+    if (name && name.toLowerCase() !== code.toLowerCase()) return name
+  } catch { /* Intl.DisplayNames unavailable — fall through to the code */ }
+  return code.toUpperCase()
+}
+
 // === One hero standout — owns its save/watched writes + optimistic-revert =====
 function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const statusMovie = useMemo(() => film, [film?.id, film?.tmdb_id])
   const {
     isInWatchlist, isWatched, loading: statusLoading, toggleWatchlist, toggleWatched, internalId,
-  } = useUserMovieStatus({ user, movie: film, internalMovieId: film?.id, source: 'carousel_row' })
+  } = useUserMovieStatus({ user, movie: statusMovie, internalMovieId: film?.id, source: 'carousel_row' })
 
   const [watchedState, setWatchedState] = useState('idle') // idle | saving | watched | error
   const [saveState, setSaveState] = useState('idle')       // idle | saving | error
@@ -105,12 +121,16 @@ function HomeHeroSlide({ film, user, onOpen, onSkip, onMarkedWatched, announce }
 
   if (!film) return null
   const reason = film._reason?.text
-  const meta = [yearOf(film), formatRuntime(film.runtime), film.director_name && film.director_name !== 'Unknown' ? film.director_name : null].filter(Boolean)
+  const meta = [yearOf(film), film.primary_genre || null, formatRuntime(film.runtime), languageLabel(film)].filter(Boolean)
+  // Title-length class drives desktop font-size tiers so long titles scale down
+  // gracefully without truncation or layout disruption.
+  const titleLen = (film.title || '').length
+  const titleSizeClass = titleLen <= 20 ? 'title-s' : titleLen <= 35 ? 'title-m' : 'title-l'
 
   return (
     <div className="ff-hero__panel">
       <div className="ff-hero__kicker">Top pick for you</div>
-      <h2 className="ff-hero__title">{film.title}</h2>
+      <h2 className={`ff-hero__title ${titleSizeClass}`}>{film.title}</h2>
       {meta.length > 0 ? (
         <div className="ff-hero__meta">
           {meta.map((bit, i) => (

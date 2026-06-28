@@ -8,17 +8,17 @@
 // exists because the shared MovieCard is hard-bound to the fixed-size carousel
 // <Card> primitive (220×330) and a parent-driven hover model, whereas Home needs
 // a poster that FILLS a responsive 5-column grid cell (desktop) or a snap
-// carousel cell (mobile), plus an on-hover grounded reason.
+// carousel cell (mobile), plus on-hover-only action controls.
 //
-// Layout = the locked prototype's `.card`: full 2:3 poster, lower scrim, title +
-// concise meta, Save/Watched controls and the per-film reason revealed on
-// hover/focus. The whole poster is one navigation target (a transparent sibling
-// overlay button — NOT a button nested inside a button), with the Save/Watched
-// controls layered above it so they take their own clicks.
+// Layout: full 2:3 poster, lower scrim, title + concise meta (year · director),
+// Save/Watched controls revealed on hover/focus-within (desktop) or always
+// visible at reduced weight (mobile). The whole poster is one navigation target
+// (a transparent sibling overlay button — NOT a button nested inside a button),
+// with the Save/Watched controls layered above it so they take their own clicks.
 
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bookmark, Check, Eye } from 'lucide-react'
+import { Bookmark, Eye, Check } from 'lucide-react'
 
 import { useWatchlistContext } from '@/app/providers/WatchlistContext'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
@@ -32,14 +32,6 @@ function yearOf(film) {
   if (film?.release_year) return film.release_year
   if (film?.release_date) return new Date(film.release_date).getFullYear()
   return ''
-}
-
-// A grounded reason is the engine's per-film reason whose type is NOT the generic
-// "Picked for you" fallback. Generic / missing → no reason shown (never fabricate).
-function groundedReason(film) {
-  const r = film?._reason
-  if (r && r.type && r.type !== 'generic' && typeof r.text === 'string' && r.text.trim()) return r.text.trim()
-  return null
 }
 
 export default function HomeMovieCard({ film, index = 0, placement = 'carousel', rowTitle = null }) {
@@ -85,11 +77,9 @@ export default function HomeMovieCard({ film, index = 0, placement = 'carousel',
   }, [actionLoading.watched, toggleWatched])
 
   if (!film) return null
-  const reason = groundedReason(film)
   const year = yearOf(film)
-  const metaBits = [year, film.director_name && film.director_name !== 'Unknown' ? film.director_name : (film.primary_genre || null)]
-    .filter(Boolean)
-    .join(' · ')
+  const director = film.director_name && film.director_name !== 'Unknown' ? film.director_name : null
+  const metaBits = [year, director || film.primary_genre || null].filter(Boolean).join(' · ')
 
   return (
     <article className="ff-hcard">
@@ -103,9 +93,9 @@ export default function HomeMovieCard({ film, index = 0, placement = 'carousel',
       {/* Whole-poster navigation target — a sibling overlay, never a nested button. */}
       <button type="button" className="ff-hcard__link" aria-label={`Open Film File for ${film.title}`} onClick={open} />
 
-      {/* Save / Watched — layered above the link; revealed on hover/focus (always
-          visible on touch via CSS). Real buttons → keyboard reachable; aria-pressed
-          exposes state non-visually. */}
+      {/* Save / Watched — layered above the link; revealed on hover/focus-within
+          (desktop) or always visible at reduced weight (mobile via CSS).
+          Real buttons → keyboard reachable; aria-pressed exposes state. */}
       {ready && user ? (
         <div className="ff-hcard__actions">
           <button
@@ -126,7 +116,9 @@ export default function HomeMovieCard({ film, index = 0, placement = 'carousel',
             disabled={actionLoading.watched}
             onClick={onWatched}
           >
-            {isWatched ? <Check className="h-[18px] w-[18px]" aria-hidden="true" /> : <Eye className="h-[18px] w-[18px]" aria-hidden="true" />}
+            {isWatched
+              ? <Check className="h-[18px] w-[18px]" aria-hidden="true" />
+              : <Eye className="h-[18px] w-[18px]" aria-hidden="true" />}
           </button>
         </div>
       ) : null}
@@ -134,7 +126,6 @@ export default function HomeMovieCard({ film, index = 0, placement = 'carousel',
       <div className="ff-hcard__info">
         <h3 className="ff-hcard__title">{film.title}</h3>
         {metaBits ? <div className="ff-hcard__meta">{metaBits}</div> : null}
-        {reason ? <p className="ff-hcard__reason">{reason}</p> : null}
       </div>
     </article>
   )

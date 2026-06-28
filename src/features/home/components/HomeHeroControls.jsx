@@ -11,10 +11,10 @@ export default function HomeHeroControls({ count, index, onPrev, onNext, onGoTo 
   return (
     <>
       <button type="button" className="ff-hero__arrow ff-hero__arrow--prev" aria-label="Previous featured film" onClick={onPrev}>
-        <ChevronLeft className="h-[22px] w-[22px]" aria-hidden="true" />
+        <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
       </button>
       <button type="button" className="ff-hero__arrow ff-hero__arrow--next" aria-label="Next featured film" onClick={onNext}>
-        <ChevronRight className="h-[22px] w-[22px]" aria-hidden="true" />
+        <ChevronRight className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
       </button>
       <div className="ff-hero__dots" role="group" aria-label="Featured films">
         {Array.from({ length: count }).map((_, i) => (

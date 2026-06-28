@@ -153,11 +153,39 @@ export function dnaSignalsFromProfile(profile) {
   const topMoods = (aff.mood_tags || []).slice(0, 6)
     .map(m => ({ label: cap(m.tag), weight: m.weight ?? m.count ?? 0 }))
     .filter(m => m.label)
-  const topFit = aff.fit_profiles?.[0]?.profile || null
+  // The "emerging" fit lean is the single least-reliable signal in the strip, so
+  // only surface it when it's a CLEAR leader. fit_profiles is sorted by count
+  // (promoted entries float up), so if the top two share the same count it's a tie
+  // and naming one as "emerging" would dress arbitrary sort order as a real lean.
+  const fits = aff.fit_profiles || []
+  const topFitIsClear = fits.length > 0 && (fits.length === 1 || (fits[0].count ?? 0) > (fits[1]?.count ?? 0))
+  const topFit = topFitIsClear ? (fits[0].profile || null) : null
   if (motifs.length === 0 && topMoods.length === 0) return null
   return {
     motifs: motifs.length ? motifs : null,
     topMoods: topMoods.length ? topMoods : null,
     topFit,
   }
+}
+
+/**
+ * Depth-aware maturity for the Cinematic DNA strip's headline. Keeps the strip
+ * honest: the state line must be proportional to how much real evidence exists,
+ * so a 5-film onboarding-only profile never gets the same "keeps sharpening"
+ * (compounding, in-use refinement) claim a deeply-watched profile earns. Driven by
+ * meta.total_watches (non-onboarding watches; 0 = the user has only their
+ * onboarding picks so far) + meta.confidence — the engine's own maturity signal —
+ * so the tiers track the /profile portrait's bands (forming → taking shape →
+ * established) in spirit. Doctrine: living/evolving, never asserts certainty.
+ *
+ * @param {Object|null} profile - v3 user profile
+ * @returns {{ key: string, line: string }}
+ */
+export function dnaMaturity(profile) {
+  const watches = profile?.meta?.total_watches ?? 0
+  const confidence = profile?.meta?.confidence
+  if (watches <= 0) return { key: 'seeded', line: 'Your taste is taking shape from your first picks.' }
+  if (confidence === 'engaged') return { key: 'established', line: 'Your taste keeps sharpening.' }
+  if (confidence === 'warming') return { key: 'focusing', line: 'Your taste is coming into focus.' }
+  return { key: 'early', line: 'Your taste is beginning to come into focus.' }
 }

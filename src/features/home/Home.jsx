@@ -21,7 +21,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
 import { useHomepageRows } from '@/shared/hooks/useHomepageRows'
-import { moodSignatureLabel, signatureTonesLabel, dnaSignalsFromProfile } from '@/shared/services/rowSubtitles'
+import { moodSignatureLabel, signatureTonesLabel, dnaSignalsFromProfile, dnaMaturity } from '@/shared/services/rowSubtitles'
 import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
 
 import { HomeDataProvider, useHomeData } from './useHomeData'
@@ -180,10 +180,15 @@ function HomeBody() {
   // back to the fingerprint when there's no affinity signal (genuinely empty users).
   const dnaForStrip = useMemo(() => {
     if (!dna) return dna
+    // Depth-aware headline (honest: proportional to real evidence, not a binary
+    // "keeps sharpening" the moment any tag exists). Always attached so the strip
+    // can never over-claim trajectory for an onboarding-only profile.
+    const maturity = dnaMaturity(profile)
     const sig = dnaSignalsFromProfile(profile)
-    if (!sig) return dna
+    if (!sig) return { ...dna, maturity }
     return {
       ...dna,
+      maturity,
       motifs: sig.motifs ?? dna.motifs,
       topMoods: sig.topMoods ?? dna.topMoods,
       topFit: sig.topFit ?? dna.topFit,

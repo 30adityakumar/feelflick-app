@@ -7,6 +7,7 @@ import {
   moodSignatureLabel,
   signatureTonesLabel,
   dnaSignalsFromProfile,
+  dnaMaturity,
 } from '../rowSubtitles'
 
 describe('topOfTasteSubtitle', () => {
@@ -226,12 +227,12 @@ describe('dnaSignalsFromProfile', () => {
     expect(dnaSignalsFromProfile({ affinity: { mood_tags: [], tone_tags: [] } })).toBeNull()
   })
 
-  it('derives motifs (tones), moods, and fit from the same v3 affinity the rows use', () => {
+  it('derives motifs (tones), moods, and a clear-leader fit from the same v3 affinity the rows use', () => {
     const profile = {
       affinity: {
         tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }, { tag: 'gritty' }],
         mood_tags: [{ tag: 'tense', weight: 3 }, { tag: 'melancholic', weight: 2 }],
-        fit_profiles: [{ profile: 'arthouse' }, { profile: 'crowd-pleaser' }],
+        fit_profiles: [{ profile: 'arthouse', count: 4 }, { profile: 'crowd-pleaser', count: 1 }],
       },
     }
     const sig = dnaSignalsFromProfile(profile)
@@ -243,10 +244,56 @@ describe('dnaSignalsFromProfile', () => {
     expect(sig.topFit).toBe('arthouse')
   })
 
+  it('suppresses the emerging fit on a tie (no arbitrary leader dressed as a lean)', () => {
+    const sig = dnaSignalsFromProfile({
+      affinity: {
+        tone_tags: [{ tag: 'cold' }],
+        fit_profiles: [{ profile: 'challenging_art', count: 2 }, { profile: 'prestige_drama', count: 2 }],
+      },
+    })
+    expect(sig.topFit).toBeNull()       // 2 vs 2 is a tie → no emerging chip
+    expect(sig.motifs).toEqual(['Cold']) // the real signal still shows
+  })
+
+  it('shows a single fit even without a runner-up', () => {
+    const sig = dnaSignalsFromProfile({
+      affinity: { tone_tags: [{ tag: 'warm' }], fit_profiles: [{ profile: 'comfort_watch', count: 3 }] },
+    })
+    expect(sig.topFit).toBe('comfort_watch')
+  })
+
   it('populates from a single facet (a thin profile with moods but no tones)', () => {
     const sig = dnaSignalsFromProfile({ affinity: { mood_tags: [{ tag: 'tender' }] } })
     expect(sig.motifs).toBeNull()
     expect(sig.topMoods).toEqual([{ label: 'Tender', weight: 0 }])
     expect(sig.topFit).toBeNull()
+  })
+})
+
+// ============================================================================
+// dnaMaturity (honest, depth-aware headline for the DNA strip)
+// ============================================================================
+describe('dnaMaturity', () => {
+  it('an onboarding-only profile (no real watches) takes shape — never "keeps sharpening"', () => {
+    const m = dnaMaturity({ meta: { total_watches: 0, confidence: 'cold' } })
+    expect(m.key).toBe('seeded')
+    expect(m.line).toMatch(/first picks/)
+    expect(m.line).not.toMatch(/keeps sharpening/)
+  })
+
+  it('reserves "keeps sharpening" for an engaged profile with real history', () => {
+    const m = dnaMaturity({ meta: { total_watches: 40, confidence: 'engaged' } })
+    expect(m.key).toBe('established')
+    expect(m.line).toBe('Your taste keeps sharpening.')
+  })
+
+  it('uses intermediate tiers for warming / early real activity', () => {
+    expect(dnaMaturity({ meta: { total_watches: 10, confidence: 'warming' } }).key).toBe('focusing')
+    expect(dnaMaturity({ meta: { total_watches: 2, confidence: 'cold' } }).key).toBe('early')
+  })
+
+  it('defaults safely (seeded) when meta is missing', () => {
+    expect(dnaMaturity(null).key).toBe('seeded')
+    expect(dnaMaturity({}).key).toBe('seeded')
   })
 })

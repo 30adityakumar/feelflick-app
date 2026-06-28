@@ -368,24 +368,42 @@
 }
 
 /* === Cinematic DNA strip ================================================= */
+/* The deliberate "close" to Home: a lifted panel (surface-2, above the page) so it
+   reads as an intentional sign-off, not a footer. Colours use canonical Adaptive
+   Editorial Cinema tokens (the fallback hexes mirror foundations.css). */
 .ff-dna {
-  margin-top: 52px; padding: 22px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px 22px;
-  border: 1px solid var(--ts-border-subtle, #2f2b27); border-radius: 16px; background: var(--ts-surface-1, #16130f);
+  margin-top: 52px; padding: 22px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px;
+  border: 1px solid var(--ts-border-subtle, #3a3d41); border-radius: 16px; background: var(--ts-surface-2, #222427);
 }
-.ff-dna__copy { min-width: 220px; }
-.ff-dna__label { color: var(--ts-text-secondary, #beb8ad); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
-.ff-dna__state { display: block; margin-top: 6px; font-size: 1.12rem; font-weight: 600; color: var(--ts-text-primary, #f3ecdf); }
-.ff-dna__tags { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 240px; }
+.ff-dna__copy { min-width: 220px; flex: 1 1 220px; }
+.ff-dna__label { color: var(--ts-text-secondary, #c9c5bc); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.ff-dna__state { display: block; margin-top: 6px; font-size: 1.12rem; font-weight: 600; color: var(--ts-text-primary, #f5f2eb); }
+.ff-dna__tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 240px; }
 .ff-dna__tag {
   display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 999px;
-  border: 1px solid var(--ts-border-strong, #46423d); color: var(--ts-text-secondary, #beb8ad); font-size: 0.7rem;
+  border: 1px solid var(--ts-border-strong, #747a82); color: var(--ts-text-secondary, #c9c5bc); font-size: 0.74rem;
 }
-.ff-dna__tag.is-emerging { border-style: dashed; color: var(--ts-text-muted, #8d887f); }
-.ff-dna__forming { font-size: 0.78rem; color: var(--ts-text-muted, #8d887f); font-style: italic; }
+/* Emerging lean: a developing signal, not established evidence. The distinction is
+   carried by the legible "· still forming" text (AA), with the dashed border as a
+   redundant, non-color cue — never relying on dashed-vs-solid alone. */
+.ff-dna__tag.is-emerging { border-style: dashed; }
+.ff-dna__tag-kind { color: var(--ts-text-secondary, #c9c5bc); font-style: italic; }
+.ff-dna__forming { margin: 0; font-size: 0.82rem; color: var(--ts-text-secondary, #c9c5bc); font-style: italic; flex: 1 1 240px; }
+.ff-dna__door { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .ff-dna__cta {
   display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
-  border: 1px solid var(--ts-border-strong, #46423d); border-radius: 11px; background: rgba(8,9,9,0.4);
-  color: var(--ts-text-primary, #f3ecdf); font-size: 0.82rem; font-weight: 700;
+  border: 1px solid var(--ts-border-strong, #747a82); border-radius: 11px; background: rgba(8,9,9,0.4);
+  color: var(--ts-text-primary, #f5f2eb); font-size: 0.82rem; font-weight: 700; text-align: center;
   transition: background 0.18s ease, border-color 0.18s ease;
 }
-.ff-dna__cta:hover { background: rgba(25,27,28,0.6); border-color: rgba(255,255,255,0.4); }
+.ff-dna__cta:hover { background: rgba(255,255,255,0.06); border-color: var(--ts-text-secondary, #c9c5bc); }
+.ff-dna__cta:focus-visible { outline: 2px solid var(--ts-focus, #f5f2eb); outline-offset: 2px; }
+.ff-dna__hint { font-size: 0.72rem; color: var(--ts-text-muted, #a5a198); }
+
+@media (max-width: 560px) {
+  .ff-dna { margin-top: 36px; padding: 18px 16px; gap: 14px; }
+  .ff-dna__state { font-size: 1.04rem; }
+  .ff-dna__door { align-items: stretch; width: 100%; }
+  .ff-dna__cta { width: 100%; }
+  .ff-dna__hint { text-align: center; }
+}

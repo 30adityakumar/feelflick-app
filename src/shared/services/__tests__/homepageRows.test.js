@@ -103,6 +103,46 @@ describe('homepageRows service', () => {
       expect(result.seed).toBeNull()
       expect(result.films).toEqual([])
     })
+
+    it('enriches seed-neighbour films with full movie rows (poster/title/tmdb_id) + keeps similarity', async () => {
+      // get_seed_neighbors returns ONLY { id, similarity, matched_seed_id } — no
+      // display fields — so the row MUST hydrate from a full movies fetch or the
+      // cards render empty. This guards that hydration.
+      const profile = {
+        affinity: {},
+        _legacy: { watchedMovieIds: [], exclusions: { genreNames: [] } },
+      }
+      const ratingsChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue({
+          data: [{ movie_id: 500, rating: 9, rated_at: '2026-01-01', movies: { id: 500, title: 'Seed Movie' } }],
+          error: null,
+        }),
+      }
+      // Enrichment query: .in('id', …) is terminal (awaited directly).
+      const moviesChain = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({
+          data: [
+            { id: 11, tmdb_id: 1111, title: 'Neighbor One', poster_path: '/n1.jpg', release_year: 2020, director_name: 'Dir', mood_tags: [], tone_tags: [], fit_profile: 'arthouse' },
+          ],
+          error: null,
+        }),
+      }
+      mockFrom.mockImplementation((table) => (table === 'user_ratings' ? ratingsChain : moviesChain))
+      mockRpc.mockResolvedValue({ data: [{ id: 11, similarity: 0.9, matched_seed_id: 500 }], error: null })
+
+      const result = await getStillInOrbitRow('user-1', profile)
+      expect(result.seed).toEqual({ id: 500, title: 'Seed Movie' })
+      expect(result.films).toHaveLength(1)
+      // The card-critical display fields are present (the bug was their absence).
+      expect(result.films[0]).toMatchObject({ id: 11, tmdb_id: 1111, title: 'Neighbor One', poster_path: '/n1.jpg' })
+      // The RPC's similarity survives the merge (drives the orbit hybrid score).
+      expect(result.films[0].similarity).toBe(0.9)
+    })
   })
 
   describe('getMoodRow', () => {

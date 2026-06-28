@@ -516,18 +516,24 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
         : matches
       if (filtered.length === 0) return { films: [], seed: null }
 
-      // 4. RPC doesn't return mood_tags, tone_tags, fit_profile, *_score_100.
-      //    Fetch these scoring fields in a secondary query and merge.
+      // 4. get_seed_neighbors returns ONLY { id, similarity, matched_seed_id } —
+      //    no display fields (poster/title/tmdb_id/meta) and no scoring fields.
+      //    Fetch the full movie rows for the neighbour ids and merge, keeping the
+      //    RPC's similarity + matched_seed_id. Without this the cards render empty
+      //    (no poster, no title) and navigation falls back to the wrong id.
       const orbitIds = filtered.map(m => m.id)
-      const { data: scoringMeta } = await supabase
+      const { data: orbitMovies } = await supabase
         .from('movies')
-        .select('id, mood_tags, tone_tags, fit_profile, pacing_score_100, intensity_score_100, emotional_depth_score_100')
+        .select(ROW_SELECT_FIELDS)
         .in('id', orbitIds)
-      const metaById = new Map((scoringMeta || []).map(m => [m.id, m]))
-      const enriched = filtered.map(m => {
-        const meta = metaById.get(m.id)
-        return meta ? { ...m, ...meta } : m
-      })
+      const movieById = new Map((orbitMovies || []).map(mv => [mv.id, mv]))
+      const enriched = filtered
+        .map(m => {
+          const full = movieById.get(m.id)
+          return full ? { ...full, similarity: m.similarity, matched_seed_id: m.matched_seed_id } : null
+        })
+        .filter(Boolean)
+      if (enriched.length === 0) return { films: [], seed: null }
 
       const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
       const scored = enriched.map(movie => {

@@ -62,6 +62,7 @@ import {
   getMoodRow,
   getWatchlistRow,
   getCriticsSwoonedRow,
+  getHiddenGemsRow,
 } from '../homepageRows'
 import { scoreMovieV3 } from '@/shared/services/scoringV3'
 
@@ -72,6 +73,7 @@ function mockChainedQuery(result) {
     eq: vi.fn().mockReturnThis(),
     gte: vi.fn().mockReturnThis(),
     lte: vi.fn().mockReturnThis(),
+    lt: vi.fn().mockReturnThis(),
     not: vi.fn().mockReturnThis(),
     contains: vi.fn().mockReturnThis(),
     overlaps: vi.fn().mockReturnThis(),
@@ -266,6 +268,34 @@ describe('homepageRows service', () => {
       const result = await getCriticsSwoonedRow(null, null)
       expect(result.length).toBeGreaterThan(0)
       expect(result[0]._pickReason.type).toBe('critics_swooned')
+    })
+  })
+
+  describe('getHiddenGemsRow', () => {
+    it('gates on a real low-exposure vote_count ceiling (not the old popularity no-op)', async () => {
+      const profile = {
+        affinity: { fit_profiles: [{ profile: 'arthouse' }], mood_tags: [], tone_tags: [], directors: [], genre_combos: [] },
+        _legacy: { watchedMovieIds: [], exclusions: { genreNames: [] } },
+      }
+      const chain = mockChainedQuery({
+        data: Array.from({ length: 8 }, (_, i) => ({
+          id: i + 1, tmdb_id: (i + 1) * 10, title: `Gem ${i + 1}`,
+          poster_path: '/g.jpg', primary_genre: 'Drama', vote_count: 300, ff_audience_rating: 80,
+        })),
+        error: null,
+      })
+      mockFrom.mockReturnValue(chain)
+
+      const result = await getHiddenGemsRow('user-1', profile)
+      // Row populates from the low-exposure pool...
+      expect(result.films.length).toBeGreaterThanOrEqual(5)
+      // ...and the exposure ceiling was applied in SQL (vote_count < ceiling),
+      // replacing the old popularity gate that passed ~the whole catalog.
+      const ltCalls = chain.lt.mock.calls
+      expect(ltCalls.some(([col]) => col === 'vote_count')).toBe(true)
+      const ceiling = ltCalls.find(([col]) => col === 'vote_count')[1]
+      expect(ceiling).toBeGreaterThan(0)
+      expect(ceiling).toBeLessThanOrEqual(3000)
     })
   })
 })

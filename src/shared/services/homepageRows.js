@@ -46,6 +46,13 @@ const ROW_SELECT_FIELDS = `
 // If fewer than MIN_ROW_FILMS survive, the row hides entirely.
 const MIN_PERSONAL_SCORE = 60
 const MIN_ROW_FILMS = 6
+// "Hidden gems" exposure ceiling — a film needs FEWER than this many TMDB votes to
+// count as low-exposure / "less obvious". Calibrated to the catalog (vote_count
+// median ~434, p90 ~4.7k): 1500 keeps ~3.4k CONTEXT-quality candidates while
+// excluding the broadly-famous tier. The prior `popularity < 25` gate passed 98.6%
+// of the catalog (a no-op), so the row surfaced blockbusters. Tuneable: raise
+// toward 3000 if the row feels too obscure for mainstream-taste users.
+const HIDDEN_GEM_VOTE_CEILING = 1500
 
 // Genre ID → DB name mapping (subset needed for query-level genre filters).
 // The movies.genres column stores names like "Science Fiction", not IDs.
@@ -859,7 +866,7 @@ export async function getSignatureDirectorRow(userId, profile, limit = 20, opts 
 
 /**
  * Lower-exposure films that still score highly against the user's taste.
- * "Hidden" = the FeelFlick discovery_potential signal or low TMDB popularity;
+ * "Hidden" = genuinely low-exposure (fewer than HIDDEN_GEM_VOTE_CEILING TMDB votes);
  * "for you" = ranked by the same v3 taste scoring as Top of Taste, so the picks
  * are less obvious but unmistakably the user's. Honest discovery, never random.
  * Returns { films } — empty if fewer than 4 low-exposure films qualify.
@@ -878,28 +885,27 @@ export async function getHiddenGemsRow(userId, profile, limit = 20, opts = {}) {
       const resolvedProfile = profile || (userId ? await computeUserProfileV3(userId) : null)
       const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
 
+      // Low-exposure gate in SQL: only genuinely lesser-known films (vote_count
+      // below the ceiling), still CONTEXT-quality, ordered by rating so the row
+      // surfaces the best "less obvious" films before v3 taste scoring re-ranks.
+      // (Replaces the old `popularity < 25 OR discovery_potential >= 50` filter,
+      // whose popularity arm passed ~all of the catalog, letting blockbusters in.)
       let query = supabase
         .from('movies')
         .select(ROW_SELECT_FIELDS)
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
+        .lt('vote_count', HIDDEN_GEM_VOTE_CEILING)
       query = applyQualityFloor(query, 'CONTEXT')
       query = applyAllExclusions(query, resolvedProfile)
 
-      // Cast a wide net — the low-exposure gate below removes the popular films,
-      // so we need a larger pool than a normal row to still surface 4+ gems.
       const { data, error } = await query
         .order('ff_audience_rating', { ascending: false })
-        .limit(limit * 8)
+        .limit(limit * 6)
 
       if (error) throw error
 
-      // Low-exposure gate: the FeelFlick discovery signal OR low TMDB popularity.
-      const LOW_POPULARITY = 25
-      const candidates = (data || []).filter(m =>
-        m?.id && !watchedIds.has(m.id) &&
-        (Number(m.discovery_potential || 0) >= 50 || Number(m.popularity || 0) < LOW_POPULARITY),
-      )
+      const candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
 
       const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'HiddenGems', limit, {

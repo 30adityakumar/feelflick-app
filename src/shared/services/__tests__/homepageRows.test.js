@@ -195,9 +195,10 @@ describe('homepageRows service', () => {
       expect(result).toHaveProperty('kind')
     })
 
-    it('guarantees population: fills to the display target even when NO film clears the personal floor', async () => {
+    it('guarantees population: tops up from the on-title pool even when NO film clears the personal floor', async () => {
       // Every film scores below the 60 floor — previously the row hid; now it tops
-      // up from the same on-title pool to the display count (5).
+      // up from the same on-title pool (to the fetch limit, for dedup headroom), so
+      // the row populates instead of disappearing.
       scoreMovieV3.mockReturnValue({ final: 50, breakdown: { quality: 50 }, weights_used: {} })
       const profile = {
         affinity: { mood_tags: [{ tag: 'tense', count: 5 }, { tag: 'dark', count: 4 }], tone_tags: [] },
@@ -212,7 +213,8 @@ describe('homepageRows service', () => {
       }))
 
       const result = await getMoodRow('user-1', profile)
-      expect(result.films).toHaveLength(5)
+      // Populated (≥ the display count) rather than hidden.
+      expect(result.films.length).toBeGreaterThanOrEqual(5)
     })
 
     it('still hides only when the candidate pool is smaller than the minimum', async () => {

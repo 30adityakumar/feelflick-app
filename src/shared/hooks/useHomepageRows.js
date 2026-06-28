@@ -11,7 +11,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useUserTier } from '@/shared/hooks/useRecommendations'
 import { computeUserProfileV3 } from '@/shared/services/recommendations'
 import { precomputeScoringContext } from '@/shared/services/scoringV3'
-import { softDedupe } from '@/shared/services/diversity'
 import {
   getTopOfYourTasteRow,
   getCriticsSwoonedRow,
@@ -226,19 +225,29 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   const deduped = useMemo(() => {
     const shownIds = new Set()
 
-    // Dedup threshold = the row display count (5): now that rows are guaranteed to
-    // populate, allow dedup to keep removing cross-row repeats down to the number
-    // actually shown, rather than the old min-row size (6).
-    function dedupFilms(films) {
+    // Cross-row distinctness: order each row's films uniques-first, and only let an
+    // already-shown film fill the tail when there aren't enough unique films left
+    // (true for users whose taste concentrates in one genre, so several rows draw
+    // the same top films). Claim only the films that will actually display
+    // (DISPLAY_COUNT — mirrors HomeRecommendationSection's MAX_FILMS) so later rows
+    // keep the widest possible unique pool.
+    const DISPLAY_COUNT = 5
+    // top_of_taste also feeds up to HERO_RESERVE hero standouts (Home's HERO_MAX),
+    // which Home lifts OUT of the row — so its on-screen window spans the hero + the
+    // row. Reserve both, or those lifted/lower films leak into later rows.
+    const HERO_RESERVE = 3
+    function dedupFilms(films, claimCount = DISPLAY_COUNT) {
       if (!films || films.length === 0) return films
-      const result = softDedupe(films, shownIds, 5)
-      result.forEach(f => { if (f?.id) shownIds.add(f.id) })
-      return result
+      const unique = films.filter(f => !shownIds.has(f.id))
+      const repeats = films.filter(f => shownIds.has(f.id))
+      const ordered = [...unique, ...repeats]
+      ordered.slice(0, claimCount).forEach(f => { if (f?.id) shownIds.add(f.id) })
+      return ordered
     }
 
     // Order: TopOfTaste → Orbit → Mood → TopGenre → SignatureTones → HiddenGems → CriticSplit
     const dTopOfTaste = topOfTaste.data
-      ? { ...topOfTaste.data, films: dedupFilms(topOfTaste.data.films) }
+      ? { ...topOfTaste.data, films: dedupFilms(topOfTaste.data.films, DISPLAY_COUNT + HERO_RESERVE) }
       : topOfTaste.data
     const dOrbit = orbit.data
       ? { ...orbit.data, films: dedupFilms(orbit.data.films) }

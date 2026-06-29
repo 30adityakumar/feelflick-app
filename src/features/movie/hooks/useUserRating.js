@@ -143,7 +143,7 @@ export function useUserRating({ userId, internalId }) {
         let nextStars = 0
         let nextText = ''
         if (ratingRes.data) {
-          nextStars = ratingRes.data.rating != null ? Math.round(ratingRes.data.rating / 2) : 0
+          nextStars = ratingRes.data.rating != null ? ratingRes.data.rating : 0
           nextText = ratingRes.data.review_text || ''
           setStarsState(nextStars)
           setReviewTextState(nextText)
@@ -179,7 +179,7 @@ export function useUserRating({ userId, internalId }) {
     if (!userId || !internalId) return
     // user_ratings.rating is the 1-10 canonical scale. Sending null when stars==0
     // lets users remove a rating by clicking the same star twice without losing text.
-    const rating = nextStars > 0 ? nextStars * 2 : null
+    const rating = nextStars > 0 ? nextStars : null
     const trimmed = (nextReview || '').trim() || null
     if (rating == null && !trimmed) {
       // Nothing to persist — delete the row so we don't leave a ghost record.

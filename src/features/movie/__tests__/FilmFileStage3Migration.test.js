@@ -75,7 +75,7 @@ describe('Stage 3 / Slice E — canonical-Button migration of the trailer contro
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .split('\n').map(l => l.replace(/^\s*\/\/.*$/, '')).join('\n')
   const buttons = topCode.match(/<Button\b[\s\S]*?<\/Button>/g) || []
-  const hero = buttons.find(b => b.includes('ff-movie-hero-action-btn')) || ''
+  const hero = buttons.find(b => b.includes('ff-movie-hero__primary')) || ''
   const sticky = buttons.find(b => b.includes('MOVIE_PRIMARY_COMPAT_SM')) || ''
 
   // (1) Film File still activates its own foundation scope
@@ -132,7 +132,7 @@ describe('Stage 3 / Slice E — canonical-Button migration of the trailer contro
   it('hero Button preserves variant/size/route-classes/disabled/title/style + grouping span(svg + Play Trailer)', () => {
     expect(hero).toMatch(/variant="primary"/)
     expect(hero).toMatch(/size="md"/)
-    expect(hero).toMatch(/className=\{`\$\{MOVIE_PRIMARY_COMPAT_MD\} ff-movie-hero-action-btn ff-movie-hero-action-btn--primary`\}/)
+    expect(hero).toMatch(/className=\{`\$\{MOVIE_PRIMARY_COMPAT_MD\} ff-movie-hero__primary`\}/)
     expect(hero).toMatch(/disabled=\{!hasTrailer\}/)
     expect(hero).toMatch(/title=\{hasTrailer \? undefined : 'No trailer available'\}/)
     expect(hero).toMatch(/style=\{\{ cursor: hasTrailer \? 'pointer' : 'not-allowed', opacity: hasTrailer \? 1 : 0\.5 \}\}/)

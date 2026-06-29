@@ -55,11 +55,11 @@ describe('Your Take — existing reflection stays accessible after Diary removal
     expect(isEditable(container)).toBe(true)
   })
 
-  it('44/46. the surfaced reflection is editable on the UNCHANGED 1–5 star scale (5 radios), not a new control', () => {
+  it('44/46. the surfaced reflection is editable on the 1–10 star scale (10 radios)', () => {
     ratingState = { ...ratingState, stars: 3 }
     renderTake(false)
     const stars = screen.getAllByRole('radio', { name: /star/i })
-    expect(stars).toHaveLength(5) // display scale unchanged
+    expect(stars).toHaveLength(10)
     expect(screen.getByPlaceholderText(/one sentence on what stuck/i)).toBeEnabled()
   })
 

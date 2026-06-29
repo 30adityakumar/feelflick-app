@@ -9,6 +9,7 @@ vi.mock('../sections-top', () => ({
   MovieHero: () => <header data-sec="hero"><h1>Test Film</h1></header>,
   StickyActionBar: () => <div data-sec="sticky" />,
   Synopsis: () => <div data-sec="synopsis" />,
+  HeroRatings: () => null,
 }))
 vi.mock('../sections-bottom', () => {
   const Stub = () => null
@@ -25,6 +26,7 @@ vi.mock('@/shared/services/interactions', () => ({ trackShare: vi.fn(), trackTra
 vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn(), useParams: () => ({ id: '1' }) }))
 vi.mock('../hooks/useTasteFingerprint', () => ({ useTasteFingerprint: () => ({ fingerprint: null }) }))
 vi.mock('../hooks/useDirectorAffinity', () => ({ useDirectorAffinity: () => ({ count: 0 }) }))
+vi.mock('../hooks/useFilmPortrait', () => ({ useFilmPortrait: () => ({ portrait: null, loading: false }) }))
 
 // Auth + status are mutable per test.
 const auth = { user: { id: 'u1' } }
@@ -66,10 +68,10 @@ afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks() })
 describe('Film File — spoiler safety (§15/§16/§18/§19)', () => {
   it('pre-watch (signed in): no post-watch DOM, no friend/twin/impression text, no spoiler nav link, boundary shown', () => {
     const { container } = render(<MovieDetail />)
-    // post-watch chapter not mounted
-    expect(container.querySelector('#after-watching')).toBeNull()
+    // #after-watching anchor is present (shows locked prompt), but spoiler content is not
+    expect(container.querySelector('#after-watching')).not.toBeNull()
     // spoiler boundary IS shown
-    expect(screen.getByText(/The page stops here/i)).toBeInTheDocument()
+    expect(screen.getByText(/The page stops before interpretation/i)).toBeInTheDocument()
     // no friend/twin/impression text anywhere pre-watch
     expect(container.textContent).not.toContain('Loved the ending twist')
     expect(container.textContent).not.toContain('Stayed with me for days')
@@ -82,30 +84,31 @@ describe('Film File — spoiler safety (§15/§16/§18/§19)', () => {
   it('anonymous: same locked state, boundary copy invites sign-in', () => {
     auth.user = null
     const { container } = render(<MovieDetail />)
-    expect(container.querySelector('#after-watching')).toBeNull()
+    expect(container.querySelector('#after-watching')).not.toBeNull()
     expect(screen.getByText(/Sign in and mark this film watched/i)).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /after watching/i })).toBeNull()
   })
 
-  it('a direct #after-watching hash cannot reveal spoilers while locked (target is absent)', () => {
+  it('a direct #after-watching hash reveals only the locked prompt — no spoiler content', () => {
     window.location.hash = '#after-watching'
     const { container } = render(<MovieDetail />)
-    expect(container.querySelector('#after-watching')).toBeNull()
+    const anchor = container.querySelector('#after-watching')
+    expect(anchor).not.toBeNull()
+    // locked prompt visible; no spoiler chapter content
+    expect(container.textContent).not.toContain('A tense, brilliant ride.')
     window.location.hash = ''
   })
 
-  it('watched + non-Parasite: honest generic state, NO fabricated interpretation, friend/twin/impression now shown', async () => {
+  it('watched + non-Parasite: no portrait when none generated, NO fabricated interpretation, friend/twin/impression now shown', async () => {
     status.isWatched = true
     const { container } = render(<MovieDetail />)
     expect(container.querySelector('#after-watching')).toBeInTheDocument()
-    expect(screen.getByText(/does not yet have a curated post-watch portrait/i)).toBeInTheDocument()
+    expect(container.querySelector('.ff-movie-portrait')).toBeNull()
     expect(container.textContent).not.toMatch(PARASITE_PHRASE)
     // watched-gated content now appears
     expect(container.textContent).toContain('Loved the ending twist')
     expect(container.textContent).toContain('Stayed with me for days')
     expect(container.textContent).toContain('A tense, brilliant ride.')
-    // "After watching" chapter link now exists
-    expect(screen.getByRole('link', { name: /after watching/i })).toBeInTheDocument()
     // §20: no exact similarity %
     expect(container.textContent).not.toMatch(/\d+\s*%/)
   })
@@ -125,6 +128,6 @@ describe('Film File — spoiler safety (§15/§16/§18/§19)', () => {
     status.isWatched = true
     const { container } = render(<MovieDetail />)
     expect(container.textContent).not.toMatch(PARASITE_PHRASE)
-    expect(screen.getByText(/does not yet have a curated post-watch portrait/i)).toBeInTheDocument()
+    expect(container.querySelector('.ff-movie-portrait')).toBeNull()
   })
 })

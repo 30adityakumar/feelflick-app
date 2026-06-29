@@ -58,7 +58,7 @@ describe('useUserRating — F5.4 serialization', () => {
     act(() => { result.current.setStars(4); result.current.setStars(4); result.current.setStars(4) })
     await act(async () => { vi.advanceTimersByTime(600) })
     expect(writeCalls.filter(w => w.op === 'upsert').length).toBe(1)
-    expect(writeCalls.at(-1).payload.rating).toBe(8) // 4★ → canonical 8 (unchanged scale)
+    expect(writeCalls.at(-1).payload.rating).toBe(4)
   })
 
   it('27/34. different values → latest-value-wins, payload byte-equivalent', async () => {
@@ -69,7 +69,7 @@ describe('useUserRating — F5.4 serialization', () => {
     await act(async () => { vi.advanceTimersByTime(600) })
     const writes = writeCalls.filter(w => w.op === 'upsert')
     expect(writes.length).toBe(1)
-    expect(writes[0].payload).toMatchObject({ user_id: 'u1', movie_id: 7, rating: 10, review_text: null })
+    expect(writes[0].payload).toMatchObject({ user_id: 'u1', movie_id: 7, rating: 5, review_text: null })
     expect(writes[0].payload).toHaveProperty('rated_at')
   })
 
@@ -89,7 +89,7 @@ describe('useUserRating — F5.4 serialization', () => {
     // settle #1 → the drain runs the pending latest (#2)
     await act(async () => { deferreds[0].resolve(); await Promise.resolve() })
     expect(writeCalls.length).toBe(2)
-    expect(writeCalls[1].payload.rating).toBe(10) // latest value
+    expect(writeCalls[1].payload.rating).toBe(5) // latest value
   })
 
   it('30. latest successful write exposes saved status', async () => {

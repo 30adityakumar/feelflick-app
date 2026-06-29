@@ -131,7 +131,7 @@ test.describe('Film File — authenticated visual baselines', () => {
     await page.setViewportSize(DESKTOP)
     await load(page)
     await freeze(page)
-    await scrollTo(page, page.getByText(/The page stops here/i))
+    await scrollTo(page, page.getByText(/The page stops before interpretation/i))
     await expect(page).toHaveScreenshot('spoiler-boundary-desktop.png')
   })
 
@@ -200,7 +200,7 @@ test.describe('Film File — authenticated visual baselines', () => {
     await page.setViewportSize(MOBILE)
     await load(page)
     await freeze(page)
-    await scrollTo(page, page.getByText(/The page stops here/i))
+    await scrollTo(page, page.getByText(/The page stops before interpretation/i))
     await expect(page).toHaveScreenshot('spoiler-boundary-mobile.png')
   })
 

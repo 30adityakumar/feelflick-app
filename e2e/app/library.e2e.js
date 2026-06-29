@@ -38,6 +38,10 @@ async function openDiary(page, route = '/history') {
   await expect(h1(page)).toHaveText('Diary', { timeout: 20_000 })
 }
 const diaryTitles = (page) => page.getByRole('listitem').locator('h3')
+// Library cards/rows scoped to the content region. The mobile BottomNav is a <ul>/<li>
+// dock OUTSIDE this wrapper, so a page-wide getByRole('listitem') would pick up nav tabs
+// at mobile widths; scope to the library list so .first()/.last() always mean a film card.
+const libCards = (page) => page.locator('[data-library-fallback]').getByRole('listitem')
 
 // ── Setup + safety ────────────────────────────────────────────────────────────────
 test.describe('User Library — authenticated, intercepted', () => {
@@ -600,7 +604,7 @@ test.describe('User Library — Watchlist responsive', () => {
       await expect(h1(page)).toHaveCount(1)
       await expect(libNav(page)).toBeVisible()
       // last card's link + remove are reachable above the fixed mobile bottom nav
-      const lastCard = page.getByRole('listitem').last()
+      const lastCard = libCards(page).last()
       await lastCard.scrollIntoViewIfNeeded()
       await expect(lastCard.getByRole('link')).toHaveCount(1)
       const remove = lastCard.getByRole('button')
@@ -621,7 +625,7 @@ test.describe('User Library — Diary responsive', () => {
       await noHorizontalOverflow(page)
       await expect(h1(page)).toHaveCount(1)
       await expect(page.getByText('Your review').first()).toBeVisible() // long review wraps, present
-      const lastRow = page.getByRole('listitem').last()
+      const lastRow = libCards(page).last()
       await lastRow.scrollIntoViewIfNeeded()
       const remove = lastRow.getByRole('button', { name: /Remove .* from Diary/ })
       await expect(remove).toBeVisible()
@@ -662,7 +666,7 @@ test.describe('User Library — Diary small-screen + geometry', () => {
     // title/review wrap without overflow (already asserted page-level); a row is present
     await expect(page.getByText('Your review').first()).toBeVisible()
     // Remove reachable + dialog actions reachable at 320
-    const lastRow = page.getByRole('listitem').last()
+    const lastRow = libCards(page).last()
     await lastRow.scrollIntoViewIfNeeded()
     const remove = lastRow.getByRole('button', { name: /Remove .* from Diary/ })
     await expect(remove).toBeVisible()
@@ -691,11 +695,17 @@ test.describe('User Library — Diary small-screen + geometry', () => {
 
       // the settled removal toast sits ABOVE, not on top of, the BottomNav
       await page.evaluate(() => window.scrollTo(0, 0))
-      await page.getByRole('listitem').first().getByRole('button', { name: /Remove .* from Diary/ }).click()
+      await libCards(page).first().getByRole('button', { name: /Remove .* from Diary/ }).click()
       await page.getByRole('dialog').getByRole('button', { name: 'Remove from Diary' }).click()
       const toast = page.locator('.ff-diary-toast')
       await expect(toast).toBeVisible()
-      const tb = await toast.boundingBox()
+      // Read geometry via getBoundingClientRect: the toast wrap is position:fixed +
+      // aria-hidden, for which Playwright's boundingBox() can resolve null even while
+      // the element is visible. getBoundingClientRect always reports the rendered box.
+      const tb = await toast.evaluate((el) => {
+        const r = el.getBoundingClientRect()
+        return { y: r.y, height: r.height }
+      })
       expect(tb.y + tb.height).toBeLessThanOrEqual(nav.y - GAP)
       expect(ledger.unexpectedRequests).toEqual([])
     })

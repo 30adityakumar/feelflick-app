@@ -2,7 +2,7 @@
 // a settled poster composition, and an explicit handoff to Discover.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { render, screen, within, fireEvent } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -20,8 +20,7 @@ const props = (over = {}) => ({
   ratings: { 1: 9, 2: 7 },
   fadingOut: false,
   ready: true,
-  continuing: false,
-  onContinue: vi.fn(),
+  onEnter: vi.fn(),
   ...over,
 })
 
@@ -101,20 +100,8 @@ describe('CelebrationReveal — content and handoff', () => {
     expect(screen.getByText(/your first signals are in/i)).toBeInTheDocument()
     expect(screen.getByText(/from your picks/i)).toBeInTheDocument()
     expect(screen.getByText(/next up/i)).toBeInTheDocument()
-    expect(screen.getByText(/tell us how tonight feels/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /find my first film/i })).toBeEnabled()
-  })
-
-  it('holds the CTA until completion writes are ready', () => {
-    render(<CelebrationReveal {...props({ ready: false })} />)
-    expect(screen.getByRole('button', { name: /tuning your first picks/i })).toBeDisabled()
-  })
-
-  it('calls the direct handoff once ready', () => {
-    const onContinue = vi.fn()
-    render(<CelebrationReveal {...props({ onContinue })} />)
-    fireEvent.click(screen.getByRole('button', { name: /find my first film/i }))
-    expect(onContinue).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/your taste is in/i)).toBeInTheDocument()
+    expect(screen.getByText(/your picks for tonight/i)).toBeInTheDocument()
   })
 
   it.each([
@@ -133,12 +120,61 @@ describe('CelebrationReveal — content and handoff', () => {
 
   it('keeps decorative posters out of the accessibility tree', () => {
     const { container } = render(<CelebrationReveal {...props()} />)
-    const images = container.querySelectorAll('img')
-    expect(images).toHaveLength(5)
-    images.forEach(image => expect(image.getAttribute('alt')).toBe(''))
+    const imgs = container.querySelectorAll('img')
+    expect(imgs.length).toBe(5)
+    imgs.forEach(img => expect(img.getAttribute('alt')).toBe(''))
+  })
+})
+
+describe('CelebrationReveal — reduced motion (structure; visual timing is Playwright)', () => {
+  it('still renders one live region + the full composition under reduced motion', () => {
+    setMatchMedia(true)
+    render(<CelebrationReveal {...props()} />)
+    expect(document.querySelectorAll('[role="status"]')).toHaveLength(1)
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByText(/your picks for tonight/i)).toBeInTheDocument()
+    expect(document.querySelectorAll('img')).toHaveLength(5)
+  })
+})
+
+describe('CelebrationReveal — F2.21 removed artifacts', () => {
+  it('renders no Sparkles/icon svg, no Edition text, no heart, no Mark Watched', () => {
+    const { container } = render(<CelebrationReveal {...props()} />)
+    expect(container.querySelectorAll('svg')).toHaveLength(0)
+    expect(screen.queryByText(/edition/i)).toBeNull()
+    expect(container.textContent).not.toMatch(/♥/)
+    expect(screen.queryByText(/mark watched/i)).toBeNull()
+    expect(screen.queryByText(/sharpens by tomorrow/i)).toBeNull()
   })
 
-  it('shows selected mood pills using real labels', () => {
+  it('shows no count-receipt stats (no "N films · N genres · N loved")', () => {
+    const { container } = render(<CelebrationReveal {...props()} />)
+    expect(container.textContent).not.toMatch(/\d+\s*(films?|genres?)\b/i)
+    expect(container.textContent).not.toMatch(/\d+\s*(loved|liked)\b/i)
+  })
+
+  it('source contains no Sparkles import, no CelebrationParticles, no Edition №001', () => {
+    expect(SRC).not.toMatch(/lucide-react/)
+    expect(SRC).not.toMatch(/Sparkles/)
+    expect(SRC).not.toMatch(/CelebrationParticles/)
+    expect(SRC).not.toMatch(/Edition №001/)
+    expect(SRC).not.toMatch(/Mark Watched/)
+    expect(SRC).not.toMatch(/sharpens by tomorrow/)
+  })
+})
+
+describe('CelebrationReveal — retained editorial spine', () => {
+  it('renders the kicker, taste line, poster caption, apex, and Next-up coaching', () => {
+    render(<CelebrationReveal {...props()} />)
+    expect(screen.getByText(/your taste, tuned/i)).toBeInTheDocument()
+    expect(screen.getByText(/your first signals are in/i)).toBeInTheDocument()
+    expect(screen.getByText(/from your picks/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/tonight is\s*yours\./i)
+    expect(screen.getByText('Next up')).toBeInTheDocument()
+    expect(screen.getByText(/shaped by everything you just shared/i)).toBeInTheDocument()
+  })
+
+  it('shows the selected mood pills (by their real labels)', () => {
     render(<CelebrationReveal {...props({ moods: ['cozy', 'mythic'] })} />)
     expect(screen.getByText(MOODS.find(mood => mood.key === 'cozy').label)).toBeInTheDocument()
     expect(screen.getByText(MOODS.find(mood => mood.key === 'mythic').label)).toBeInTheDocument()
@@ -151,13 +187,25 @@ describe('CelebrationReveal — content and handoff', () => {
   })
 })
 
-describe('CelebrationReveal — motion and removed artifacts', () => {
-  it('keeps the full composition under reduced motion', () => {
-    setMatchMedia(true)
-    render(<CelebrationReveal {...props()} />)
-    expect(document.querySelectorAll('[role="status"]')).toHaveLength(1)
-    expect(screen.getByRole('button', { name: /find my first film/i })).toBeInTheDocument()
-    expect(document.querySelectorAll('img')).toHaveLength(5)
+describe('CelebrationReveal — skip control', () => {
+  it('renders no skip button until setup is ready', () => {
+    render(<CelebrationReveal {...props({ ready: false })} />)
+    expect(screen.queryByRole('button', { name: /see your picks/i })).toBeNull()
+  })
+
+  it('shows "See your picks" once ready and calls onEnter when clicked', () => {
+    const onEnter = vi.fn()
+    render(<CelebrationReveal {...props({ ready: true, onEnter })} />)
+    const btn = screen.getByRole('button', { name: /see your picks/i })
+    expect(btn).toBeInTheDocument()
+    fireEvent.click(btn)
+    expect(onEnter).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('CelebrationReveal — motion contracts (source-level)', () => {
+  it('contains NO CelebrationReveal-owned infinite loop', () => {
+    expect(SRC).not.toMatch(/repeat:\s*Infinity/)
   })
 
   it('contains no gamified iconography or count receipt', () => {

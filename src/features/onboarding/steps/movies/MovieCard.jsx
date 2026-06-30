@@ -3,7 +3,10 @@ import { Check } from 'lucide-react'
 
 import { tmdbImg } from '@/shared/api/tmdb'
 
-export default function MovieCard({ movie, isSelected, onClick }) {
+// Grid card: poster + title + year below (not overlaid). Fills its grid/track width.
+// hideMeta → poster-only (used by the compact anchors carousel, where the remove
+// button's aria-label already names the film and the title block would add clutter).
+export default function MovieCard({ movie, isSelected, onClick, hideMeta = false }) {
   const [loaded, setLoaded] = useState(false)
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
 
@@ -13,10 +16,14 @@ export default function MovieCard({ movie, isSelected, onClick }) {
       onClick={onClick}
       aria-pressed={isSelected}
       aria-label={`${isSelected ? 'Remove' : 'Select'} ${movie.title}`}
-      className={`ob-movie-card${isSelected ? ' is-selected' : ''}`}
+      className="ob-focus w-full flex flex-col gap-1.5 text-left rounded-lg group"
     >
-      <span className="ob-movie-poster">
-        {!loaded && <span className="ob-movie-skeleton" aria-hidden="true" />}
+      <div className={`relative aspect-2/3 w-full rounded-lg overflow-hidden transition-shadow duration-200 ${
+        isSelected
+          ? 'ring-2 ring-white/80'
+          : 'ring-1 ring-white/6 group-hover:ring-white/20'
+      }`}>
+        {!loaded && <div className="absolute inset-0 animate-pulse bg-white/4" />}
         <img
           src={tmdbImg(movie.poster_path, 'w342')}
           alt=""
@@ -24,16 +31,23 @@ export default function MovieCard({ movie, isSelected, onClick }) {
           className={loaded ? 'is-loaded' : ''}
           onLoad={() => setLoaded(true)}
         />
+        {isSelected && <div className="absolute inset-0 bg-black/20" />}
         {isSelected && (
-          <span className="ob-movie-check" aria-hidden="true">
-            <Check className="h-3.5 w-3.5" />
-          </span>
+          <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-[var(--color-action-primary-fill,#f0ece4)] flex items-center justify-center shadow">
+            <Check className="h-3 w-3 text-[var(--color-action-primary-text,#0f1010)] stroke-3" />
+          </div>
         )}
-      </span>
-      <span className="ob-movie-copy">
-        <strong>{movie.title}</strong>
-        {year && <small>{year}</small>}
-      </span>
+      </div>
+      {!hideMeta && (
+        <div className="px-0.5">
+          <p className={`text-[11px] font-medium leading-tight line-clamp-2 transition-colors ${
+            isSelected ? 'text-white' : 'text-white/80'
+          }`}>
+            {movie.title}
+          </p>
+          {year && <p className="text-[10px] text-white/35 mt-0.5">{year}</p>}
+        </div>
+      )}
     </button>
   )
 }

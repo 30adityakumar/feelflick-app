@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { topOfTasteSubtitle, moodRowTitle, moodRowSubtitle } from '../rowSubtitles'
+import {
+  topOfTasteSubtitle,
+  moodRowTitle,
+  moodRowSubtitle,
+  moodSignatureLabel,
+  signatureTonesLabel,
+  dnaSignalsFromProfile,
+  dnaMaturity,
+} from '../rowSubtitles'
 
 describe('topOfTasteSubtitle', () => {
   it('returns null for null/empty profile', () => {
@@ -136,5 +144,171 @@ describe('moodRowSubtitle', () => {
     const result = moodRowSubtitle(profile)
     expect(result).toBe('Drawing from your taste for tense, dark and gritty films')
     expect(result).not.toContain('brooding')
+  })
+})
+
+// ============================================================================
+// moodSignatureLabel
+// ============================================================================
+
+describe('moodSignatureLabel', () => {
+  it('returns null for null/empty mood data', () => {
+    expect(moodSignatureLabel(null)).toBeNull()
+    expect(moodSignatureLabel({ affinity: {} })).toBeNull()
+    expect(moodSignatureLabel({ affinity: { mood_tags: [] } })).toBeNull()
+  })
+
+  it('sentence-cases a single mood tag', () => {
+    expect(moodSignatureLabel({ affinity: { mood_tags: [{ tag: 'tense' }] } })).toBe('Tense')
+  })
+
+  it('joins the top two mood tags with an ampersand (only the first is capped)', () => {
+    const profile = { affinity: { mood_tags: [{ tag: 'tense' }, { tag: 'melancholic' }] } }
+    expect(moodSignatureLabel(profile)).toBe('Tense & melancholic')
+  })
+
+  it('caps at two tags even with more', () => {
+    const profile = {
+      affinity: { mood_tags: [{ tag: 'tense' }, { tag: 'melancholic' }, { tag: 'gritty' }] },
+    }
+    const result = moodSignatureLabel(profile)
+    expect(result).toBe('Tense & melancholic')
+    expect(result).not.toContain('gritty')
+  })
+})
+
+// ============================================================================
+// signatureTonesLabel
+// ============================================================================
+
+describe('signatureTonesLabel', () => {
+  it('returns null for null/empty tone data', () => {
+    expect(signatureTonesLabel(null)).toBeNull()
+    expect(signatureTonesLabel({ affinity: {} })).toBeNull()
+    expect(signatureTonesLabel({ affinity: { tone_tags: [] } })).toBeNull()
+  })
+
+  it('sentence-cases a single tone tag', () => {
+    expect(signatureTonesLabel({ affinity: { tone_tags: [{ tag: 'cerebral' }] } })).toBe('Cerebral')
+  })
+
+  it('joins two tones with an ampersand', () => {
+    const profile = { affinity: { tone_tags: [{ tag: 'cerebral' }, { tag: 'noir' }] } }
+    expect(signatureTonesLabel(profile)).toBe('Cerebral & noir')
+  })
+
+  it('joins three tones with a comma and ampersand', () => {
+    const profile = {
+      affinity: { tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }] },
+    }
+    expect(signatureTonesLabel(profile)).toBe('Cerebral, atmospheric & noir')
+  })
+
+  it('caps at three tones even with more', () => {
+    const profile = {
+      affinity: {
+        tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }, { tag: 'gritty' }],
+      },
+    }
+    const result = signatureTonesLabel(profile)
+    expect(result).toBe('Cerebral, atmospheric & noir')
+    expect(result).not.toContain('gritty')
+  })
+})
+
+// ============================================================================
+// dnaSignalsFromProfile (keeps the DNA strip consistent with the facet rows)
+// ============================================================================
+describe('dnaSignalsFromProfile', () => {
+  it('returns null when there is no affinity signal (so the strip keeps the honest fingerprint state)', () => {
+    expect(dnaSignalsFromProfile(null)).toBeNull()
+    expect(dnaSignalsFromProfile({})).toBeNull()
+    expect(dnaSignalsFromProfile({ affinity: {} })).toBeNull()
+    expect(dnaSignalsFromProfile({ affinity: { mood_tags: [], tone_tags: [] } })).toBeNull()
+  })
+
+  it('derives motifs (tones), moods, and a clear-leader fit from the same v3 affinity the rows use', () => {
+    const profile = {
+      affinity: {
+        tone_tags: [{ tag: 'cerebral' }, { tag: 'atmospheric' }, { tag: 'noir' }, { tag: 'gritty' }],
+        mood_tags: [{ tag: 'tense', weight: 3 }, { tag: 'melancholic', weight: 2 }],
+        fit_profiles: [{ profile: 'arthouse', count: 4 }, { profile: 'crowd-pleaser', count: 1 }],
+      },
+    }
+    const sig = dnaSignalsFromProfile(profile)
+    expect(sig.motifs).toEqual(['Cerebral', 'Atmospheric', 'Noir']) // capped at 3, sentence-cased
+    expect(sig.topMoods).toEqual([
+      { label: 'Tense', weight: 3 },
+      { label: 'Melancholic', weight: 2 },
+    ])
+    expect(sig.topFit).toBe('arthouse')
+  })
+
+  it('breaks a count-tie by distinctiveness (the rarer, more characterful fit leads)', () => {
+    const sig = dnaSignalsFromProfile({
+      affinity: {
+        tone_tags: [{ tag: 'cold' }],
+        // tied at 2 films each, but challenging_art (3.1% of catalog) is far rarer than
+        // prestige_drama (17.6%) → distinctiveness picks it instead of arbitrary order.
+        fit_profiles: [{ profile: 'prestige_drama', count: 2 }, { profile: 'challenging_art', count: 2 }],
+      },
+    })
+    expect(sig.topFit).toBe('challenging_art')
+    expect(sig.motifs).toEqual(['Cold'])
+  })
+
+  it('demotes a common high-count fit below a distinctive one for the emerging chip', () => {
+    const sig = dnaSignalsFromProfile({
+      affinity: {
+        tone_tags: [{ tag: 'warm' }],
+        // genre_popcorn leads by count but is on 26% of the catalog; arthouse (3.8%) wins on lift.
+        fit_profiles: [{ profile: 'genre_popcorn', count: 4 }, { profile: 'arthouse', count: 3 }],
+      },
+    })
+    expect(sig.topFit).toBe('arthouse')
+  })
+
+  it('shows a single fit even without a runner-up, and none when there are no fits', () => {
+    expect(dnaSignalsFromProfile({
+      affinity: { tone_tags: [{ tag: 'warm' }], fit_profiles: [{ profile: 'comfort_watch', count: 3 }] },
+    }).topFit).toBe('comfort_watch')
+    expect(dnaSignalsFromProfile({
+      affinity: { tone_tags: [{ tag: 'warm' }], fit_profiles: [] },
+    }).topFit).toBeNull()
+  })
+
+  it('populates from a single facet (a thin profile with moods but no tones)', () => {
+    const sig = dnaSignalsFromProfile({ affinity: { mood_tags: [{ tag: 'tender' }] } })
+    expect(sig.motifs).toBeNull()
+    expect(sig.topMoods).toEqual([{ label: 'Tender', weight: 0 }])
+    expect(sig.topFit).toBeNull()
+  })
+})
+
+// ============================================================================
+// dnaMaturity (honest, depth-aware headline for the DNA strip)
+// ============================================================================
+describe('dnaMaturity', () => {
+  it('an onboarding-only profile (no real watches) takes shape — never "keeps sharpening"', () => {
+    const m = dnaMaturity({ meta: { total_watches: 0, confidence: 'cold' } })
+    expect(m.key).toBe('seeded')
+    expect(m.line).toMatch(/first picks/)
+    expect(m.line).not.toMatch(/keeps sharpening/)
+  })
+
+  it('reserves "keeps sharpening" for an engaged profile with real history', () => {
+    const m = dnaMaturity({ meta: { total_watches: 40, confidence: 'engaged' } })
+    expect(m.key).toBe('established')
+    expect(m.line).toBe('Your taste keeps sharpening.')
+  })
+
+  it('uses intermediate tiers for warming / early real activity', () => {
+    expect(dnaMaturity({ meta: { total_watches: 10, confidence: 'warming' } }).key).toBe('focusing')
+    expect(dnaMaturity({ meta: { total_watches: 2, confidence: 'cold' } }).key).toBe('early')
+  })
+
+  it('defaults safely (seeded) when meta is missing', () => {
+    expect(dnaMaturity(null).key).toBe('seeded')
+    expect(dnaMaturity({}).key).toBe('seeded')
   })
 })

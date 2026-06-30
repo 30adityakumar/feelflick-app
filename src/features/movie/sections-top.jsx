@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import Tooltip from '@/shared/ui/Tooltip'
-import { SecondaryActionButton } from '@/shared/components/ActionButton'
 import Button from '@/shared/ui/Button'
 // TEMPORARY visual-compatibility import. The two trailer controls (hero + sticky bar)
 // now render the canonical <Button variant="primary"> DIRECTLY — semantic ownership lives
@@ -33,7 +32,7 @@ const HP = {
 // FeelFlick — Movie page · Hero, scroll progress, trailer modal, why-for-you, synopsis, mood radar, take, critic quotes.
 
 // F5.7: ≥44×44 touch target (the visible icon stays small).
-const iconBtnStyle = { width:44, height:44, borderRadius:RADIUS.pill, background:'var(--ts-surface-1, #1d1814)', border:`1px solid var(--ts-border-subtle, #302c28)`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
+const iconBtnStyle = { width:44, height:44, borderRadius:RADIUS.pill, background:'rgba(8,9,9,0.55)', border:'1px solid rgba(255,255,255,0.18)', color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)' };
 
 // TEMPORARY compatibility class strings — NOT components, hooks or shared abstractions.
 // They reproduce the retired PrimaryAction wrapper's class output so the migrated trailer
@@ -69,7 +68,7 @@ function ScrollProgress() {
 // ── Film grain overlay (16mm-ish noise via animated SVG) ────────
 function FilmGrain() {
   return (
-    <div aria-hidden style={{
+    <div aria-hidden className="ff-movie-grain" style={{
       position:'fixed', inset:0, pointerEvents:'none', zIndex:90,
       opacity:0.05, mixBlendMode:'overlay',
       backgroundImage: 'url("data:image/svg+xml;utf8,<svg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'n\'><feTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'2\' seed=\'5\'/></filter><rect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/></svg>")',
@@ -84,17 +83,15 @@ function FilmGrain() {
 
 // ── Hero ──────────────────────────────────────────────────────────
 function MovieHero({
-  onPlayTrailer, onBack, onShare,
+  onPlayTrailer, onShare,
   isInWatchlist, isWatched, onToggleWatchlist, onToggleWatched, loading, canAct, celebrate,
+  heroReason, heroTags,
 }) {
   const { mv, boundaryWarnings } = useMovieData();
   const reduced = useReducedMotion();
   const [scrollY, setScrollY] = useState(0);
-  const [tilt, setTilt] = useState({ x:0, y:0 });
 
-  // F5.4: backdrop parallax is JS-driven (inline transform) — the global CSS
-  // reduced-motion reset can't neutralize it, so skip the scroll tracking entirely
-  // under reduced motion.
+  // F5.4: backdrop parallax is JS-driven — skip under reduced motion.
   useEffect(() => {
     if (reduced) return;
     const on = () => setScrollY(window.scrollY);
@@ -102,114 +99,98 @@ function MovieHero({
     return () => window.removeEventListener('scroll', on);
   }, [reduced]);
 
-  // F5.4: poster pointer-tilt is JS-driven — disabled under reduced motion.
-  const onPosterMove = (e) => {
-    if (reduced) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    const cx = (e.clientX - r.left) / r.width - 0.5;
-    const cy = (e.clientY - r.top) / r.height - 0.5;
-    setTilt({ x: cx * -8, y: cy * 8 });
-  };
-
   const hasRuntime = mv.runtime > 0;
-  // hasRatings is now driven by whether we have *any* of the three signals;
-  // each badge inside the widget renders independently so absent fields
-  // self-hide rather than ship a fake number.
-  const hasRatings = mv.tmdbRating != null || mv.ffCritic != null || mv.ffAudience != null;
   const hasTrailer = Boolean(mv.trailerYouTubeId);
 
+  const titleLen = (mv.title || '').length;
+  const titleSizeClass = titleLen <= 20 ? 'title-s' : titleLen <= 35 ? 'title-m' : 'title-l';
+
   return (
-    <section className="ff-movie-hero" style={{ position:'relative', minHeight: 640, overflow:'hidden' }}>
+    <section className="ff-movie-hero" style={{ position:'relative', minHeight:'min(78svh, 660px)', overflow:'hidden' }}>
       {/* Parallax backdrop with ken-burns drift */}
       <div style={{ position:'absolute', inset:0, transform:`translateY(${scrollY * 0.4}px)`, willChange:'transform' }}>
         <div style={{ position:'absolute', inset:0, animation:'mv-kenburns 22s ease-in-out infinite alternate' }}>
           {mv.backdrop
-            ? <img src={mv.backdrop} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 30%' }} />
+            ? <img src={mv.backdrop} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 32%' }} />
             : <div style={{ width:'100%', height:'100%', background:'var(--ts-surface-1, #1d1814)' }} />
           }
         </div>
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 30%, rgba(0,0,0,0.85) 82%, #06060a 100%)' }} />
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)' }} />
+      </div>
+      {/* Scrim — mobile: deep bottom-up; desktop: bottom light + left-rail strong */}
+      <div className="ff-movie-hero__scrim" aria-hidden="true" />
+
+      {/* Top nav — share only */}
+      <div className="ff-movie-top-nav" style={{ position:'absolute', top:0, right:0, padding:'24px clamp(20px, 3.4vw, 44px)', display:'flex', alignItems:'center', justifyContent:'flex-end', zIndex:5 }}>
+        <Tooltip content="Share this film" side="bottom">
+          <button type="button" onClick={onShare} aria-label="Share this film" className="ff-movie-icon-btn" style={iconBtnStyle}>
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+        </Tooltip>
       </div>
 
-      {/* Top nav */}
-      <div className="ff-movie-top-nav" style={{ position:'absolute', top:0, left:0, right:0, padding:'24px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', zIndex:5 }}>
-        <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'8px 16px', borderRadius:RADIUS.pill, background:'var(--ts-surface-1, #1d1814)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
-          <span aria-hidden="true" style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
-        </button>
-        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-          <Tooltip content="Share this film" side="bottom">
-            <button type="button" onClick={onShare} aria-label="Share this film" className="ff-movie-icon-btn" style={iconBtnStyle}>
-              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            </button>
-          </Tooltip>
-        </div>
-      </div>
+      {/* Content anchored bottom-left — homepage hero layout */}
+      <div className="ff-movie-hero__content" style={{ position:'absolute', left:0, right:0, bottom:0, zIndex:2, paddingInline:'clamp(20px, 3.4vw, 44px)', paddingBottom:50 }}>
+        <div className="ff-movie-hero__panel" style={{ width:'min(100%, 640px)' }}>
 
-      <div className="ff-movie-hero-grid" style={{ position:'relative', zIndex:2, padding:'128px 88px 56px', display:'grid', gridTemplateColumns:'auto 1fr', gap:56, alignItems:'flex-end', minHeight:640 }}>
-        {/* Poster with 3D tilt */}
-        <div className="ff-movie-poster" style={{ position:'relative', width:300, flex:'none', perspective:1200 }}
-             onMouseMove={onPosterMove} onMouseLeave={()=>setTilt({x:0,y:0})}>
-          <div style={{
-            position:'relative', borderRadius:RADIUS.md, overflow:'visible',
-            transform:`rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
-            transition:'transform 0.2s ease',
-            willChange:'transform',
-          }}>
-            {mv.poster
-              ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:RADIUS.md, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }} />
-              : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:RADIUS.md, background:'var(--ts-surface-2, #241e19)', display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Inter, sans-serif', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
-            }
-            {/* F5.3: the user-match ring is removed from the hero — the qualitative
-                fit band lives only in the PrimaryCase (mv.ffMatch is unchanged). */}
-          </div>
-        </div>
-
-        <div style={{ maxWidth:780 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:22 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)' }}>Film File</div>
-            <div style={{ flex:'none', height:1, width:36, background:'var(--ts-border-strong, #46423d)', opacity:0.5 }} />
-            <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Inter, sans-serif' }}>Nº {String(mv.id).padStart(4, '0')} · {mv.year || '—'} · {mv.language}</div>
-          </div>
-
-          <h1 className="ff-movie-hero-h1" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:92, lineHeight:0.94, fontWeight:400, letterSpacing:'-0.05em', color: HP.text, margin:0, textWrap:'balance' }}>
+          {/* Title with length-aware tiers */}
+          <h1 className={`ff-movie-hero-h1 ${titleSizeClass}`} style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:'clamp(38px, 10vw, 48px)', lineHeight:0.96, fontWeight:600, letterSpacing:'-0.03em', color: HP.text, margin:0, textWrap:'balance' }}>
             {mv.title}
           </h1>
 
-          {(mv.originalTitle && mv.originalTitle !== mv.title) || mv.tagline ? (
-            <div style={{ display:'flex', alignItems:'baseline', gap:18, marginTop:14, flexWrap:'wrap' }}>
-              {mv.originalTitle && mv.originalTitle !== mv.title && (
-                <span style={{ fontFamily:'Inter, sans-serif', fontSize:24, fontWeight:300, color: HP.textSoft, fontStyle:'italic', letterSpacing:'-0.01em' }}>{mv.originalTitle}</span>
+          {/* Ratings: frosted pills */}
+          {(mv.tmdbRating != null || mv.ffCritic != null || mv.ffAudience != null) && (
+            <div className="ff-movie-hero__ratings" style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, marginTop:14 }}>
+              {mv.tmdbRating != null && (
+                <span className="ff-movie-hero__rating-pill">
+                  <svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+                  <span style={{ fontWeight:700, color: HP.text }}>{mv.tmdbRating}</span>
+                  <span style={{ color: HP.textMuted, fontSize:10, letterSpacing:'0.05em', textTransform:'uppercase' }}>TMDB</span>
+                </span>
               )}
-              {mv.originalTitle && mv.originalTitle !== mv.title && mv.tagline && (
-                <span style={{ width:1, height:18, background: HP.border }} />
+              {mv.ffCritic != null && (
+                <span className="ff-movie-hero__rating-pill">
+                  <span style={{ fontWeight:700, color:'#F59E0B' }}>{mv.ffCritic}%</span>
+                  <span style={{ color: HP.textMuted, fontSize:10, letterSpacing:'0.05em', textTransform:'uppercase' }}>Critics</span>
+                </span>
               )}
-              {mv.tagline && (
-                <span style={{ fontFamily:'Inter, sans-serif', fontSize:15, color: HP.textMuted, fontStyle:'italic' }}>”{mv.tagline}”</span>
+              {mv.ffAudience != null && (
+                <span className="ff-movie-hero__rating-pill">
+                  <span style={{ fontWeight:700, color: HP.text }}>{mv.ffAudience}%</span>
+                  <span style={{ color: HP.textMuted, fontSize:10, letterSpacing:'0.05em', textTransform:'uppercase' }}>Audience</span>
+                </span>
               )}
             </div>
-          ) : null}
+          )}
 
-          <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:24, fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', flexWrap:'wrap' }}>
-            <span style={{ padding:'3px 8px', border:`1px solid ${HP.borderStrong}`, borderRadius:3, fontWeight:600, color: HP.textSoft }}>{mv.certification}</span>
-            {mv.year && <span>{mv.year}</span>}
-            {hasRuntime && <>
-              <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background: HP.textFaint }} />
-              <span>{Math.floor(mv.runtime/60)}h {mv.runtime%60}m</span>
-            </>}
-            {mv.director && mv.director !== '—' && <>
-              <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background: HP.textFaint }} />
-              <span>Directed by <span style={{ color: HP.text, fontWeight:600 }}>{mv.director}</span></span>
-            </>}
-            {mv.genres.length > 0 && <>
-              <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background: HP.textFaint }} />
-              <span>{mv.genres.join(' / ')}</span>
-            </>}
+          {/* Meta: cert · year · runtime · lang */}
+          <div className="ff-movie-hero__meta" style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px 10px', marginTop:14, color:'var(--ts-text-secondary, #beb8ad)', fontSize:'10.5px', fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', fontFamily:'Inter, sans-serif' }}>
+            {mv.certification && <span style={{ padding:'2px 7px', border:`1px solid ${HP.borderStrong}`, borderRadius:3, fontWeight:600, color: HP.textSoft, fontSize:11 }}>{mv.certification}</span>}
+            {mv.year && <><span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:'currentColor', opacity:0.7, display:'inline-block' }} /><span>{mv.year}</span></>}
+            {hasRuntime && <><span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:'currentColor', opacity:0.7, display:'inline-block' }} /><span>{Math.floor(mv.runtime/60)}h {mv.runtime%60}m</span></>}
+            {mv.language && <><span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:'currentColor', opacity:0.7, display:'inline-block' }} /><span className="ff-movie-meta-lang">{mv.language}</span></>}
           </div>
+
+          {/* Mood tags from film profile */}
+          {heroTags?.length > 0 && (
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:14 }}>
+              {heroTags.slice(0, 4).map(tag => (
+                <span key={tag} style={{ fontFamily:'Inter, sans-serif', fontSize:10.5, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)', padding:'4px 10px', borderRadius:99, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.13)' }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Tagline */}
+          {heroReason && (
+            <p className="ff-movie-hero__reason" style={{ maxWidth:560, margin:'14px 0 0', color:'var(--ts-text-secondary, #beb8ad)', fontSize:'clamp(0.9rem, 1.05vw, 1rem)', fontWeight:300, lineHeight:1.55, textWrap:'pretty', fontFamily:'Inter, sans-serif' }}>
+              {heroReason}
+            </p>
+          )}
 
           {mv.daypartFit && (
             // F5.3: generated suggestion — FeelFlick-owned, not an objective "best time".
-            <div aria-label={`FeelFlick-generated viewing suggestion: ${mv.daypartFit}`} style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(243,236,223,0.06)', border:`1px solid var(--ts-border-subtle, #302c28)`, color:'var(--ts-text-secondary, #beb8ad)' }}>
+            <div aria-label={`FeelFlick-generated viewing suggestion: ${mv.daypartFit}`} style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:16, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(243,236,223,0.06)', border:`1px solid var(--ts-border-subtle, #302c28)`, color:'var(--ts-text-secondary, #beb8ad)' }}>
               <svg aria-hidden width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>FeelFlick suggests · {mv.daypartFit}</span>
             </div>
@@ -224,59 +205,42 @@ function MovieHero({
             </div>
           )}
 
-          <div className="ff-movie-hero-actions" style={{ display:'flex', alignItems:'center', gap:12, marginTop:32, flexWrap:'wrap' }}>
+          {/* Actions: primary trailer + icon buttons (homepage layout) */}
+          <div className="ff-movie-hero-actions" style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:8, marginTop:26 }}>
             <Button
               variant="primary"
               size="md"
-              className={`${MOVIE_PRIMARY_COMPAT_MD} ff-movie-hero-action-btn ff-movie-hero-action-btn--primary`}
+              className={`${MOVIE_PRIMARY_COMPAT_MD} ff-movie-hero__primary`}
               onClick={onPlayTrailer}
               disabled={!hasTrailer}
               title={hasTrailer ? undefined : 'No trailer available'}
               style={{ cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5 }}
             >
-              {/* Outer plain span = the wrapper's structural grouping (svg + text flow
-                  inline, without Button's flex gap). Keeps the DOM byte-identical. */}
               <span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l16-9z"/></svg>
+                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l16-9z"/></svg>
                 Play Trailer
               </span>
             </Button>
+
+            <SaveButton
+              isInWatchlist={isInWatchlist}
+              onToggleWatchlist={onToggleWatchlist}
+              loading={loading?.watchlist}
+              canAct={canAct}
+              movieTitle={mv.title}
+            />
+
             <MarkWatchedButton
               isWatched={isWatched}
               onToggleWatched={onToggleWatched}
               loading={loading?.watched}
               canAct={canAct}
               celebrate={celebrate}
+              movieTitle={mv.title}
             />
-            <SaveButton
-              isInWatchlist={isInWatchlist}
-              onToggleWatchlist={onToggleWatchlist}
-              loading={loading?.watchlist}
-              canAct={canAct}
-            />
-            <div className="ff-movie-hero-actions-spacer" style={{ flex:1 }} />
-            {hasRatings && (
-              <div className="ff-movie-hero-ratings" style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.5)', border:`1px solid ${HP.border}` }}>
-                {mv.tmdbRating != null && (
-                  <span style={{ display:'flex', alignItems:'center', gap:4 }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill={HP.amber}><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
-                    <span style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, color: HP.text }}>{mv.tmdbRating}</span>
-                    <span style={{ fontSize:10, color: HP.textFaint, marginLeft:2 }}>TMDB</span>
-                  </span>
-                )}
-                {/* FF critic/audience scores are real aggregates from the
-                    movies row, not fabricated from vote_average. Self-hide
-                    when the film hasn't been scored yet. */}
-                {mv.ffCritic != null && <>
-                  {mv.tmdbRating != null && <span style={{ width:1, height:12, background: HP.border }} />}
-                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif' }}><span style={{ color: HP.amber, fontWeight:700 }}>{mv.ffCritic}%</span> Critics</span>
-                </>}
-                {mv.ffAudience != null && <>
-                  {(mv.tmdbRating != null || mv.ffCritic != null) && <span style={{ width:1, height:12, background: HP.border }} />}
-                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif' }}><span style={{ color: HP.text, fontWeight:700 }}>{mv.ffAudience}%</span> Audience</span>
-                </>}
-              </div>
-            )}
+
+            {/* StickyActionBar watches this element via IntersectionObserver */}
+            <div id="hero-actions-sentinel" aria-hidden="true" style={{ height:1, pointerEvents:'none', flex:'none' }} />
           </div>
         </div>
       </div>
@@ -285,58 +249,54 @@ function MovieHero({
 }
 
 
-function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct, celebrate }) {
+function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct, celebrate, movieTitle }) {
   // F5.4: confetti is driven by `celebrate` from MovieDetail — fired ONLY on settled
   // watched success AND only when motion is allowed (reduced-motion users never get
   // it). The old optimistic isWatched-flip trigger is removed.
   const disabled = !canAct || loading;
-
+  const label = movieTitle || 'this film';
   return (
     <>
-      <SecondaryActionButton
-        active={isWatched}
-        loading={loading}
+      <button
+        type="button"
+        className={`ff-movie-hero__btn${isWatched ? ' is-active' : ''}`}
+        aria-label={isWatched ? `${label} marked as watched` : `Mark ${label} as watched`}
+        aria-pressed={isWatched}
+        title={!canAct ? 'Sign in to track what you watch' : undefined}
         disabled={disabled}
         aria-busy={Boolean(loading)}
         onClick={onToggleWatched}
-        title={!canAct ? 'Sign in to track what you watch' : undefined}
-        label={isWatched ? 'Watched' : 'Mark Watched'}
-        className="ff-movie-hero-action-btn"
-        style={{
-          position: 'relative', opacity: disabled && !isWatched ? 0.6 : 1,
-          background: isWatched ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.06)',
-          borderColor: isWatched ? 'var(--ts-focus, #f3ecdf)' : 'var(--ts-border-subtle, #302c28)',
-          color: 'var(--ts-text-primary, #f3ecdf)',
-        }}
-        icon={<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-      />
+        style={{ opacity: disabled && !isWatched ? 0.6 : 1 }}
+      >
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span className="ff-movie-hero__btn-label">{isWatched ? 'Watched' : 'Mark Watched'}</span>
+      </button>
       {celebrate && <Confetti />}
     </>
   );
 }
 
-function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
+function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct, movieTitle }) {
   const disabled = !canAct || loading;
+  const label = movieTitle || 'this film';
   return (
-    <SecondaryActionButton
-      active={isInWatchlist}
-      loading={loading}
+    <button
+      type="button"
+      className={`ff-movie-hero__btn${isInWatchlist ? ' is-active' : ''}`}
+      aria-label={isInWatchlist ? `Remove ${label} from watchlist` : `Add ${label} to watchlist`}
+      aria-pressed={isInWatchlist}
+      title={!canAct ? 'Sign in to save films' : undefined}
       disabled={disabled}
       aria-busy={Boolean(loading)}
       onClick={onToggleWatchlist}
-      title={!canAct ? 'Sign in to save films' : undefined}
-      label={isInWatchlist ? 'Saved' : 'Save'}
-      className="ff-movie-hero-action-btn"
-      style={{
-        opacity: disabled && !isInWatchlist ? 0.6 : 1,
-        background: isInWatchlist ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.06)',
-        borderColor: isInWatchlist ? 'var(--ts-focus, #f3ecdf)' : 'var(--ts-border-subtle, #302c28)',
-        color: 'var(--ts-text-primary, #f3ecdf)',
-      }}
-      icon={isInWatchlist
-        ? <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>}
-    />
+      style={{ opacity: disabled && !isInWatchlist ? 0.6 : 1 }}
+    >
+      {isInWatchlist
+        ? <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        : <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      }
+      <span className="ff-movie-hero__btn-label">{isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}</span>
+    </button>
   );
 }
 
@@ -362,15 +322,20 @@ function Confetti() {
   );
 }
 
-function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchlist, loading, canAct }) {
+function StickyActionBar({ onPlayTrailer }) {
   const { mv } = useMovieData();
   const barRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
+
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 80);
-    on();
-    window.addEventListener('scroll', on, { passive: true });
-    return () => window.removeEventListener('scroll', on);
+    const sentinel = document.getElementById('hero-actions-sentinel');
+    if (!sentinel) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setScrolled(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    obs.observe(sentinel);
+    return () => obs.disconnect();
   }, []);
 
   // F5.4: when the bar is visually hidden it must not be tabbable. If focus is inside
@@ -384,8 +349,6 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
     }
   }, [scrolled]);
 
-  const wlDisabled = !canAct || loading?.watchlist;
-  const wlTitle = !canAct ? 'Sign in to save films' : undefined;
   const hasTrailer = Boolean(mv.trailerYouTubeId);
 
   return (
@@ -407,9 +370,6 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         display:'flex', alignItems:'center', gap:20,
       }}
     >
-      <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ width:44, height:44, borderRadius:RADIUS.pill, background:'var(--ts-surface-1, #1d1814)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
-        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
       <div style={{ display:'flex', alignItems:'center', gap:14, flex:1 }}>
         {mv.poster && <img src={mv.poster} alt="" style={{ width:30, height:45, objectFit:'cover', borderRadius:3 }} />}
         <div>
@@ -417,7 +377,6 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
           <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.04em' }}>
             {mv.year || '—'}
             {mv.director && mv.director !== '—' && <> · {mv.director}</>}
-            {/* F5.3: user-match % removed from the sticky bar (no fit number outside the PrimaryCase band). */}
           </div>
         </div>
       </div>
@@ -434,24 +393,8 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
           cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5,
         }}
       >
-        {/* Plain child span = the wrapper's structural grouping (kept for byte-parity). */}
         <span>Play Trailer</span>
       </Button>
-      <button
-        className="ff-movie-sticky-bar-save"
-        onClick={onToggleWatchlist}
-        disabled={wlDisabled}
-        aria-pressed={Boolean(isInWatchlist)}
-        title={wlTitle}
-        style={{
-          padding:'8px 14px', borderRadius:RADIUS.sm,
-          background: isInWatchlist ? 'rgba(243,236,223,0.06)' : 'rgba(255,255,255,0.06)',
-          border:`1px solid ${isInWatchlist ? 'var(--ts-focus, #f3ecdf)' : HP.borderStrong}`,
-          color: HP.text, fontFamily:'Inter, sans-serif', fontSize:12, fontWeight:600,
-          cursor: wlDisabled ? 'not-allowed' : 'pointer', opacity: wlDisabled && !isInWatchlist ? 0.6 : 1,
-        }}>
-        {isInWatchlist ? '✓ On Watchlist' : '+ Watchlist'}
-      </button>
     </div>
   );
 }
@@ -650,4 +593,35 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
 // consolidated PrimaryCaseCard, and the generated quotes moved to the honestly-
 // reframed ViewerNotes component — see PrimaryCaseCard.jsx / ViewerNotes.jsx.)
 
-export { ScrollProgress, FilmGrain, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar }
+function HeroRatings() {
+  const { mv } = useMovieData();
+  const hasRatings = mv.tmdbRating != null || mv.ffCritic != null || mv.ffAudience != null;
+  if (!hasRatings) return null;
+  return (
+    <div className="ff-movie-hero-ratings-strip">
+      {mv.tmdbRating != null && (
+        <span style={{ display:'flex', alignItems:'center', gap:4 }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill={HP.amber}><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+          <span style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600, color: HP.text }}>{mv.tmdbRating}</span>
+          <span style={{ fontSize:10, color: HP.textFaint, marginLeft:2 }}>TMDB</span>
+        </span>
+      )}
+      {/* FF critic/audience scores are real aggregates from the movies row,
+          not fabricated from vote_average. Each self-hides when absent. */}
+      {mv.ffCritic != null && <>
+        {mv.tmdbRating != null && <span style={{ width:1, height:12, background: HP.border }} />}
+        <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif' }}>
+          <span style={{ color: HP.amber, fontWeight:700 }}>{mv.ffCritic}%</span> Critics
+        </span>
+      </>}
+      {mv.ffAudience != null && <>
+        {(mv.tmdbRating != null || mv.ffCritic != null) && <span style={{ width:1, height:12, background: HP.border }} />}
+        <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Inter, sans-serif' }}>
+          <span style={{ color: HP.text, fontWeight:700 }}>{mv.ffAudience}%</span> Audience
+        </span>
+      </>}
+    </div>
+  );
+}
+
+export { ScrollProgress, FilmGrain, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar, HeroRatings }

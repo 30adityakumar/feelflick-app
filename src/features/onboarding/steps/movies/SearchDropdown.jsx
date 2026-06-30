@@ -51,7 +51,7 @@ export default function SearchDropdown({
                 </span>
                 {selected && (
                   <>
-                    <Check className="ob-search-selected" aria-hidden="true" />
+                    <Check className="shrink-0 h-4 w-4 text-[var(--color-action-primary-fill,#f0ece4)]" aria-hidden="true" />
                     <span className="sr-only">(already in your picks)</span>
                   </>
                 )}

@@ -4,7 +4,7 @@
 // the scoped Thoughtful-Seatmate foundation (<ThoughtfulRoot> + neutral
 // <PageDepth> canvas), four things:
 //
-//   1. HomeHero            — a full-bleed cinematic backdrop carousel of ≤3
+//   1. HomeHero            — a contained editorial backdrop carousel of ≤3
 //                            personally-grounded standouts (grounded reason only).
 //   2. HomeShortcutStrip   — Discover / Browse / Log shortcuts, after the hero.
 //   3. HomeRecommendationSection[] — bounded, poster-led groups.
@@ -21,6 +21,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackEvent, EVENTS } from '@/shared/services/betaEvents'
 import { useHomepageRows } from '@/shared/hooks/useHomepageRows'
+import { moodSignatureLabel, signatureTonesLabel, dnaSignalsFromProfile, dnaMaturity } from '@/shared/services/rowSubtitles'
 import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
 
 import { HomeDataProvider, useHomeData } from './useHomeData'
@@ -95,7 +96,7 @@ function HomeBody() {
 
   const { loading: dnaLoading, error: dnaError, dna } = useHomeData()
   const rows = useHomepageRows(userId)
-  const { tier, rotationVariant, profileReady, profileError } = rows
+  const { profile, profileReady, profileError } = rows
 
   useEffect(() => { trackEvent(EVENTS.home_opened, { surface: 'home' }) }, []) // funnel entry (preserved)
 
@@ -106,19 +107,31 @@ function HomeBody() {
   )
   const heroIds = useMemo(() => new Set(heroFilms.map(f => f.id)), [heroFilms])
 
-  // === Rows — personal first, broad/editorial only as honest fallbacks ===
-  // The row engine already cross-deduped films across rows (in its own priority
-  // order); here we additionally remove the hero films and hide any row that has
-  // no title or no remaining films. Order is deliberately personal-first.
-  const isPeoples = tier === 'engaged' && rotationVariant === 'B'
+  // === Rows — identity-forward taste facets, one concrete discovery row, and a
+  // broad editorial fallback last (a thin-profile safety net). The row engine
+  // already cross-deduped films across rows; here we additionally remove the hero
+  // films and hide any row with no title or no remaining films. `top_genre` is
+  // placed between the two emotion-driven facets (mood signature / signature tones)
+  // so they don't read back-to-back. Labels derive from the same v3 profile the
+  // rows used — never invented (no thematic motifs: that data doesn't exist).
+  const moodLabel = moodSignatureLabel(profile)
+  const tonesLabel = signatureTonesLabel(profile)
+  const topGenreName = rows.topGenre.data?.genre?.name || null
   const sections = useMemo(() => {
     const defs = [
       {
         key: 'top_of_taste',
-        title: 'Top of your taste',
+        title: 'Your taste, distilled',
         subtitle: rows.topOfTaste.data?.subtitle || null,
         note: 'The films, filmmakers, and tones your ratings and saves reward most — scored for you.',
         films: filmsOf(rows.topOfTaste.data),
+      },
+      {
+        key: 'hidden_gems',
+        title: 'Hidden gems for you',
+        subtitle: 'Less obvious, still very you',
+        note: 'Lower-exposure films that still score highly against your taste — your pace, mood, and emotional register. Less obvious picks, still unmistakably you.',
+        films: filmsOf(rows.hiddenGems.data),
       },
       {
         key: 'still_in_orbit',
@@ -127,50 +140,65 @@ function HomeBody() {
         films: filmsOf(rows.orbit.data),
       },
       {
-        key: 'mood_row',
-        title: rows.mood.data?.title || null,
-        subtitle: rows.mood.data?.subtitle || null,
-        note: 'Drawn from the emotional tones your highly-rated films keep returning to.',
+        key: 'mood_signature',
+        title: moodLabel ? `Mood signature · ${moodLabel}` : null,
+        subtitle: 'Your strongest emotional pattern',
+        note: 'Derived from the emotional tone of the films you repeatedly rate well and keep in your watchlist.',
         films: filmsOf(rows.mood.data),
       },
       {
-        key: 'signature_director',
-        title: rows.director.data?.director?.name ? `More from ${rows.director.data.director.name}` : null,
-        subtitle: rows.director.data?.subtitle || null,
-        note: 'A filmmaker your ratings keep rewarding.',
-        films: filmsOf(rows.director.data),
+        key: 'top_genre',
+        title: topGenreName ? `Your top genre · ${topGenreName}` : null,
+        subtitle: 'The genre your ratings return to most',
+        note: topGenreName
+          ? `Inferred from the films you rate highly and watch most. Prioritises ${topGenreName} that still fits your specific taste within the genre.`
+          : null,
+        films: filmsOf(rows.topGenre.data),
       },
       {
-        key: 'watchlist',
-        title: 'Still on your watchlist',
-        note: 'Saved a while ago and still waiting — worth another look.',
-        films: filmsOf(rows.watchlist.data),
+        key: 'signature_tones',
+        title: tonesLabel ? `Signature tones · ${tonesLabel}` : null,
+        subtitle: 'The textures that recur in what you love',
+        note: 'Learned from the stylistic tones — like cerebral, atmospheric, or noir — that recur across your highly rated and saved films.',
+        films: filmsOf(rows.signatureTones.data),
       },
-      // Broad / editorial — honest fallbacks, deliberately AFTER the personal rows.
-      {
-        key: isPeoples ? 'peoples_champions' : 'critics_swooned',
-        title: isPeoples ? 'Loved by audiences' : 'Critics swooned',
-        note: isPeoples
-          ? 'Widely loved by viewers — a broader pick, lighter on personalization.'
-          : 'Critically adored titles — a broader pick, lighter on personalization.',
-        films: filmsOf(rows.criticSplit.data),
-      },
-      {
-        key: 'under_90',
-        title: 'Under 90 minutes',
-        note: 'For when you want something shorter tonight.',
-        films: filmsOf(rows.under90.data),
-      },
+      // The broad editorial "Critics swooned / Loved by audiences" fallback was
+      // removed: it surfaced the same niche-critic films for every user (samey,
+      // lightly personalized) and is redundant now that the personal facet rows are
+      // guaranteed to populate. True-empty users still get the honest empty state.
     ]
     return defs
       .map(d => ({ ...d, films: (d.films || []).filter(f => f && !heroIds.has(f.id)) }))
       .filter(d => d.title && d.films.length > 0)
-  }, [rows, heroIds, isPeoples])
+  }, [rows, heroIds, moodLabel, tonesLabel, topGenreName])
+
+  // Keep the Cinematic DNA strip consistent with the facet rows. The strip's base
+  // `dna` comes from the 24h-cached taste fingerprint, which excludes onboarding and
+  // lags for thin profiles — so it could read "still taking shape" while the rows
+  // below confidently show Mood/Tone facets. Override its taste signals with the
+  // SAME v3 affinity the rows use (cold-start onboarding fallback included); fall
+  // back to the fingerprint when there's no affinity signal (genuinely empty users).
+  const dnaForStrip = useMemo(() => {
+    if (!dna) return dna
+    // Depth-aware headline (honest: proportional to real evidence, not a binary
+    // "keeps sharpening" the moment any tag exists). Always attached so the strip
+    // can never over-claim trajectory for an onboarding-only profile.
+    const maturity = dnaMaturity(profile)
+    const sig = dnaSignalsFromProfile(profile)
+    if (!sig) return { ...dna, maturity }
+    return {
+      ...dna,
+      maturity,
+      motifs: sig.motifs ?? dna.motifs,
+      topMoods: sig.topMoods ?? dna.topMoods,
+      topFit: sig.topFit ?? dna.topFit,
+    }
+  }, [dna, profile])
 
   // === States ===
   const isError = Boolean(dnaError || profileError)
   const anyRowLoading = [
-    rows.topOfTaste, rows.orbit, rows.mood, rows.director, rows.watchlist, rows.criticSplit, rows.under90,
+    rows.topOfTaste, rows.hiddenGems, rows.orbit, rows.mood, rows.topGenre, rows.signatureTones,
   ].some(r => r.loading)
   const loading = !isError && (dnaLoading || !profileReady || anyRowLoading)
   const hasContent = heroFilms.length > 0 || sections.length > 0
@@ -210,7 +238,7 @@ function HomeBody() {
                   />
                 ))
               )}
-              <HomeDnaStrip dna={dna} />
+              <HomeDnaStrip dna={dnaForStrip} />
             </div>
           </>
         )}

@@ -21,15 +21,6 @@
   animation: loading-bar 1s ease-in-out;
 }
 
-/* Slow ambient breath used by mobile account hero halo + bottom-nav
-   Discover hero ring/bloom. Consumed via `animation: ff-bloom-pulse ...`
-   inline styles in MobileAccount.jsx + BottomNav.jsx (was duplicated as
-   \3c style>{`@keyframes ff-bloom-pulse {...}`}\3c /style> in both files). */
-@keyframes ff-bloom-pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50%      { opacity: 1;   transform: scale(1.06); }
-}
-
 /* Reduced motion — disable CSS animations globally (Framer Motion respects its own setting) */
 @media (prefers-reduced-motion: reduce) {
   *,

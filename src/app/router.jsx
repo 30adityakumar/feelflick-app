@@ -23,6 +23,7 @@ const MovieDetail = lazy(() => import('@/features/movie/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
 const Onboarding = lazy(() => import('@/features/onboarding/Onboarding'))
 const Account = lazy(() => import('@/features/account/Account'))
+const YouMenu = lazy(() => import('@/features/account/YouMenu'))
 const Preferences = lazy(() => import('@/features/preferences/Preferences'))
 const Watchlist = lazy(() => import('@/features/watchlist/Watchlist'))
 const History = lazy(() => import('@/features/history/History'))
@@ -217,7 +218,23 @@ function SignOutRoute() {
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter)
 
 export const router = sentryCreateBrowserRouter([
-  // Public branch (no app chrome)
+  // Root: Landing (anon) or /home (authed). Deliberately a TOP-LEVEL route OUTSIDE
+  // PublicShell so the anonymous Landing owns its own <header>/<main id="main">/
+  // <footer> as siblings — not nested inside PublicShell's <main> (the prior
+  // landmark-nesting issue). RootEntry still gates auth-ready / authed-redirect.
+  { path: '/', element: <RootEntry />, errorElement: <ErrorBoundary /> },
+
+  // /about: a TOP-LEVEL route (outside PublicShell), like Landing, so the rebuilt
+  // marketing page owns its own <header>/<main id="main">/<footer> as siblings (shared
+  // SiteHeaderHost + LandingFooter) rather than nesting inside PublicShell's <main>.
+  { path: '/about', element: <LazyRoute Component={About} />, errorElement: <ErrorBoundary /> },
+
+  // /privacy + /terms: also TOP-LEVEL routes (like /about + Landing) so the rebuilt legal
+  // pages own their own <header>/<main id="main">/<footer> (shared SiteHeaderHost + LandingFooter).
+  { path: '/privacy', element: <LazyRoute Component={Privacy} />, errorElement: <ErrorBoundary /> },
+  { path: '/terms', element: <LazyRoute Component={Terms} />, errorElement: <ErrorBoundary /> },
+
+  // Public branch (no app chrome) — legal/callback/share/aliases keep PublicShell's <main>.
   {
     element: <PublicShell />,
     errorElement: <ErrorBoundary />,
@@ -227,17 +244,9 @@ export const router = sentryCreateBrowserRouter([
         ? [{ path: 'design-lab/thoughtful-seatmate-foundations', element: <LazyRoute Component={Stage1Foundations} />, errorElement: <ErrorBoundary /> }]
         : []),
 
-      // Root decides: Landing (anon) or /home (authed)
-      { index: true, element: <RootEntry /> },
-
-
       // OAuth callback route - MUST come before legacy auth redirects
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },
 
-      // Legal pages (publicly accessible)
-      { path: 'about', element: <LazyRoute Component={About} /> },
-      { path: 'privacy', element: <LazyRoute Component={Privacy} /> },
-      { path: 'terms', element: <LazyRoute Component={Terms} /> },
 
       // Share Studio — downloadable "Tonight's Pick" card (demo data for now)
       { path: 'share', element: <LazyRoute Component={ShareStudio} /> },
@@ -320,6 +329,7 @@ export const router = sentryCreateBrowserRouter([
                 errorElement: <ErrorBoundary />,
                 children: [
                   { path: 'home', element: <LazyRoute Component={Home} />, errorElement: <ErrorBoundary /> },
+                  { path: 'you', element: <LazyRoute Component={YouMenu} />, errorElement: <ErrorBoundary /> },
                   { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
                   { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
                   { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },

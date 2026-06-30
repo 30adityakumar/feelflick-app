@@ -1,15 +1,15 @@
 // src/features/browse/components/BrowseResultsHeader.jsx
 // Results heading + honest count summary + the "how is this ordered?" disclosure
 // (rare, on demand — not a banner that re-announces personalization everywhere).
-// The page-size note only claims "18 at a time" when the source actually pages by
-// 18 (Supabase catalogue); TMDB text-search keeps its own native page size.
 
 import { sortSummary, rankingCopy } from '../browsePresentation'
 
 export default function BrowseResultsHeader({
-  title, count, loading, sort, isSearchMode, query, shortQueryHint,
-  infoOpen, onToggleInfo, pageSizeNote,
+  title, count, displayCount, loading, sort, isSearchMode, query, shortQueryHint,
+  infoOpen, onToggleInfo,
 }) {
+  const isPaginating = !isSearchMode && displayCount > 0 && displayCount < count
+
   return (
     <div className="ff-browse-results-head">
       <div className="ff-browse-results-head__main">
@@ -29,18 +29,26 @@ export default function BrowseResultsHeader({
         <div className="ff-browse-results-summary" aria-live="polite">
           {loading ? (
             <span className="ff-browse-results-summary__muted">Loading…</span>
+          ) : isPaginating ? (
+            <>
+              Showing{' '}
+              <span className="ff-browse-results-count">{displayCount}</span>
+              {' '}of{' '}
+              <span className="ff-browse-results-count">{count.toLocaleString()}</span>
+              {' '}films · {sortSummary(sort)}
+            </>
           ) : (
             <>
-              <span className="ff-browse-results-count">{count.toLocaleString()}</span> {count === 1 ? 'film' : 'films'}
+              <span className="ff-browse-results-count">{count.toLocaleString()}</span>{' '}
+              {count === 1 ? 'film' : 'films'}
               {isSearchMode
-                ? <> · matching <span className="ff-browse-results-summary__em">“{query}”</span> by title</>
+                ? <> · matching <span className="ff-browse-results-summary__em">&ldquo;{query}&rdquo;</span> by title</>
                 : <> · {sortSummary(sort)}</>}
               {shortQueryHint ? <> · type one more character to search</> : null}
             </>
           )}
         </div>
       </div>
-      {pageSizeNote ? <div className="ff-browse-view-note">{pageSizeNote}</div> : null}
 
       <div id="browse-ranking-note" role="region" className={`ff-browse-ranking-note${infoOpen ? ' is-open' : ''}`} hidden={!infoOpen}>
         {isSearchMode

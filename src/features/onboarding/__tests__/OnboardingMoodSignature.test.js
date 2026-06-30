@@ -4,9 +4,9 @@ import { deriveMoodSignature } from '../components/AmbientGlow'
 import { MOODS } from '../data'
 
 describe('deriveMoodSignature', () => {
-  it('returns the neutral graphite default when no moods are selected', () => {
-    expect(deriveMoodSignature([])).toBe('122, 126, 133')
-    expect(deriveMoodSignature()).toBe('122, 126, 133')
+  it('returns the neutral-ink default when no moods are selected', () => {
+    expect(deriveMoodSignature([])).toBe('46, 49, 53')
+    expect(deriveMoodSignature()).toBe('46, 49, 53')
   })
 
   it('returns a single selected mood exactly', () => {
@@ -25,8 +25,9 @@ describe('deriveMoodSignature', () => {
     expect(deriveMoodSignature(['cozy', 'wired', 'tense'])).toBe('178, 99, 216')
   })
 
-  it('ignores unknown mood keys and uses the neutral default when none are valid', () => {
-    expect(deriveMoodSignature(['bogus'])).toBe('122, 126, 133')
+  it('ignores unknown mood keys, falling back to the default when none are valid', () => {
+    expect(deriveMoodSignature(['bogus'])).toBe('46, 49, 53')
+    // a valid + invalid key resolves to just the valid mood
     expect(deriveMoodSignature(['cozy', 'bogus'])).toBe('236, 72, 153')
   })
 

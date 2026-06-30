@@ -47,9 +47,6 @@
     padding-left: clamp(28px, 5vw, 60px) !important;
     padding-right: clamp(28px, 5vw, 60px) !important;
   }
-  .ff-movie-hero {
-    padding-top: 100px !important;
-  }
   .ff-movie-hero-h1 {
     font-size: clamp(64px, 9vw, 92px) !important;
   }
@@ -62,35 +59,7 @@
 }
 
 @media (max-width: 880px) {
-  /* Hero: stack poster above the title block so neither cramps. The wrapper
-     section keeps its own min-height inline (760), so override it here too —
-     otherwise the page ships a full empty screen below the title block.
-     `justify-items: center` centers the poster in its full-width row and
-     centers the text column under it; without it the column starts left
-     and looks lopsided next to the balanced backdrop image. */
-  .ff-movie-hero {
-    min-height: 0 !important;
-  }
-  .ff-movie-hero-grid {
-    grid-template-columns: 1fr !important;
-    gap: 24px !important;
-    padding-top: 100px !important;
-    padding-bottom: 32px !important;
-    min-height: 0 !important;
-    justify-items: center !important;
-    text-align: center !important;
-  }
-  .ff-movie-poster {
-    width: clamp(180px, 36vw, 240px) !important;
-  }
-  /* Inline-flex chips (kicker line, daypart, ratings, action row) keep their
-     own self-centering since the grid only centers block elements. */
-  .ff-movie-hero-grid > div:nth-child(2) {
-    max-width: 100% !important;
-  }
-  /* Long titles ("The Shawshank Redemption") need a tighter ceiling than
-     short ones ("GoodFellas") so a 3-line wrap doesn't push the hero below
-     the bottom nav. Clamp upper bound drops from 80 → 56 on mobile. */
+  /* Long titles need a tighter ceiling on mobile. */
   .ff-movie-hero-h1 {
     font-size: clamp(36px, 9vw, 56px) !important;
     letter-spacing: -0.045em !important;
@@ -177,14 +146,6 @@
     padding-top: 48px !important;
     padding-bottom: 48px !important;
   }
-  .ff-movie-hero {
-    padding-top: 80px !important;
-  }
-  /* Hero bottom padding needs extra room on phones so the fixed bottom
-     nav (~80px) doesn't crop the actions or eat the title's last line. */
-  .ff-movie-hero-grid {
-    padding-bottom: 120px !important;
-  }
   .ff-movie-hero-h1 {
     font-size: clamp(32px, 10vw, 48px) !important;
   }
@@ -212,21 +173,6 @@
   }
   .ff-movie-director-grid {
     grid-template-columns: 1fr 1fr !important;
-  }
-  /* Hero top action row — stack each button full-width so we never ship
-     the awkward 2-on-top, 1-orphan layout. */
-  .ff-movie-hero-actions {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-  }
-  .ff-movie-hero-action-btn {
-    width: 100% !important;
-  }
-  /* The flex:1 spacer between actions and ratings disappears on phones so
-     the ratings chip stacks neatly below the buttons, not on a stretched row. */
-  .ff-movie-hero-actions > .ff-movie-hero-actions-spacer {
-    display: none !important;
   }
   /* Top nav back/share — keep both but trim padding. */
   .ff-movie-top-nav {
@@ -299,6 +245,9 @@
   .ff-movie-sticky-bar-save {
     display: none !important;
   }
+  /* 10-star layout: undo the 720px size increase so all 10 fit at 390px */
+  .ff-movie-your-take-stars svg { width: 24px !important; height: 24px !important; }
+  .ff-movie-your-take-stars { gap: 2px !important; }
 }
 
 
@@ -374,12 +323,9 @@
    SocialContext + ExplorationTail render inside FilmFileDisclosure, so their
    bodies need the page gutter + a bottom rhythm. */
 .ff-movie-social-context .ff-disclosure__content,
-.ff-movie-exploration-tail .ff-disclosure__content {
-  padding: 4px 88px 36px;
-}
 .ff-movie-explore-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 20px;
 }
 /* Movie-local button reset for exploration poster cards + a visible focus ring. */
@@ -401,10 +347,6 @@
   outline-offset: 4px;
 }
 @media (max-width: 720px) {
-  .ff-movie-social-context .ff-disclosure__content,
-  .ff-movie-exploration-tail .ff-disclosure__content {
-    padding: 4px 24px 28px;
-  }
   .ff-movie-explore-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
@@ -456,4 +398,681 @@
    the skip link (focus is moved, not visually highlighted). */
 #film-file-content:focus {
   outline: none;
+}
+
+/* ============================================================================
+   Movie redesign — chapter nav, spoiler boundary, post-watch portrait, action bar
+   (route-scoped; tokens from the Thoughtful Seatmate foundation)
+   ============================================================================ */
+
+/* Shared eyebrow for the new movie components. */
+.ff-movie-eyebrow {
+  margin: 0 0 8px 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ts-text-secondary, #beb8ad);
+}
+
+/* Chapter anchors clear the AppShell header + sticky chapter nav when jumped to. */
+.ff-movie-chapter-anchor { scroll-margin-top: 116px; }
+.ff-movie-chapter-anchor:focus { outline: none; }
+
+/* Act markers — editorial page pacing dividers */
+.ff-movie-act-marker {
+  display: flex; align-items: center; gap: 16px;
+  padding: 32px 88px 8px;
+  pointer-events: none;
+}
+.ff-movie-act-marker__label {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--ts-text-muted, #8d887f);
+  white-space: nowrap; opacity: 0.6;
+}
+.ff-movie-act-marker__bar {
+  flex: 1; height: 1px; background: var(--ts-border-subtle, #302c28); opacity: 0.5;
+}
+.ff-movie-act-marker__title {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px; font-weight: 400; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ts-text-muted, #8d887f);
+  white-space: nowrap; opacity: 0.6;
+}
+@media (max-width: 880px) {
+  .ff-movie-act-marker { padding: 24px 24px 8px; }
+}
+
+/* --- §27 Chapter navigation: sticky below the AppShell header --- */
+.ff-movie-chapternav {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  background: rgba(20, 17, 14, 0.86);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-chapternav__list {
+  display: flex;
+  gap: 4px;
+  margin: 0 auto;
+  padding: 10px 88px;
+  max-width: 1440px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ff-movie-chapternav__list::-webkit-scrollbar { display: none; }
+.ff-movie-chapternav__link {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ts-text-muted, #8d887f);
+  text-decoration: none;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.ff-movie-chapternav__link:hover { color: var(--ts-text-secondary, #beb8ad); }
+.ff-movie-chapternav__link[aria-current="true"] {
+  color: var(--ts-text-primary, #f3ecdf);
+  background: rgba(243, 236, 223, 0.06);
+}
+.ff-movie-chapternav__link:focus-visible {
+  outline: 2px solid var(--ts-focus, #f3ecdf);
+  outline-offset: 2px;
+}
+
+/* --- §15 Spoiler boundary (shown only while spoiler content is locked) --- */
+.ff-movie-spoiler-boundary { padding: 56px 88px; border-top: 1px solid var(--ts-border-subtle, #302c28); }
+.ff-movie-spoiler-boundary__inner {
+  display: flex; gap: 18px; align-items: flex-start;
+  max-width: 680px; margin: 0 auto;
+  padding: 28px 30px;
+  border-radius: 10px;
+  background: var(--ts-surface-1, #1d1814);
+  border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-spoiler-boundary__icon {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ts-text-secondary, #beb8ad);
+  background: var(--ts-surface-2, #241e19);
+  border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-spoiler-boundary__h {
+  margin: 0 0 8px 0; font-family: 'Inter', system-ui, sans-serif;
+  font-size: 20px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15;
+  color: var(--ts-text-primary, #f3ecdf);
+}
+.ff-movie-spoiler-boundary__copy {
+  margin: 0; font-size: 14px; line-height: 1.55;
+  color: var(--ts-text-muted, #8d887f); font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Amber lock accent on the spoiler boundary */
+.ff-movie-spoiler-boundary__inner {
+  background: color-mix(in srgb, #d6b06c 5%, var(--ts-surface-1, #1d1814));
+  border-color: rgba(214, 176, 108, 0.2);
+}
+.ff-movie-spoiler-boundary__icon {
+  color: #d6b06c;
+  background: rgba(214, 176, 108, 0.08);
+  border-color: rgba(214, 176, 108, 0.2);
+}
+.ff-movie-spoiler-boundary__eyebrow { color: rgba(214, 176, 108, 0.75); }
+
+/* --- §16/§17 Post-watch chapter (watched-only) --- */
+.ff-movie-postwatch { padding: 56px 88px; border-top: 1px solid var(--ts-border-subtle, #302c28); }
+.ff-movie-postwatch:focus { outline: none; }
+.ff-movie-portrait { max-width: 760px; margin: 0 auto; }
+.ff-movie-portrait__loading { min-height: 200px; }
+.ff-movie-portrait__head { margin-bottom: 8px; }
+.ff-movie-portrait__shield { color: var(--ts-text-secondary, #beb8ad); }
+.ff-movie-portrait__title {
+  margin: 0 0 10px 0; font-family: 'Inter', system-ui, sans-serif;
+  font-size: 30px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.06;
+  color: var(--ts-text-primary, #f3ecdf); text-wrap: balance;
+}
+.ff-movie-portrait__intro {
+  margin: 0; font-size: 15px; line-height: 1.6; max-width: 620px;
+  color: var(--ts-text-muted, #8d887f); font-family: 'Inter', system-ui, sans-serif;
+}
+.ff-movie-portrait__block { margin-top: 40px; }
+.ff-movie-portrait__h4 {
+  margin: 0 0 18px 0; font-family: 'Inter', system-ui, sans-serif;
+  font-size: 22px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.18;
+  color: var(--ts-text-primary, #f3ecdf); text-wrap: balance;
+}
+.ff-movie-portrait__movements { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+.ff-movie-portrait__movement {
+  display: grid; grid-template-columns: 130px 1fr; gap: 4px 22px; align-items: baseline;
+  padding: 16px 0; border-top: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-portrait__movement-label {
+  grid-column: 1; grid-row: 1 / span 2;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ts-text-muted, #8d887f);
+}
+.ff-movie-portrait__movement-title {
+  grid-column: 2; font-size: 15px; font-weight: 600; color: var(--ts-text-primary, #f3ecdf);
+}
+.ff-movie-portrait__movement-body {
+  grid-column: 2; font-size: 14px; line-height: 1.55; color: var(--ts-text-secondary, #beb8ad);
+}
+.ff-movie-portrait__note {
+  margin: 18px 0 0 0; font-size: 14px; line-height: 1.55; font-style: italic;
+  color: var(--ts-text-muted, #8d887f);
+}
+.ff-movie-portrait__reading {
+  padding: 26px 28px; border-radius: 10px;
+  background: var(--ts-surface-1, #1d1814); border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-portrait__reading-body {
+  margin: 0; font-size: 16px; line-height: 1.6; color: var(--ts-text-secondary, #beb8ad);
+  letter-spacing: -0.01em; text-wrap: pretty; max-width: 640px;
+}
+.ff-movie-portrait__motifs {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+}
+.ff-movie-portrait__motif {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 16px 18px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02); border: 1px solid var(--ts-border-subtle, #302c28);
+}
+.ff-movie-portrait__motif-n { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--ts-text-muted, #8d887f); }
+.ff-movie-portrait__motif-title { font-size: 15px; font-weight: 600; color: var(--ts-text-primary, #f3ecdf); }
+.ff-movie-portrait__motif-note { font-size: 12.5px; color: var(--ts-text-muted, #8d887f); }
+
+/* --- §28 Mobile action bar (removed — actions live inline in hero) --- */
+.ff-movie-action-bar { display: none !important; }
+
+/* --- Hero ratings strip (below hero, above case card) --- */
+.ff-movie-hero-ratings-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 88px;
+  border-bottom: 1px solid var(--ts-border-subtle, #302c28);
+  flex-wrap: wrap;
+}
+
+/* --- Overview: Synopsis + Where to watch as side-by-side blocks ----------- */
+
+.ff-movie-overview-row {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  align-items: stretch;
+  gap: 20px;
+  padding: 40px 32px 32px;
+}
+@media (min-width: 1200px) {
+  .ff-movie-hero {
+    width: calc(100% - 128px);
+    max-width: calc(1440px - 128px);
+  }
+  .ff-movie-overview-row {
+    padding: 40px 64px 32px;
+  }
+}
+
+.ff-movie-overview-block {
+  background: var(--ts-surface-1, #1d1814);
+  border: 1px solid var(--ts-border-subtle, #302c28);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Strip the section's own full-bleed padding; suppress top border only on first child
+   so Timeline→Details in the right-column Film Details card can show a separator */
+.ff-movie-overview-block .ff-movie-section {
+  padding: 32px 28px !important;
+}
+.ff-movie-overview-block .ff-movie-section:first-child {
+  border-top: none !important;
+}
+
+/* Providers internal layout: single column within the narrower card */
+.ff-movie-overview-block .ff-movie-providers-grid {
+  grid-template-columns: 1fr !important;
+  gap: 24px !important;
+}
+
+@media (max-width: 960px) {
+  .ff-movie-overview-row {
+    grid-template-columns: 1fr;
+    padding: 24px 32px 20px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .ff-movie-overview-row {
+    padding: 16px 20px 12px;
+    gap: 10px;
+  }
+}
+
+/* --- Two-column editorial main grid ---------------------------------------- */
+
+.ff-movie-two-col {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  align-items: start;
+  gap: 20px;
+  padding: 40px 32px 32px;
+}
+@media (min-width: 1200px) {
+  .ff-movie-two-col { padding: 40px 64px 32px; }
+}
+
+.ff-movie-col-left,
+.ff-movie-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0; /* prevent CSS Grid columns from overflowing their track */
+}
+
+/* Narrow right column: collapse internal section grids */
+.ff-movie-col-right .ff-movie-timeline-grid {
+  grid-template-columns: 1fr !important;
+  gap: 16px !important;
+}
+.ff-movie-col-right .ff-movie-details-grid {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px 20px !important;
+}
+
+@media (max-width: 960px) {
+  .ff-movie-two-col {
+    grid-template-columns: 1fr;
+    padding: 24px 32px 20px;
+    gap: 12px;
+  }
+  /* Restore original grids when stacked */
+  .ff-movie-col-right .ff-movie-timeline-grid {
+    grid-template-columns: 1fr 2fr !important;
+    gap: 64px !important;
+  }
+  .ff-movie-col-right .ff-movie-details-grid {
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    gap: 20px 32px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .ff-movie-two-col { padding: 16px 20px 12px; gap: 10px; }
+  /* Tighter card padding on narrow phones so content gets more breathing room */
+  .ff-movie-overview-block .ff-movie-section { padding: 20px 16px !important; }
+}
+
+/* Must come after the ≤960px block so it wins the cascade at narrow widths */
+@media (max-width: 420px) {
+  /* Timeline in stacked layout: label above value, no wide gap */
+  .ff-movie-col-right .ff-movie-timeline-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  /* Details in stacked layout: 2-col instead of 4-col */
+  .ff-movie-col-right .ff-movie-details-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* --- Homepage-style hero layout ------------------------------------------ */
+
+/* Scrim — mobile: deep bottom-up wash; desktop: lighter bottom + strong left rail */
+.ff-movie-hero__scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(8,9,9,0.99) 0%, rgba(9,10,10,0.97) 16%, rgba(11,12,12,0.88) 30%,
+    rgba(13,14,14,0.62) 45%, rgba(15,16,16,0.30) 58%,
+    rgba(15,16,16,0.10) 72%, rgba(15,16,16,0) 86%
+  );
+}
+@media (min-width: 961px) {
+  /* Contained editorial card — matches the home page hero geometry exactly */
+  .ff-movie-hero {
+    width: calc(100% - 64px);
+    max-width: calc(1440px - 64px);
+    margin: 18px auto 0;
+    border-radius: 18px;
+  }
+  .ff-movie-hero__scrim {
+    background:
+      linear-gradient(to top,
+        rgba(15,16,16,0.46) 0%, rgba(15,16,16,0.18) 22%, rgba(15,16,16,0) 42%),
+      linear-gradient(to right,
+        rgba(15,16,16,0.93) 0%, rgba(15,16,16,0.74) 28%, rgba(15,16,16,0.34) 52%, rgba(15,16,16,0) 80%);
+  }
+  /* Content panel anchored bottom-left — wider than mobile */
+  .ff-movie-hero__content {
+    padding-bottom: 40px !important;
+    padding-left: 56px !important;
+    padding-right: 56px !important;
+  }
+  .ff-movie-hero__panel { width: min(46vw, 640px) !important; }
+}
+
+/* Icon buttons (Watchlist / Watched) — matches ff-hero__icon from home */
+.ff-movie-hero__icon {
+  flex: 0 0 auto; width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.24); border-radius: 11px;
+  background: rgba(8,9,9,0.55); color: var(--ts-text-primary, #f3ecdf);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+.ff-movie-hero__icon:hover { background: rgba(25,27,28,0.9); border-color: rgba(255,255,255,0.44); }
+.ff-movie-hero__icon.is-active {
+  background: rgba(8,9,9,0.7);
+  border-color: rgba(255,255,255,0.55);
+  color: var(--ts-text-primary, #f3ecdf);
+}
+.ff-movie-hero__icon:disabled { opacity: 0.6; cursor: default; }
+
+/* Text+icon secondary buttons (Watchlist / Watched) */
+.ff-movie-hero__btn {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 44px; padding: 0 18px;
+  border: 1px solid rgba(255,255,255,0.24); border-radius: 11px;
+  background: rgba(8,9,9,0.55); color: var(--ts-text-primary, #f3ecdf);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); cursor: pointer;
+  font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+.ff-movie-hero__btn:hover { background: rgba(25,27,28,0.9); border-color: rgba(255,255,255,0.44); }
+.ff-movie-hero__btn.is-active {
+  background: rgba(8,9,9,0.7);
+  border-color: rgba(255,255,255,0.55);
+  color: var(--ts-text-primary, #f3ecdf);
+}
+.ff-movie-hero__btn:disabled { opacity: 0.6; cursor: default; }
+
+/* Mobile: collapse secondary buttons to icon-only so all three fit in one row */
+@media (max-width: 560px) {
+  .ff-movie-hero__btn { width: 44px; height: 44px; padding: 0; }
+  .ff-movie-hero__btn-label { display: none; }
+}
+
+/* Rating pills — frosted glass, round edges */
+.ff-movie-hero__rating-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: 999px;
+  background: rgba(8,9,9,0.52); border: 1px solid rgba(255,255,255,0.14);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Primary button flex — matches ff-hero__primary from home */
+.ff-movie-hero__primary { flex: 1 1 auto; min-width: 0; }
+@media (min-width: 561px) { .ff-movie-hero__primary { flex: 0 0 auto; min-width: 168px; } }
+.ff-movie-hero__primary :where(span) { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Title length tiers on desktop (mirrors home hero) */
+@media (min-width: 961px) {
+  .ff-movie-hero-h1 { font-size: clamp(3rem, 5.8vw, 4.5rem) !important; letter-spacing: -0.03em !important; }
+  .ff-movie-hero-h1.title-s { font-size: clamp(3.5rem, 6.8vw, 5rem) !important; }
+  .ff-movie-hero-h1.title-l { font-size: clamp(2.5rem, 4.8vw, 4rem) !important; }
+}
+
+@media (max-width: 880px) {
+  /* Ratings strip responsive padding */
+  .ff-movie-hero-ratings-strip { padding: 12px 24px; }
+
+  /* Chapter nav: remove right padding from list; put it on the last item so
+     overflow-x: auto scroll reveals the final tab cleanly */
+  .ff-movie-chapternav__list {
+    padding: 8px 0 8px 16px;
+  }
+  .ff-movie-chapternav__list > li:last-child {
+    padding-right: 16px;
+  }
+  /* Right-edge fade to signal more items beyond the visible edge */
+  .ff-movie-chapternav {
+    position: sticky; /* already set globally — ensure ::after positions correctly */
+  }
+  .ff-movie-chapternav::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 36px;
+    background: linear-gradient(to right, transparent, rgba(20, 17, 14, 0.88));
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* ── Mobile hero — compact, flush-to-bottom ──────────────────────────── */
+@media (max-width: 560px) {
+  /* Tall but not full-viewport — leaves content below visible */
+  .ff-movie-hero { min-height: min(80svh, 650px) !important; }
+
+  /* Small bottom pad keeps action row anchored to the backdrop */
+  .ff-movie-hero__content { padding-bottom: 20px !important; }
+
+  /* Tighter title */
+  .ff-movie-hero-h1 {
+    font-size: clamp(24px, 7vw, 32px) !important;
+    line-height: 1 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  /* Ratings row — less top gap, smaller pills */
+  .ff-movie-hero__ratings { margin-top: 10px !important; }
+  .ff-movie-hero__rating-pill { padding: 4px 8px; font-size: 11px; gap: 4px; }
+
+  /* Tagline — smaller, tighter top margin, clamp to 2 lines */
+  .ff-movie-hero__tagline {
+    font-size: 13px !important;
+    margin-top: 8px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Meta row — tighter top margin */
+  .ff-movie-hero__meta { margin-top: 8px !important; }
+
+  /* Reason — smaller text, tighter top gap */
+  .ff-movie-hero__reason {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+    margin-top: 10px !important;
+  }
+
+  /* Actions — tighter top gap, no wrap */
+  .ff-movie-hero-actions {
+    gap: 6px !important;
+    margin-top: 14px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Hide language on mobile — cert · year · runtime are enough */
+  .ff-movie-meta-lang { display: none; }
+
+  /* Top gradient behind the share button; bottom gradient remains the base */
+  .ff-movie-hero__scrim {
+    background:
+      linear-gradient(to bottom, rgba(8,9,9,0.38) 0%, rgba(8,9,9,0) 20%),
+      linear-gradient(to top,
+        rgba(8,9,9,0.99) 0%, rgba(9,10,10,0.97) 16%, rgba(11,12,12,0.88) 30%,
+        rgba(13,14,14,0.62) 45%, rgba(15,16,16,0.30) 58%,
+        rgba(15,16,16,0.10) 72%, rgba(15,16,16,0) 86%
+      );
+  }
+
+  /* ── Hero visual extension: chapter nav + ratings strip ──────────────
+     The hero scrim bottom is rgba(8,9,9,0.99) ≈ #080909.  These two
+     elements adopt the same solid colour so they read as one seamless
+     dark block below the poster image rather than separate sections.     */
+  .ff-movie-chapternav {
+    background: #080909 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-bottom: none !important;       /* no separator inside the block */
+  }
+  /* Ratings strip hidden on mobile — frosted pills in the hero are enough */
+  .ff-movie-hero-ratings-strip { display: none !important; }
+}
+
+@media (max-width: 767px) {
+  #film-file-content { padding-bottom: 0; }
+  .ff-movie-portrait__movement { grid-template-columns: 1fr; }
+  .ff-movie-portrait__movement-label { grid-column: 1; grid-row: auto; margin-bottom: 4px; }
+  .ff-movie-portrait__movement-title,
+  .ff-movie-portrait__movement-body { grid-column: 1; }
+  .ff-movie-portrait__motifs { grid-template-columns: 1fr; }
+  .ff-movie-portrait__title { font-size: 24px; }
+
+  .ff-movie-action-bar {
+    position: fixed;
+    left: 12px; right: 12px;
+    /* BottomNav is ~85px tall incl. its own safe-area padding — clear it with margin
+       (§28: movieActionBar.bottom <= bottomNav.top - 8). */
+    bottom: calc(98px + env(safe-area-inset-bottom, 8px));
+    z-index: 29;
+    display: flex !important; gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
+    background: rgba(29, 24, 20, 0.94);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border: 1px solid var(--ts-border-strong, #46423d);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+  .ff-movie-action-bar__btn {
+    flex: 1; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 8px 6px; border-radius: 11px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--ts-border-subtle, #302c28);
+    color: var(--ts-text-secondary, #beb8ad);
+    font-family: 'Inter', system-ui, sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer;
+  }
+  .ff-movie-action-bar__btn.is-on {
+    color: var(--ts-text-primary, #f3ecdf);
+    background: rgba(243, 236, 223, 0.08);
+    border-color: var(--ts-border-strong, #46423d);
+  }
+  .ff-movie-action-bar__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ff-movie-action-bar__btn { min-width: 0; }
+  .ff-movie-action-bar__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* Extreme-narrow (e.g. 320px @ 200% zoom → ~160px): the action bar goes icon-only;
+   each button keeps its accessible name via aria-label, so nothing is lost. */
+@media (max-width: 280px) {
+  .ff-movie-action-bar__label { display: none; }
+  .ff-movie-action-bar__btn { gap: 0; padding: 8px 4px; }
+}
+
+/* ============================================================================
+   Forced colours (Windows High Contrast etc.) — route-scoped.
+   Strategy: normal forced-colour adaptation drives all text/border/control colours
+   to system colours automatically; here we (a) SUPPRESS the decorative atmosphere
+   (grain, page gradient, atmospheric backdrop/overlays) so it can never obscure
+   forced content, and (b) restore meaning that would otherwise be colour-only
+   (active chapter, selected rating/reaction, on-state actions, focus, the dialog).
+   No separate visual identity; no blanket forced-color-adjust:none.
+   ============================================================================ */
+@media (forced-colors: active) {
+  /* (a) Suppress decorative atmosphere — the FilmGrain full-screen overlay + the
+     page-depth radial + any inline gradient overlay + the decorative hero backdrop
+     image (alt="") were what collapsed the page to black. */
+  .ff-movie { background: Canvas !important; background-image: none !important; }
+  .ff-movie-grain { display: none !important; }
+  .ff-movie [style*="gradient"] { background-image: none !important; }
+  .ff-movie-hero img[alt=""] { display: none !important; }
+
+  /* Sections + chapter nav sit on the system canvas with a real divider. */
+  .ff-movie-chapternav {
+    background: Canvas !important;
+    border-bottom: 1px solid CanvasText !important;
+  }
+  .ff-movie-chapternav__link { color: LinkText !important; }
+  /* Active chapter cannot be colour-only — underline + box it (CanvasText keeps the
+     label high-contrast; Highlight is reserved for the structural outline). */
+  .ff-movie-chapternav__link[aria-current="true"] {
+    color: CanvasText !important;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    outline: 1px solid Highlight;
+  }
+
+  /* Buttons + role=button use the system Button pair explicitly, so the computed
+     colours are a consistent high-contrast pair (ButtonText on ButtonFace) rather
+     than the authored ivory-fill/dark-text recipe (which reads as dark-on-dark). */
+  .ff-movie button,
+  .ff-movie [role="button"] {
+    background: ButtonFace !important;
+    border: 1px solid ButtonText !important;
+    color: ButtonText !important;
+  }
+  .ff-movie button *,
+  .ff-movie [role="button"] * { color: ButtonText !important; }
+
+  /* Delineate the remaining key surfaces (forced bg merges with Canvas). */
+  .ff-movie-action-bar,
+  .ff-movie-your-take-card,
+  .ff-movie-spoiler-boundary__inner,
+  .ff-movie-spoiler-boundary__icon,
+  .ff-movie-portrait__reading,
+  .ff-movie-portrait__motif {
+    border: 1px solid CanvasText !important;
+  }
+
+  /* Selected rating stars / reaction chips: add a non-colour (outline) indicator
+     on top of the structural fill-vs-outline the SVGs already provide. */
+  .ff-movie [role="radio"][aria-checked="true"] {
+    outline: 2px solid Highlight !important;
+    outline-offset: 1px;
+  }
+  /* Settled "on" action (mobile Watched/Saved) — structural, not colour-only. */
+  .ff-movie-action-bar__btn.is-on {
+    outline: 2px solid Highlight !important;
+    outline-offset: -3px;
+  }
+
+  /* Pending/disabled controls read as GrayText. */
+  .ff-movie button:disabled,
+  .ff-movie [aria-disabled="true"] { color: GrayText !important; border-color: GrayText !important; }
+
+  /* Focus must stay visible everywhere. */
+  .ff-movie a:focus-visible,
+  .ff-movie button:focus-visible,
+  .ff-movie [role="button"]:focus-visible,
+  .ff-movie [role="radio"]:focus-visible,
+  .ff-movie summary:focus-visible,
+  .ff-movie textarea:focus-visible,
+  .ff-movie-chapternav__link:focus-visible,
+  .ff-movie-skip-link:focus,
+  .ff-movie-skip-link:focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px;
+  }
+  .ff-movie textarea { border: 1px solid CanvasText !important; }
+
+  /* Media dialog (portaled under .ff-movie): solid canvas + bordered panel + visible
+     close, decorative curtains suppressed. */
+  .ff-media-dialog [class*="backdrop"],
+  .ff-media-dialog > div:first-child { background: Canvas !important; }
+  .ff-media-dialog__curtain-l,
+  .ff-media-dialog__curtain-r { display: none !important; }
+  .ff-media-dialog [role="document"],
+  .ff-media-dialog iframe { border: 1px solid CanvasText !important; }
 }

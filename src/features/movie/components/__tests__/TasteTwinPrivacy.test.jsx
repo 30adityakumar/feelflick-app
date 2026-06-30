@@ -25,11 +25,16 @@ describe('Taste Twin privacy (F5.6)', () => {
     expect(screen.getByText(/A taste twin rated this film/i)).toBeInTheDocument()
   })
 
-  it('18/19/20/21. keeps the real review verbatim, the rating, the exact similarity, and the overall-similarity wording', () => {
+  it('18/19/20. keeps the real review verbatim + rating, but NEVER shows an exact similarity % (§20)', () => {
+    // Even though the fixture still carries matchPct, the component must not render it.
     const { container } = render(<SocialContext friends={[]} twin={TWIN} />)
     expect(container.textContent).toContain('It lingers long after.')          // verbatim review
     expect(screen.getByLabelText('4.5 out of 5 stars')).toBeInTheDocument()     // rating 9 → 4.5★
-    expect(container.textContent).toMatch(/84% overall taste similarity/)       // exact value + wording
+    // §20: no exact taste-similarity percentage anywhere (text or a11y tree)
+    expect(container.textContent).not.toMatch(/\d+\s*%/)
+    expect(container.textContent).not.toMatch(/overall taste similarity/i)
+    expect(container.textContent).toMatch(/broadly similar viewing patterns/i)  // qualitative wording
+    expect(container.querySelector('[aria-label*="%"]')).toBeNull()
   })
 
   it('22. never implies film-specific agreement', () => {

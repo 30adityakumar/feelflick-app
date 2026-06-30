@@ -11,16 +11,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useUserTier } from '@/shared/hooks/useRecommendations'
 import { computeUserProfileV3 } from '@/shared/services/recommendations'
 import { precomputeScoringContext } from '@/shared/services/scoringV3'
-import { softDedupe } from '@/shared/services/diversity'
 import {
   getTopOfYourTasteRow,
-  getCriticsSwoonedRow,
-  getPeoplesChampionsRow,
-  getUnder90MinutesRow,
   getStillInOrbitRow,
   getMoodRow,
-  getWatchlistRow,
-  getSignatureDirectorRow,
+  getHiddenGemsRow,
+  getTopGenreRow,
+  getSignatureTonesRow,
 } from '@/shared/services/homepageRows'
 
 // ── Rotation helpers ─────────────────────────────────────────────────────────
@@ -103,13 +100,12 @@ function useRowQuery(key, fetchFn, enabled) {
  * @returns {{
  *   tier: 'cold'|'warming'|'engaged'|null,
  *   rotationVariant: 'A'|'B',
- *   topOfTaste: { data: Object[]|null, loading: boolean, error: Error|null },
- *   criticSplit: { data: Object[]|null, loading: boolean, error: Error|null },
- *   under90: { data: Object[]|null, loading: boolean, error: Error|null },
- *   orbit: { data: { films: Object[], seed: Object|null }|null, loading: boolean, error: Error|null },
- *   mood: { data: { films: Object[], dominantMood: string|null }|null, loading: boolean, error: Error|null },
- *   watchlist: { data: { films: Object[] }|null, loading: boolean, error: Error|null },
- *   director: { data: { films: Object[], director: string|null }|null, loading: boolean, error: Error|null },
+ *   topOfTaste: { data: { films: Object[], subtitle: string|null }|null, loading, error },
+ *   hiddenGems: { data: { films: Object[] }|null, loading, error },
+ *   orbit: { data: { films: Object[], seed: Object|null }|null, loading, error },
+ *   mood: { data: { films: Object[], title, subtitle }|null, loading, error },
+ *   topGenre: { data: { films: Object[], genre: { id, name }|null }|null, loading, error },
+ *   signatureTones: { data: { films: Object[], tones: string[] }|null, loading, error },
  * }}
  */
 export function useHomepageRows(userId, shuffleNonces = {}) {
@@ -161,10 +157,10 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
   // Per-surface nonces (default 0) — incrementing busts cache + rotates pool
   const nTopOfTaste = shuffleNonces.topOfTaste ?? 0
   const nMood = shuffleNonces.mood ?? 0
-  const nDirector = shuffleNonces.signatureDirector ?? 0
-  const nCriticSplit = shuffleNonces.criticSplit ?? 0
-  const nUnder90 = shuffleNonces.under90 ?? 0
   const nOrbit = shuffleNonces.orbit ?? 0
+  const nHiddenGems = shuffleNonces.hiddenGems ?? 0
+  const nTopGenre = shuffleNonces.topGenre ?? 0
+  const nSignatureTones = shuffleNonces.signatureTones ?? 0
 
   // === Row queries ===
 
@@ -174,96 +170,103 @@ export function useHomepageRows(userId, shuffleNonces = {}) {
     (hasProfile && hasContext) || !userId,
   )
 
-  const criticSplit = useRowQuery(
-    `critic-split-${profileKey}-${rotationVariant}-${tier}-${nCriticSplit}`,
-    () => {
-      const opts = { ...(hasContext ? { scoringContext } : {}), nonce: nCriticSplit }
-      if (tier === 'engaged' && rotationVariant === 'B') {
-        return getPeoplesChampionsRow(userId, profile, 20, opts)
-      }
-      return getCriticsSwoonedRow(userId, profile, 20, opts)
-    },
-    (hasProfile && hasContext || !userId) && tier !== null,
-  )
-
-  const under90 = useRowQuery(
-    `under-90-${profileKey}-${nUnder90}`,
-    () => getUnder90MinutesRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nUnder90 }),
-    (hasProfile && hasContext) || !userId,
-  )
 
   const orbit = useRowQuery(
     `orbit-${profileKey}-${nOrbit}`,
     () => getStillInOrbitRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nOrbit }),
-    hasProfile && hasContext && tier !== 'cold',
+    hasProfile && hasContext,
   )
 
   const mood = useRowQuery(
     `mood-${profileKey}-${nMood}`,
     () => getMoodRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nMood }),
-    hasProfile && hasContext && tier !== 'cold',
+    hasProfile && hasContext,
   )
 
-  const watchlist = useRowQuery(
-    `watchlist-${profileKey}`,
-    () => getWatchlistRow(userId, profile, 20, hasContext ? { scoringContext } : {}),
-    hasProfile && hasContext && tier === 'engaged',
+  const hiddenGems = useRowQuery(
+    `hidden-gems-${profileKey}-${nHiddenGems}`,
+    () => getHiddenGemsRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nHiddenGems }),
+    (hasProfile && hasContext) || !userId,
   )
 
-  const director = useRowQuery(
-    `director-${profileKey}-${nDirector}`,
-    () => getSignatureDirectorRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nDirector }),
-    hasProfile && hasContext && tier !== 'cold',
+  const topGenre = useRowQuery(
+    `top-genre-${profileKey}-${nTopGenre}`,
+    () => getTopGenreRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nTopGenre }),
+    (hasProfile && hasContext) || !userId,
+  )
+
+  const signatureTones = useRowQuery(
+    `signature-tones-${profileKey}-${nSignatureTones}`,
+    () => getSignatureTonesRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nSignatureTones }),
+    hasProfile && hasContext,
   )
 
   // === Cross-row soft dedup ===
-  // Apply in row priority order. Hero films are exempt from contributing.
-  // Watchlist is exempt from dedup (user-chosen).
+  // Apply in render priority order so each row claims its films before the next.
+  // Hero films are exempt from contributing (deduped against in Home). Hidden gems
+  // is low-exposure and rarely collides, so it sits last.
   const deduped = useMemo(() => {
     const shownIds = new Set()
 
-    function dedupFilms(films) {
+    // Cross-row distinctness: order each row's films uniques-first, and only let an
+    // already-shown film fill the tail when there aren't enough unique films left
+    // (true for users whose taste concentrates in one genre, so several rows draw
+    // the same top films). Claim only the films that will actually display
+    // (DISPLAY_COUNT — mirrors HomeRecommendationSection's MAX_FILMS) so later rows
+    // keep the widest possible unique pool.
+    const DISPLAY_COUNT = 5
+    // top_of_taste also feeds up to HERO_RESERVE hero standouts (Home's HERO_MAX),
+    // which Home lifts OUT of the row — so its on-screen window spans the hero + the
+    // row. Reserve both, or those lifted/lower films leak into later rows.
+    const HERO_RESERVE = 3
+    function dedupFilms(films, claimCount = DISPLAY_COUNT) {
       if (!films || films.length === 0) return films
-      const result = softDedupe(films, shownIds)
-      result.forEach(f => { if (f?.id) shownIds.add(f.id) })
-      return result
+      const unique = films.filter(f => !shownIds.has(f.id))
+      const repeats = films.filter(f => shownIds.has(f.id))
+      const ordered = [...unique, ...repeats]
+      ordered.slice(0, claimCount).forEach(f => { if (f?.id) shownIds.add(f.id) })
+      return ordered
     }
 
-    // Row order: TopOfTaste → Director → CriticSplit → Mood → Orbit → Under90 → Watchlist
+    // Order: TopOfTaste → Orbit → Mood → TopGenre → SignatureTones → HiddenGems
     const dTopOfTaste = topOfTaste.data
-      ? { ...topOfTaste.data, films: dedupFilms(topOfTaste.data.films) }
+      ? { ...topOfTaste.data, films: dedupFilms(topOfTaste.data.films, DISPLAY_COUNT + HERO_RESERVE) }
       : topOfTaste.data
-    const dDirector = director.data
-      ? { ...director.data, films: dedupFilms(director.data.films) }
-      : director.data
-    const dCriticSplit = dedupFilms(criticSplit.data)
-    const dMood = mood.data
-      ? { ...mood.data, films: dedupFilms(mood.data.films) }
-      : mood.data
     const dOrbit = orbit.data
       ? { ...orbit.data, films: dedupFilms(orbit.data.films) }
       : orbit.data
-    const dUnder90 = dedupFilms(under90.data)
-    // Watchlist exempt — no dedup
-    const dWatchlist = watchlist.data
+    const dMood = mood.data
+      ? { ...mood.data, films: dedupFilms(mood.data.films) }
+      : mood.data
+    const dTopGenre = topGenre.data
+      ? { ...topGenre.data, films: dedupFilms(topGenre.data.films) }
+      : topGenre.data
+    const dSignatureTones = signatureTones.data
+      ? { ...signatureTones.data, films: dedupFilms(signatureTones.data.films) }
+      : signatureTones.data
+    const dHiddenGems = hiddenGems.data
+      ? { ...hiddenGems.data, films: dedupFilms(hiddenGems.data.films) }
+      : hiddenGems.data
 
-    return { dTopOfTaste, dDirector, dCriticSplit, dMood, dOrbit, dUnder90, dWatchlist }
-  }, [topOfTaste.data, director.data, criticSplit.data, mood.data, orbit.data, under90.data, watchlist.data])
+    return { dTopOfTaste, dOrbit, dMood, dTopGenre, dSignatureTones, dHiddenGems }
+  }, [topOfTaste.data, orbit.data, mood.data, topGenre.data, signatureTones.data, hiddenGems.data])
 
   return {
     tier,
     rotationVariant,
+    // The resolved v3 profile — exposed so the render layer can build honest facet
+    // labels (mood signature, signature tones) from the same taste data the rows used.
+    profile,
     // Whether the shared profile + scoring context every row depends on are ready,
     // and whether building them failed (so Home can show loading vs. error vs.
     // content honestly rather than flashing an empty/"no recommendations" state).
     profileReady: (hasProfile && hasContext) || !userId,
     profileError,
     topOfTaste: { ...topOfTaste, data: deduped.dTopOfTaste },
-    criticSplit: { ...criticSplit, data: deduped.dCriticSplit },
-    under90: { ...under90, data: deduped.dUnder90 },
+    hiddenGems: { ...hiddenGems, data: deduped.dHiddenGems },
     orbit: { ...orbit, data: deduped.dOrbit },
     mood: { ...mood, data: deduped.dMood },
-    watchlist: { ...watchlist, data: deduped.dWatchlist },
-    director: { ...director, data: deduped.dDirector },
+    topGenre: { ...topGenre, data: deduped.dTopGenre },
+    signatureTones: { ...signatureTones, data: deduped.dSignatureTones },
   }
 }

@@ -26,9 +26,9 @@ vi.mock('@/shared/api/tmdb', () => ({ backdropImg: () => 'http://x/bg.jpg', back
 import HomeHero from '../components/HomeHero'
 
 const FILMS = [
-  { id: 1, tmdb_id: 101, title: 'Alpha', release_year: 2020, runtime: 132, director_name: 'Dir A', backdrop_path: '/a.jpg', _reason: { type: 'director', text: 'More from Dir A' } },
-  { id: 2, tmdb_id: 102, title: 'Beta', release_year: 2021, runtime: 95, director_name: 'Dir B', backdrop_path: '/b.jpg', _reason: { type: 'seed', text: 'Because you loved X' } },
-  { id: 3, tmdb_id: 103, title: 'Gamma', release_year: 2019, runtime: 110, director_name: 'Dir C', backdrop_path: '/c.jpg', _reason: { type: 'mood', text: 'Matches your taste for tender films' } },
+  { id: 1, tmdb_id: 101, title: 'Alpha', release_year: 2020, runtime: 132, primary_genre: 'Drama', director_name: 'Dir A', backdrop_path: '/a.jpg', _reason: { type: 'director', text: 'More from Dir A' } },
+  { id: 2, tmdb_id: 102, title: 'Beta', release_year: 2021, runtime: 95, primary_genre: 'Sci-Fi', director_name: 'Dir B', backdrop_path: '/b.jpg', _reason: { type: 'seed', text: 'Because you loved X' } },
+  { id: 3, tmdb_id: 103, title: 'Gamma', release_year: 2019, runtime: 110, primary_genre: 'Romance', director_name: 'Dir C', backdrop_path: '/c.jpg', _reason: { type: 'mood', text: 'Matches your taste for tender films' } },
 ]
 const USER = { id: 'u1' }
 const renderHero = (films = FILMS) => render(<MemoryRouter><HomeHero films={films} user={USER} /></MemoryRouter>)
@@ -36,12 +36,15 @@ const renderHero = (films = FILMS) => render(<MemoryRouter><HomeHero films={film
 beforeEach(() => { vi.clearAllMocks(); movieStatus.isInWatchlist = false; movieStatus.isWatched = false; movieStatus.internalId = 1 })
 
 describe('HomeHero — carousel navigation + active film', () => {
-  it('renders the first standout with its grounded reason and meta', () => {
+  it('renders the first standout with its grounded reason and lean meta (year · genre · runtime)', () => {
     renderHero()
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Alpha')
-    expect(screen.getByText('More from Dir A')).toBeInTheDocument()
-    expect(screen.getByText('2020')).toBeInTheDocument()
-    expect(screen.getByText('Dir A')).toBeInTheDocument()
+    expect(screen.getByText('More from Dir A')).toBeInTheDocument() // grounded reason leads
+    expect(screen.getByText('2020')).toBeInTheDocument()            // year
+    expect(screen.getByText('Drama')).toBeInTheDocument()           // genre (primary_genre)
+    expect(screen.getByText('2h 12m')).toBeInTheDocument()          // runtime
+    // Director is no longer a standalone meta chip (it lives in the reason / Film File).
+    expect(screen.queryByText('Dir A')).not.toBeInTheDocument()
   })
 
   it('next / prev arrows change the active film (and wrap)', () => {
@@ -73,6 +76,27 @@ describe('HomeHero — carousel navigation + active film', () => {
     renderHero([FILMS[0]])
     expect(screen.queryByLabelText('Next featured film')).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/Show featured film/)).not.toBeInTheDocument()
+  })
+})
+
+describe('HomeHero — language chip', () => {
+  it('adds the spoken language to the meta for a non-English film', () => {
+    renderHero([{ ...FILMS[0], original_language: 'fr' }])
+    expect(screen.getByText('French')).toBeInTheDocument()
+    // factual meta still present
+    expect(screen.getByText('2020')).toBeInTheDocument()
+    expect(screen.getByText('Drama')).toBeInTheDocument()
+  })
+
+  it('does not show a language chip for an English film', () => {
+    renderHero([{ ...FILMS[0], original_language: 'en' }])
+    expect(screen.queryByText('English')).not.toBeInTheDocument()
+    expect(screen.queryByText('EN')).not.toBeInTheDocument()
+  })
+
+  it('falls back to the upper-cased code for an unknown language', () => {
+    renderHero([{ ...FILMS[0], original_language: 'zz' }])
+    expect(screen.getByText('ZZ')).toBeInTheDocument()
   })
 })
 

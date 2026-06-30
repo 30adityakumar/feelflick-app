@@ -49,40 +49,45 @@
 .ffb-btn:disabled { opacity: .45; cursor: not-allowed; }
 .ffb-btn:focus-visible { outline: 2px solid var(--ff-coral-text, #ed7a87); outline-offset: 2px; }
 
-/* ── Masthead ──────────────────────────────────────────────────────────── */
-.ff-browse-masthead {
-  position: relative; overflow: hidden;
-  min-height: 300px; display: flex; align-items: flex-end;
-  padding: 0 var(--ff-pad) 26px;
-  border-bottom: 1px solid var(--ff-bd);
+/* ── Topbar (replaces masthead — compact, not sticky) ──────────────────── */
+.ff-browse-topbar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 20px var(--ff-pad) 16px;
+  max-width: 1440px; margin: 0 auto; width: 100%;
 }
-@media (min-width: 768px) { .ff-browse-masthead { min-height: 340px; padding-bottom: 30px; } }
-.ff-browse-masthead__atmosphere {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(120% 80% at 88% 0%, color-mix(in srgb, var(--ff-coral) 9%, transparent), transparent 60%),
-    linear-gradient(180deg, var(--ff-s1), var(--ff-ink));
+.ff-browse-topbar__title {
+  margin: 0; flex: 0 0 auto; white-space: nowrap;
+  font: 600 20px/1 'Inter', sans-serif; letter-spacing: -0.02em; color: var(--ff-tp);
 }
-.ff-browse-ribbon {
-  position: absolute; top: 0; right: 0; bottom: 0; width: 62%;
-  display: flex; gap: 12px; align-items: center; justify-content: flex-end;
-  padding-right: var(--ff-pad); transform: rotate(-4deg) translateX(6%);
-  opacity: .42; pointer-events: none;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 55%);
-  mask-image: linear-gradient(90deg, transparent, #000 55%);
+.ff-browse-topbar .ff-browse-scoped-search { flex: 1 1 auto; min-width: 0; margin-top: 0; max-width: none; }
+.ff-browse-topbar__surprise {
+  display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
+  height: 40px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid var(--ff-bd); background: transparent;
+  color: var(--ff-ts); font: 500 13px 'Inter', sans-serif; cursor: pointer; white-space: nowrap;
+  transition: border-color .15s, color .15s;
 }
-.ff-browse-ribbon__poster { flex: 0 0 auto; width: 120px; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; box-shadow: 0 14px 30px rgba(0,0,0,.5); }
-.ff-browse-ribbon__poster img { width: 100%; height: 100%; object-fit: cover; }
-@media (max-width: 640px) { .ff-browse-ribbon { width: 100%; opacity: .22; } }
-.ff-browse-masthead__scrim { position: absolute; inset: 0; background: linear-gradient(90deg, var(--ff-ink) 30%, color-mix(in srgb, var(--ff-ink) 50%, transparent) 70%, transparent); }
-.ff-browse-masthead__content { position: relative; z-index: 1; width: 100%; max-width: 720px; }
-.ff-browse-masthead__title { margin: 8px 0 0; font-size: clamp(30px, 5vw, 46px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.02; color: var(--ff-tp); }
-.ff-browse-masthead__line { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--ff-ts); max-width: 46ch; }
-.ff-browse-masthead__actions { margin-top: 16px; }
+.ff-browse-topbar__surprise:hover { border-color: var(--ff-bs); color: var(--ff-tp); }
+.ff-browse-topbar__surprise:focus-visible { outline: 2px solid var(--ff-tp); outline-offset: 3px; }
+@media (max-width: 767px) {
+  .ff-browse-topbar {
+    display: grid;
+    grid-template-areas: "title surprise" "search search";
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 14px var(--ff-pad) 10px;
+    gap: 10px 12px;
+  }
+  .ff-browse-topbar__title { grid-area: title; font-size: 17px; }
+  .ff-browse-topbar .ff-browse-scoped-search { grid-area: search; max-width: none; }
+  .ff-browse-topbar__surprise { grid-area: surprise; padding: 0 11px; }
+  .ff-browse-topbar__surprise-label { display: none; }
+  .ff-browse-topbar .ff-browse-scoped-search .ffb-btn { min-height: 34px; padding: 0 12px; }
+}
 
 /* Scoped search */
 .ff-browse-scoped-search {
-  margin-top: 18px; display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px;
   background: var(--ff-s1); border: 1px solid var(--ff-bd); border-radius: 999px;
   padding: 5px 5px 5px 16px; max-width: 540px;
 }
@@ -100,7 +105,8 @@
 /* ── Body ──────────────────────────────────────────────────────────────── */
 .ff-browse__body { max-width: 1440px; margin: 0 auto; padding: 0 var(--ff-pad) 64px; }
 
-.ff-browse-section-head { padding: 28px 0 14px; }
+.ff-browse-section-head { padding: 20px 0 10px; }
+.ff-browse-sortlabel { font-size: 12px; font-weight: 500; color: var(--ff-tm); white-space: nowrap; }
 .ff-browse-section-head h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--ff-tp); }
 .ff-browse-section-head p { margin: 4px 0 0; font-size: 13px; color: var(--ff-tm); }
 
@@ -126,8 +132,8 @@
 
 /* ── Sticky filter bar ─────────────────────────────────────────────────── */
 .ff-browse-filterbar {
-  position: sticky; top: var(--hdr-h, 56px); z-index: 20;
-  margin-top: 18px; padding: 12px 0; background: color-mix(in srgb, var(--ff-ink) 92%, transparent);
+  position: sticky; top: 0; z-index: 20;
+  padding: 12px 0; background: color-mix(in srgb, var(--ff-ink) 92%, transparent);
   backdrop-filter: blur(8px); border-bottom: 1px solid var(--ff-bd);
 }
 .ff-browse-filterbar__row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -169,9 +175,13 @@
 
 .ff-browse-filterbar__mobile-filters, .ff-browse-sort-mobile { display: none; }
 @media (max-width: 767px) {
-  .ff-browse-filterbar__filters, .ff-browse-sorttabs { display: none; }
-  .ff-browse-filterbar__mobile-filters { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--ff-bd); background: var(--ff-s1); color: var(--ff-tp); font: 600 13px 'Inter', sans-serif; cursor: pointer; flex: 1 1 auto; }
+  /* Filters become a horizontally scrollable strip; mobile sort stays pinned right */
+  .ff-browse-filterbar__row { flex-wrap: nowrap; }
+  .ff-browse-filterbar__filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+  .ff-browse-filterbar__filters::-webkit-scrollbar { display: none; }
+  .ff-browse-sorttabs, .ff-browse-sortlabel { display: none; }
   .ff-browse-sort-mobile { display: block; flex: 0 0 auto; }
+
 }
 
 /* Active chips */

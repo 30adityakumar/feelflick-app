@@ -284,6 +284,11 @@ export async function installMovieFixture(page, options = {}) {
       if (opts.routeMode === 'not_found' || reqId !== String(MOVIE.tmdbId)) {
         return route.fulfill({ status: 200, contentType: 'application/json', body: notFoundBody })
       }
+      // §6: a REAL TMDB HTTP 404 (not a 200 "success:false" payload). getMovieDetails
+      // rejects with err.status === 404 → useMovieData normalizes it to not_found.
+      if (opts.routeMode === 'http_404') {
+        return route.fulfill({ status: 404, contentType: 'application/json', body: notFoundBody })
+      }
       // 403 is non-retryable in the TMDB client → getMovieDetails rejects immediately
       // → useMovieData's catch → load_error (never echoes the raw error).
       if (opts.routeMode === 'load_error') return route.fulfill({ status: 403, contentType: 'application/json', body: '{"status_message":"mock load error"}' })

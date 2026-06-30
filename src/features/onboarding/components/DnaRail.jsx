@@ -1,3 +1,13 @@
+// src/features/onboarding/components/DnaRail.jsx
+// Persistent onboarding "Cinematic DNA" rail — fuses the former Progress
+// (identity + progressbar) and TasteStrip (signal tally) into ONE flex-none
+// chrome row: FEELFLICK wordmark + a desktop-only "Cinematic DNA" kicker + the
+// single brand-gradient progressbar rail + a compact Mood/Genre/Film/Rated tally
+// + the 01/04 counter. The rail is the only horizontal rule (no second hairline,
+// no panel/chips/card). Wordmark is paper-white, progress is the coral signature
+// (the one allowed coral role here); mood stays ambient (AmbientGlow /
+// --ob-accent-rgb), never tinting this chrome.
+
 import { motion, useReducedMotion } from 'framer-motion'
 
 const TOTAL = 4
@@ -18,9 +28,21 @@ export default function DnaRail({ step, moods, genres, films, ratings }) {
 
   return (
     <header className="ob-dna-rail">
-      <div className="ob-dna-identity">
-        <span className="ob-wordmark">FEELFLICK</span>
-        <span className="ob-dna-name">Cinematic DNA</span>
+      {/* Identity (left) — wordmark (Inter 600, +0.04em, paper-white to match the
+          shipped app header) + a desktop-only micro-kicker naming the artifact. */}
+      <div className="flex-none flex items-center gap-2.5">
+        <span
+          className="ob-display text-[13px] sm:text-[15px] font-semibold text-[var(--color-text-primary,#f5f2eb)]"
+          style={{ letterSpacing: '0.04em' }}
+        >
+          FEELFLICK
+        </span>
+        <span className="hidden sm:inline-flex items-center gap-2.5">
+          <span className="h-3 w-px bg-white/12" aria-hidden="true" />
+          <span className="text-[10px] uppercase tracking-[0.22em] text-white/35">
+            Cinematic DNA
+          </span>
+        </span>
       </div>
 
       <div
@@ -32,7 +54,7 @@ export default function DnaRail({ step, moods, genres, films, ratings }) {
         aria-label="Onboarding progress"
       >
         <motion.div
-          className="ob-progress-fill"
+          className="h-full rounded-full bg-[var(--color-brand-accent,#e5636f)]"
           initial={false}
           animate={{ width: `${fraction * 100}%` }}
           transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 100, damping: 20 }}

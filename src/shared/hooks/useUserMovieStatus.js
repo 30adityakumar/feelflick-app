@@ -106,6 +106,25 @@ export function useUserMovieStatus(params = {}) {
     }
   }, [user?.id, movieKey, explicitInternalId, movie])
 
+  // §30: when a mutual-exclusivity CLEANUP delete fails, the primary write still
+  // succeeded but the OTHER flag may now be stale (e.g. still in watchlist after a
+  // mark-watched). Re-read both tables so the UI reflects the authoritative state
+  // rather than the optimistic guess. Best-effort: on a read failure we keep the
+  // current state (the primary action is still the source of truth).
+  const resyncStatus = useCallback(async () => {
+    if (!user?.id || !resolvedInternalId) return
+    try {
+      const [wlRes, whRes] = await Promise.all([
+        supabase.from('user_watchlist').select('movie_id').eq('user_id', user.id).eq('movie_id', resolvedInternalId).maybeSingle(),
+        supabase.from('user_history').select('movie_id').eq('user_id', user.id).eq('movie_id', resolvedInternalId).maybeSingle(),
+      ])
+      if (!wlRes.error) setIsInWatchlist(Boolean(wlRes.data))
+      if (!whRes.error) setIsWatched(Boolean(whRes.data))
+    } catch {
+      /* keep current state — primary write already settled */
+    }
+  }, [user?.id, resolvedInternalId])
+
   const toggleWatchlist = useCallback(async () => {
     if (!user?.id || !resolvedInternalId || loading.watchlist) return
 
@@ -144,12 +163,14 @@ export function useUserMovieStatus(params = {}) {
 
         if (error) throw error
 
-        // Remove from watched history (mutual exclusivity)
-        await supabase
+        // Remove from watched history (mutual exclusivity). §30: check the cleanup
+        // error and re-sync if it failed, so we never leave the user in BOTH lists.
+        const { error: cleanupErr } = await supabase
           .from('user_history')
           .delete()
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
+        if (cleanupErr) await resyncStatus()
 
         // F8B: attribute the save back to the recommendation that surfaced this
         // film, if one did recently. No-ops for generic/direct saves (no recent
@@ -171,7 +192,7 @@ export function useUserMovieStatus(params = {}) {
     } finally {
       setLoading(prev => ({ ...prev, watchlist: false }))
     }
-  }, [user, resolvedInternalId, loading.watchlist, isInWatchlist, source])
+  }, [user, resolvedInternalId, loading.watchlist, isInWatchlist, source, resyncStatus])
 
   const toggleWatched = useCallback(async () => {
     if (!user?.id || !resolvedInternalId || loading.watched) return
@@ -207,12 +228,14 @@ export function useUserMovieStatus(params = {}) {
 
         if (error) throw error
 
-        // Remove from watchlist (mutual exclusivity)
-        await supabase
+        // Remove from watchlist (mutual exclusivity). §30: check the cleanup error
+        // and re-sync if it failed, so we never leave the user in BOTH lists.
+        const { error: cleanupErr } = await supabase
           .from('user_watchlist')
           .delete()
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
+        if (cleanupErr) await resyncStatus()
 
         // F8B: attribute the watch back to the recommendation that surfaced this
         // film, if one did recently. No-ops for generic/direct watches. Only on
@@ -248,7 +271,7 @@ export function useUserMovieStatus(params = {}) {
     } finally {
       setLoading(prev => ({ ...prev, watched: false }))
     }
-  }, [user, resolvedInternalId, loading.watched, isWatched, source, movie])
+  }, [user, resolvedInternalId, loading.watched, isWatched, source, movie, resyncStatus])
 
   return {
     isInWatchlist,

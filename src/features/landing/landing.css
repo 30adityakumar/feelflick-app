@@ -1,154 +1,386 @@
-*{box-sizing:border-box;}
-
-/* Hero min-height — 100vh fallback then 100dvh for iOS Safari.
-   100dvh (dynamic viewport height) respects the iOS URL bar's expand/collapse
-   so the hero doesn't get pushed below the chrome on first paint. Supported
-   in iOS Safari 15.4+ / Chrome 108+ / Firefox 101+. Pre-support browsers get
-   the 100vh fallback (cascade order: dvh overrides vh in supporting UAs). */
-.ff-hero{min-height:100vh;min-height:100dvh;}
-
-/* Anchor link offset clearing the 64px fixed header. We deliberately do NOT
-   set `scroll-behavior: smooth` on html — it has known interaction issues with
-   mouse-wheel scrolling, URL-hash position, and macOS trackpad momentum (the
-   browser tries to pin the page to the #hash target and fights subsequent
-   wheel events). Anchor links still jump correctly; they just don't animate.
-   If we want animated anchor scroll later, implement it per-click via JS so
-   wheel-scroll stays unaffected. */
-html{scroll-padding-top:80px;}
-
-/* Focus ring — canonical projection-ivory focus token (the global :focus-visible
-   token pass; legacy fallback ivory literal). */
-:focus{outline:none;}
-:focus-visible{outline:2px solid var(--color-focus, #f3ecdf);outline-offset:3px;border-radius:4px;}
-/* Pill CTAs get a different shape — outline auto-wraps the border-radius in modern browsers. */
-.ff-link:focus-visible,button:focus-visible{outline:2px solid var(--color-focus, #f3ecdf);outline-offset:3px;}
-
-/* Skip-to-content — invisible until focused, jumps to the main landmark. */
-.ff-skip{position:absolute;top:0;left:0;transform:translateY(-200%);background:var(--color-canvas, #15120f);color:#fff;padding:14px 22px;border:1px solid var(--color-focus, #f3ecdf);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;text-decoration:none;z-index:100;transition:transform 0.2s ease;}
-.ff-skip:focus-visible{transform:translateY(12px);left:12px;}
-
-em{font-style:italic;}
-button,input{font-family:inherit;}
-::selection{background:rgba(221,78,131,0.35);}
-
-/* Reduced-motion: kill the page's purely-decorative repeating animations.
-   Hero card 5.4s rotation is paused by JS (in Landing.jsx Hero). */
-@media (prefers-reduced-motion: reduce){
-  .ff-fade-swap{animation:none !important;}
-  [style*="animation"]{animation:none !important;}
+/* src/features/landing/landing.css
+ * Route-scoped landing styles (Adaptive Editorial Cinema). Every rule is scoped
+ * under .ff-landing so nothing leaks to app routes after the chunk loads. Inter
+ * only; deep neutral ink canvas; paper-white type; neutral inverse (ivory) primary
+ * actions; coral-red as a restrained signature only; flat-first. The local --c-*
+ * names ALIAS the canonical --color-* tokens (foundations.css), so a theme change
+ * propagates here. Includes responsive, reduced-motion, forced-colours.
+ */
+.ff-landing{
+  /* Aliases of the canonical Adaptive Editorial Cinema tokens. Hex fallbacks are
+     byte-identical to the canonical values so a missing token never breaks the
+     page while theme changes still propagate to the landing. */
+  --c-canvas:var(--color-canvas,#0f1010);--c-surface-1:var(--color-surface-1,#171819);--c-surface-2:var(--color-surface-2,#222427);--c-surface-raised:var(--color-surface-raised,#2e3135);
+  --c-text:var(--color-text-primary,#f5f2eb);--c-text-2:var(--color-text-secondary,#c9c5bc);--c-text-3:var(--color-text-muted,#a5a198);
+  --c-border:var(--color-border-subtle,#3a3d41);--c-border-strong:var(--color-border-strong,#747a82);
+  --c-fill:var(--color-action-primary-fill,#f0ece4);--c-fill-text:var(--color-action-primary-text,#0f1010);--c-focus:var(--color-focus,#f5f2eb);
+  --c-rose:var(--color-brand-accent,#e5636f);--c-rose-text:var(--color-brand-accent-text,#ed7a87);
+  --max:1320px;--header:64px;
+  min-height:100vh;background:var(--c-canvas);color:var(--c-text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
-@keyframes ff-tw{0%,100%{opacity:0.12;transform:scale(1);}50%{opacity:0.7;transform:scale(1.3);}}
-@keyframes ff-rot{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-/* Reveal default = visible. The animated hide-then-fade-in only kicks in for
-   motion-enabled clients (html.with-motion is added by Landing.jsx on mount
-   when the user does NOT prefer reduced motion). This keeps crawlers, OG
-   preview bots, screen readers reading the static DOM, and prefers-reduced-
-   motion users on a page that simply renders — no IntersectionObserver
-   required. */
-.ff-reveal{opacity:1;transform:none;}
-html.with-motion .ff-reveal{opacity:0;transform:translateY(32px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1);}
-html.with-motion .ff-reveal.in{opacity:1;transform:translateY(0);}
-@media (prefers-reduced-motion: reduce){
-  html.with-motion .ff-reveal{opacity:1;transform:none;transition:none;}
+.ff-landing *{box-sizing:border-box;min-width:0}
+.ff-landing :where(a){color:inherit;text-decoration:none}
+.ff-landing img{display:block;max-width:100%}
+/* :where() keeps these element resets at zero added specificity so component
+   variant classes (.ff-l-btn--primary etc.) always win their own color. */
+.ff-landing :where(button){font:inherit;color:inherit;cursor:pointer}
+.ff-landing :focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.ff-landing ::selection{background:var(--c-surface-raised);color:var(--c-text)}
+
+.ff-l-shell{width:min(calc(100% - 56px),var(--max));margin-inline:auto}
+.ff-l-skip{position:fixed;z-index:999;top:10px;left:12px;padding:10px 14px;border-radius:9px;background:var(--c-fill);color:var(--c-fill-text);font-size:12px;font-weight:700;transform:translateY(-160%);transition:transform .18s}
+.ff-l-skip:focus{transform:none}
+.ff-l-eyebrow{margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+
+/* Buttons: rounded-rect command; ivory primary; rose only as signature ink */
+.ff-l-btn{min-height:46px;padding:0 18px;border:1px solid transparent;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;transition:filter .18s,background .18s,border-color .18s,color .18s}
+.ff-l-btn--lg{min-height:50px;padding:0 22px;font-size:14px}
+.ff-l-btn--primary{background:var(--c-fill);color:var(--c-fill-text)}
+.ff-l-btn--ghost{background:transparent;border-color:var(--c-border);color:var(--c-text-2)}
+.ff-l-btn--text{background:transparent;border:0;color:var(--c-text-3)}
+.ff-l-btn:hover:not(:disabled){filter:brightness(1.06)}
+.ff-l-btn--ghost:hover:not(:disabled){color:var(--c-text);border-color:var(--c-border-strong)}
+.ff-l-btn:active:not(:disabled){transform:translateY(1px)}
+.ff-l-btn:disabled{opacity:.6;cursor:progress}
+
+/* The Landing page header is now the SHARED app header (src/app/header, rendered via
+   SiteHeaderHost) — there is no Landing-specific header markup or CSS. The only
+   ".ff-l-wordmark" left is the footer back-cover mark below. */
+/* Matches the shared app Header wordmark: Inter extra-bold, tight tracking, paper-white. */
+.ff-l-wordmark{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;color:var(--c-text);white-space:nowrap}
+
+/* Hero — top offset uses the shared header's measured height (--hdr-h, set by the
+   app Header), with the landing's own --header as a pre-measurement fallback. */
+.ff-landing main{padding-top:var(--hdr-h,var(--header))}
+.ff-l-hero{position:relative;min-height:calc(100svh - var(--hdr-h,var(--header)));overflow:hidden;background:radial-gradient(circle at 50% 0%,var(--c-surface-2) 0%,var(--c-surface-1) 34%,var(--c-canvas) 78%)}
+.ff-l-hero-copy{position:relative;z-index:3;padding:100px 0 40px;text-align:center;max-width:920px;margin-inline:auto}
+.ff-l-hero-eyebrow{color:var(--c-rose-text)}
+.ff-l-hero-h1{margin:14px 0 0;font-size:clamp(3.4rem,9vw,7.2rem);line-height:.92;letter-spacing:-.058em;font-weight:700;text-wrap:balance}
+.ff-l-hero-h1 em{display:block;font-weight:400;font-style:italic;letter-spacing:-.038em;color:var(--c-text-2)}
+.ff-l-hero-deck{max-width:680px;margin:22px auto 0;color:var(--c-text-2);font-size:clamp(15px,1.4vw,19px);line-height:1.6}
+.ff-l-hero-actions{margin-top:26px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.ff-l-hero-proof{margin:16px 0 0;padding:0;list-style:none;display:flex;justify-content:center;gap:10px 18px;flex-wrap:wrap;color:var(--c-text-3);font-size:12px}
+.ff-l-hero-proof li{display:flex;align-items:center;gap:7px}
+.ff-l-hero-proof i{width:5px;height:5px;border-radius:50%;background:var(--c-text-2)}
+
+/* Cinema ribbon (decorative) */
+.ff-l-ribbon{position:relative;z-index:2;width:min(1120px,calc(100% - 28px));height:330px;margin:0 auto;display:flex;align-items:flex-end;justify-content:center;gap:16px;perspective:1600px;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 76%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 76%,transparent 100%)}
+.ff-l-ribbon__poster{flex:0 0 190px;aspect-ratio:2/3;overflow:hidden;border:1px solid var(--c-border);border-radius:12px;background:var(--c-surface-1);box-shadow:0 24px 60px rgba(0,0,0,.4);filter:saturate(.82) brightness(.78)}
+.ff-l-ribbon__poster img,.ff-l-ribbon__poster .ff-l-poster-fallback{width:100%;height:100%;object-fit:cover}
+.ff-l-ribbon__poster--1{transform:translateY(66px) rotateY(13deg) rotateZ(-4deg)}
+.ff-l-ribbon__poster--2{transform:translateY(26px) rotateY(7deg) rotateZ(-2deg)}
+.ff-l-ribbon__poster--3{flex-basis:220px;transform:translateY(0);filter:saturate(.92) brightness(.84);box-shadow:0 28px 72px rgba(0,0,0,.46)}
+.ff-l-ribbon__poster--4{transform:translateY(26px) rotateY(-7deg) rotateZ(2deg)}
+.ff-l-ribbon__poster--5{transform:translateY(66px) rotateY(-13deg) rotateZ(4deg)}
+
+/* Poster (preview + fallback) */
+.ff-l-poster-fallback{display:flex;align-items:flex-end;padding:12px;background:linear-gradient(160deg,var(--c-surface-raised),var(--c-surface-1));border-radius:inherit;aspect-ratio:2/3}
+.ff-l-poster-fallback__t{font-size:13px;font-weight:600;color:var(--c-text);line-height:1.2}
+
+/* Principles strip */
+/* Visually-hidden (screen-reader-only) — for quiet section headings. */
+.ff-l-vh{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* Principles — a quiet editorial manifesto on the page canvas (not a card module):
+   subtle top/bottom dividers, thin vertical column dividers, no surface block. */
+.ff-l-principles{padding:48px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border)}
+.ff-l-principles-grid{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr)}
+.ff-l-principle{padding:0 36px;border-left:1px solid var(--c-border)}
+.ff-l-principle:first-child{padding-left:0;border-left:0}
+.ff-l-principle:last-child{padding-right:0}
+.ff-l-principle__n{display:block;font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--c-rose-text)}
+.ff-l-principle__title{margin:10px 0 0;font-size:1.25rem;font-weight:600;line-height:1.22;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-principle__body{margin:8px 0 0;max-width:34ch;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
+
+/* Generic section + heads */
+.ff-l-section{padding:104px 0;border-top:1px solid var(--c-border)}
+.ff-l-section-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.46fr);gap:56px;align-items:end;margin-bottom:48px}
+.ff-l-section-h2{margin:12px 0 0;font-size:clamp(2.6rem,5.4vw,5.4rem);line-height:.98;letter-spacing:-.048em;font-weight:600;text-wrap:balance}
+.ff-l-section-h2 em{font-weight:400;font-style:italic;letter-spacing:-.028em;color:var(--c-text-2)}
+.ff-l-section-head p{margin:0;color:var(--c-text-3);font-size:14px;line-height:1.65}
+.ff-l-section-lede{margin:18px 0 0;max-width:580px;color:var(--c-text-3);font-size:14px;line-height:1.65}
+.ff-l-card{padding:24px;border:1px solid var(--c-border);border-radius:18px;background:var(--c-surface-1)}
+.ff-l-example-tag{margin:0 0 16px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-chip{min-height:34px;padding:0 12px;border:1px solid var(--c-border);border-radius:999px;display:inline-flex;align-items:center;color:var(--c-text-2);font-size:11px}
+.ff-l-chip--muted{color:var(--c-text-3)}
+
+/* Entrances ("How it works") — asymmetric two-column: a left introduction and a right
+   ordered list of entrance rows. Distinct from the three-column principles strip. */
+/* The Hero's "See how it works" anchor lands here — offset for the fixed header so the
+   section heading is visible below it. */
+.ff-l-entrances{scroll-margin-top:calc(var(--hdr-h,var(--header)) + 16px)}
+.ff-l-entrances-grid{display:grid;grid-template-columns:minmax(0,0.62fr) minmax(0,1fr);gap:clamp(40px,6vw,96px);align-items:start}
+.ff-l-entrances-intro{align-self:start}
+.ff-l-entrances-h2{margin:12px 0 0;font-size:clamp(2rem,3vw,3rem);line-height:1.06;letter-spacing:-.03em;font-weight:600;text-wrap:balance;color:var(--c-text)}
+.ff-l-entrances-h2 em{font-weight:400;font-style:italic;letter-spacing:-.02em;color:var(--c-text-2)}
+.ff-l-entrances-lead{margin:18px 0 0;max-width:42ch;color:var(--c-text-2);font-size:14.5px;line-height:1.65}
+
+.ff-l-entrance-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--c-border)}
+.ff-l-entrance{padding:28px 0;border-bottom:1px solid var(--c-border)}
+.ff-l-entrance:last-child{border-bottom:0;padding-bottom:0}
+.ff-l-entrance__meta{margin:0;display:flex;align-items:baseline;gap:10px}
+.ff-l-entrance__n{font-size:11px;color:var(--c-text-3);font-variant-numeric:tabular-nums}
+.ff-l-entrance__dest{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c-text-2)}
+.ff-l-entrance__title{margin:10px 0 0;font-size:clamp(1.75rem,2.2vw,2.1rem);font-weight:600;letter-spacing:-.03em;line-height:1.12;color:var(--c-text)}
+.ff-l-entrance__example{margin:8px 0 0;color:var(--c-rose-text);font-size:12.5px;font-weight:600;letter-spacing:.01em}
+.ff-l-entrance__copy{margin:10px 0 0;color:var(--c-text-2);font-size:14px;line-height:1.65;max-width:54ch}
+
+/* Tabs (Film File + Library) */
+.ff-l-tablist{display:inline-flex;padding:4px;border:1px solid var(--c-border);border-radius:999px;background:rgba(245,242,235,.02)}
+.ff-l-tab{min-height:44px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--c-text-3);font-size:11.5px;font-weight:600}
+.ff-l-tab.is-active{background:var(--c-fill);color:var(--c-fill-text)}
+.ff-l-tab:hover:not(.is-active){color:var(--c-text)}
+
+/* Film File preview */
+.ff-l-filmfile-layout{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:54px;align-items:start}
+.ff-l-filmfile-panel{margin-top:18px}
+.ff-l-filmfile-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.ff-l-filmfile-top{display:grid;grid-template-columns:96px minmax(0,1fr);gap:18px;align-items:center}
+.ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:96px;aspect-ratio:2/3;object-fit:cover;border-radius:8px}
+.ff-l-filmfile-status{color:var(--c-rose-text);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.ff-l-filmfile-title{margin:7px 0 0;font-size:1.7rem;font-weight:600;letter-spacing:-.02em}
+.ff-l-filmfile-summary{margin:8px 0 0;color:var(--c-text-2);font-size:13px;line-height:1.55}
+.ff-l-filmfile-rows{margin:18px 0 0;border-top:1px solid var(--c-border)}
+/* Restrained two-column rows (label | value) — left-aligned, editorial, not form fields.
+   Stacks on mobile (see responsive block). */
+.ff-l-filmfile-row{padding:13px 0;border-bottom:1px solid var(--c-border);display:grid;grid-template-columns:minmax(140px,220px) minmax(0,1fr);gap:24px;align-items:baseline}
+.ff-l-filmfile-row dt{font-size:12.5px;font-weight:600;color:var(--c-text)}
+.ff-l-filmfile-row dd{margin:0;color:var(--c-text-2);font-size:12.5px;line-height:1.5}
+.ff-l-filmfile-note{margin:16px 0 0;padding:12px 14px;border-left:2px solid var(--c-border-strong);background:rgba(245,242,235,.03);color:var(--c-text-2);font-size:12px;line-height:1.5}
+
+/* DNA preview */
+.ff-l-dna-layout{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:54px;align-items:center}
+.ff-l-dna-archetype{margin:0;font-size:2.1rem;font-weight:600;letter-spacing:-.03em}
+.ff-l-dna-statement{margin:8px 0 0;color:var(--c-text-2);font-size:13px;line-height:1.5}
+.ff-l-dna-traits{margin:22px 0 0;padding:0;list-style:none;display:grid}
+.ff-l-dna-trait{padding:12px 0;border-top:1px solid var(--c-border);display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:14px;align-items:center}
+.ff-l-dna-trait__label{font-size:12px}
+.ff-l-dna-trait__segments{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.ff-l-dna-trait__segments i{height:5px;border-radius:999px;background:rgba(245,242,235,.1)}
+.ff-l-dna-trait__segments i.on{background:var(--c-text-2)}
+.ff-l-dna-trait__band{font-size:10px;color:var(--c-text-3)}
+.ff-l-dna-sources-label{margin:20px 0 0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-dna-sources{margin:10px 0 0;padding:0;list-style:none;display:flex;gap:8px;flex-wrap:wrap}
+
+/* "Your film life" — one private-library specimen; each tab expresses its own job. */
+.ff-l-library-panel{margin-top:18px}
+.ff-l-library-panel:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.ff-l-library-h3{margin:2px 0 0;font-size:1.2rem;font-weight:600;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-library-copy{margin:8px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55;max-width:60ch}
+/* Retrieval tools — quiet explanatory text, not pills or controls. */
+.ff-l-tools{margin:18px 0 0}
+.ff-l-tools__label{margin:0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-tools__list{margin:6px 0 0;padding:0;list-style:none;color:var(--c-text-2);font-size:12.5px;line-height:1.7}
+.ff-l-tools__item{display:inline}
+.ff-l-tools__item:not(:last-child)::after{content:"·";margin:0 9px;color:var(--c-text-3)}
+/* Watchlist — calm visual retrieval grid (no shelf, no carousel, no fade). */
+.ff-l-watch-grid{margin:20px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:16px 14px}
+.ff-l-watch-poster{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px}
+.ff-l-watch-title{display:block;margin-top:9px;font-size:12.5px;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ff-l-watch-meta{display:block;margin-top:2px;color:var(--c-text-3);font-size:10.5px}
+/* Diary — chronological record; entries are rows (date rail · thumbnail · response). */
+.ff-l-diary{margin:20px 0 0}
+.ff-l-diary-month{margin-top:24px}
+.ff-l-diary-month:first-child{margin-top:0}
+.ff-l-diary-month__label{margin:0;position:static;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-diary-list{margin:8px 0 0;padding:0;list-style:none}
+.ff-l-diary-entry{padding:16px 0;border-top:1px solid var(--c-border);display:grid;grid-template-columns:2.2rem 44px minmax(0,1fr);grid-template-areas:"day poster id" "day poster note";column-gap:16px;row-gap:4px;align-items:start}
+.ff-l-diary-entry:first-child{border-top:0;padding-top:2px}
+.ff-l-diary-entry__day{grid-area:day;color:var(--c-text-3);font-size:13px;font-variant-numeric:tabular-nums;line-height:1.3}
+.ff-l-diary-poster{grid-area:poster;width:44px;aspect-ratio:2/3;object-fit:cover;border-radius:6px}
+/* Compact fallback for the small diary thumbnail (base fallback padding is too large here). */
+.ff-l-diary-entry .ff-l-poster-fallback{padding:6px}
+.ff-l-diary-entry .ff-l-poster-fallback .ff-l-poster-fallback__t{font-size:8px;line-height:1.1}
+.ff-l-diary-entry__id{grid-area:id;min-width:0}
+.ff-l-diary-entry__title{display:block;font-size:15px;font-weight:600;color:var(--c-text);line-height:1.25}
+.ff-l-diary-entry__reaction{display:block;margin-top:3px;color:var(--c-rose-text);font-size:11px;font-weight:700;letter-spacing:.04em}
+.ff-l-diary-entry__note{grid-area:note;margin:6px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
+
+/* People + Control */
+.ff-l-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.ff-l-control-h3{margin:10px 0 0;font-size:1.5rem;font-weight:600;letter-spacing:-.02em}
+.ff-l-control-copy{margin:10px 0 0;color:var(--c-text-3);font-size:12.5px;line-height:1.55}
+.ff-l-voices{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.ff-l-voice{padding:12px;border:1px solid var(--c-border);border-radius:12px;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-items:center}
+.ff-l-voice__glyph{width:36px;height:36px;border-radius:50%;background:var(--c-surface-2);border:1px solid var(--c-border)}
+.ff-l-voice strong{display:block;font-size:12px}
+.ff-l-voice span{display:block;margin-top:3px;color:var(--c-text-3);font-size:11px}
+.ff-l-pref-list{margin:18px 0 0;padding:0;list-style:none;display:grid}
+.ff-l-pref-row{padding:13px 0;border-top:1px solid var(--c-border);font-size:12.5px;color:var(--c-text)}
+.ff-l-pref-soon{margin:16px 0 0;font-size:11px;color:var(--c-text-3);font-style:italic}
+
+/* Trust */
+.ff-l-trust{padding:40px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:var(--c-surface-1)}
+.ff-l-trust-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.ff-l-trust-item{padding:0 24px;border-right:1px solid var(--c-border)}
+.ff-l-trust-item:last-child{border-right:0}
+.ff-l-trust-item strong{display:block;font-size:1.05rem;font-weight:600;line-height:1.25}
+.ff-l-trust-item p{margin:8px 0 0;color:var(--c-text-3);font-size:11.5px;line-height:1.5}
+
+/* Final CTA */
+.ff-l-final{padding:116px 0;text-align:center;border-top:1px solid var(--c-border);background:radial-gradient(48% 60% at 50% 100%,color-mix(in srgb,var(--c-surface-2) 65%,transparent),transparent 72%),var(--c-canvas)}
+.ff-l-final-eyebrow{color:var(--c-rose-text)}
+.ff-l-final-h{margin:12px auto 0;max-width:900px;font-size:clamp(3rem,7vw,6.4rem);line-height:.96;letter-spacing:-.05em;font-weight:600}
+.ff-l-final-h em{display:block;font-weight:400;font-style:italic;color:var(--c-text-2)}
+.ff-l-final-deck{margin:18px auto 0;max-width:600px;color:var(--c-text-3);font-size:14px;line-height:1.6}
+.ff-l-final-actions{margin-top:24px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+/* Footer — landing back cover: brand + a brief human line on the left, grouped nav
+   columns on the right, then the required TMDB attribution. On-brand tokens; recedes
+   behind the final CTA above. */
+.ff-l-footer{padding:56px 0 28px;border-top:1px solid var(--c-border);background:var(--c-canvas)}
+/* Balanced two-track top: brand block | nav (which holds three even columns). */
+.ff-l-footer-inner{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.9fr);gap:clamp(32px,5vw,72px);align-items:start}
+.ff-l-footer-brand{max-width:36ch}
+.ff-l-footer-tagline{margin:10px 0 0;color:var(--c-text-2);font-size:13.5px}
+.ff-l-footer-note{margin:12px 0 0;color:var(--c-text-3);font-size:12.5px;line-height:1.55;max-width:34ch}
+.ff-l-footer-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px 28px}
+.ff-l-footer-col__title{margin:0 0 8px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--c-text-3)}
+.ff-l-footer-col ul{margin:0;padding:0;list-style:none}
+.ff-l-footer-nav a{min-height:40px;display:inline-flex;align-items:center;color:var(--c-text-2);font-size:13px}
+.ff-l-footer-nav a:hover{color:var(--c-text)}
+.ff-l-footer-legal{margin-top:44px;padding-top:18px;border-top:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.ff-l-attrib{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
+.ff-l-tmdb{display:inline-flex;align-items:center;min-width:0;max-width:100%;min-height:44px;padding-block:14px}
+/* width+height attrs reserve a 167×14 box; height:auto + max-width:100% lets the
+   logo scale DOWN proportionally (never distorted) on very narrow widths/200%. */
+.ff-l-tmdb-logo{height:auto;width:167px;max-width:100%;display:block}
+.ff-l-footer-attribution{margin:0;color:var(--c-text-2);font-size:11px;line-height:1.5;max-width:440px}
+.ff-l-footer-copy{margin:0;color:var(--c-text-3);font-size:11px;flex:none}
+
+/* About page — reuses the .ff-l-* system; only these few extras are about-specific. */
+.ff-l-about-intro{border-top:0}
+.ff-l-about-grid{margin:28px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ff-l-about-card h3{margin:0;font-size:1.05rem;font-weight:600;letter-spacing:-.01em;color:var(--c-text)}
+.ff-l-about-card p{margin:9px 0 0;color:var(--c-text-2);font-size:13.5px;line-height:1.55}
+
+/* Legal pages (Privacy / Terms) — a readable editorial document column, not the marketing
+   section scale. Reuses the .ff-landing tokens; coral only for links. */
+.ff-l-legal{width:min(calc(100% - 48px),72ch);margin-inline:auto;padding:clamp(48px,8vw,96px) 0 88px}
+.ff-l-legal-head{margin:0 0 8px;padding-bottom:28px;border-bottom:1px solid var(--c-border)}
+.ff-l-legal-title{margin:6px 0 0;font-size:clamp(2rem,4.4vw,2.9rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;color:var(--c-text)}
+.ff-l-legal-updated{margin:12px 0 0;color:var(--c-text-3);font-size:12.5px}
+.ff-l-legal section{margin-top:40px}
+.ff-l-legal h2{margin:0;font-size:1.45rem;font-weight:600;letter-spacing:-.02em;color:var(--c-text);line-height:1.2}
+.ff-l-legal h3{margin:24px 0 0;font-size:1.02rem;font-weight:600;color:var(--c-text)}
+.ff-l-legal p{margin:14px 0 0;color:var(--c-text-2);font-size:15px;line-height:1.7}
+.ff-l-legal ul{margin:12px 0 0;padding-left:20px;color:var(--c-text-2);font-size:15px;line-height:1.7}
+.ff-l-legal li{margin:4px 0}
+/* Coral underline applies to in-prose links only — NOT button anchors (.ff-l-btn) in the
+   contact actions, which would otherwise be overridden (coral-on-ivory fails AA). */
+.ff-l-legal p a,.ff-l-legal li a{color:var(--c-rose-text);text-decoration:underline;text-underline-offset:2px}
+.ff-l-legal p a:hover,.ff-l-legal li a:hover{color:var(--c-text)}
+.ff-l-legal strong{color:var(--c-text);font-weight:600}
+.ff-l-legal-fine{font-size:12.5px;color:var(--c-text-3);line-height:1.6}
+/* Restrained callout for emphasis blocks (the "never do" list + the security caveat). */
+.ff-l-legal-note{margin:14px 0 0;padding:16px 18px;border-left:2px solid var(--c-border-strong);background:rgba(245,242,235,.03);border-radius:0 8px 8px 0}
+.ff-l-legal-note,.ff-l-legal-note p{color:var(--c-text-2);font-size:14px;line-height:1.6}
+.ff-l-legal-note ul{margin:0;color:var(--c-text-2);font-size:14px}
+.ff-l-legal-note p{margin:0}
+/* Contact close. */
+.ff-l-legal-contact{margin-top:48px;padding-top:28px;border-top:1px solid var(--c-border)}
+.ff-l-legal-actions{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px}
+
+/* OAuth error surface */
+.ff-l-authstatus{position:fixed;z-index:500;left:50%;bottom:22px;transform:translateX(-50%);max-width:min(560px,calc(100% - 28px));display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--c-border-strong);border-radius:12px;background:var(--c-surface-2);box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.ff-l-authstatus__msg{margin:0;color:var(--c-text);font-size:13px;flex:1 1 220px}
+.ff-l-authstatus__actions{display:flex;gap:8px}
+.ff-l-authstatus .ff-l-btn{min-height:40px}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media(max-width:980px){
+  .ff-l-filmfile-layout,.ff-l-dna-layout{grid-template-columns:1fr;gap:36px}
+  .ff-l-control-grid{grid-template-columns:1fr}
+  .ff-l-section-head{grid-template-columns:1fr;gap:18px}
+  .ff-l-watch-grid{grid-template-columns:repeat(3,1fr)}
 }
-.ff-link{color:inherit;text-decoration:none;}
-/* Primary CTA micro-interaction — codifies CLAUDE.md's documented button feel
-   (hover brightness-110 + scale-1.02, active scale-0.97) for the landing's
-   inline-styled AuthCTA pill. transform/filter aren't set inline, so the class
-   wins; disabled (loading) state opts out so a busy button doesn't animate. */
-.ff-cta{transition:transform 0.18s cubic-bezier(.2,.7,.2,1),filter 0.18s ease;}
-.ff-cta:hover{filter:brightness(1.1);transform:scale(1.02);}
-.ff-cta:active{transform:scale(0.97);}
-.ff-cta:disabled{filter:none;transform:none;}
-@media (prefers-reduced-motion: reduce){.ff-cta:hover,.ff-cta:active{transform:none;}}
-/* Trailing arrow that slides on CTA hover (Linear/Vercel signature). Wrap the
-   arrow glyph in <span class="ff-cta-arrow"> inside an .ff-cta button. */
-.ff-cta-arrow{display:inline-block;transition:transform 0.18s cubic-bezier(.2,.7,.2,1);}
-.ff-cta:hover .ff-cta-arrow{transform:translateX(3px);}
-/* Ghost/outline pill — the secondary half of a primary+secondary CTA pair.
-   Owns its own rest + hover color so it doesn't read as a nav anchor. */
-.ff-ghost{color:rgba(250,250,250,0.72);transition:background-color 0.18s ease,border-color 0.18s ease,color 0.18s ease;}
-.ff-ghost:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.18) !important;color:rgba(250,250,250,0.92);}
-/* Brand logo link — subtle lift on hover so the mark reads as clickable. */
-.ff-logo{transition:opacity 0.18s ease,transform 0.18s ease;}
-.ff-logo:hover{opacity:0.82;transform:scale(1.01);}
-@media (prefers-reduced-motion: reduce){.ff-cta:hover .ff-cta-arrow,.ff-logo:hover{transform:none;}}
-.ff-eyebrow{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:rgba(250,250,250,0.42);}
-.ff-italic{font-family:var(--font-ui, 'Inter', system-ui, sans-serif);font-weight:400;font-style:italic;}
-.ff-d1{font-family:var(--font-editorial);font-weight:400;letter-spacing:-0.025em;line-height:0.95;}
-.ff-d2{font-family:var(--font-editorial);font-weight:400;letter-spacing:-0.02em;line-height:0.96;}
-.ff-body{font-family:'Inter',sans-serif;}
-.ff-fade-swap{animation:ff-fade-swap 0.5s cubic-bezier(.2,.7,.2,1);}
-@keyframes ff-fade-swap{from{opacity:0;transform:translateY(6px);filter:blur(4px);}to{opacity:1;transform:translateY(0);filter:blur(0);}}
-
-/* Mobile drawer enter animation — slides down + fades in. */
-.ff-drawer-in{animation:ff-drawer-in 200ms cubic-bezier(.2,.7,.2,1);transform-origin:top center;}
-@keyframes ff-drawer-in{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-.ff-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
-.ff-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
-.ff-grid-hero{display:grid;grid-template-columns:1fr 1.05fr;gap:96px;align-items:center;}
-.ff-grid-feature{display:grid;grid-template-columns:420px 1fr;gap:64px;}
-.ff-grid-card{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:flex-start;}
-.ff-grid-footer{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;}
-/* Section tone — cinematic chapter cadence (F1.2). `panel` sections (the lifted
-   editorial chapters) get a soft white inset top-light seam so they read as a
-   raised surface / new chapter against the `void` (#000) beats — subtle, no gray
-   stripes, no pseudo-element. `void` beats keep the flat hairline only. */
-.ff-sec-panel{box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),inset 0 22px 46px -42px rgba(255,255,255,0.06);}
-
-/* Briefing — one confident pick + an honest skip-to-next queue (F1.3). The hero
-   pick leads; the queue is a clearly-secondary column (NOT three equal picks). */
-.ff-briefing-body{display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:start;}
-.ff-briefing-hero{display:grid;grid-template-columns:168px 1fr;gap:28px;align-items:start;}
-@media (max-width:1023px){.ff-briefing-body{grid-template-columns:1fr;gap:40px;}}
-@media (max-width:767px){
-  .ff-briefing-card{padding:26px 22px !important;}
-  .ff-briefing-hero{grid-template-columns:1fr;gap:18px;}
+@media(max-width:720px){
+  .ff-landing{--header:58px}
+  .ff-l-shell{width:calc(100% - 28px)}
+  .ff-l-about-grid{grid-template-columns:1fr}
+  .ff-l-hero-copy{padding:72px 0 36px}
+  .ff-l-hero-h1{font-size:clamp(3rem,15vw,5.2rem);letter-spacing:-.05em}
+  /* Centre the ribbon so the dominant centre poster (Her) reads first, with the
+     adjacent posters flanking it and the outer pair intentionally cropped + faded at
+     both edges (symmetric side fade + bottom fade). No scroll/swipe — overflow:hidden. */
+  .ff-l-ribbon{width:100%;height:250px;justify-content:center;gap:10px;overflow:hidden;perspective:none;-webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 78%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 78%,transparent);mask-composite:intersect}
+  .ff-l-ribbon__poster{flex:0 0 138px;border-radius:10px}
+  .ff-l-ribbon__poster--1{transform:translateY(46px) rotateZ(-3deg)}
+  .ff-l-ribbon__poster--2{transform:translateY(18px) rotateZ(-1deg)}
+  .ff-l-ribbon__poster--3{flex-basis:160px;transform:none}
+  .ff-l-ribbon__poster--4{transform:translateY(18px) rotateZ(1deg)}
+  .ff-l-ribbon__poster--5{transform:translateY(46px) rotateZ(3deg)}
+  .ff-l-principles{padding:34px 0}
+  .ff-l-principles-grid,.ff-l-trust-grid{grid-template-columns:1fr}
+  .ff-l-principle{padding:22px 0;border-left:0;border-top:1px solid var(--c-border)}
+  .ff-l-principle:first-child{padding-top:0;border-top:0}
+  .ff-l-principle__body{max-width:none}
+  .ff-l-trust-item{padding:16px 0;border-right:0;border-bottom:1px solid var(--c-border)}
+  .ff-l-trust-item:last-child{border-bottom:0}
+  .ff-l-section{padding:64px 0}
+  .ff-l-section-h2{font-size:clamp(2.4rem,11vw,3.6rem)}
+  .ff-l-card{padding:18px}
+  .ff-l-entrances-grid{grid-template-columns:1fr;gap:28px}
+  .ff-l-entrance{padding:22px 0}
+  .ff-l-entrance__copy{max-width:none}
+  .ff-l-dna-trait{grid-template-columns:120px minmax(0,1fr);gap:10px}
+  .ff-l-dna-trait__band{grid-column:2;justify-self:start;margin-top:2px}
+  /* Diary entry stacks: date above, then poster + identity, then the note full-width.
+     (Watchlist grid stays a responsive grid — 3 cols from the 980 rule — never a shelf.) */
+  .ff-l-diary-entry{grid-template-columns:44px minmax(0,1fr);grid-template-areas:"day day" "poster id" "note note";column-gap:14px}
+  .ff-l-filmfile-row{grid-template-columns:1fr;gap:4px}
+  .ff-l-final{padding:74px 0}
+  .ff-l-footer{padding:40px 0 24px}
+  .ff-l-footer-inner{grid-template-columns:1fr;gap:28px}
+  .ff-l-footer-cols{gap:22px 18px}
+}
+@media(max-width:380px){
+  .ff-l-filmfile-top{grid-template-columns:72px minmax(0,1fr)}
+  .ff-l-filmfile-poster,.ff-l-filmfile-top .ff-l-poster-fallback{width:72px}
+  .ff-l-dna-trait{grid-template-columns:1fr}
+  .ff-l-dna-trait__segments{grid-column:1}
+  .ff-l-watch-grid{grid-template-columns:repeat(2,1fr)}
 }
 
-/* Hero pick — the cinematic film object (F1.1). Poster + caption sit side-by-side
-   on desktop; they stack and center at <=767 so the poster/title/meta/blurb/dots
-   never cramp on mobile. */
-.ff-hero-pick{display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;}
-@media (max-width:767px){
-  .ff-hero-pickwrap{text-align:center;}
-  .ff-hero-pick{grid-template-columns:1fr;justify-items:center;gap:24px;}
-}
-/* Mobile/desktop visibility helpers used by the Header (hamburger swap). */
-.ff-show-on-mobile{display:none;}
-.ff-hide-on-mobile{display:flex;}
-
-/* Tablet + mobile: collapse multi-column grids; trim section padding. */
-@media (max-width: 1023px){
-  .ff-grid-2,.ff-grid-3,.ff-grid-hero,.ff-grid-feature,.ff-grid-card{grid-template-columns:1fr !important;gap:48px !important;}
-  .ff-grid-footer{grid-template-columns:1fr 1fr !important;gap:36px !important;}
-  .ff-grid-2 > *,.ff-grid-3 > *,.ff-grid-hero > *,.ff-grid-feature > *{max-width:none !important;}
-  /* 160 → 96, 200 → 112, Hero 140/80 → 96/72 */
-  section{padding-top:96px !important;padding-bottom:96px !important;}
-  section#file,section#start{padding-top:112px !important;padding-bottom:112px !important;}
-  section:first-of-type{padding-top:96px !important;padding-bottom:72px !important;} /* Hero entrance */
+/* Short landscape (phones turned sideways): compress the hero + flatten/shrink the
+   ribbon so the first fold is not excessively tall. */
+@media (orientation:landscape) and (max-height:560px){
+  .ff-l-hero{min-height:0}
+  .ff-l-hero-copy{padding:22px 0 16px}
+  .ff-l-hero-h1{font-size:clamp(2.3rem,6vw,3.4rem);letter-spacing:-.04em}
+  .ff-l-hero-deck{margin-top:12px}
+  .ff-l-hero-actions{margin-top:16px}
+  .ff-l-hero-proof{margin-top:12px}
+  .ff-l-ribbon{height:188px;perspective:none;overflow:hidden;justify-content:center;-webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 80%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,#000,#000 80%,transparent);mask-composite:intersect}
+  .ff-l-ribbon__poster{flex:0 0 116px}
+  .ff-l-ribbon__poster--1{transform:translateY(34px) rotateZ(-3deg)}
+  .ff-l-ribbon__poster--2{transform:translateY(14px) rotateZ(-1deg)}
+  .ff-l-ribbon__poster--3{flex-basis:132px;transform:none;filter:saturate(.92) brightness(.84)}
+  .ff-l-ribbon__poster--4{transform:translateY(14px) rotateZ(1deg)}
+  .ff-l-ribbon__poster--5{transform:translateY(34px) rotateZ(3deg)}
 }
 
-/* Mobile: show hamburger, hide desktop nav, further trim section padding,
-   add safe-area-inset for notch / home indicator. */
-@media (max-width: 767px){
-  .ff-show-on-mobile{display:flex;}
-  .ff-hide-on-mobile{display:none !important;}
-  .ff-grid-footer{grid-template-columns:1fr !important;}
-  /* Mobile density (F1.2): tighten the standard section rhythm so heavy chapters
-     feel less endless at 390 — crescendos (#file/#start) stay airy below. */
-  section{padding-left:20px !important;padding-right:20px !important;padding-top:56px !important;padding-bottom:56px !important;}
-  section#file,section#start{padding-top:96px !important;padding-bottom:96px !important;}
-  section:first-of-type{padding-top:88px !important;padding-bottom:48px !important;}
-  /* Editorial display type — clamp ceilings hold; but tighten ultra-large headlines so
-     the FinalCTA "Tonight is yours." doesn't dwarf a 375 viewport. */
-  .ff-d1{letter-spacing:-0.04em;}
-  .ff-d2{letter-spacing:-0.035em;}
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  .ff-landing *,.ff-landing *::before,.ff-landing *::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  .ff-l-skip{transition:none}
 }
 
-/* Safe-area insets for iOS notch + home indicator. Applies to fixed-position
-   chrome (the page header is fixed). The drawer also benefits. */
-@supports (padding: max(0px)){
-  header{padding-left:max(0px, env(safe-area-inset-left));padding-right:max(0px, env(safe-area-inset-right));}
-  footer{padding-bottom:max(72px, env(safe-area-inset-bottom));}
+/* ── Forced colours ─────────────────────────────────────────────────────── */
+@media (forced-colors: active){
+  .ff-landing{background:Canvas;color:CanvasText}
+  .ff-l-hero,.ff-l-final{background:Canvas!important;background-image:none!important}
+  .ff-l-ribbon{-webkit-mask-image:none;mask-image:none}
+  .ff-l-btn{background:ButtonFace!important;border:1px solid ButtonText!important;color:ButtonText!important}
+  .ff-l-btn *{color:ButtonText!important}
+  .ff-l-footer-nav a{color:LinkText!important}
+  .ff-l-card,.ff-l-voice,.ff-l-chip,.ff-l-authstatus,.ff-l-ribbon__poster{border:1px solid CanvasText!important}
+  /* Tabs use the system Button/selection pairs so the active tab is a consistent,
+     high-contrast pair (HighlightText on Highlight) — not authored ivory-on-dark. */
+  .ff-l-tab{background:ButtonFace!important;border:1px solid ButtonText!important;color:ButtonText!important}
+  .ff-l-tab.is-active{background:Highlight!important;color:HighlightText!important}
+  .ff-l-dna-trait__segments i.on{background:Highlight}
+  .ff-landing a:focus-visible,.ff-landing button:focus-visible,.ff-l-tab:focus-visible{outline:2px solid Highlight!important;outline-offset:2px}
 }

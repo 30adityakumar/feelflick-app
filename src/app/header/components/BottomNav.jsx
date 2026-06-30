@@ -1,35 +1,33 @@
 // src/app/header/components/BottomNav.jsx
 // FeelFlick — Mobile bottom navigation.
-// Five tabs: Browse · Discover · Tonight (hero) · DNA · Account.
-// IA v2 (F2): the nightly pick / Briefing is the prime action — gradient core,
-// conic ring, ambient bloom — centered so it's one thumb-tap. It carries the
-// `hero` flag (moved off Discover, which is a *supporting* surface, not the
-// product). `/home` is labeled "Tonight" to encode the nightly-ritual framing.
-// Active non-hero tab gets a 4px purple dot under the icon.
-// See docs/ia-v2-decision-record.md.
+// Five EQUAL tabs (no hero): Home · Browse · Discover · DNA · You.
+// "You" → /you (the mobile account hub: the desktop avatar-dropdown list as a page).
+// A flat, full-width dock (top hairline on solid ink) — not a floating glass capsule.
+// The active tab gets a coral top-line + a quiet neutral field + paper-white icon/label
+// + aria-current; redundant non-colour cues (incl. a forced-colors outline in BottomNav.css
+// so the active tab stays distinct when colour is flattened). Order matches the desktop header.
+// Supersedes the prior hero-tab IA in docs/ia-v2-decision-record.md (no hero; five equal tabs).
 
 import { Link, useLocation } from 'react-router-dom'
-import { Clapperboard, LayoutGrid, Sparkles, Fingerprint, User } from 'lucide-react'
+import { Home, LayoutGrid, Compass, Fingerprint, User } from 'lucide-react'
 
-const ACTIVE_INK = 'var(--color-text-primary, #f3ecdf)'
-const PILL_FILL = 'var(--color-action-primary-fill, #efe7d7)'
-const PILL_TEXT = 'var(--color-action-primary-text, #221b13)'
+import './BottomNav.css'
 
-// Exported as the mobile IA contract (asserted in __tests__/BottomNav.test.jsx):
-// the `hero` tab must be the Briefing (/home, "Tonight"); Discover is a normal tab.
+// Exported as the mobile IA contract (asserted in __tests__/BottomNav.test.js):
+// five equal destinations in this order; DNA → /profile (Cinematic DNA), You → /you (mobile account hub).
 export const TABS = [
-  { id: 'browse',   label: 'Browse',   path: '/browse',   match: ['/browse'],   Icon: LayoutGrid   },
-  { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'], Icon: Sparkles      },
-  { id: 'tonight',  label: 'Tonight',  path: '/home',     match: ['/home'],     Icon: Clapperboard, hero: true },
-  { id: 'dna',      label: 'DNA',      path: '/profile',  match: ['/profile'],  Icon: Fingerprint  },
-  { id: 'account',  label: 'Account',  path: '/account',  match: ['/account'],  Icon: User         },
+  { id: 'home',     label: 'Home',     path: '/home',     match: ['/home'],     Icon: Home       },
+  { id: 'browse',   label: 'Browse',   path: '/browse',   match: ['/browse'],   Icon: LayoutGrid },
+  { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'], Icon: Compass    },
+  { id: 'dna',      label: 'DNA',      path: '/profile',  match: ['/profile'],  Icon: Fingerprint},
+  { id: 'you',      label: 'You',      path: '/you',      match: ['/you'],      Icon: User       },
 ]
 
 /**
  * @param {{ active?: string }} props — optional override; otherwise derives from location.
  *   When the current route isn't owned by any tab (e.g. /watchlist, /history,
  *   /people, /lists, /preferences, /movie/:id) activeId stays null — no tab
- *   lights up, which is more honest than misleadingly highlighting Tonight.
+ *   lights up, which is more honest than misleadingly highlighting Home.
  */
 export default function BottomNav({ active }) {
   const location = useLocation()
@@ -39,132 +37,66 @@ export default function BottomNav({ active }) {
     null
 
   return (
-    <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-30 pointer-events-none"
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-30"
+      aria-label="Primary"
       style={{
-        padding: '10px 16px calc(env(safe-area-inset-bottom, 12px) + 6px)',
-        background:
-          'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 50%, #000 100%)',
-        backdropFilter: 'blur(28px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(140%)',
+        borderTop: '1px solid var(--color-border-subtle, #3a3d41)',
+        background: 'var(--color-canvas, #0f1010)',
+        padding: '8px 8px calc(env(safe-area-inset-bottom, 0px) + 10px)',
+        boxShadow: '0 -18px 42px rgba(0,0,0,0.34)',
       }}
     >
-      <div
-        className="relative grid grid-cols-5 items-end gap-0 rounded-[28px] pointer-events-auto"
-        style={{
-          padding: '10px 4px 8px',
-          background: 'rgba(18,12,28,0.78)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 14px 32px -12px rgba(0,0,0,0.7)',
-        }}
-      >
+      {/* Height kept ~the prototype's 64px row → dock ≈ 82px + safe-area, matching the
+          BottomNav clearance the feature CSS already reserves (~85px). */}
+      <ul className="grid grid-cols-5 items-stretch list-none m-0 p-0" style={{ height: 64 }}>
         {TABS.map(t => {
           const on = activeId === t.id
           const Icon = t.Icon
-
-          if (t.hero) {
-            return (
+          return (
+            <li key={t.id} className="flex">
               <Link
-                key={t.id}
                 to={t.path}
-                aria-label={t.label}
-                className="relative inline-flex flex-col items-center justify-end gap-[5px] p-0 cursor-pointer no-underline"
+                aria-current={on ? 'page' : undefined}
+                className="ff-bnav-tab relative flex w-full min-h-[56px] flex-col items-center justify-center gap-1 rounded-[10px] no-underline transition-colors duration-150 focus-visible:[outline:2px_solid_var(--color-focus,#f5f2eb)] focus-visible:[outline-offset:-3px]"
+                style={{
+                  color: on ? 'var(--color-text-primary, #f5f2eb)' : 'var(--color-text-muted, #a5a198)',
+                  background: on ? 'rgba(46,49,53,0.52)' : 'transparent', // surface-raised tint
+                }}
               >
-                {/* Ambient bloom */}
-                <span
-                  aria-hidden
-                  className="absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none"
-                  style={{
-                    width: 54,
-                    height: 54,
-                    borderRadius: 999,
-                    background: 'var(--color-action-primary-fill, #efe7d7)',
-                    opacity: 0.18,
-                    filter: 'blur(12px)',
-                    animation: 'ff-bloom-pulse 3.4s ease-in-out infinite',
-                  }}
-                />
-                {/* Conic ring around the core */}
-                <span
-                  aria-hidden
-                  className="relative"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 999,
-                    background: 'var(--color-border-strong, #46423d)',
-                    padding: 1.5,
-                    animation: 'ff-bloom-pulse 6s ease-in-out infinite',
-                  }}
-                >
+                {/* Active marker — coral top-line above the tab (redundant with field + ink +
+                    aria-current). Sits in the dock's 8px top padding; the nav→ul→li→Link chain
+                    must stay unclipped (no overflow:hidden) for it to show. */}
+                {on && (
                   <span
-                    className="flex items-center justify-center w-full h-full rounded-full"
+                    aria-hidden="true"
+                    className="absolute left-1/2 -translate-x-1/2"
                     style={{
-                      background: PILL_FILL,
-                      color: PILL_TEXT,
-                      boxShadow:
-                        '0 4px 12px -2px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.3)',
+                      top: -8,
+                      width: 24,
+                      height: 2,
+                      borderRadius: 999,
+                      background: 'var(--color-brand-accent, #e5636f)',
+                      boxShadow: '0 0 10px rgba(229,99,111,0.3)',
                     }}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </span>
-                </span>
+                  />
+                )}
+                <Icon className="w-[21px] h-[21px]" strokeWidth={1.8} aria-hidden="true" />
                 <span
-                  className="relative text-[10px] font-semibold"
-                  style={{ fontFamily: '"Inter", sans-serif', color: ACTIVE_INK, letterSpacing: '-0.005em' }}
+                  className="text-[10px]"
+                  style={{
+                    fontFamily: '"Inter", sans-serif',
+                    fontWeight: on ? 600 : 500,
+                    letterSpacing: '-0.01em',
+                  }}
                 >
                   {t.label}
                 </span>
               </Link>
-            )
-          }
-
-          return (
-            <Link
-              key={t.id}
-              to={t.path}
-              className="relative inline-flex flex-col items-center justify-end gap-[5px] px-1 no-underline transition-colors"
-            >
-              <span
-                className="relative inline-flex items-center justify-center transition-colors"
-                style={{
-                  width: 32,
-                  height: 32,
-                  color: on ? '#FAFAFA' : 'rgba(250,250,250,0.45)',
-                }}
-              >
-                <Icon className="w-[18px] h-[18px]" />
-                {on && (
-                  <span
-                    aria-hidden
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2"
-                    style={{
-                      width: 4,
-                      height: 4,
-                      borderRadius: 999,
-                      background: ACTIVE_INK,
-                      boxShadow: '0 0 6px rgba(243,236,223,0.55)',
-                    }}
-                  />
-                )}
-              </span>
-              <span
-                className="text-[10px]"
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: on ? 600 : 500,
-                  color: on ? '#FAFAFA' : 'rgba(250,250,250,0.45)',
-                  letterSpacing: '-0.005em',
-                }}
-              >
-                {t.label}
-              </span>
-            </Link>
+            </li>
           )
         })}
-      </div>
-
-      {/* ff-bloom-pulse keyframe lives in src/styles/animations.css */}
-    </div>
+      </ul>
+    </nav>
   )
 }

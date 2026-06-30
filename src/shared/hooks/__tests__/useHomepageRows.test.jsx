@@ -36,23 +36,19 @@ vi.mock('@/shared/services/recommendations', () => ({
 
 // Mock all homepageRows service functions
 const mockGetTopOfYourTasteRow = vi.fn().mockResolvedValue({ films: [], subtitle: null })
-const mockGetCriticsSwoonedRow = vi.fn().mockResolvedValue([])
-const mockGetPeoplesChampionsRow = vi.fn().mockResolvedValue([])
-const mockGetUnder90MinutesRow = vi.fn().mockResolvedValue([])
 const mockGetStillInOrbitRow = vi.fn().mockResolvedValue({ films: [], seed: null })
 const mockGetMoodRow = vi.fn().mockResolvedValue({ films: [], title: 'Films for your mood', subtitle: null, lead: null, kind: 'mood' })
-const mockGetWatchlistRow = vi.fn().mockResolvedValue({ films: [] })
-const mockGetSignatureDirectorRow = vi.fn().mockResolvedValue({ films: [], director: null, subtitle: null })
+const mockGetHiddenGemsRow = vi.fn().mockResolvedValue({ films: [] })
+const mockGetTopGenreRow = vi.fn().mockResolvedValue({ films: [], genre: null })
+const mockGetSignatureTonesRow = vi.fn().mockResolvedValue({ films: [], tones: [] })
 
 vi.mock('@/shared/services/homepageRows', () => ({
   getTopOfYourTasteRow: (...args) => mockGetTopOfYourTasteRow(...args),
-  getCriticsSwoonedRow: (...args) => mockGetCriticsSwoonedRow(...args),
-  getPeoplesChampionsRow: (...args) => mockGetPeoplesChampionsRow(...args),
-  getUnder90MinutesRow: (...args) => mockGetUnder90MinutesRow(...args),
   getStillInOrbitRow: (...args) => mockGetStillInOrbitRow(...args),
   getMoodRow: (...args) => mockGetMoodRow(...args),
-  getWatchlistRow: (...args) => mockGetWatchlistRow(...args),
-  getSignatureDirectorRow: (...args) => mockGetSignatureDirectorRow(...args),
+  getHiddenGemsRow: (...args) => mockGetHiddenGemsRow(...args),
+  getTopGenreRow: (...args) => mockGetTopGenreRow(...args),
+  getSignatureTonesRow: (...args) => mockGetSignatureTonesRow(...args),
 }))
 
 import { useHomepageRows } from '../useHomepageRows'
@@ -65,8 +61,6 @@ function Probe({ userId }) {
       <span data-testid="variant">{rows.rotationVariant}</span>
       <span data-testid="orbit-loading">{String(rows.orbit.loading)}</span>
       <span data-testid="mood-loading">{String(rows.mood.loading)}</span>
-      <span data-testid="watchlist-loading">{String(rows.watchlist.loading)}</span>
-      <span data-testid="director-loading">{String(rows.director.loading)}</span>
     </div>
   )
 }
@@ -77,23 +71,24 @@ describe('useHomepageRows', () => {
     delete globalThis.__feelflick_auth_store_v1__
   })
 
-  it('cold tier does not enable orbit, mood, or watchlist queries', async () => {
+  it('every facet row is enabled once the profile is ready, even for cold tier', async () => {
+    // Enablement no longer gates on tier — the builders + cold-start affinity decide
+    // whether a row has content, so every onboarded user gets a chance at every row.
     mockUseUserTier.mockReturnValue({ tier: 'cold', watchCount: 2, loading: false })
 
     render(<Probe userId="user-cold" />)
 
     await waitFor(() => {
-      // orbit, mood, watchlist should not be loading (disabled)
+      expect(mockGetTopOfYourTasteRow).toHaveBeenCalled()
+      expect(mockGetHiddenGemsRow).toHaveBeenCalled()
+      expect(mockGetTopGenreRow).toHaveBeenCalled()
+      expect(mockGetStillInOrbitRow).toHaveBeenCalled()
+      expect(mockGetMoodRow).toHaveBeenCalled()
+      expect(mockGetSignatureTonesRow).toHaveBeenCalled()
     })
-
-    // These should NOT have been called since tier is cold
-    expect(mockGetStillInOrbitRow).not.toHaveBeenCalled()
-    expect(mockGetMoodRow).not.toHaveBeenCalled()
-    expect(mockGetWatchlistRow).not.toHaveBeenCalled()
-    expect(mockGetSignatureDirectorRow).not.toHaveBeenCalled()
   })
 
-  it('warming tier enables orbit and mood but not watchlist', async () => {
+  it('warming tier enables the orbit, mood, and signature-tones facets', async () => {
     mockUseUserTier.mockReturnValue({ tier: 'warming', watchCount: 12, loading: false })
 
     render(<Probe userId="user-warm" />)
@@ -101,22 +96,22 @@ describe('useHomepageRows', () => {
     await waitFor(() => {
       expect(mockGetStillInOrbitRow).toHaveBeenCalled()
       expect(mockGetMoodRow).toHaveBeenCalled()
-      expect(mockGetSignatureDirectorRow).toHaveBeenCalled()
+      expect(mockGetSignatureTonesRow).toHaveBeenCalled()
     })
-
-    expect(mockGetWatchlistRow).not.toHaveBeenCalled()
   })
 
-  it('engaged tier enables all queries including watchlist and director', async () => {
+  it('engaged tier enables every facet row', async () => {
     mockUseUserTier.mockReturnValue({ tier: 'engaged', watchCount: 30, loading: false })
 
     render(<Probe userId="user-engaged" />)
 
     await waitFor(() => {
+      expect(mockGetTopOfYourTasteRow).toHaveBeenCalled()
+      expect(mockGetHiddenGemsRow).toHaveBeenCalled()
       expect(mockGetStillInOrbitRow).toHaveBeenCalled()
       expect(mockGetMoodRow).toHaveBeenCalled()
-      expect(mockGetWatchlistRow).toHaveBeenCalled()
-      expect(mockGetSignatureDirectorRow).toHaveBeenCalled()
+      expect(mockGetTopGenreRow).toHaveBeenCalled()
+      expect(mockGetSignatureTonesRow).toHaveBeenCalled()
     })
   })
 

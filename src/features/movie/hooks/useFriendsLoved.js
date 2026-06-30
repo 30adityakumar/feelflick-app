@@ -21,11 +21,13 @@ const tintFor = (uuid, fallback = 0) => {
  * @param {number|null} internalMovieId
  * @returns {{ friends: Array<{ id, name, avatarBg, avatarUrl, rating, reviewText }>, loading: boolean }}
  */
-export function useFriendsLoved(currentUserId, internalMovieId) {
-  const [state, setState] = useState({ friends: [], loading: Boolean(currentUserId && internalMovieId) })
+export function useFriendsLoved(currentUserId, internalMovieId, enabled = true) {
+  const [state, setState] = useState({ friends: [], loading: Boolean(enabled && currentUserId && internalMovieId) })
 
   useEffect(() => {
-    if (!currentUserId || !internalMovieId) {
+    // Spoiler gating (§18): friend review TEXT must not be fetched or rendered
+    // before the current user has watched the film, so the query is gated on `enabled`.
+    if (!enabled || !currentUserId || !internalMovieId) {
       setState({ friends: [], loading: false })
       return
     }
@@ -74,7 +76,7 @@ export function useFriendsLoved(currentUserId, internalMovieId) {
     })()
 
     return () => { abort = true }
-  }, [currentUserId, internalMovieId])
+  }, [currentUserId, internalMovieId, enabled])
 
   return state
 }

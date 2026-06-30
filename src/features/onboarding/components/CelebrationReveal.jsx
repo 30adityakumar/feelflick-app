@@ -24,18 +24,32 @@ function buildTasteLine({ moods, genres, ratings, films }) {
   return `Your first signals are in — ${list}.`
 }
 
-const EASE = [0.16, 1, 0.3, 1]
+// === Celebration reveal ====================================================
+// The final onboarding surface — a write-cover before /home. A calm, personal
+// editorial reveal — mood atmosphere → your mood pills → a taste line → your
+// poster mosaic → "Tonight is yours." → one coaching beat. NO infinite motion:
+// every entrance resolves once and then settles. AmbientGlow + static grain are
+// the only ambient layers.
+//
+// Timing is owned upstream by Onboarding.jsx: it holds for an ADAPTIVE floor
+// (max(floor, setup work); floor 8s, 2s under reduced motion) — not a fixed clock
+// — then runs the 900ms fade-out via `fadingOut`. This component also reads
+// `ready`/`onEnter` to render the optional "See your picks" skip once setup
+// resolves, so the user can leave before the floor.
+//
+// Internal stage timeline (NORMAL motion, seconds from mount; every delay
+// collapses to 0 under prefers-reduced-motion, F2.20):
+//   0.4  "Your taste, tuned" kicker
+//   1.1  mood pills (stagger)
+//   2.0  taste line
+//   2.6  poster caption
+//   3.0  poster mosaic (stagger)
+//   4.9  "Tonight is yours."
+//   6.3  coaching beat ("Next up")
+// Settles ~7.7s.
+const EASE = [0.16, 1, 0.3, 1]                          // quartOut — long settle, no overshoot
 
-export default function CelebrationReveal({
-  moods = [],
-  selectedGenres = [],
-  favoriteMovies = [],
-  ratings = {},
-  fadingOut = false,
-  ready = true,
-  continuing = false,
-  onContinue,
-}) {
+export default function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fadingOut = false, ready = false, onEnter = () => {} }) {
   const reduced = useReducedMotion()
   const selectedMoods = moods.map(key => MOODS.find(mood => mood.key === key)).filter(Boolean)
   const posterFilms = favoriteMovies.slice(0, 5)
@@ -58,11 +72,16 @@ export default function CelebrationReveal({
         transition={{ duration: fadingOut ? 0.9 : 0, ease: EASE }}
       >
         <motion.p
-          className="ob-celebration-kicker"
+          className="ob-eyebrow inline-flex items-center text-[var(--color-brand-accent-text,#ed7a87)]"
           initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: reduced ? 0 : 0.25, ease: EASE }}
+          animate={{ opacity: 0.9, y: 0 }}
+          transition={{ duration: reduced ? 0.4 : 0.9, delay: reduced ? 0 : 0.4, ease: EASE }}
         >
+          <span
+            aria-hidden="true"
+            className="mr-2.5 inline-block h-px w-5 align-middle"
+            style={{ background: 'rgba(229,99,111,0.5)' }}
+          />
           Your taste, tuned
         </motion.p>
 
@@ -93,26 +112,68 @@ export default function CelebrationReveal({
           </div>
         )}
 
-        <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75, delay: reduced ? 0 : 1.7, ease: EASE }}>
-          Tonight is <em>yours.</em>
-        </motion.h1>
-
-        <motion.div className="ob-celebration-next" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.65, delay: reduced ? 0 : 2.0, ease: EASE }}>
-          <p>Next up</p>
-          <span>Tell us how tonight feels. A few quick questions, then one film for your night — with the case for why it fits.</span>
+        {/* Editorial apex — the sole h1, kept verbatim */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduced ? 0.5 : 1.2, delay: reduced ? 0 : 4.9, ease: EASE }}
+          className="mt-9 sm:mt-12"
+        >
+          <h1
+            className="ob-display text-4xl font-normal leading-[1.05] text-white sm:text-5xl md:text-6xl"
+            style={{ textWrap: 'balance', letterSpacing: '-0.02em' }}
+          >
+            Tonight is{' '}
+            <em className="italic text-[var(--color-brand-accent-text,#ed7a87)]">
+              yours.
+            </em>
+          </h1>
         </motion.div>
 
-        <motion.button
-          className="ob-celebration-action"
-          type="button"
-          onClick={onContinue}
-          disabled={!ready || continuing}
-          initial={{ opacity: 0, y: 8 }}
+        {/* Coaching — the lead-out beat, accurate to what /home opens with
+           (your personalized picks for tonight, seeded by the onboarding signals).
+           No watch-logging or next-day-cadence promise. Held for reading time before fade. */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: reduced ? 0 : 2.25, ease: EASE }}
         >
-          {continuing ? 'Opening…' : ready ? 'Find my first film' : 'Tuning your first picks…'}
-        </motion.button>
+          <p className="ob-eyebrow inline-flex items-center text-[var(--color-brand-accent-text,#ed7a87)]">
+            <span
+              aria-hidden="true"
+              className="mr-2.5 inline-block h-px w-5 align-middle"
+              style={{ background: 'rgba(229,99,111,0.5)' }}
+            />
+            Next up
+          </p>
+          <p
+            className="mt-4 text-[14px] leading-[1.6] text-white/72 sm:mt-5 sm:text-[15px]"
+            style={{ textWrap: 'pretty' }}
+          >
+            Your taste is in. Up next, your picks for tonight &mdash; shaped by everything you just shared.
+          </p>
+        </motion.div>
+
+        {/* Skip / enter — appears once setup is ready (writes + home prefetch done), so the
+           user can leave for /home immediately instead of waiting out the reveal. If they
+           don't, Onboarding auto-advances at the floor. */}
+        {ready && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0.3 : 0.6, ease: EASE }}
+            className="mt-9 sm:mt-11"
+          >
+            <button
+              type="button"
+              onClick={onEnter}
+              className="ob-focus inline-flex items-center gap-2 rounded-xl border border-transparent bg-[var(--color-action-primary-fill,#f0ece4)] px-6 h-11 text-sm font-semibold text-[var(--color-action-primary-text,#0f1010)] transition-opacity duration-200 hover:opacity-90"
+            >
+              See your picks
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   )

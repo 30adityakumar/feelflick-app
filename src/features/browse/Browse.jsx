@@ -25,9 +25,8 @@ import Pagination from '@/shared/components/Pagination'
 import { ThoughtfulRoot } from '@/shared/ui/thoughtful-seatmate'
 
 import { MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
-import { useCuriosityPaths } from './useCuriosityPaths'
-import BrowseMasthead from './components/BrowseMasthead'
-import BrowseCuriosityPaths from './components/BrowseCuriosityPaths'
+import { Shuffle } from 'lucide-react'
+import BrowseScopedSearch from './components/BrowseScopedSearch'
 import BrowseFilterBar from './components/BrowseFilterBar'
 import BrowseFilterDrawer from './components/BrowseFilterDrawer'
 import BrowseResultsHeader from './components/BrowseResultsHeader'
@@ -61,7 +60,7 @@ function mapRowToFilm(row) {
     audience: Math.round(row.ff_audience_rating || 0),
     cult: Math.round(row.cult_status_score || 0),
     hidden: Math.round(row.discovery_potential || 0),
-    exceptional: (row.ff_rating_genre_normalized || 0) >= 8.0,
+    exceptional: (row.ff_rating_genre_normalized || 0) >= 8.8,
   }
 }
 
@@ -219,18 +218,6 @@ export default function Browse() {
   const setSortBy = useCallback((v) => writeParams({ sort: v }), [writeParams])
   const setQuery  = useCallback((v) => writeParams({ q: v }), [writeParams])
 
-  // Curiosity path → a CLEAN territory (its filters only). Resets everything else.
-  const selectPath = useCallback((path) => {
-    const next = new URLSearchParams()
-    for (const [k, v] of Object.entries(path.filters)) {
-      if (Array.isArray(v)) { if (v.length) next.set(k, v.join(',')) }
-      else if (v) next.set(k, String(v))
-    }
-    setSearchParams(next, { replace: false })
-    setDraftQ('')
-    window.scrollTo({ top: 0, behavior: 'auto' })
-  }, [setSearchParams])
-
   // ── Scroll restoration ────────────────────────────────────────────────────
   const scrollKey = `browse:scroll:${searchParams.toString()}`
   const pendingScrollRef = useRef(null)
@@ -269,24 +256,6 @@ export default function Browse() {
   const watchedSet = useMemo(() => new Set(watchedIds), [watchedIds])
   const watchlistSet = useMemo(() => new Set(watchlistIds), [watchlistIds])
   const twinsAvailable = Array.isArray(twinsLovedIds) && twinsLovedIds.length > 0
-
-  // ── Curiosity paths (bounded, cached, deterministic — see useCuriosityPaths) ──
-  const { paths, loading: pathsLoading } = useCuriosityPaths(user?.id || null)
-  const ribbonPosters = useMemo(() => paths.map(p => p.poster).filter(Boolean), [paths])
-  const activePathKey = useMemo(() => {
-    for (const p of paths) {
-      const f = p.filters
-      const ok =
-        (f.genre === undefined || f.genre === genre) &&
-        (f.lang === undefined || f.lang === lang) &&
-        (f.decade === undefined || f.decade === decade) &&
-        (f.runtime === undefined || f.runtime === runtime) &&
-        (f.director === undefined || f.director === director) &&
-        (f.sort === undefined || f.sort === sortBy)
-      if (ok) return p.key
-    }
-    return null
-  }, [paths, genre, lang, decade, runtime, director, sortBy])
 
   // ── Fetch ───────────────────────────────────────────────────────────────────
   const [movies, setMovies] = useState([])
@@ -519,23 +488,24 @@ export default function Browse() {
   }
 
   const resultsTitle = isSearchMode ? 'Search results' : (hasAnyFilter ? 'In this catalogue' : 'The whole catalogue')
-  const pageSizeNote = !isSearchMode && totalPages > 1 ? '18 films at a time' : null
 
   return (
     <ThoughtfulRoot className="ff-browse">
-      <BrowseMasthead
-        ribbonPosters={ribbonPosters}
-        draftQuery={draftQuery}
-        setDraftQuery={setDraftQ}
-        onSearch={setQuery}
-        onSurprise={openSurprise}
-      />
+      <div className="ff-browse-topbar">
+        <h1 className="ff-browse-topbar__title">Browse</h1>
+        <BrowseScopedSearch draft={draftQuery} setDraft={setDraftQ} onSubmit={setQuery} />
+        <button
+          type="button"
+          className="ff-browse-topbar__surprise"
+          onClick={openSurprise}
+          aria-label="Surprise me within these filters"
+        >
+          <Shuffle className="h-[16px] w-[16px]" aria-hidden="true" />
+          <span className="ff-browse-topbar__surprise-label">Surprise me</span>
+        </button>
+      </div>
 
       <div className="ff-browse__body">
-        {!isSearchMode ? (
-          <BrowseCuriosityPaths paths={paths} loading={pathsLoading} activeKey={activePathKey} onSelect={selectPath} />
-        ) : null}
-
         <BrowseFilterBar
           genre={genre} decade={decade} lang={lang} runtime={runtime}
           onSetFilter={setFilter}
@@ -543,6 +513,8 @@ export default function Browse() {
           advancedCount={advancedCount} onOpenDrawer={() => setDrawerOpen(true)}
           chips={chips} onClearAll={clearAll}
           isSearchMode={isSearchMode}
+          vibe={vibe}
+          onToggleHiddenGems={() => setFilter('vibe', vibe.includes('hidden') ? vibe.filter(v => v !== 'hidden') : [...vibe, 'hidden'])}
         />
 
         <section className="ff-browse-results" aria-live="polite">
@@ -551,7 +523,7 @@ export default function Browse() {
               title={resultsTitle} count={totalResults} loading={loading}
               sort={sortBy} isSearchMode={isSearchMode} query={trimmedQuery}
               shortQueryHint={shortQueryHint} infoOpen={infoOpen}
-              onToggleInfo={() => setInfoOpen(o => !o)} pageSizeNote={pageSizeNote}
+              onToggleInfo={() => setInfoOpen(o => !o)} displayCount={movies.length}
             />
           ) : null}
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, cleanup } from '@testing-library/react'
 
 // Stub sections to lightweight markers so we can assert the COMPOSITION ORDER in
 // MovieDetail without rendering the heavy internals. FilmFileDisclosure stays real
@@ -9,6 +9,7 @@ vi.mock('../sections-top', () => ({
   MovieHero: () => <div data-sec="hero"><h1>Parasite</h1></div>,
   StickyActionBar: () => <div data-sec="sticky" />,
   Synopsis: () => <div data-sec="synopsis" />,
+  HeroRatings: () => null,
 }))
 vi.mock('../sections-bottom', () => ({
   CastSection: () => <div data-sec="cast" />, VideosSection: () => <div data-sec="videos" />,
@@ -34,7 +35,7 @@ vi.mock('../hooks/useTasteTwin', () => ({ useTasteTwin: () => ({ twin: null }) }
 
 let MV = {}
 vi.mock('../useMovieData', () => ({
-  useMovieDataFetch: () => ({ mv: MV, filmDbRow: null, moodAxes: null, overlay: null, loading: false, error: null }),
+  useMovieDataFetch: () => ({ mv: MV, filmDbRow: null, moodAxes: null, overlay: null, videos: [{ type: 'Trailer', key: 'tr1', name: 'Trailer' }, { type: 'Featurette', key: 'abc', name: 'Test Featurette' }], loading: false, error: null }),
   MovieDataProvider: ({ children }) => children,
   useMovieData: () => ({ mv: MV }),
 }))
@@ -49,28 +50,31 @@ afterEach(() => vi.clearAllMocks())
 const order = () => Array.from(document.querySelectorAll('[data-sec]')).map((n) => n.dataset.sec)
 
 describe('Film File hierarchy — decision dossier (F5.5)', () => {
-  it('1-8/13. composes the sections in the decision-first order (F5.6 tail)', () => {
-    render(<MovieDetail />)
+  it('1-8/13. composes the pre-watch sections in the two-column editorial order', () => {
+    render(<MovieDetail />)   // locked (unwatched) → no post-watch chapter, no social
     const o = order().filter((s) => s !== 'sticky')
     expect(o).toEqual([
-      'hero', 'case', 'synopsis', 'providers', 'yourtake', 'evidence',
-      'videos', 'cast', 'social', 'explore', 'timeline', 'details', 'footer',
+      'hero', 'synopsis', 'cast', 'videos', 'providers', 'timeline', 'details',
+      'yourtake', 'explore',
     ])
-    // decision-zone adjacencies (unchanged)
-    expect(o.indexOf('case')).toBeLessThan(o.indexOf('synopsis'))
-    expect(o.indexOf('synopsis')).toBeLessThan(o.indexOf('providers'))
+    // left-column order
+    expect(o.indexOf('synopsis')).toBeLessThan(o.indexOf('cast'))
+    expect(o.indexOf('cast')).toBeLessThan(o.indexOf('videos'))
+    // right-column comes after left-column in source order
     expect(o.indexOf('providers')).toBeLessThan(o.indexOf('yourtake'))
-    expect(o.indexOf('yourtake')).toBeLessThan(o.indexOf('evidence'))
-    expect(o.at(-1)).toBe('footer')
+    expect(o.at(-1)).toBe('explore')
   })
 
-  it('41-49. F5.6 tail: Videos → Cast → Social → Exploration → Film Details; old sections gone', () => {
+  it('41-49. pre-watch tail: Cast → Videos → Providers → Film Details → YourTake → Exploration; social is watched-gated, old sections gone', () => {
     render(<MovieDetail />)
     const o = order()
-    expect(o.indexOf('videos')).toBeLessThan(o.indexOf('cast'))      // Cast moved before social
-    expect(o.indexOf('cast')).toBeLessThan(o.indexOf('social'))
-    expect(o.indexOf('social')).toBeLessThan(o.indexOf('explore'))
-    expect(o.indexOf('explore')).toBeLessThan(o.indexOf('timeline')) // Film Details after exploration
+    expect(o.indexOf('cast')).toBeLessThan(o.indexOf('videos'))
+    expect(o.indexOf('videos')).toBeLessThan(o.indexOf('providers'))
+    expect(o.indexOf('providers')).toBeLessThan(o.indexOf('timeline'))
+    expect(o.indexOf('timeline')).toBeLessThan(o.indexOf('explore'))
+    // §18: social proof is NOT in the pre-watch flow — it is watched-gated inside the
+    // post-watch chapter, which is not mounted while locked.
+    expect(document.querySelector('[data-sec="social"]')).toBeNull()
     // the four old full-page tail sections are no longer independently rendered
     for (const dead of ['friends', 'twin', 'pairs', 'director']) {
       expect(document.querySelector(`[data-sec="${dead}"]`)).toBeNull()
@@ -85,27 +89,17 @@ describe('Film File hierarchy — decision dossier (F5.5)', () => {
     expect(document.querySelectorAll('h1').length).toBe(1)
   })
 
-  it('51/52. Timeline + Details are grouped under one collapsed "Film details" disclosure', () => {
-    render(<MovieDetail />)
-    const summary = screen.getByText('Film details')
-    const details = summary.closest('details')
-    expect(details.open).toBe(false)
-    // both grouped inside
-    expect(details.querySelector('[data-sec="timeline"]')).toBeTruthy()
-    expect(details.querySelector('[data-sec="details"]')).toBeTruthy()
-  })
-
-  it('55. Details is omitted from the disclosure when there are no detail fields', () => {
+  it('55. DetailsSection is omitted from the Film Details card when there are no detail fields', () => {
     MV = { id: 1, title: 'X', languages: ['English'] } // timeline yes (languages), details no
     render(<MovieDetail />)
-    const details = screen.getByText('Film details').closest('details')
-    expect(details.querySelector('[data-sec="timeline"]')).toBeTruthy()
-    expect(details.querySelector('[data-sec="details"]')).toBeNull()
+    expect(document.querySelector('[data-sec="timeline"]')).toBeTruthy()
+    expect(document.querySelector('[data-sec="details"]')).toBeNull()
   })
 
-  it('56. the Film Details disclosure self-hides when there is nothing to show', () => {
+  it('56. the Film Details card self-hides when there is nothing to show', () => {
     MV = { id: 1, title: 'X' } // no releaseDate / runtime / cert / languages / etc.
     render(<MovieDetail />)
-    expect(screen.queryByText('Film details')).not.toBeInTheDocument()
+    expect(document.querySelector('[data-sec="timeline"]')).toBeNull()
+    expect(document.querySelector('[data-sec="details"]')).toBeNull()
   })
 })

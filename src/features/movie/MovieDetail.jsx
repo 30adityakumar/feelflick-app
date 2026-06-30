@@ -6,7 +6,7 @@
 // via PrimaryCaseCard (ff_take → adaptive "why this fits you" → honest standalone);
 // generated quotes render as ViewerNotes (honestly framed, not real reviews).
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useReducedMotion } from 'framer-motion'
 
@@ -16,9 +16,6 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackShare, trackTrailerPlay } from '@/shared/services/interactions'
 import { ThoughtfulRoot, PageDepth } from '@/shared/ui/thoughtful-seatmate'
 
-import { deriveWhyHeader, deriveWhyReasons } from './derive/whyForYou'
-import { useTasteFingerprint } from './hooks/useTasteFingerprint'
-import { useDirectorAffinity } from './hooks/useDirectorAffinity'
 import { useFriendsLoved } from './hooks/useFriendsLoved'
 import { useTasteTwin } from './hooks/useTasteTwin'
 
@@ -26,18 +23,19 @@ import {
   ScrollProgress, FilmGrain, MovieHero, StickyActionBar, Synopsis,
 } from './sections-top'
 import AccessibleMediaDialog from './components/AccessibleMediaDialog'
-import DecisionEvidence from './components/DecisionEvidence'
-import FilmFileDisclosure from './components/FilmFileDisclosure'
-import SocialContext from './components/SocialContext'
 import ExplorationTail from './components/ExplorationTail'
+import SpoilerBoundary from './components/SpoilerBoundary'
+import PostWatchPortrait from './components/PostWatchPortrait'
+import MovieActionBar from './components/MovieActionBar'
+import { deriveRelationshipState, spoilerUnlocked } from './derive/movieRelationshipState'
 import { classifyMovieRouteState } from './derive/movieRouteState'
-import PrimaryCaseCard from './PrimaryCaseCard'
 import {
   CastSection, VideosSection, ProvidersSection,
-  TimelineSection, YourTake, DetailsSection, MovieFooter,
+  TimelineSection, YourTake, DetailsSection,
 } from './sections-bottom'
 import { MovieDataProvider, useMovieDataFetch } from './useMovieData'
 import './movie.css'
+
 
 export default function MovieDetail() {
   const { id } = useParams()
@@ -45,7 +43,7 @@ export default function MovieDetail() {
   const { user } = useAuthSession()
 
   const data = useMovieDataFetch(id)
-  const { mv, filmDbRow, moodAxes, overlay, loading, error } = data
+  const { mv, filmDbRow, overlay, loading, error } = data
 
   const movieTitle = mv?.title
   const movieYear = mv?.year ? ` (${mv.year})` : ''
@@ -86,40 +84,25 @@ export default function MovieDetail() {
     source: 'movie_detail',
   })
 
-  const { fingerprint } = useTasteFingerprint(user?.id)
-  const { count: directorCount } = useDirectorAffinity(user?.id, mv?.director)
-  const { friends } = useFriendsLoved(user?.id, internalId)
-  const { twin } = useTasteTwin(user?.id, internalId)
+  // §13 relationship-state authority — derived from auth + PERSISTED watched status.
+  // The spoiler gate uses the SETTLED watched state (isWatched AND no in-flight watched
+  // op), never the optimistic flip, so spoiler content can never appear before a Mark
+  // Watched write settles successfully, and a failed write keeps it hidden (§29).
+  const signedIn = Boolean(user)
+  const watchedSettled = isWatched && !actionLoading.watched
+  const relState = deriveRelationshipState({ signedIn, isWatched: watchedSettled })
+  const unlocked = spoilerUnlocked(relState)
 
-  const derivedReasons = useMemo(() => deriveWhyReasons({
-    mv, filmDbRow, fingerprint, directorCount,
-  }), [mv, filmDbRow, fingerprint, directorCount])
-
-  const derivedHeader = useMemo(
-    () => deriveWhyHeader({ fingerprint, signedIn: Boolean(user) }),
-    [fingerprint, user]
-  )
-
-  // Curated overlay wins when set; dynamic derive backstops otherwise.
-  const whyReasons = overlay?.why_for_you?.reasons ?? derivedReasons
-  const whyHeader = {
-    eyebrow:   overlay?.why_for_you?.eyebrow   ?? derivedHeader.eyebrow,
-    headline:  overlay?.why_for_you?.headline  ?? derivedHeader.headline,
-    rationale: overlay?.why_for_you?.rationale ?? derivedHeader.rationale,
-  }
-  const radarAxes = overlay?.mood_fingerprint ?? moodAxes
-  const ffTake = overlay?.ff_take ?? null
-  // `critic_quotes` is the (legacy) overlay column name; rendered honestly as
-  // generated "Viewer notes", NOT real critic reviews (see ViewerNotes.jsx).
-  const viewerNotes = overlay?.critic_quotes ?? null
+  // §18 — friend + twin note TEXT is only fetched/rendered once spoiler content is
+  // unlocked (settled watched). Pre-watch these hooks are disabled and return empty.
+  const { friends } = useFriendsLoved(user?.id, internalId, unlocked)
+  const { twin } = useTasteTwin(user?.id, internalId, unlocked)
 
   // `selectedVideo` is null when the modal should play the canonical main
   // trailer (hero CTA, sticky bar). Featurette tiles pass their own clip in
   // so the modal honestly plays what was clicked.
   const [trailerOpen, setTrailerOpen] = useState(false)
   const [selectedVideo, setSelectedVideo] = useState(null)
-  const [hoveredReason, setHoveredReason] = useState(null)
-  const [hoveredAxis, setHoveredAxis] = useState(null)
 
   // F5.4 — one Film File-owned polite live region for concise action outcomes.
   const reduced = useReducedMotion()
@@ -131,14 +114,10 @@ export default function MovieDetail() {
   // each `loading.{watched,watchlist}` true→false transition and compare the settled
   // state against the intent the user clicked. An intent ref (set only on a real
   // click) guards against the first-render DB sync being mistaken for a user op.
-  const yourTakeRef = useRef(null)
   const watchedIntentRef = useRef(null)
   const watchlistIntentRef = useRef(null)
   const prevWatchedLoadingRef = useRef(false)
   const prevWatchlistLoadingRef = useRef(false)
-  const confettiTimerRef = useRef(null)
-  const [celebrate, setCelebrate] = useState(false)
-  useEffect(() => () => { if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current) }, [])
 
   const handleMarkWatched = useCallback(() => {
     if (actionLoading.watched) return
@@ -152,7 +131,10 @@ export default function MovieDetail() {
     toggleWatchlist()
   }, [actionLoading.watchlist, isInWatchlist, toggleWatchlist])
 
-  // Mark Watched: announce / unlock / scroll / celebrate ONLY on settled success.
+  // Mark Watched: announce + reveal/scroll/focus the post-watch chapter ONLY on
+  // settled success (§29). No confetti — the restrained acknowledgement is the
+  // chapter appearing + a polite announcement; instant scroll under reduced motion.
+  // A failed write keeps spoiler content hidden and announces the failure.
   useEffect(() => {
     const settled = prevWatchedLoadingRef.current && !actionLoading.watched
     prevWatchedLoadingRef.current = actionLoading.watched
@@ -161,13 +143,14 @@ export default function MovieDetail() {
     watchedIntentRef.current = null
     if (isWatched !== intent) { announce('Could not update watched status. Try again.'); return }
     if (intent) {
-      announce(`Marked ${movieTitle} as watched. Your Take is now available.`)
-      if (!reduced) {
-        setCelebrate(true)
-        if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current)
-        confettiTimerRef.current = setTimeout(() => setCelebrate(false), 1800)
+      announce(`Marked ${movieTitle} as watched. The post-watch chapter is now available.`)
+      // The chapter is mounted by the time this passive effect runs (the settled
+      // render committed it). Scroll + focus it; instant scroll under reduced motion.
+      const el = document.getElementById('after-watching')
+      if (el) {
+        el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+        el.focus?.({ preventScroll: true })
       }
-      yourTakeRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
     } else {
       announce(`Removed watched status for ${movieTitle}.`)
     }
@@ -186,13 +169,6 @@ export default function MovieDetail() {
 
   const onRatingSaved = useCallback(() => announce(`Your take on ${movieTitle} was saved.`), [announce, movieTitle])
   const onRatingError = useCallback(() => announce('Could not save your take. Try again.'), [announce])
-
-  // Two-way mood ↔ Why card highlight, now keyed off dynamic whyReasons.
-  const reasonMood = whyReasons.find(r => r.id === hoveredReason)?.moodKey ?? null
-  const highlightMood = reasonMood ?? hoveredAxis
-  const highlightReasonId = hoveredReason
-    ?? whyReasons.find(r => r.moodKey === hoveredAxis)?.id
-    ?? null
 
   const goToMovie = useCallback((tmdbId) => {
     if (tmdbId) navigate(`/movie/${tmdbId}`)
@@ -261,6 +237,7 @@ export default function MovieDetail() {
     (mv.director && mv.director !== '—') || (mv.writer && mv.writer !== '—'),
   )
   const hasFilmDetails = hasTimeline || hasDetails
+  const hasVideos = (data.videos || []).length > 1
 
   return (
     <MovieDataProvider value={data}>
@@ -302,96 +279,95 @@ export default function MovieDetail() {
             onToggleWatchlist={handleToggleWatchlist}
             onToggleWatched={handleMarkWatched}
             loading={actionLoading}
-            canAct={Boolean(user)}
-            celebrate={celebrate}
+            canAct={signedIn}
+            heroReason={mv?.tagline || null}
+            heroTags={filmDbRow?.mood_tags}
           />
 
-          {/* F5.7: the decision dossier (case → footer) is the route's <main>, and
-              the skip-link target. The Hero stays above it as the introductory
-              header. tabIndex=-1 lets the skip link move focus here. */}
-          <main id="film-file-content" tabIndex={-1}>
-          {/* The case leads: one consolidated, tier-aware statement of why this
-              film was surfaced (ff_take → adaptive "why this fits you" → honest
-              standalone), before the Why-for-you signal cards expand it. */}
-          <PrimaryCaseCard
-            ffTake={ffTake}
-            whyHeader={whyHeader}
-            matchPct={mv.ffMatch}
-            moodTags={filmDbRow?.mood_tags}
-            fitProfile={filmDbRow?.fit_profile}
-            signedIn={Boolean(user)}
-          />
+          {/* §5: AppShell owns the only page <main>. This is a labelled REGION
+              (not a second main landmark) and the skip-link / focus target. The
+              explicit role is intentional per spec. */}
+          {/* eslint-disable-next-line jsx-a11y/no-redundant-roles */}
+          <section id="film-file-content" role="region" aria-label="Film File" tabIndex={-1}>
+            {/* Two-column editorial grid: left 75% editorial, right 25% utility */}
+            <div className="ff-movie-two-col">
 
-          {/* F5.5 decision zone: what is it about (synopsis) + where can I watch
-              (providers) come right after the case — before any analysis or
-              reflection. The watched-success scroll target (yourTakeRef) is kept
-              stable on the YourTake wrapper. */}
-          <Synopsis />
+              <div className="ff-movie-col-left">
+                <div id="overview" className="ff-movie-chapter-anchor ff-movie-overview-block" tabIndex={-1}>
+                  <Synopsis />
+                </div>
+                <div id="cast" className="ff-movie-chapter-anchor ff-movie-overview-block" tabIndex={-1}>
+                  <CastSection />
+                </div>
+                {hasVideos && (
+                  <div className="ff-movie-overview-block">
+                    <VideosSection onPlayVideo={handlePlayVideo} />
+                  </div>
+                )}
+              </div>
 
-          <ProvidersSection />
+              <div className="ff-movie-col-right">
+                <div className="ff-movie-overview-block">
+                  <ProvidersSection />
+                </div>
+                {hasFilmDetails && (
+                  <div className="ff-movie-overview-block">
+                    <TimelineSection />
+                    {hasDetails && <DetailsSection />}
+                  </div>
+                )}
+              </div>
 
-          {/* Decide → act → reflect. Compact until watched (no rating controls
-              interrupting the decision); full reflection form once watched. */}
-          <div ref={yourTakeRef}>
-            <YourTake isWatched={isWatched} userId={user?.id} internalId={internalId} onSaved={onRatingSaved} onError={onRatingError} />
-          </div>
+            </div>
 
-          {/* Go deeper: the supporting recommendation evidence (Why For You + the
-              generated mood profile + the generated impressions), collapsed by
-              default so the decision path stays short. Self-hides when empty. */}
-          <DecisionEvidence
-            whyHeader={whyHeader}
-            whyReasons={whyReasons}
-            onHoverReason={setHoveredReason}
-            highlightReasonId={highlightReasonId}
-            radarAxes={radarAxes}
-            highlightMood={highlightMood}
-            onHoverAxis={setHoveredAxis}
-            viewerNotes={viewerNotes}
-          />
+            {/* Full-width tail */}
+            <div id="after-watching" tabIndex={-1}>
+              <YourTake isWatched={watchedSettled} userId={user?.id} internalId={internalId} onSaved={onRatingSaved} onError={onRatingError} />
+            </div>
+            <div id="more" className="ff-movie-chapter-anchor" tabIndex={-1}>
+              <ExplorationTail
+                similar={data.similar}
+                directorFilms={data.dirShelf}
+                directorName={mv.director}
+                directorId={mv.directorId}
+                onOpenMovie={goToMovie}
+              />
+            </div>
 
-          <VideosSection onPlayVideo={handlePlayVideo} />
+            {/* §15/§16/§17: spoiler boundary while locked; the watched-only chapter
+                (Parasite curated portrait OR honest generic state + watched-gated
+                impressions + social notes) once unlocked. The locked branch never
+                mounts any spoiler content. */}
+            {unlocked
+              ? (
+                <PostWatchPortrait
+                  mvId={mv.id}
+                  viewerNotes={overlay?.critic_quotes ?? null}
+                  friends={friends}
+                  twin={twin}
+                />
+                )
+              : <SpoilerBoundary signedIn={signedIn} />}
 
-          {/* Cast is factual film information — it leads the lower tail, before the
-              optional social + exploration disclosures. */}
-          <CastSection />
 
-          {/* F5.6: one restrained social-proof disclosure (Friends + anonymised
-              Taste Twin) + one restrained exploration disclosure (similar + director),
-              replacing the four old full-page tail sections. Both self-hide empty. */}
-          <SocialContext friends={friends} twin={twin} />
-          <ExplorationTail
-            similar={data.similar}
-            directorFilms={data.dirShelf}
-            directorName={mv.director}
-            directorId={mv.directorId}
-            onOpenMovie={goToMovie}
-          />
-
-          {/* Collapsed reference: release history + production facts, behind one
-              disclosure. Renders only when there is something to show. */}
-          {hasFilmDetails && (
-            <FilmFileDisclosure
-              className="ff-movie-film-details"
-              heading="Film details"
-              copy="Release history, production facts, and additional information."
-              defaultOpen={false}
-            >
-              <TimelineSection />
-              {hasDetails && <DetailsSection />}
-            </FilmFileDisclosure>
-          )}
-          <MovieFooter onBackToBriefing={() => navigate('/home')} />
-          </main>
+          </section>
         </div>
 
         <StickyActionBar
           onPlayTrailer={handlePlayTrailer}
           onBack={handleBack}
-          onToggleWatchlist={handleToggleWatchlist}
+        />
+
+        {/* §28 one mobile-only action bar, positioned above the AppShell BottomNav.
+            Same action authority as the Hero / desktop sticky rail. */}
+        <MovieActionBar
+          onPlayTrailer={handlePlayTrailer}
           isInWatchlist={isInWatchlist}
+          isWatched={isWatched}
+          onToggleWatchlist={handleToggleWatchlist}
+          onToggleWatched={handleMarkWatched}
           loading={actionLoading}
-          canAct={Boolean(user)}
+          canAct={signedIn}
         />
       </PageDepth>
       </ThoughtfulRoot>

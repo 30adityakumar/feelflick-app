@@ -1,0 +1,14 @@
+/* src/app/header/components/BottomNav.css
+ * Forced-colors (Windows High Contrast) fallback for the mobile bottom nav.
+ * The active tab's normal cues — coral top-line, neutral field, paper-white ink —
+ * are all colour and get flattened to system colours in forced-colors mode, leaving
+ * only the (weak) bold label. Give the active tab a system-colour outline so it stays
+ * unambiguous; aria-current carries the state to assistive tech regardless. Mirrors the
+ * forced-colors handling used elsewhere (e.g. Button.css, brand-accent.css). */
+@media (forced-colors: active) {
+  .ff-bnav-tab[aria-current='page'] {
+    outline: 2px solid Highlight;
+    outline-offset: -3px;
+    border-radius: 10px;
+  }
+}

@@ -2,13 +2,26 @@ import { useMemo } from 'react'
 
 import { MOODS } from '../data'
 
-const DEFAULT_PRIMARY = '122, 126, 133'
-const DEFAULT_SECONDARY = '201, 139, 146'
+const DEFAULT_PRIMARY = '46, 49, 53'   // neutral ink (surface-raised) — no mood selected
+const DEFAULT_SECONDARY = '46, 49, 53' // neutral ink — no mood selected
 
 function rgbForKey(key) {
   return MOODS.find(mood => mood.key === key)?.rgb ?? DEFAULT_PRIMARY
 }
 
+/**
+ * Derive a single ambient mood SIGNATURE ("r, g, b") from the selected mood keys,
+ * for the onboarding wrapper's atmospheric tinting (CSS vars). This is distinct
+ * from the dual-radial glow this component renders (left untouched so the shared
+ * AmbientGlow — also used by CelebrationReveal — is byte-identical).
+ *
+ * Rules: 0 moods → neutral ink; 1 → that mood's existing rgb; ≥2 →
+ * a deterministic, order-independent component-wise average. Mood keys, labels,
+ * and meaning are not changed; only existing rgb data is read.
+ *
+ * @param {string[]} moods — onboarding mood keys
+ * @returns {string}        — "r, g, b" for use in rgba()
+ */
 export function deriveMoodSignature(moods = []) {
   const rgbs = moods
     .map(key => MOODS.find(mood => mood.key === key)?.rgb)

@@ -12,7 +12,7 @@ const tileVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } },
 }
 
-function GenreChoice({ genre, selected, onClick }) {
+function GenreChoice({ genre, isSelected, onClick }) {
   const reduced = useReducedMotion()
 
   return (
@@ -20,9 +20,13 @@ function GenreChoice({ genre, selected, onClick }) {
       type="button"
       onClick={onClick}
       variants={reduced ? undefined : tileVariants}
-      whileTap={reduced ? undefined : { scale: 0.98 }}
-      aria-pressed={selected}
-      className={`ob-genre-choice${selected ? ' is-selected' : ''}`}
+      whileTap={reduced ? undefined : { scale: 0.96 }}
+      aria-pressed={isSelected}
+      className={`ob-focus text-left rounded-2xl px-4 py-3.5 min-h-[44px] border transition-all ${
+        isSelected
+          ? 'bg-white/[0.10] border-white/45 shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(245,242,235,0.22)]'
+          : 'bg-white/[0.05] border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.08] hover:border-white/20'
+      }`}
     >
       {genre.name}
     </motion.button>
@@ -42,12 +46,23 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           kicker="Set the territory · 2 of 4"
           subcopy={<>Pick at least {MIN_GENRES} familiar territory. It guides the opening search, not the boundaries of your taste.</>}
         >
-          Where should we <em>reach first?</em>
+          Which{' '}
+          <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
+            territories
+          </em>
+          {' '}do you live in?
         </StepHeader>
       }
       footer={
         <StepFooter
-          status={count === 0 ? 'Select at least 1 to continue' : `${count} selected`}
+          statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-[var(--color-text-secondary,#c9c5bc)]' : 'text-white/30'}`}
+          status={
+            count === 0
+              ? `Select at least ${MIN_GENRES} to continue`
+              : count < MIN_GENRES
+              ? `${count} selected — pick ${MIN_GENRES - count} more`
+              : `${count} selected ✓`
+          }
           onContinue={onNext}
           disabled={!canContinue}
         />
@@ -66,7 +81,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
             <GenreChoice
               key={genre.id}
               genre={genre}
-              selected={selectedGenres.includes(genre.id)}
+              isSelected={selectedGenres.includes(genre.id)}
               onClick={() => toggleGenre(genre.id)}
             />
           ))}

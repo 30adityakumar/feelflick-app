@@ -11,42 +11,31 @@ const DIRECTOR = Array.from({ length: 6 }, (_, i) => ({
   tmdbId: 200 + i, title: `Dir film ${i}`, year: 2000 + i, poster: `d${i}.jpg`, yourRating: i === 0 ? 4 : null,
 }))
 
-describe('ExplorationTail — restrained exploration disclosure (F5.6)', () => {
-  it('24/25/26. self-hides when both empty; otherwise collapsed under "Explore from here"', () => {
+describe('ExplorationTail — restrained exploration (F5.6)', () => {
+  it('24/25/26. self-hides when both empty; otherwise shows "Continue the thread" as a plain section', () => {
     const { container } = render(<ExplorationTail similar={[]} directorFilms={[]} onOpenMovie={() => {}} />)
     expect(container).toBeEmptyDOMElement()
-    const { container: c2 } = render(<ExplorationTail similar={SIMILAR} directorFilms={[]} onOpenMovie={() => {}} />)
-    expect(c2.querySelector('details').open).toBe(false)
-    expect(screen.getByText('Explore from here')).toBeInTheDocument()
-    expect(screen.getByText(/A few nearby films—similar in spirit or from the same director/i)).toBeInTheDocument()
-  })
-
-  it('27. similar-only renders only the "Similar in spirit" subsection', () => {
     render(<ExplorationTail similar={SIMILAR} directorFilms={[]} onOpenMovie={() => {}} />)
-    expect(screen.getByText('Similar in spirit')).toBeInTheDocument()
-    expect(screen.queryByText(/More from/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Continue the thread')).toBeInTheDocument()
+    // no disclosure toggle — no <details> element
+    expect(document.querySelector('details')).toBeNull()
   })
 
-  it('28. director-only renders only the "More from …" subsection', () => {
-    render(<ExplorationTail similar={[]} directorFilms={DIRECTOR} directorName="Bong Joon-ho" onOpenMovie={() => {}} />)
-    expect(screen.getByText('More from Bong Joon-ho')).toBeInTheDocument()
-    expect(screen.queryByText('Similar in spirit')).not.toBeInTheDocument()
-  })
-
-  it('29. both subsections render when both arrays have data', () => {
-    render(<ExplorationTail similar={SIMILAR} directorFilms={DIRECTOR} directorName="Bong Joon-ho" onOpenMovie={() => {}} />)
-    expect(screen.getByText('Similar in spirit')).toBeInTheDocument()
-    expect(screen.getByText('More from Bong Joon-ho')).toBeInTheDocument()
-  })
-
-  it('30/31/32. caps each subsection at 4, in source order', () => {
+  it('30/31/32. caps total at 5 in source order (similar fills first, director backfills)', () => {
     render(<ExplorationTail similar={SIMILAR} directorFilms={DIRECTOR} onOpenMovie={() => {}} />)
+    // similar fills all 5 slots; director gets none
     const simButtons = screen.getAllByRole('button', { name: /^Open Sim/ })
-    expect(simButtons.length).toBe(4)
+    expect(simButtons.length).toBe(5)
     expect(simButtons.map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Open Sim 0 (2010)', 'Open Sim 1 (2011)', 'Open Sim 2 (2012)', 'Open Sim 3 (2013)',
+      'Open Sim 0 (2010)', 'Open Sim 1 (2011)', 'Open Sim 2 (2012)', 'Open Sim 3 (2013)', 'Open Sim 4 (2014)',
     ])
-    expect(screen.getAllByRole('button', { name: /^Open Dir film/ }).length).toBe(4)
+    expect(screen.queryAllByRole('button', { name: /^Open Dir film/ }).length).toBe(0)
+  })
+
+  it('30b. director backfills remaining slots when similar is short', () => {
+    render(<ExplorationTail similar={SIMILAR.slice(0, 3)} directorFilms={DIRECTOR} onOpenMovie={() => {}} />)
+    expect(screen.getAllByRole('button', { name: /^Open Sim/ }).length).toBe(3)
+    expect(screen.getAllByRole('button', { name: /^Open Dir film/ }).length).toBe(2)
   })
 
   it('33/34. has NO reshuffle / pagination / load-more control', () => {
@@ -72,15 +61,6 @@ describe('ExplorationTail — restrained exploration disclosure (F5.6)', () => {
     render(<ExplorationTail similar={SIMILAR} directorFilms={[]} onOpenMovie={onOpenMovie} />)
     fireEvent.click(screen.getByRole('button', { name: 'Open Sim 0 (2010)' }))
     expect(onOpenMovie).toHaveBeenCalledWith(100)
-  })
-
-  it('39/40. full-filmography link opens TMDB in a new tab with safe rel', () => {
-    render(<ExplorationTail similar={[]} directorFilms={DIRECTOR} directorId={42} onOpenMovie={() => {}} />)
-    const link = screen.getByRole('link', { name: /Full filmography/i })
-    expect(link).toHaveAttribute('href', 'https://www.themoviedb.org/person/42')
-    expect(link).toHaveAttribute('target', '_blank')
-    expect(link.getAttribute('rel')).toMatch(/noopener/)
-    expect(link.textContent).toMatch(/opens in a new tab/i)
   })
 
   it('does not mutate the source arrays', () => {

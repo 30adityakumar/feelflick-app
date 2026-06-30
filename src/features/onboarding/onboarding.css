@@ -1,4 +1,81 @@
-/* FeelFlick onboarding — a stable, cinematic taste conversation. */
+/* src/features/onboarding/onboarding.css
+ * Scoped to .onboarding — Inter only (Adaptive Editorial Cinema; hierarchy via
+ * scale/weight/tracking, not a separate serif voice). Fonts load globally via index.html.
+ * Tailwind utilities still apply; this file only adds what Tailwind can't express tersely.
+ */
+
+.onboarding .ob-display {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Keyboard focus — AEC paper-white outline matching the app-wide :focus-visible
+ * rule (src/styles/globals.css), forced-colors-safe. Applied explicitly to every
+ * onboarding control that previously carried a purple ring, so each shows an equal
+ * paper-white indicator in place of the old ring (the global rule still covers any
+ * control without this class). */
+.onboarding .ob-focus:focus-visible {
+  outline: 2px solid var(--color-focus, #f5f2eb);
+  outline-offset: 3px;
+}
+
+/* Editorial step typography — onboarding-local, echoing the landing's
+ * .ff-eyebrow / .ff-d2 register without importing landing files. */
+.onboarding .ob-eyebrow {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.onboarding .ob-headline {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  font-size: clamp(30px, 4.8vw, 48px);
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.onboarding .ob-scroll::-webkit-scrollbar { width: 6px; }
+.onboarding .ob-scroll::-webkit-scrollbar-thumb {
+  background: rgba(70, 66, 61, 0.6);
+  border-radius: 999px;
+}
+.onboarding .ob-scroll::-webkit-scrollbar-track { background: transparent; }
+.onboarding .ob-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(70, 66, 61, 0.6) transparent;
+}
+
+/* Anchors carousel — a horizontal, snap-scrolling strip of picked-film posters +
+ * numbered ghost slots. Scrolls only when the posters + remaining min-slots overflow
+ * (mobile, or > the visible width); on a wide screen with ≤5 it shows without scrolling.
+ * scroll-padding leaves room for the ob-focus outline on the first/last card; the
+ * thin horizontal scrollbar mirrors .ob-scroll. */
+.onboarding .ob-anchor-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 6px;
+  padding: 6px 6px 10px;       /* room so the focus outline (3px offset) isn't clipped + scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(70, 66, 61, 0.6) transparent;
+}
+.onboarding .ob-anchor-scroll::-webkit-scrollbar { height: 6px; }
+.onboarding .ob-anchor-scroll::-webkit-scrollbar-thumb {
+  background: rgba(70, 66, 61, 0.6);
+  border-radius: 999px;
+}
+.onboarding .ob-anchor-scroll::-webkit-scrollbar-track { background: transparent; }
+.onboarding .ob-anchor-slot { flex: none; scroll-snap-align: start; }
+
+/* Mood-signature atmosphere. --ob-accent-rgb (a single deterministic mood
+ * signature, neutral-ink fallback when no mood is selected) is set on the
+ * .onboarding root in Onboarding.jsx; the soft/border tints derive from it. Used
+ * ONLY for ambient tinting (faint edge vignette + a 1px top hairline) — never
+ * foreground chrome, CTAs, or headlines. The recolor tween collapses under the
+ * global prefers-reduced-motion reset (index.css), so no JS motion is needed. */
 .onboarding {
   --ob-bg: #0e0f10;
   --ob-surface: #17191b;
@@ -11,32 +88,25 @@
   --ob-rose-soft: rgba(201, 139, 146, 0.11);
   --ob-ivory: #f2eee7;
   --ob-ink: #171411;
+  --ob-accent-soft: rgba(var(--ob-accent-rgb, 46, 49, 53), 0.10);
+  --ob-accent-border: rgba(var(--ob-accent-rgb, 46, 49, 53), 0.22);
   position: fixed;
   inset: 0;
   overflow: hidden;
   background:
-    radial-gradient(78% 72% at 82% 22%, rgba(var(--ob-accent-rgb, 122, 126, 133), 0.11), transparent 64%),
+    radial-gradient(78% 72% at 82% 22%, rgba(var(--ob-accent-rgb, 46, 49, 53), 0.11), transparent 64%),
     radial-gradient(62% 80% at 10% 92%, rgba(201, 139, 146, 0.055), transparent 72%),
     #0e0f10;
   color: var(--ob-text);
   font-family: Inter, system-ui, sans-serif;
 }
 
-.onboarding .ob-display,
-.onboarding .ob-step-title,
-.onboarding .ob-headline,
-.onboarding .ob-taste-portrait h2,
-.onboarding .ob-portrait-note,
-.onboarding .ob-celebration-content h1 {
-  font-family: var(--font-editorial), Georgia, serif;
-}
-
 .onboarding .ob-atmosphere {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 125% 110% at 50% 48%, transparent 62%, rgba(var(--ob-accent-rgb, 122, 126, 133), 0.09) 100%);
-  box-shadow: inset 0 1px 0 rgba(var(--ob-accent-rgb, 122, 126, 133), 0.2);
+  background: radial-gradient(ellipse 125% 110% at 50% 48%, transparent 62%, rgba(var(--ob-accent-rgb, 46, 49, 53), 0.09) 100%);
+  box-shadow: inset 0 1px 0 rgba(var(--ob-accent-rgb, 46, 49, 53), 0.2);
   transition: background 1.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 1.1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -67,7 +137,6 @@
   padding: 18px clamp(18px, 3vw, 42px) 14px;
 }
 
-.onboarding .ob-dna-identity,
 .onboarding .ob-dna-status,
 .onboarding .ob-signal-tally,
 .onboarding .ob-signal-tally > span {
@@ -75,39 +144,15 @@
   align-items: center;
 }
 
-.onboarding .ob-dna-identity { gap: 12px; white-space: nowrap; }
 .onboarding .ob-dna-status { gap: 16px; }
 .onboarding .ob-signal-tally { gap: 10px; }
 .onboarding .ob-signal-tally > span { gap: 4px; }
-
-.onboarding .ob-wordmark {
-  color: var(--ob-text);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.035em;
-}
-
-.onboarding .ob-dna-name {
-  padding-left: 12px;
-  border-left: 1px solid var(--ob-line);
-  color: var(--ob-muted);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
 
 .onboarding .ob-progress-track {
   height: 3px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(242, 238, 231, 0.07);
-}
-
-.onboarding .ob-progress-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--ob-ivory);
 }
 
 .onboarding .ob-signal-tally,
@@ -139,8 +184,7 @@
 .onboarding .ob-step-header > button { min-height: 44px; margin-bottom: 12px; color: var(--ob-muted) !important; }
 .onboarding .ob-step-header > button:hover { color: var(--ob-soft) !important; }
 
-.onboarding .ob-step-kicker,
-.onboarding .ob-eyebrow {
+.onboarding .ob-step-kicker {
   margin: 0 0 11px !important;
   color: var(--ob-muted) !important;
   font-family: Inter, system-ui, sans-serif;
@@ -237,7 +281,6 @@
   z-index: 1;
   display: block;
   color: var(--ob-text);
-  font-family: var(--font-editorial), Georgia, serif;
   font-size: 18px;
   font-weight: 500;
 }
@@ -362,8 +405,6 @@
 .onboarding .ob-celebration-posters > div { width: clamp(52px, 8vw, 82px); aspect-ratio: 2 / 3; overflow: hidden; border: 1px solid var(--ob-line); border-radius: 8px; background: var(--ob-surface); box-shadow: 0 16px 42px rgba(0, 0, 0, 0.44); }
 .onboarding .ob-celebration-posters img { width: 100%; height: 100%; object-fit: cover; }
 .onboarding .ob-celebration-posters span { height: 100%; display: grid; place-items: center; padding: 5px; color: var(--ob-muted); font-size: 10px; }
-.onboarding .ob-celebration-content h1 { margin: 28px 0 0; color: var(--ob-text); font-size: clamp(46px, 7vw, 82px); font-weight: 400; line-height: 0.96; letter-spacing: -0.05em; }
-.onboarding .ob-celebration-content h1 em { color: var(--ob-rose); font-weight: 400; }
 .onboarding .ob-celebration-next { margin-top: 24px; max-width: 520px; }
 .onboarding .ob-celebration-next span { display: block; margin-top: 11px; color: var(--ob-soft); font-size: 14px; line-height: 1.56; }
 .onboarding .ob-celebration-action { min-width: 210px; min-height: 48px; margin-top: 25px; padding: 0 20px; border: 0; border-radius: 8px; background: var(--ob-ivory); color: var(--ob-ink); font-size: 13px; font-weight: 700; }
@@ -384,8 +425,6 @@
 
 @media (max-width: 720px) {
   .onboarding .ob-dna-rail { grid-template-columns: auto minmax(60px, 1fr) auto; gap: 11px; padding: 14px 16px 10px; }
-  .onboarding .ob-wordmark { font-size: 14px; }
-  .onboarding .ob-dna-name,
   .onboarding .ob-signal-tally { display: none; }
   .onboarding .ob-step-count { font-size: 9px; }
   .onboarding .ob-conversation-layout { padding: 0 16px 8px; }
@@ -411,7 +450,6 @@
   .onboarding .ob-movie-card { min-width: 118px; scroll-snap-align: start; }
   .onboarding .ob-celebration-root { padding: 18px; }
   .onboarding .ob-celebration-content { padding: 24px 0; }
-  .onboarding .ob-celebration-content h1 { font-size: clamp(44px, 15vw, 66px); }
 }
 
 @media (max-width: 400px) {

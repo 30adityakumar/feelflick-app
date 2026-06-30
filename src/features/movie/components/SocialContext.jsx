@@ -98,7 +98,7 @@ function TwinSpotlight({ twin }) {
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: HP.text }}>A taste twin rated this film</div>
         <div style={{ fontSize: 11.5, color: HP.textMuted, fontFamily: 'Inter, sans-serif', marginTop: 2 }}>
-          {twin.matchPct}% overall taste similarity · rated {twin.watchedDate}
+          Someone with broadly similar viewing patterns · rated {twin.watchedDate}
         </div>
         <div style={{ marginTop: 10, display: 'inline-flex', gap: 3 }} aria-label={starText(twin.rating)}>
           {[1, 2, 3, 4, 5].map((i) => (

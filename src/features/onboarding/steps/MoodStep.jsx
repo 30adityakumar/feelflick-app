@@ -26,11 +26,15 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
           kicker={`${firstName ? `Hey ${firstName} — ` : ''}start with instinct · 1 of 4`}
           subcopy={<>Choose {MIN_MOODS}–{MAX_MOODS} emotional territories you genuinely enjoy in films. This is not tonight&apos;s mood; it is the kind of experience you often want cinema to create.</>}
         >
-          What feelings do you <em>return to?</em>
+          The vibe you{' '}
+          <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
+            live in.
+          </em>
         </StepHeader>
       }
       footer={
         <StepFooter
+          statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-[var(--color-text-secondary,#c9c5bc)]' : 'text-white/30'}`}
           status={
             count === 0
               ? `Choose at least ${MIN_MOODS} mood${MIN_MOODS === 1 ? '' : 's'}`
@@ -62,7 +66,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
                 whileTap={reduced ? undefined : { scale: 0.98 }}
                 aria-pressed={selected}
                 aria-disabled={dimmed || undefined}
-                className={`ob-mood-choice${selected ? ' is-selected' : ''}${dimmed ? ' is-dimmed' : ''}`}
+                className={`ob-focus relative text-left p-4 sm:p-5 rounded-2xl overflow-hidden transition-all ${dimmed ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 style={{
                   '--mood-rgb': mood.rgb,
                   background: selected ? `rgba(${mood.rgb}, 0.11)` : undefined,

@@ -1,5 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+// src/features/onboarding/__tests__/OnboardingFinishFlow.test.jsx
+// F2.20 — locks the FROZEN onboarding finish ordering under test WITHOUT editing
+// Onboarding.jsx. Drives the real handleFinish via the rating step's 700ms
+// auto-finish and asserts: completeOnboarding({markAuthComplete:false}) + prefetch
+// run, then after the celebration floor (or the user's skip), navigate('/home')
+// fires BEFORE markOnboardingAuthComplete(). Runs under reduced-motion so framer
+// skips its infinite animations during the fake-timer advance (the ordering is
+// identical; reduced-motion uses the short ~2s floor + skips the 900ms fade wait).
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 
 const h = vi.hoisted(() => {
   const calls = []
@@ -90,47 +99,55 @@ async function driveToFinish() {
   fireEvent.click(screen.getByRole('button', { name: 'Loved' }))
 }
 
-describe('Onboarding finish flow — explicit Discover handoff', () => {
-  it('finishes writes, enables the CTA, then navigates before flipping auth metadata', async () => {
+describe('Onboarding finish flow — frozen ordering', () => {
+  it('completeOnboarding(markAuthComplete:false) + prefetch, then /home BEFORE markOnboardingAuthComplete', async () => {
     vi.useFakeTimers()
     await driveToFinish()
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(4000) })
+    // 700ms auto-finish → handleFinish → work resolves → ~2000ms reduced floor →
+    // (fade skipped under reduced) → nav → auth
+    await act(async () => { await vi.advanceTimersByTimeAsync(3500) })
 
     expect(h.completeOnboarding).toHaveBeenCalledTimes(1)
     expect(h.completeOnboarding.mock.calls[0][0]).toMatchObject({ markAuthComplete: false })
     expect(h.prefetchHomeData).toHaveBeenCalled()
-    expect(h.navigate).not.toHaveBeenCalled()
-    expect(h.markOnboardingAuthComplete).not.toHaveBeenCalled()
-
-    const action = screen.getByRole('button', { name: /find my first film/i })
-    expect(action).toBeEnabled()
-
-    await act(async () => {
-      fireEvent.click(action)
-      await Promise.resolve()
-    })
 
     const log = names()
-    const completeIndex = log.indexOf('completeOnboarding')
-    const navigateIndex = h.calls.findIndex(call => call[0] === 'navigate' && call[1] === '/discover')
-    const authIndex = log.indexOf('markOnboardingAuthComplete')
-
-    expect(navigateIndex).toBeGreaterThan(completeIndex)
-    expect(authIndex).toBeGreaterThan(navigateIndex)
-    expect(h.navigate.mock.calls.every(call => call[0] === '/discover')).toBe(true)
+    const completeIdx = log.indexOf('completeOnboarding')
+    const navIdx = h.calls.findIndex(c => c[0] === 'navigate' && c[1] === '/home')
+    const authIdx = log.indexOf('markOnboardingAuthComplete')
+    expect(completeIdx).toBeGreaterThanOrEqual(0)
+    expect(navIdx).toBeGreaterThan(completeIdx)   // navigate only after completion resolves
+    expect(authIdx).toBeGreaterThan(navIdx)        // auth flip AFTER navigation
+    expect(h.navigate.mock.calls.every(c => c[0] === '/home')).toBe(true) // sole destination
   })
 
-  it('keeps the handoff disabled and does not navigate while writes are settling', async () => {
+  it('does NOT navigate or flip auth before the celebration floor elapses', async () => {
     vi.useFakeTimers()
     await driveToFinish()
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(1500) })
-
-    expect(h.completeOnboarding).toHaveBeenCalled()
+    await act(async () => { await vi.advanceTimersByTimeAsync(700) })  // handleFinish starts + work resolves
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000) }) // 1s into the ~2s reduced floor
+    expect(h.completeOnboarding).toHaveBeenCalled()           // started
     expect(h.completeOnboarding.mock.calls[0][0]).toMatchObject({ markAuthComplete: false })
-    expect(screen.getByRole('button', { name: /tuning your first picks/i })).toBeDisabled()
-    expect(h.navigate).not.toHaveBeenCalled()
+    expect(h.navigate).not.toHaveBeenCalled()                 // floor not yet elapsed
     expect(h.markOnboardingAuthComplete).not.toHaveBeenCalled()
+  })
+
+  it('lets the user skip via "See your picks" once setup is ready — advances immediately, no double-nav', async () => {
+    vi.useFakeTimers()
+    await driveToFinish()
+    // Fire the 700ms auto-finish + flush the work so setupReady → the skip button renders.
+    await act(async () => { await vi.advanceTimersByTimeAsync(800) })
+    const enter = screen.getByRole('button', { name: /see your picks/i })
+    await act(async () => { fireEvent.click(enter) })          // advance() runs immediately (before the floor)
+
+    expect(h.navigate).toHaveBeenCalledTimes(1)
+    expect(h.navigate.mock.calls[0][0]).toBe('/home')
+    const log = names()
+    const navIdx = h.calls.findIndex(c => c[0] === 'navigate')
+    expect(log.indexOf('markOnboardingAuthComplete')).toBeGreaterThan(navIdx)  // ordering preserved
+
+    // The floor timer firing later must NOT double-navigate (advance() is guarded).
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+    expect(h.navigate).toHaveBeenCalledTimes(1)
   })
 })

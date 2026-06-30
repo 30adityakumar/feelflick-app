@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
 import { tmdbImg } from '@/shared/api/tmdb'
-import { PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP as HP_BASE, RADIUS } from './data'
+import { PARASITE_TIMELINE_SAMPLE, HP as HP_BASE, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
 
@@ -36,9 +35,8 @@ function CastSection() {
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:32, flexWrap:'wrap', gap:24 }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Ensemble
+            <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />The cast
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:44, lineHeight:1, fontWeight:400, letterSpacing:'-0.035em', color: HP.text, margin:0 }}>The cast.</h2>
         </div>
         {hasCrew && (
           <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.06em' }}>
@@ -62,56 +60,20 @@ function CastSection() {
 }
 
 function CastCard({ p }) {
-  const reduced = useReducedMotion();
-  const [hover, setHover] = useState(false);
-  const hasFlip = p.also && p.also.length > 0;
   const hasProfile = Boolean(p.profilePath);
-  const flipped = hasFlip && hover;
   return (
-    <button
-      type="button"
-      onMouseEnter={()=>setHover(true)}
-      onMouseLeave={()=>setHover(false)}
-      onFocus={()=>setHover(true)}
-      onBlur={()=>setHover(false)}
-      aria-label={`${p.name} as ${p.role}`}
-      style={{ ...RESET_BTN, perspective:1000 }}
-    >
-      {/* F5.4: the 3D flip transition is instant under reduced motion (the back face
-          still appears on hover/focus — just without the spin). */}
-      <div style={{ aspectRatio:'2/3', borderRadius:RADIUS.sm, marginBottom:14, position:'relative', transformStyle:'preserve-3d', transition: reduced ? 'none' : 'transform 0.6s cubic-bezier(0.2,0.8,0.2,1)', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
-        {/* Front */}
-        <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, overflow:'hidden', background:'var(--ts-surface-2, #241e19)', border:`1px solid ${HP.border}`, backfaceVisibility:'hidden' }}>
-          {hasProfile ? (
-            <img src={tmdbImg(p.profilePath, 'w342')} alt={p.name} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
-          ) : (
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontSize:54, fontWeight:200, color:'var(--ts-text-secondary, #beb8ad)', opacity:0.6 }}>{p.name.split(' ').map(w=>w[0]).join('')}</div>
-          )}
-          <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.65))' }} />
-        </div>
-        {/* Back (only when filmography data has resolved) */}
-        {hasFlip && (
-          <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, padding:16, background:'var(--ts-surface-2, #241e19)', border:'1px solid var(--ts-border-subtle, #302c28)', backfaceVisibility:'hidden', transform:'rotateY(180deg)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-            <div>
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.text, opacity:0.85, marginBottom:10 }}>Also in</div>
-              <ul style={{ margin:0, padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:6 }}>
-                {p.also.map(t => <li key={t} style={{ fontFamily:'Inter, sans-serif', fontSize:12, color: HP.text, fontStyle:'italic', letterSpacing:'-0.005em' }}>{t}</li>)}
-              </ul>
-            </div>
-            {/* Real overlap count from user_history. When the user has zero
-                of this actor's other films, the line stays out so we don't
-                ship a misleading "0 in your library" footer. */}
-            {p.inYourLibrary > 0 && (
-              <div style={{ fontSize:9, fontWeight:600, letterSpacing:'0.14em', textTransform:'uppercase', color: HP.text, opacity:0.6 }}>
-                {p.inYourLibrary} in your library
-              </div>
-            )}
-          </div>
+    <div style={{ ...RESET_BTN }}>
+      <div style={{ aspectRatio:'2/3', borderRadius:RADIUS.sm, marginBottom:14, position:'relative', overflow:'hidden', background:'var(--ts-surface-2, #241e19)', border:`1px solid ${HP.border}` }}>
+        {hasProfile ? (
+          <img src={tmdbImg(p.profilePath, 'w342')} alt={p.name} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        ) : (
+          <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif', fontSize:54, fontWeight:200, color:'var(--ts-text-secondary, #beb8ad)', opacity:0.6 }}>{p.name.split(' ').map(w=>w[0]).join('')}</div>
         )}
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.65))' }} />
       </div>
       <div style={{ fontFamily:'Inter, sans-serif', fontSize:14, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:4 }}>{p.name}</div>
       <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic' }}>{p.role}</div>
-    </button>
+    </div>
   );
 }
 
@@ -131,11 +93,8 @@ function VideosSection({ onPlayVideo }) {
   return (
     <section className="ff-movie-section" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />More to watch
+        <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Featurettes & extras.
       </div>
-      <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:'0 0 28px 0' }}>
-        Featurettes & <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>extras.</em>
-      </h2>
       <div className="ff-movie-videos-rest" style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(extras.length, 3)},1fr)`, gap:18 }}>
         {extras.map(v => <VideoThumb key={v.id} v={v} onPlay={() => onPlayVideo?.(v)} />)}
       </div>
@@ -260,9 +219,6 @@ function ProvidersSection() {
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
             <span style={{ height:1, width:22, background: 'var(--ts-border-strong, #46423d)', opacity:0.6 }} />Where to watch
           </div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
-            Streaming <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>now.</em>
-          </h2>
           <a
             href={providers.link || 'https://www.justwatch.com'}
             target="_blank"
@@ -273,18 +229,20 @@ function ProvidersSection() {
           </a>
         </div>
         <div>
-          {providers.flatrate.length > 0 && <>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, marginBottom:14, fontFamily:'Inter, sans-serif' }}>Stream</div>
-            <div style={{ display:'flex', gap:10, marginBottom:28, flexWrap:'wrap' }}>{providers.flatrate.map((p,i) => <ProviderChip key={i} p={p} />)}</div>
-          </>}
-          {(providers.rent.length > 0 || providers.buy.length > 0) && <>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, marginBottom:14, fontFamily:'Inter, sans-serif' }}>Rent / Buy</div>
-            <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-              {providers.rent.map((p,i) => <ProviderChip key={`r${i}`} p={p} />)}
-              {providers.buy.map((p,i) => <ProviderChip key={`b${i}`} p={p} />)}
-            </div>
-          </>}
-          <p style={attributionStyle}>{PROVIDER_ATTRIBUTION}</p>
+          {(() => {
+            const [label, list] = providers.flatrate.length > 0
+              ? ['Stream', providers.flatrate]
+              : providers.rent.length > 0
+                ? ['Rent', providers.rent]
+                : providers.buy.length > 0
+                  ? ['Buy', providers.buy]
+                  : [null, []];
+            if (!label) return null;
+            return <>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, marginBottom:14, fontFamily:'Inter, sans-serif' }}>{label}</div>
+              <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>{list.map((p,i) => <ProviderChip key={i} p={p} />)}</div>
+            </>;
+          })()}
         </div>
       </div>
     </section>
@@ -483,13 +441,11 @@ function TimelineSection() {
   // honest one-event case for non-Parasite films.
   const isMultiEvent = timeline.length > 1;
   const kicker = isMultiEvent ? 'Release path' : 'Release';
-  const headline = isMultiEvent ? 'How it traveled.' : 'When it dropped.';
   return (
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-movie-timeline-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:64, alignItems:'flex-start' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:14 }}>{kicker}</div>
-          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:36, lineHeight:1.05, fontWeight:400, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>{headline}</h2>
           {mv.languages.length > 0 && (
             <div style={{ marginTop:24, display:'flex', alignItems:'center', gap:10, fontSize:11, color: HP.textMuted, fontFamily:'Inter, sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
               <span>Languages</span>
@@ -595,15 +551,12 @@ function YourTakeLockedPrompt() {
 const REACTION_TAGS = ['Loved it', 'Liked it', 'Mixed', "Didn't connect"];
 
 function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
-  const { mv } = useMovieData();
-  // DNADelta's projected motifs are still Parasite-specific until real
-  // before/after deltas land. Gate to Parasite only so auto-generated
-  // overlays on other films don't surface Bong's class-tension projection.
-  const showDnaDelta = mv?.id === PARASITE_TMDB_ID;
+  // §24: the projected DNA-delta surface was removed — it presented a Parasite-only
+  // *projected* before/after as if it were a measured taste change. No replacement.
   const {
     stars, reviewText, reaction,
     setStars, setReviewText, setReaction,
-    saveStatus, hydrated,
+    saveStatus, hydrated, loadError, retryHydrate,
   } = useUserRating({ userId, internalId });
   const canPersist = Boolean(userId && internalId);
   // After hydration: if the user already has data, surface a passive "saved"
@@ -627,6 +580,9 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
     else if (saveStatus === 'error') onError?.();
   }, [saveStatus, onSaved, onError]);
 
+  // §21: hydration read failed → show a safe local error + Retry instead of an
+  // editable form that could overwrite unknown existing rating/note data.
+  if (loadError) return <YourTakeLoadError onRetry={retryHydrate} />;
   // Unwatched + no existing reflection → compact locked prompt (no new unwatched rating).
   if (!unlocked) return <YourTakeLockedPrompt />;
 
@@ -640,24 +596,21 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
           </div>
           <SaveIndicator status={saveStatus} showIdleSavedHint={showIdleSavedHint} />
         </div>
-        <div className="ff-movie-your-take-grid" style={{ display:'grid', gridTemplateColumns: showDnaDelta ? '1fr 1.4fr' : '1fr', gap:48, alignItems:'flex-start', marginTop:14 }}>
+        <div className="ff-movie-your-take-grid" style={{ display:'grid', gridTemplateColumns: '1fr', gap:48, alignItems:'flex-start', marginTop:14 }}>
           <div>
-            <div className="ff-movie-your-take-stars" role="radiogroup" aria-label="Your star rating" style={{ display:'flex', gap:6, marginBottom:18 }}>
-              {[1,2,3,4,5].map(i => (
+            <div className="ff-movie-your-take-stars" role="radiogroup" aria-label="Your star rating" style={{ display:'flex', gap:4, marginBottom:18 }}>
+              {[1,2,3,4,5,6,7,8,9,10].map(i => (
                 <button
                   key={i}
                   type="button"
                   role="radio"
                   aria-checked={stars === i}
-                  aria-label={`${i} star${i > 1 ? 's' : ''}`}
-                  // Click the same star twice to clear the rating (canonical
-                  // "remove" gesture — Letterboxd, IMDb, Apple TV all behave
-                  // this way). Hook deletes the row when stars=0 + note empty.
+                  aria-label={`${i} star${i > 1 ? 's' : ''} out of 10`}
                   onClick={() => setStars(stars === i ? 0 : i)}
                   disabled={!canPersist}
-                  style={{ background:'transparent', border:'none', cursor: canPersist ? 'pointer' : 'not-allowed', padding:4, opacity: canPersist ? 1 : 0.55 }}
+                  style={{ background:'transparent', border:'none', cursor: canPersist ? 'pointer' : 'not-allowed', padding:3, opacity: canPersist ? 1 : 0.55 }}
                 >
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill={i<=stars?HP.amber:'transparent'} stroke={i<=stars?HP.amber:HP.textFaint} strokeWidth="1.6">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill={i<=stars?HP.amber:'transparent'} stroke={i<=stars?HP.amber:HP.textFaint} strokeWidth="1.6">
                     <path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
                   </svg>
                 </button>
@@ -700,8 +653,29 @@ function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
               />
             </label>
           </div>
-          {showDnaDelta && <DNADelta />}
         </div>
+      </div>
+    </section>
+  );
+}
+
+// §21: safe load-error surface — never an empty editable form when we couldn't
+// read whether existing rating/note data exists.
+function YourTakeLoadError({ onRetry }) {
+  return (
+    <section className="ff-movie-section ff-movie-your-take-error" style={{ padding:'40px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div role="alert" style={{ padding:'24px 26px', borderRadius:RADIUS.sm, background:'var(--ts-surface-1, #1d1814)', border:`1px solid ${HP.border}`, maxWidth:560 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:'var(--ts-text-secondary, #beb8ad)', marginBottom:8 }}>Your take</div>
+        <p style={{ margin:'0 0 16px 0', fontSize:14, lineHeight:1.55, color:HP.text, fontFamily:'Inter, sans-serif' }}>
+          We could not load your previous reflection.<br />Try again before making changes.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          style={{ minHeight:40, padding:'9px 18px', borderRadius:4, background:'var(--ts-action-primary-fill, #efe7d7)', color:'var(--ts-action-primary-text, #221b13)', border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:600 }}
+        >
+          Try again
+        </button>
       </div>
     </section>
   );
@@ -716,9 +690,9 @@ function SaveIndicator({ status, showIdleSavedHint }) {
   if (status === 'idle' && !showIdleSavedHint) return null;
   const map = {
     saving:    { label: 'Saving…',                color: HP.textMuted },
-    saved:     { label: 'Saved ✓',                color: 'var(--ts-text-primary, #f3ecdf)' },
+    saved:     { label: 'Saved privately',        color: 'var(--ts-text-primary, #f3ecdf)' },
     error:     { label: 'Could not save. Try again.', color: '#f87171' },
-    idleSaved: { label: 'Saved',                  color: HP.textMuted },
+    idleSaved: { label: 'Saved privately',        color: HP.textMuted },
   };
   const key = status === 'idle' ? 'idleSaved' : status;
   const cfg = map[key] || map.saving;
@@ -726,37 +700,6 @@ function SaveIndicator({ status, showIdleSavedHint }) {
     <span style={{ fontSize:10.5, fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color: cfg.color, fontFamily:'Inter, sans-serif', transition:'color 0.2s ease' }}>
       {cfg.label}
     </span>
-  );
-}
-
-function DNADelta() {
-  const [animated, setAnimated] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setAnimated(true), 350);
-    return () => clearTimeout(t);
-  }, []);
-  return (
-    <div style={{ padding:'22px 24px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.35)', border:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:6 }}>Your engine projects this shift</div>
-      <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Inter, sans-serif', fontStyle:'italic', marginBottom:18 }}>Real before/after deltas land in a follow-up — for now, projected from your taste profile.</div>
-      <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-        {PARASITE_DNA_DELTA_SAMPLE.map(d => {
-          const w = animated ? d.after : d.before;
-          const delta = (d.after - d.before).toFixed(2);
-          return (
-            <div key={d.motif}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
-                <span style={{ fontFamily:'Inter, sans-serif', fontSize:13, fontWeight:500, color: HP.text }}>{d.motif}</span>
-                <span style={{ fontFamily:'Inter, sans-serif', fontSize:11, color: 'var(--ts-text-secondary, #beb8ad)', fontWeight:700 }}>+{delta}</span>
-              </div>
-              <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
-                <div style={{ height:'100%', width:`${w*100}%`, background:'var(--ts-text-secondary, #beb8ad)', transition:'width 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 
@@ -769,7 +712,6 @@ function DetailsSection() {
       <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:80 }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: 'var(--ts-text-secondary, #beb8ad)', marginBottom:18 }}>Production</div>
-          <h3 style={{ fontFamily:'Inter, system-ui, sans-serif', fontSize:28, fontWeight:400, color: HP.text, margin:'0 0 24px 0', letterSpacing:'-0.025em' }}>The receipts.</h3>
           <div className="ff-movie-details-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'20px 32px' }}>
             {mv.releaseDate && <Stat label="Released"   value={mv.releaseDate} />}
             {hasRuntime && <Stat label="Runtime"    value={`${Math.floor(mv.runtime/60)}h ${mv.runtime%60}m`} />}

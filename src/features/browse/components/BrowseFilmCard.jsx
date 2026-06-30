@@ -16,7 +16,6 @@ import { Bookmark, Check, Eye } from 'lucide-react'
 
 export default function BrowseFilmCard({
   film,
-  evidence = null,      // { lead, detail } | null — objective, sort-appropriate
   badge = null,         // string | null — rare, threshold-backed
   watched = false,
   inWatchlist = false,
@@ -65,12 +64,6 @@ export default function BrowseFilmCard({
           </div>
         ) : null}
 
-        {evidence ? (
-          <div className="ff-bcard__evidence">
-            <strong>{evidence.lead}</strong>
-            {evidence.detail ? <span>{evidence.detail}</span> : null}
-          </div>
-        ) : null}
       </div>
 
       <div className="ff-bcard__copy">

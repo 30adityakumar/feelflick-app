@@ -9,10 +9,10 @@ test.beforeEach(async ({ page }) => {
   await installBrowseFixture(page, { reducedMotion: true })
 })
 
-test('renders the masthead, curiosity paths and a finite poster grid', async ({ page }) => {
+test('renders the topbar, filter bar and a finite poster grid', async ({ page }) => {
   await page.goto('/browse')
-  await expect(page.getByRole('heading', { name: 'Follow your curiosity.' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Start somewhere' })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('heading', { name: 'Browse' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Surprise me within these filters/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /Open Film File for Browse Film 1$/ })).toBeVisible({ timeout: 20_000 })
 })
 
@@ -30,16 +30,16 @@ test('Critics sort writes ff_critic_rating.desc to the URL', async ({ page }) =>
   await expect(page).toHaveURL(/sort=ff_critic_rating\.desc/)
 })
 
-test('selecting a curiosity path opens its territory in the URL', async ({ page }) => {
+test('selecting Hidden gems filter adds vibe=hidden to the URL', async ({ page }) => {
   await page.goto('/browse')
-  const hiddenGems = page.getByRole('button', { name: /Hidden gems/ })
-  await hiddenGems.first().click()
-  await expect(page).toHaveURL(/sort=discovery_potential\.desc/)
+  await expect(page.getByRole('button', { name: /Open Film File for Browse Film 1$/ })).toBeVisible({ timeout: 20_000 })
+  await page.getByRole('button', { name: 'Hidden gems', exact: true }).click()
+  await expect(page).toHaveURL(/vibe=hidden/)
 })
 
 test('legacy avTonight + view params are normalized out of the canonical URL', async ({ page }) => {
   await page.goto('/browse?avTonight=1&view=list&genre=Drama')
-  await expect(page.getByRole('heading', { name: 'Follow your curiosity.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Browse' })).toBeVisible()
   await expect(page).not.toHaveURL(/avTonight/)
   await expect(page).not.toHaveURL(/view=list/)
   await expect(page).toHaveURL(/genre=Drama/) // unrelated params preserved
@@ -47,7 +47,7 @@ test('legacy avTonight + view params are normalized out of the canonical URL', a
 
 test('legacy preset bundle is expanded into explicit filter params, marker dropped', async ({ page }) => {
   await page.goto('/browse?preset=cozy_night')
-  await expect(page.getByRole('heading', { name: 'Follow your curiosity.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Browse' })).toBeVisible()
   // cozy_night = { intensity: chill, depth: surface, runtime: medium }
   await expect(page).toHaveURL(/intensity=chill/)
   await expect(page).toHaveURL(/depth=surface/)
@@ -88,7 +88,7 @@ test('a supported genre is genuinely forwarded to TMDB in text-search mode (Sci-
     if (host === 'api.themoviedb.org' && u.includes('/discover/movie')) discoverUrls.push(u)
   })
   await page.goto('/browse?genre=Sci-Fi&q=space')
-  await expect(page.getByRole('heading', { name: 'Follow your curiosity.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Browse' })).toBeVisible()
   await expect.poll(() => discoverUrls.some((u) => /with_genres=878/.test(u)), { timeout: 20_000 }).toBe(true)
 })
 

@@ -66,10 +66,11 @@ describe('sort tabs', () => {
     expect(PRIMARY_SORTS[0]).toEqual({ value: 'ff_rating.desc', label: 'FeelFlick rating' })
     expect(PRIMARY_SORTS.map(s => s.label)).not.toContain('For you')
   })
-  it('exposes the four primary sorts', () => {
+  it('exposes the three primary sorts (Hidden gems moved to filter)', () => {
     expect(PRIMARY_SORTS.map(s => s.value)).toEqual([
-      'ff_rating.desc', 'discovery_potential.desc', 'ff_critic_rating.desc', 'release_date.desc',
+      'ff_rating.desc', 'ff_critic_rating.desc', 'release_date.desc',
     ])
+    expect(PRIMARY_SORTS.map(s => s.value)).not.toContain('discovery_potential.desc')
     expect(sortSummary('ff_critic_rating.desc')).toMatch(/critic/i)
   })
 })

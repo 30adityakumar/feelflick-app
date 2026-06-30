@@ -14,7 +14,7 @@ export default function BrowseCuriosityPaths({ paths = [], loading = false, acti
       <section className="ff-browse-paths" aria-labelledby="ff-browse-paths-title">
         <header className="ff-browse-section-head">
           <h2 id="ff-browse-paths-title">Start somewhere</h2>
-          <p>Entry points into the catalogue — not another recommendation row.</p>
+          <p>Choose a direction, then refine as you go.</p>
         </header>
         <div className="ff-browse-path-grid" aria-hidden="true">
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="ff-browse-path-card is-skeleton" />)}

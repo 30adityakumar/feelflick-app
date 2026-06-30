@@ -22,8 +22,8 @@ export default function BrowseScopedSearch({ draft, setDraft, onSubmit }) {
       <input
         type="search"
         autoComplete="off"
-        aria-label="Search films in this catalogue"
-        placeholder="Search films in this catalogue"
+        aria-label="Search within this catalogue"
+        placeholder="Search within this catalogue"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
       />

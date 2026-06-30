@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 
 // F7.2 privacy containment (updated): /profile/:userId for another user now renders
-// PersonPublicProfile (SECURITY DEFINER RPCs, sharing-flag gated) — NOT the self DNA hook.
+// PublicDnaProfile (SECURITY DEFINER RPCs only) — NOT the self DNA hook.
 // The key security invariant is unchanged: useProfileDataFetch (owner-only table reads) is
 // NEVER called for a non-self user. Cross-user data flows through the public RPCs only.
 
@@ -16,9 +16,17 @@ vi.mock('../useProfileData', () => ({
 vi.mock('@/shared/hooks/useAuthSession', () => ({ useAuthSession: () => ({ user: { id: 'self-1' } }) }))
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
 
-// Mock the public-profile hook used by PersonPublicProfile for cross-user renders
+// Mock the DNA hook used by PublicDnaProfile for cross-user renders
+vi.mock('../hooks/usePublicDna', () => ({
+  usePublicDna: () => ({ status: 'loading', raw: null, retry: () => {} }),
+}))
+// Mock people data provider so PeopleDataProvider renders children without Supabase
+vi.mock('@/features/people/usePeopleData', () => ({
+  PeopleDataProvider: ({ children }) => children,
+  usePeopleData: () => ({ followingIds: new Set(), follow: () => {}, unfollow: () => {}, isPending: () => false, isErrored: () => false }),
+}))
 vi.mock('@/features/people/hooks/usePersonPublicProfile', () => ({
-  usePersonPublicProfile: () => ({ profile: null, history: [], watchlist: [], lists: [], loading: true, error: null }),
+  usePersonPublicProfile: () => ({ status: 'loading', profile: null, history: [], watchlist: [], lists: [], similarity: null, retry: () => {} }),
 }))
 
 import TasteProfile from '../TasteProfile'

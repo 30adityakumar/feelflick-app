@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { ThoughtfulRoot } from '@/shared/ui/thoughtful-seatmate'
-import PersonPublicProfile from '@/features/people/PersonPublicProfile'
+import PublicDnaProfile from './PublicDnaProfile'
 import { useProfileDataFetch } from './useProfileData'
 import { resolveDnaIdentity } from './dna/identity'
 import CinematicDnaHero from './dna/CinematicDnaHero'
@@ -46,7 +46,7 @@ export default function TasteProfile() {
   const isSelf = !paramUserId || paramUserId === user?.id
   usePageMeta({ title: isSelf ? 'Your Cinematic DNA — FeelFlick' : 'Cinematic DNA — FeelFlick' })
 
-  if (!isSelf) return <PersonPublicProfile />
+  if (!isSelf) return <PublicDnaProfile />
   return <SelfProfile authUser={user} />
 }
 

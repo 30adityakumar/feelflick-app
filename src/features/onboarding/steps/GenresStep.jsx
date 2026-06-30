@@ -1,7 +1,3 @@
-// src/features/onboarding/steps/GenresStep.jsx
-// Genre picker — territories of taste. Lifted tile surfaces (not a tag cloud)
-// with a settled selected state.
-
 import { motion, useReducedMotion } from 'framer-motion'
 
 import { GENRES } from '@/features/onboarding/data'
@@ -10,15 +6,15 @@ import StepHeader from '../components/StepHeader'
 import StepFooter from '../components/StepFooter'
 
 const MIN_GENRES = 1
-
-const containerVariants = { visible: { transition: { staggerChildren: 0.025 } } }
+const containerVariants = { visible: { transition: { staggerChildren: 0.022 } } }
 const tileVariants = {
-  hidden: { opacity: 0, y: 6 },
+  hidden: { opacity: 0, y: 5 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } },
 }
 
-function GenreTile({ genre, isSelected, onClick }) {
+function GenreChoice({ genre, isSelected, onClick }) {
   const reduced = useReducedMotion()
+
   return (
     <motion.button
       type="button"
@@ -32,7 +28,7 @@ function GenreTile({ genre, isSelected, onClick }) {
           : 'bg-white/[0.05] border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.08] hover:border-white/20'
       }`}
     >
-      <div className="ob-display text-[15px] font-medium text-white mb-0.5">{genre.name}</div>
+      {genre.name}
     </motion.button>
   )
 }
@@ -46,12 +42,9 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
     <StepShell
       header={
         <StepHeader
-          className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5"
           onBack={onBack}
-          kicker="The territories · 2 of 4"
-          subcopy={<>Pick at least {MIN_GENRES} — this steers what we reach for first. Nothing&apos;s
-          locked in; you can always add more later.</>}
-          subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl"
+          kicker="Set the territory · 2 of 4"
+          subcopy={<>Pick at least {MIN_GENRES} familiar territory. It guides the opening search, not the boundaries of your taste.</>}
         >
           Which{' '}
           <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
@@ -75,21 +68,21 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
         />
       }
     >
-      <div className="ob-scroll flex-1 min-h-0 overflow-y-auto px-5 pb-4 sm:px-6">
+      <div className="ob-step-scroll">
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 max-w-3xl mx-auto px-1 py-2"
+          className="ob-genre-grid"
           variants={reduced ? undefined : containerVariants}
           initial={reduced ? false : 'hidden'}
           animate="visible"
           role="group"
-          aria-label="Genres"
+          aria-label="Genre territories"
         >
-          {GENRES.map(g => (
-            <GenreTile
-              key={g.id}
-              genre={g}
-              isSelected={selectedGenres.includes(g.id)}
-              onClick={() => toggleGenre(g.id)}
+          {GENRES.map(genre => (
+            <GenreChoice
+              key={genre.id}
+              genre={genre}
+              isSelected={selectedGenres.includes(genre.id)}
+              onClick={() => toggleGenre(genre.id)}
             />
           ))}
         </motion.div>

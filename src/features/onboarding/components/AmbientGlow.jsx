@@ -1,7 +1,3 @@
-// src/features/onboarding/components/AmbientGlow.jsx
-// Two-color radial-gradient backdrop driven by the user's mood selection.
-// Smoothly transitions between mood palettes as the user adds/removes selections.
-
 import { useMemo } from 'react'
 
 import { MOODS } from '../data'
@@ -10,7 +6,7 @@ const DEFAULT_PRIMARY = '46, 49, 53'   // neutral ink (surface-raised) — no mo
 const DEFAULT_SECONDARY = '46, 49, 53' // neutral ink — no mood selected
 
 function rgbForKey(key) {
-  return MOODS.find(m => m.key === key)?.rgb ?? DEFAULT_PRIMARY
+  return MOODS.find(mood => mood.key === key)?.rgb ?? DEFAULT_PRIMARY
 }
 
 /**
@@ -27,24 +23,27 @@ function rgbForKey(key) {
  * @returns {string}        — "r, g, b" for use in rgba()
  */
 export function deriveMoodSignature(moods = []) {
-  const rgbs = (moods || [])
-    .map(key => MOODS.find(m => m.key === key)?.rgb)
+  const rgbs = moods
+    .map(key => MOODS.find(mood => mood.key === key)?.rgb)
     .filter(Boolean)
-    .map(s => s.split(',').map(n => Number(n.trim())))
+    .map(value => value.split(',').map(channel => Number(channel.trim())))
+
   if (rgbs.length === 0) return DEFAULT_PRIMARY
   if (rgbs.length === 1) return rgbs[0].join(', ')
-  const avg = [0, 1, 2].map(i => Math.round(rgbs.reduce((sum, c) => sum + c[i], 0) / rgbs.length))
-  return avg.join(', ')
+
+  return [0, 1, 2]
+    .map(index => Math.round(rgbs.reduce((sum, channels) => sum + channels[index], 0) / rgbs.length))
+    .join(', ')
 }
 
 export default function AmbientGlow({ moods = [] }) {
-  const { primary, secondary } = useMemo(() => {
-    if (moods.length === 0) return { primary: DEFAULT_PRIMARY, secondary: DEFAULT_SECONDARY }
+  const colors = useMemo(() => {
+    if (moods.length === 0) return [DEFAULT_PRIMARY, DEFAULT_SECONDARY]
     if (moods.length === 1) {
-      const r = rgbForKey(moods[0])
-      return { primary: r, secondary: r }
+      const color = rgbForKey(moods[0])
+      return [color, color]
     }
-    return { primary: rgbForKey(moods[0]), secondary: rgbForKey(moods[1]) }
+    return [rgbForKey(moods[0]), rgbForKey(moods[1])]
   }, [moods])
 
   return (
@@ -52,11 +51,8 @@ export default function AmbientGlow({ moods = [] }) {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0"
       style={{
-        background: `
-          radial-gradient(ellipse 80% 60% at 30% 20%, rgba(${primary}, 0.32) 0%, transparent 60%),
-          radial-gradient(ellipse 70% 50% at 80% 80%, rgba(${secondary}, 0.22) 0%, transparent 60%)
-        `,
-        transition: 'background 1.4s cubic-bezier(0.22, 1, 0.36, 1)',
+        background: `radial-gradient(ellipse 82% 64% at 78% 22%, rgba(${colors[0]}, 0.13) 0%, transparent 64%), radial-gradient(ellipse 68% 54% at 12% 88%, rgba(${colors[1]}, 0.07) 0%, transparent 66%)`,
+        transition: 'background 1.1s cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     />
   )

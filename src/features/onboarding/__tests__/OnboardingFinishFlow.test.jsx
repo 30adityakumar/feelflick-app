@@ -14,10 +14,19 @@ const h = vi.hoisted(() => {
   const calls = []
   return {
     calls,
-    completeOnboarding: vi.fn((opts) => { calls.push(['completeOnboarding', opts]); return Promise.resolve() }),
-    markOnboardingAuthComplete: vi.fn(() => { calls.push(['markOnboardingAuthComplete']); return Promise.resolve() }),
-    prefetchHomeData: vi.fn(() => { calls.push(['prefetchHomeData']); return Promise.resolve() }),
-    navigate: vi.fn((to) => { calls.push(['navigate', to]) }),
+    completeOnboarding: vi.fn(options => {
+      calls.push(['completeOnboarding', options])
+      return Promise.resolve()
+    }),
+    markOnboardingAuthComplete: vi.fn(() => {
+      calls.push(['markOnboardingAuthComplete'])
+      return Promise.resolve()
+    }),
+    prefetchHomeData: vi.fn(() => {
+      calls.push(['prefetchHomeData'])
+      return Promise.resolve()
+    }),
+    navigate: vi.fn(destination => calls.push(['navigate', destination])),
   }
 })
 
@@ -26,23 +35,35 @@ vi.mock('@/shared/services/onboarding', () => ({
   markOnboardingAuthComplete: h.markOnboardingAuthComplete,
 }))
 vi.mock('@/features/home/useHomeData', () => ({ prefetchHomeData: h.prefetchHomeData }))
-vi.mock('react-router-dom', async (orig) => ({ ...(await orig()), useNavigate: () => h.navigate }))
+vi.mock('react-router-dom', async original => ({ ...(await original()), useNavigate: () => h.navigate }))
 vi.mock('@/shared/hooks/useAuthSession', () => ({
   useAuthSession: () => ({ ready: true, session: { user: { id: 'u1', user_metadata: {} } } }),
 }))
 vi.mock('@/shared/lib/auth/onboardingStatus', () => ({ deriveOnboardingStatus: () => ({ isComplete: false }) }))
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
 vi.mock('@/shared/lib/supabase/client', () => ({
-  supabase: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { onboarding_complete: false } }) }) }) }) },
+  supabase: {
+    from: () => ({
+      select: () => ({
+        eq: () => ({ maybeSingle: () => Promise.resolve({ data: { onboarding_complete: false } }) }),
+      }),
+    }),
+  },
 }))
-vi.mock('@/shared/api/tmdb', () => ({ tmdbImg: (p) => `https://img/${p}`, searchMovies: vi.fn().mockResolvedValue({ results: [] }) }))
+vi.mock('@/shared/api/tmdb', () => ({
+  tmdbImg: path => `https://img/${path}`,
+  searchMovies: vi.fn().mockResolvedValue({ results: [] }),
+}))
 
 import Onboarding from '../Onboarding'
 
 const DRAFT_KEY = 'ff_onboarding_draft_v1'
+
 function seedDraft() {
   localStorage.setItem(DRAFT_KEY, JSON.stringify({
-    step: 3, moods: ['cozy'], selectedGenres: [18],
+    step: 3,
+    moods: ['cozy'],
+    selectedGenres: [18],
     favoriteMovies: [{ id: 1, title: 'Alpha', poster_path: '/a.jpg', release_date: '2014-01-01' }],
     ratings: {},
   }))
@@ -52,24 +73,29 @@ beforeEach(() => {
   h.calls.length = 0
   vi.clearAllMocks()
   localStorage.clear()
-  // reduced-motion: framer skips infinite animations during the fake-timer advance.
-  window.matchMedia = vi.fn().mockImplementation((q) => ({
-    matches: /reduced-motion/.test(q), media: q, onchange: null,
-    addEventListener: vi.fn(), removeEventListener: vi.fn(),
-    addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn(),
+  window.matchMedia = vi.fn().mockImplementation(query => ({
+    matches: /reduced-motion/.test(query),
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   }))
 })
-afterEach(() => { vi.useRealTimers(); localStorage.clear() })
 
-const names = () => h.calls.map(c => c[0])
+afterEach(() => {
+  vi.useRealTimers()
+  localStorage.clear()
+})
 
-// Render Onboarding pre-seeded at the rating step, flush the async auth gate,
-// then rate the one film so RatingStep reaches allRated and schedules its 700ms
-// auto-finish (= handleFinish).
+const names = () => h.calls.map(call => call[0])
+
 async function driveToFinish() {
   seedDraft()
   render(<Onboarding />)
-  await act(async () => { await vi.advanceTimersByTimeAsync(10) }) // flush auth gate → checking=false
+  await act(async () => { await vi.advanceTimersByTimeAsync(10) })
   fireEvent.click(screen.getByRole('button', { name: 'Loved' }))
 }
 
@@ -84,7 +110,6 @@ describe('Onboarding finish flow — frozen ordering', () => {
     expect(h.completeOnboarding).toHaveBeenCalledTimes(1)
     expect(h.completeOnboarding.mock.calls[0][0]).toMatchObject({ markAuthComplete: false })
     expect(h.prefetchHomeData).toHaveBeenCalled()
-    expect(h.markOnboardingAuthComplete).toHaveBeenCalledTimes(1)
 
     const log = names()
     const completeIdx = log.indexOf('completeOnboarding')

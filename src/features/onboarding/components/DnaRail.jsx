@@ -14,23 +14,20 @@ const TOTAL = 4
 
 export default function DnaRail({ step, moods, genres, films, ratings }) {
   const reduced = useReducedMotion()
-  const current = step + 1            // 1..TOTAL
-  const fraction = current / TOTAL    // 0.25..1 — honestly represents 4 steps
+  const current = step + 1
+  const fraction = current / TOTAL
 
   const counts = [
-    { label: 'Mood',  n: moods.length },
+    { label: 'Mood', n: moods.length },
     { label: 'Genre', n: genres.length },
-    { label: 'Film',  n: films.length },
+    { label: 'Film', n: films.length },
     { label: 'Rated', n: Object.keys(ratings || {}).length },
-  ].filter(c => c.n > 0)
+  ].filter(item => item.n > 0)
 
-  // The tally hides on the rating step (RatingStep has its own "X TO GO" eyebrow,
-  // and the tally is noise over the card on mobile) and before any signal exists.
-  // The rail/progressbar ALWAYS renders, on all four steps.
-  const showChips = step !== 3 && counts.length > 0
+  const showTally = step !== 3 && counts.length > 0
 
   return (
-    <div className="flex-none px-5 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-3 flex items-center gap-3 sm:gap-4">
+    <header className="ob-dna-rail">
       {/* Identity (left) — wordmark (Inter 600, +0.04em, paper-white to match the
           shipped app header) + a desktop-only micro-kicker naming the artifact. */}
       <div className="flex-none flex items-center gap-2.5">
@@ -48,9 +45,8 @@ export default function DnaRail({ step, moods, genres, films, ratings }) {
         </span>
       </div>
 
-      {/* The single progressbar rail (center) — the only horizontal rule. */}
       <div
-        className="flex-1 h-[3px] rounded-full bg-white/8 overflow-hidden"
+        className="ob-progress-track"
         role="progressbar"
         aria-valuemin={1}
         aria-valuemax={TOTAL}
@@ -65,25 +61,19 @@ export default function DnaRail({ step, moods, genres, films, ratings }) {
         />
       </div>
 
-      {/* Signals + counter (right). The tally lives in an always-present
-          aria-live region so a captured signal is announced ("Mood 1"); the four
-          label WORDS are the non-color affordance carried over from TasteStrip. */}
-      <div className="flex-none flex items-center gap-2.5 sm:gap-3">
-        <span
-          aria-live="polite"
-          className="flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] whitespace-nowrap"
-        >
-          {showChips && counts.map(c => (
-            <span key={c.label} className="flex items-center gap-1">
-              <span className="text-white/45">{c.label}</span>
-              <span className="text-white/75 tabular-nums">{c.n}</span>
+      <div className="ob-dna-status">
+        <span aria-live="polite" className="ob-signal-tally">
+          {showTally && counts.map(item => (
+            <span key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.n}</strong>
             </span>
           ))}
         </span>
-        <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-white/40 tabular-nums whitespace-nowrap">
+        <span className="ob-step-count">
           {String(current).padStart(2, '0')} / 0{TOTAL}
         </span>
       </div>
-    </div>
+    </header>
   )
 }

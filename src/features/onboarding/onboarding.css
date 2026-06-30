@@ -77,44 +77,402 @@
  * foreground chrome, CTAs, or headlines. The recolor tween collapses under the
  * global prefers-reduced-motion reset (index.css), so no JS motion is needed. */
 .onboarding {
+  --ob-bg: #0e0f10;
+  --ob-surface: #17191b;
+  --ob-line: rgba(242, 238, 231, 0.1);
+  --ob-line-strong: rgba(242, 238, 231, 0.18);
+  --ob-text: #f2eee7;
+  --ob-soft: #b8b1a7;
+  --ob-muted: #817d77;
+  --ob-rose: #c98b92;
+  --ob-rose-soft: rgba(201, 139, 146, 0.11);
+  --ob-ivory: #f2eee7;
+  --ob-ink: #171411;
   --ob-accent-soft: rgba(var(--ob-accent-rgb, 46, 49, 53), 0.10);
   --ob-accent-border: rgba(var(--ob-accent-rgb, 46, 49, 53), 0.22);
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(78% 72% at 82% 22%, rgba(var(--ob-accent-rgb, 46, 49, 53), 0.11), transparent 64%),
+    radial-gradient(62% 80% at 10% 92%, rgba(201, 139, 146, 0.055), transparent 72%),
+    #0e0f10;
+  color: var(--ob-text);
+  font-family: Inter, system-ui, sans-serif;
 }
 
 .onboarding .ob-atmosphere {
-  background: radial-gradient(ellipse 130% 115% at 50% 50%, transparent 60%, var(--ob-accent-soft) 100%);
-  box-shadow: inset 0 1px 0 var(--ob-accent-border);
-  transition:
-    background 1.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 125% 110% at 50% 48%, transparent 62%, rgba(var(--ob-accent-rgb, 46, 49, 53), 0.09) 100%);
+  box-shadow: inset 0 1px 0 rgba(var(--ob-accent-rgb, 46, 49, 53), 0.2);
+  transition: background 1.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 1.1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Mood orb "breathe" — a slow, low-amplitude scale so a SELECTED mood tile feels
- * alive (the copy promises the screen responds). Calm 6s loop; MoodStep only
- * applies the class when motion is allowed, and the global
- * prefers-reduced-motion reset (index.css) collapses the animation regardless. */
+.onboarding .ob-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.032;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.24) 0.7px, transparent 0);
+  background-size: 4px 4px;
+}
+
+.onboarding .ob-app-frame {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 1440px);
+  height: 100%;
+  margin-inline: auto;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.onboarding .ob-dna-rail {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: clamp(14px, 2.2vw, 26px);
+  padding: 18px clamp(18px, 3vw, 42px) 14px;
+}
+
+.onboarding .ob-dna-status,
+.onboarding .ob-signal-tally,
+.onboarding .ob-signal-tally > span {
+  display: flex;
+  align-items: center;
+}
+
+.onboarding .ob-dna-status { gap: 16px; }
+.onboarding .ob-signal-tally { gap: 10px; }
+.onboarding .ob-signal-tally > span { gap: 4px; }
+
+.onboarding .ob-progress-track {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(242, 238, 231, 0.07);
+}
+
+.onboarding .ob-signal-tally,
+.onboarding .ob-step-count {
+  color: var(--ob-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.onboarding .ob-signal-tally strong { color: var(--ob-soft); font-weight: 600; }
+.onboarding .ob-step-count { letter-spacing: 0.14em; }
+
+.onboarding .ob-conversation-layout {
+  min-height: 0;
+  padding: 4px clamp(18px, 3vw, 42px) 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(310px, 0.82fr);
+  gap: clamp(34px, 5vw, 76px);
+}
+
+.onboarding .ob-step-stage,
+.onboarding .ob-step-motion,
+.onboarding .ob-step-motion > div { min-height: 0; height: 100%; }
+.onboarding .ob-mobile-insight { display: none; }
+
+.onboarding .ob-step-header { flex: none; padding: 20px 20px 15px !important; }
+.onboarding .ob-step-header > button { min-height: 44px; margin-bottom: 12px; color: var(--ob-muted) !important; }
+.onboarding .ob-step-header > button:hover { color: var(--ob-soft) !important; }
+
+.onboarding .ob-step-kicker {
+  margin: 0 0 11px !important;
+  color: var(--ob-muted) !important;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px !important;
+  font-weight: 650;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase;
+}
+
+.onboarding .ob-step-title,
+.onboarding .ob-headline {
+  max-width: 760px;
+  margin: 0;
+  color: var(--ob-text) !important;
+  font-size: clamp(36px, 5vw, 68px) !important;
+  font-weight: 400 !important;
+  line-height: 0.99 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.onboarding .ob-step-title em,
+.onboarding .ob-headline em { color: var(--ob-rose) !important; font-weight: 400 !important; }
+
+.onboarding .ob-step-copy {
+  max-width: 660px !important;
+  margin-top: 16px !important;
+  color: var(--ob-soft) !important;
+  font-size: 14px !important;
+  line-height: 1.58 !important;
+}
+
+.onboarding .ob-step-scroll,
+.onboarding .ob-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 20px 20px !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(242, 238, 231, 0.18) transparent;
+}
+
+.onboarding .ob-step-scroll::-webkit-scrollbar,
+.onboarding .ob-scroll::-webkit-scrollbar { width: 5px; }
+.onboarding .ob-step-scroll::-webkit-scrollbar-thumb,
+.onboarding .ob-scroll::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(242, 238, 231, 0.18); }
+
+.onboarding .ob-step-footer {
+  flex: none;
+  min-height: 74px;
+  padding: 12px 20px max(18px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--ob-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.onboarding .ob-step-status { margin: 0; color: var(--ob-muted) !important; font-size: 12px !important; font-weight: 500 !important; }
+.onboarding .ob-step-footer button {
+  width: auto !important;
+  min-width: 156px;
+  min-height: 46px;
+  border-radius: 8px !important;
+  background: var(--ob-ivory) !important;
+  color: var(--ob-ink) !important;
+  box-shadow: none !important;
+}
+.onboarding .ob-step-footer button:disabled { opacity: 0.34; }
+
 @keyframes ob-orb-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.08); }
+  0%, 100% { transform: scale(1); opacity: 0.74; }
+  50% { transform: scale(1.07); opacity: 1; }
 }
-.onboarding .ob-orb-breathe {
-  animation: ob-orb-breathe 6s ease-in-out infinite;
+.onboarding .ob-orb-breathe { animation: ob-orb-breathe 6s ease-in-out infinite; }
+
+.onboarding .ob-mood-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+.onboarding .ob-mood-choice {
+  position: relative;
+  min-height: 112px;
+  overflow: hidden;
+  padding: 17px;
+  border: 1px solid var(--ob-line);
+  border-radius: 12px;
+  background: rgba(242, 238, 231, 0.022);
+  text-align: left;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, opacity 180ms ease;
+}
+.onboarding .ob-mood-choice:hover { transform: translateY(-2px); border-color: var(--ob-line-strong); }
+.onboarding .ob-mood-choice.is-selected { box-shadow: inset 0 0 0 1px rgba(var(--mood-rgb), 0.2); }
+.onboarding .ob-mood-choice.is-dimmed { opacity: 0.38; }
+.onboarding .ob-mood-choice strong {
+  position: relative;
+  z-index: 1;
+  display: block;
+  color: var(--ob-text);
+  font-size: 18px;
+  font-weight: 500;
+}
+.onboarding .ob-mood-choice > span:last-child { position: relative; z-index: 1; display: block; margin-top: 7px; color: var(--ob-muted); font-size: 12px; line-height: 1.42; }
+.onboarding .ob-mood-orb {
+  position: absolute;
+  right: -30px;
+  top: -38px;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--mood-rgb), 0.28), transparent 68%);
+  filter: blur(12px);
+  pointer-events: none;
 }
 
-/* === CelebrationReveal — short/narrow-viewport hardening ==================
- * The final reveal lives in a fixed, scroll-safe root (overflow-y-auto, no
- * horizontal scroll). The content column centres on tall viewports and tightens
- * its vertical padding on short ones so the h1 + coaching never clip. Tailwind
- * has no max-height variant, so the height query lives here (CelebrationReveal-
- * local, not a global selector). */
-.onboarding .ff-cel-content {
-  padding-top: 2.75rem;
-  padding-bottom: 2.75rem;
+.onboarding .ob-genre-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.onboarding .ob-genre-choice {
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid var(--ob-line);
+  border-radius: 9px;
+  background: rgba(242, 238, 231, 0.02);
+  color: var(--ob-soft);
+  font-size: 13px;
+  text-align: left;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
 }
-@media (max-height: 760px) {
-  .onboarding .ff-cel-content {
-    padding-top: 1.25rem;
-    padding-bottom: 1.25rem;
-    gap: 0;
+.onboarding .ob-genre-choice:hover { border-color: var(--ob-line-strong); background: rgba(242, 238, 231, 0.04); }
+.onboarding .ob-genre-choice.is-selected { border-color: rgba(201, 139, 146, 0.46); background: var(--ob-rose-soft); color: #edc5c8; }
+
+.onboarding .ob-taste-portrait {
+  align-self: center;
+  width: 100%;
+  max-width: 430px;
+  padding: 26px;
+  border: 1px solid var(--ob-line);
+  border-radius: 16px;
+  background: rgba(23, 25, 27, 0.72);
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+}
+.onboarding .ob-portrait-meta { display: flex; align-items: center; justify-content: space-between; gap: 14px; color: var(--ob-muted); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.onboarding .ob-portrait-meta strong { color: var(--ob-soft); font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.onboarding .ob-taste-portrait h2 { margin: 18px 0 0; font-size: clamp(27px, 3vw, 39px); font-weight: 400; line-height: 1.08; letter-spacing: -0.04em; }
+.onboarding .ob-taste-portrait h2 em { color: var(--ob-rose); font-weight: 400; }
+.onboarding .ob-portrait-copy { margin: 12px 0 0; color: var(--ob-soft); font-size: 13px; line-height: 1.52; }
+.onboarding .ob-portrait-signals { margin-top: 22px; }
+.onboarding .ob-portrait-signal { min-height: 43px; padding: 10px 0; border-bottom: 1px solid var(--ob-line); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; }
+.onboarding .ob-portrait-signal:first-child { border-top: 1px solid var(--ob-line); }
+.onboarding .ob-portrait-signal i { width: 8px; height: 8px; border-radius: 50%; background: rgba(var(--signal-rgb), 0.9); }
+.onboarding .ob-portrait-signal strong { overflow: hidden; color: var(--ob-soft); font-size: 12px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.onboarding .ob-portrait-signal span { color: var(--ob-muted); font-size: 10px; }
+.onboarding .ob-portrait-note { margin: 20px 0 0; padding: 13px 14px; border-left: 2px solid var(--ob-rose); background: rgba(201, 139, 146, 0.055); color: var(--ob-soft); font-size: 14px; line-height: 1.5; }
+
+.onboarding input[aria-label="Search for a film to add"] {
+  height: 48px;
+  padding-left: 42px !important;
+  border: 1px solid var(--ob-line) !important;
+  border-radius: 10px !important;
+  background: rgba(242, 238, 231, 0.035) !important;
+  color: var(--ob-text) !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+}
+.onboarding input[aria-label="Search for a film to add"]:focus { border-color: rgba(201, 139, 146, 0.42) !important; box-shadow: 0 0 0 3px rgba(201, 139, 146, 0.07) !important; }
+.onboarding #ob-suggestions-h,
+.onboarding #ob-anchors-h { color: var(--ob-muted) !important; font-size: 10px !important; letter-spacing: 0.15em !important; }
+.onboarding [aria-labelledby="ob-anchors-h"] { border: 0 !important; border-top: 1px solid var(--ob-line) !important; border-bottom: 1px solid var(--ob-line) !important; border-radius: 0 !important; background: transparent !important; padding: 15px 0 !important; }
+.onboarding [data-testid="anchor-pips"] span { background: rgba(242, 238, 231, 0.14) !important; }
+.onboarding [data-testid="anchor-pips"] span.bg-purple-400 { background: var(--ob-rose) !important; }
+
+.onboarding .ob-movie-card { width: 100%; padding: 0; border: 0; border-radius: 9px; background: transparent; text-align: left; }
+.onboarding .ob-movie-poster { position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden; border: 1px solid rgba(242, 238, 231, 0.08); border-radius: 9px; background: var(--ob-surface); transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.onboarding .ob-movie-card:hover .ob-movie-poster { transform: translateY(-3px); border-color: var(--ob-line-strong); }
+.onboarding .ob-movie-card.is-selected .ob-movie-poster { border-color: rgba(201, 139, 146, 0.58); box-shadow: 0 0 0 2px rgba(201, 139, 146, 0.15); }
+.onboarding .ob-movie-poster img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 220ms ease, filter 180ms ease; }
+.onboarding .ob-movie-poster img.is-loaded { opacity: 1; }
+.onboarding .ob-movie-card.is-selected img { filter: brightness(0.76); }
+.onboarding .ob-movie-skeleton { position: absolute; inset: 0; background: rgba(242, 238, 231, 0.04); }
+.onboarding .ob-movie-check { position: absolute; right: 7px; top: 7px; width: 28px; height: 28px; border-radius: 50%; background: var(--ob-ivory); color: var(--ob-ink); display: grid; place-items: center; }
+.onboarding .ob-movie-copy { display: block; padding: 8px 2px 0; }
+.onboarding .ob-movie-copy strong { display: -webkit-box; overflow: hidden; color: var(--ob-soft); font-size: 11px; font-weight: 600; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.onboarding .ob-movie-copy small { display: block; margin-top: 2px; color: var(--ob-muted); font-size: 10px; }
+
+.onboarding .ob-search-dropdown { position: absolute; z-index: 50; left: 20px; right: 20px; top: 100%; margin-top: 5px; overflow: hidden; border: 1px solid var(--ob-line-strong); border-radius: 11px; background: rgba(17, 19, 20, 0.97); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.46); backdrop-filter: blur(18px); }
+.onboarding .ob-search-state { margin: 0; padding: 13px 15px; color: var(--ob-muted); font-size: 13px; }
+.onboarding .ob-search-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #e5a2a2; }
+.onboarding .ob-search-error button { min-height: 36px; padding-inline: 12px; border: 1px solid var(--ob-line); border-radius: 7px; background: rgba(242, 238, 231, 0.05); }
+.onboarding .ob-search-results { max-height: 260px; overflow-y: auto; }
+.onboarding .ob-search-option { width: 100%; min-height: 64px; padding: 8px 13px; border: 0; border-bottom: 1px solid rgba(242, 238, 231, 0.06); background: transparent; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 11px; text-align: left; }
+.onboarding .ob-search-option.is-active,
+.onboarding .ob-search-option:hover { background: rgba(242, 238, 231, 0.07); }
+.onboarding .ob-search-option img { width: 32px; height: 48px; border-radius: 4px; object-fit: cover; }
+.onboarding .ob-search-option strong,
+.onboarding .ob-search-option small { display: block; }
+.onboarding .ob-search-option strong { overflow: hidden; color: var(--ob-text); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.onboarding .ob-search-option small { margin-top: 2px; color: var(--ob-muted); font-size: 11px; }
+.onboarding .ob-search-selected { width: 17px; color: var(--ob-rose); }
+
+.onboarding .text-purple-300,
+.onboarding .text-purple-400,
+.onboarding .text-purple-200\/80,
+.onboarding .text-purple-400\/60 { color: var(--ob-rose) !important; }
+.onboarding .focus-visible\:ring-purple-400\/60:focus-visible,
+.onboarding .focus-visible\:ring-purple-400:focus-visible { --tw-ring-color: rgba(242, 238, 231, 0.72) !important; }
+.onboarding [aria-label^="Rate "] { border-radius: 12px !important; outline-color: var(--ob-ivory) !important; }
+.onboarding [aria-label^="Rate "] > div,
+.onboarding [aria-label^="Rate "] .rounded-2xl { border-radius: 12px !important; }
+
+.onboarding.ob-celebration-root { z-index: 9999; overflow-x: hidden; overflow-y: auto; display: grid; place-items: center; padding: 28px; }
+.onboarding .ob-celebration-atmosphere { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(58% 52% at 50% 44%, rgba(201, 139, 146, 0.13), transparent 76%); }
+.onboarding .ob-celebration-content { position: relative; z-index: 2; width: min(100%, 720px); min-height: 100%; padding: 32px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.onboarding .ob-celebration-kicker,
+.onboarding .ob-celebration-next > p { margin: 0; color: var(--ob-rose); font-size: 11px; font-weight: 650; letter-spacing: 0.16em; text-transform: uppercase; }
+.onboarding .ob-celebration-moods { margin-top: 22px; display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; }
+.onboarding .ob-celebration-moods span { padding: 8px 14px; border: 1px solid rgba(var(--mood-rgb), 0.52); border-radius: 999px; background: rgba(var(--mood-rgb), 0.13); color: var(--ob-text); font-size: 13px; font-weight: 600; }
+.onboarding .ob-celebration-taste-line { margin: 18px 0 0; color: var(--ob-soft); font-size: 13px; line-height: 1.5; }
+.onboarding .ob-celebration-picks { margin-top: 25px; }
+.onboarding .ob-celebration-picks > p { margin: 0 0 13px; color: var(--ob-muted); font-size: 12px; }
+.onboarding .ob-celebration-posters { display: flex; align-items: end; justify-content: center; gap: 8px; }
+.onboarding .ob-celebration-posters > div { width: clamp(52px, 8vw, 82px); aspect-ratio: 2 / 3; overflow: hidden; border: 1px solid var(--ob-line); border-radius: 8px; background: var(--ob-surface); box-shadow: 0 16px 42px rgba(0, 0, 0, 0.44); }
+.onboarding .ob-celebration-posters img { width: 100%; height: 100%; object-fit: cover; }
+.onboarding .ob-celebration-posters span { height: 100%; display: grid; place-items: center; padding: 5px; color: var(--ob-muted); font-size: 10px; }
+.onboarding .ob-celebration-next { margin-top: 24px; max-width: 520px; }
+.onboarding .ob-celebration-next span { display: block; margin-top: 11px; color: var(--ob-soft); font-size: 14px; line-height: 1.56; }
+.onboarding .ob-celebration-action { min-width: 210px; min-height: 48px; margin-top: 25px; padding: 0 20px; border: 0; border-radius: 8px; background: var(--ob-ivory); color: var(--ob-ink); font-size: 13px; font-weight: 700; }
+.onboarding .ob-celebration-action:disabled { opacity: 0.46; cursor: wait; }
+
+@media (max-width: 1040px) {
+  .onboarding .ob-conversation-layout { grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr); gap: 30px; }
+  .onboarding .ob-taste-portrait { padding: 22px; }
+}
+
+@media (max-width: 860px) {
+  .onboarding .ob-conversation-layout { display: block; }
+  .onboarding .ob-taste-portrait { display: none; }
+  .onboarding .ob-mobile-insight { margin: 0 18px 6px; padding: 9px 12px; border-top: 1px solid var(--ob-line); border-bottom: 1px solid var(--ob-line); display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 10px; }
+  .onboarding .ob-mobile-insight span { color: var(--ob-rose); font-size: 10px; font-weight: 650; letter-spacing: 0.12em; text-transform: uppercase; }
+  .onboarding .ob-mobile-insight p { margin: 0; overflow: hidden; color: var(--ob-soft); font-size: 12px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+@media (max-width: 720px) {
+  .onboarding .ob-dna-rail { grid-template-columns: auto minmax(60px, 1fr) auto; gap: 11px; padding: 14px 16px 10px; }
+  .onboarding .ob-signal-tally { display: none; }
+  .onboarding .ob-step-count { font-size: 9px; }
+  .onboarding .ob-conversation-layout { padding: 0 16px 8px; }
+  .onboarding .ob-step-header { padding: 14px 0 12px !important; }
+  .onboarding .ob-step-title,
+  .onboarding .ob-headline { font-size: clamp(38px, 11.4vw, 58px) !important; }
+  .onboarding .ob-step-copy { margin-top: 13px !important; font-size: 13px !important; }
+  .onboarding .ob-step-scroll,
+  .onboarding .ob-scroll { padding: 5px 0 18px !important; }
+  .onboarding .ob-step-footer { min-height: 66px; padding: 10px 0 max(10px, env(safe-area-inset-bottom)); }
+  .onboarding .ob-step-status { max-width: 150px; font-size: 10.5px !important; }
+  .onboarding .ob-step-footer button { min-width: 128px; min-height: 44px; }
+  .onboarding .ob-mood-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .onboarding .ob-mood-choice { min-height: 100px; padding: 14px; }
+  .onboarding .ob-genre-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .onboarding .ob-genre-choice { min-height: 48px; }
+  .onboarding .ob-search-dropdown { left: 0; right: 0; }
+  .onboarding [aria-labelledby="ob-suggestions-h"] > .grid,
+  .onboarding [aria-labelledby="ob-anchors-h"] > .grid,
+  .onboarding [aria-labelledby="ob-anchors-h"] div.grid { display: flex !important; overflow-x: auto; gap: 10px !important; padding-bottom: 8px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .onboarding [aria-labelledby="ob-suggestions-h"] > .grid::-webkit-scrollbar,
+  .onboarding [aria-labelledby="ob-anchors-h"] div.grid::-webkit-scrollbar { display: none; }
+  .onboarding .ob-movie-card { min-width: 118px; scroll-snap-align: start; }
+  .onboarding .ob-celebration-root { padding: 18px; }
+  .onboarding .ob-celebration-content { padding: 24px 0; }
+}
+
+@media (max-width: 400px) {
+  .onboarding .ob-mood-grid { grid-template-columns: 1fr; }
+  .onboarding .ob-mood-choice { min-height: 84px; }
+  .onboarding .ob-mobile-insight { margin-inline: 14px; }
+  .onboarding .ob-conversation-layout { padding-inline: 14px; }
+}
+
+@media (max-height: 740px) and (min-width: 721px) {
+  .onboarding .ob-dna-rail { padding-top: 12px; }
+  .onboarding .ob-step-header { padding-top: 10px !important; padding-bottom: 10px !important; }
+  .onboarding .ob-step-title,
+  .onboarding .ob-headline { font-size: clamp(34px, 4vw, 54px) !important; }
+  .onboarding .ob-mood-choice { min-height: 92px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding *,
+  .onboarding *::before,
+  .onboarding *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

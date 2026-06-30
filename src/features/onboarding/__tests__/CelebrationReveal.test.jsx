@@ -1,21 +1,17 @@
-// src/features/onboarding/__tests__/CelebrationReveal.test.jsx
-// F2.20 a11y foundation (one sr-only atomic status, single visible h1, no focus
-// movement) + F2.21 visual polish (de-gamified editorial spine, no infinite
-// motion). Reduced-motion VISUAL timing (delays→0) is verified in Playwright;
-// jsdom checks structure + the source-level motion/artifact contracts only.
+// Celebration reveal: one concise live announcement, a single visible h1,
+// a settled poster composition, and an explicit handoff to Discover.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within, fireEvent } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-vi.mock('@/shared/api/tmdb', () => ({ tmdbImg: (p) => `https://img/${p}` }))
+vi.mock('@/shared/api/tmdb', () => ({ tmdbImg: (path) => `https://img/${path}` }))
 
 import CelebrationReveal from '../components/CelebrationReveal'
 import { MOODS } from '../data'
 
 const SRC = readFileSync(resolve(import.meta.dirname, '../components/CelebrationReveal.jsx'), 'utf8')
-
 const film = (id, title, poster = `/${id}.jpg`) => ({ id, title, poster_path: poster, release_date: '2014-01-01' })
 const props = (over = {}) => ({
   moods: ['cozy'],
@@ -23,41 +19,47 @@ const props = (over = {}) => ({
   favoriteMovies: [film(1, 'Alpha'), film(2, 'Beta'), film(3, 'Gamma'), film(4, 'Delta'), film(5, 'Echo')],
   ratings: { 1: 9, 2: 7 },
   fadingOut: false,
+  ready: true,
+  onEnter: vi.fn(),
   ...over,
 })
 
 function setMatchMedia(reduced = false) {
-  window.matchMedia = vi.fn().mockImplementation((q) => ({
-    matches: reduced && /reduced-motion/.test(q),
-    media: q, onchange: null,
-    addEventListener: vi.fn(), removeEventListener: vi.fn(),
-    addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn(),
+  window.matchMedia = vi.fn().mockImplementation(query => ({
+    matches: reduced && /reduced-motion/.test(query),
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   }))
 }
+
 const status = () => document.querySelector('[role="status"]')
 beforeEach(() => setMatchMedia(false))
 
 describe('CelebrationReveal — semantics', () => {
-  it('renders exactly one visible h1 "Tonight is yours." (not aria-hidden)', () => {
+  it('renders exactly one visible h1 "Tonight is yours."', () => {
     render(<CelebrationReveal {...props()} />)
-    const h1s = screen.getAllByRole('heading', { level: 1 })
-    expect(h1s).toHaveLength(1)
-    expect(h1s[0]).toHaveTextContent(/tonight is\s*yours\./i)
-    expect(h1s[0]).not.toHaveAttribute('aria-hidden', 'true')
+    const headings = screen.getAllByRole('heading', { level: 1 })
+    expect(headings).toHaveLength(1)
+    expect(headings[0]).toHaveTextContent(/tonight is\s*yours\./i)
+    expect(headings[0]).not.toHaveAttribute('aria-hidden', 'true')
   })
 
-  it('exposes exactly one polite + atomic status — not on the visible wrapper', () => {
+  it('exposes exactly one polite atomic status outside the visible heading', () => {
     const { container } = render(<CelebrationReveal {...props()} />)
     const statuses = container.querySelectorAll('[role="status"]')
     expect(statuses).toHaveLength(1)
     expect(statuses[0]).toHaveAttribute('aria-live', 'polite')
     expect(statuses[0]).toHaveAttribute('aria-atomic', 'true')
     expect(statuses[0].className).toMatch(/sr-only/)
-    // the visible heading is NOT inside the live region
     expect(within(statuses[0]).queryByRole('heading')).toBeNull()
   })
 
-  it('announces one concise completion sentence after mount (no count tally / list)', () => {
+  it('announces one concise completion sentence after mount', () => {
     render(<CelebrationReveal {...props()} />)
     expect(status()).toHaveTextContent(/your taste is tuned.*opening your first picks\./i)
     expect(status().textContent).not.toMatch(/genre|loved|liked|\d+\s*film/i)
@@ -70,10 +72,9 @@ describe('CelebrationReveal — semantics', () => {
 })
 
 describe('CelebrationReveal — announcement variants', () => {
-  it('degrades to the no-title sentence when no usable titles exist', () => {
+  it('degrades cleanly without usable titles', () => {
     render(<CelebrationReveal {...props({ favoriteMovies: [{ id: 1, poster_path: '/1.jpg' }] })} />)
     expect(status()).toHaveTextContent('Your taste is tuned. Opening your first picks.')
-    expect(status().textContent).not.toMatch(/undefined|with ,|,\s+and\b/)
   })
 
   it('uses one title cleanly', () => {
@@ -81,21 +82,20 @@ describe('CelebrationReveal — announcement variants', () => {
     expect(status()).toHaveTextContent('Your taste is tuned with Inception. Opening your first picks.')
   })
 
-  it('joins two titles with "and"', () => {
+  it('joins two titles with and', () => {
     render(<CelebrationReveal {...props({ favoriteMovies: [film(1, 'Alpha'), film(2, 'Beta')] })} />)
     expect(status()).toHaveTextContent('Your taste is tuned with Alpha and Beta. Opening your first picks.')
   })
 
-  it('keeps 3+ titles concise with "and more"', () => {
+  it('keeps three or more titles concise', () => {
     render(<CelebrationReveal {...props()} />)
     expect(status()).toHaveTextContent('Your taste is tuned with Alpha, Beta, and more. Opening your first picks.')
   })
 })
 
-describe('CelebrationReveal — content + data variants', () => {
-  it('renders the apex + coaching copy', () => {
+describe('CelebrationReveal — content and handoff', () => {
+  it('renders the editorial spine and direct CTA', () => {
     render(<CelebrationReveal {...props()} />)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/tonight is\s*yours\./i)
     expect(screen.getByText(/your taste, tuned/i)).toBeInTheDocument()
     expect(screen.getByText(/your first signals are in/i)).toBeInTheDocument()
     expect(screen.getByText(/from your picks/i)).toBeInTheDocument()
@@ -110,15 +110,15 @@ describe('CelebrationReveal — content + data variants', () => {
     ['five films', {}],
     ['missing-poster fallback', { favoriteMovies: [film(1, 'NoPoster', null)] }],
     ['no loved ratings', { ratings: { 1: 7, 2: 5 } }],
-    ['mixed liked/loved', { ratings: { 1: 9, 2: 7, 3: 5 } }],
+    ['mixed ratings', { ratings: { 1: 9, 2: 7, 3: 5 } }],
     ['empty optional data', { moods: [], selectedGenres: [], favoriteMovies: [], ratings: {} }],
-  ])('renders without error and one live region: %s', (_label, over) => {
-    expect(() => render(<CelebrationReveal {...props(over)} />)).not.toThrow()
+  ])('renders safely: %s', (_label, override) => {
+    expect(() => render(<CelebrationReveal {...props(override)} />)).not.toThrow()
     expect(document.querySelectorAll('[role="status"]')).toHaveLength(1)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
   })
 
-  it('keeps decorative posters out of the a11y tree (alt="")', () => {
+  it('keeps decorative posters out of the accessibility tree', () => {
     const { container } = render(<CelebrationReveal {...props()} />)
     const imgs = container.querySelectorAll('img')
     expect(imgs.length).toBe(5)
@@ -176,11 +176,11 @@ describe('CelebrationReveal — retained editorial spine', () => {
 
   it('shows the selected mood pills (by their real labels)', () => {
     render(<CelebrationReveal {...props({ moods: ['cozy', 'mythic'] })} />)
-    expect(screen.getByText(MOODS.find(m => m.key === 'cozy').label)).toBeInTheDocument()
-    expect(screen.getByText(MOODS.find(m => m.key === 'mythic').label)).toBeInTheDocument()
+    expect(screen.getByText(MOODS.find(mood => mood.key === 'cozy').label)).toBeInTheDocument()
+    expect(screen.getByText(MOODS.find(mood => mood.key === 'mythic').label)).toBeInTheDocument()
   })
 
-  it('taste line degrades cleanly without ratings (uses "the films you chose")', () => {
+  it('uses the films-you-chose fallback when ratings are absent', () => {
     render(<CelebrationReveal {...props({ ratings: {} })} />)
     expect(screen.getByText(/the films you chose/i)).toBeInTheDocument()
     expect(screen.queryByText(/how those films landed/i)).toBeNull()
@@ -189,7 +189,7 @@ describe('CelebrationReveal — retained editorial spine', () => {
 
 describe('CelebrationReveal — skip control', () => {
   it('renders no skip button until setup is ready', () => {
-    render(<CelebrationReveal {...props()} />) // ready defaults to false
+    render(<CelebrationReveal {...props({ ready: false })} />)
     expect(screen.queryByRole('button', { name: /see your picks/i })).toBeNull()
   })
 
@@ -208,9 +208,17 @@ describe('CelebrationReveal — motion contracts (source-level)', () => {
     expect(SRC).not.toMatch(/repeat:\s*Infinity/)
   })
 
-  it('preserves the 900ms fade-out and the F2.20 reduced-motion delay guards', () => {
-    expect(SRC).toMatch(/fadingOut \? 0\.9/)          // 900ms fade preserved
-    expect(SRC).toMatch(/reduced \? 0 :/)              // reduced-motion delays → 0
-    expect(SRC).not.toMatch(/scale:\s*\[1, 1\.012, 1\]/) // no whole-stage breathing
+  it('contains no gamified iconography or count receipt', () => {
+    const { container } = render(<CelebrationReveal {...props()} />)
+    expect(container.querySelectorAll('svg')).toHaveLength(0)
+    expect(container.textContent).not.toMatch(/♥|edition|mark watched|sharpens by tomorrow/i)
+    expect(container.textContent).not.toMatch(/\d+\s*(films?|genres?|loved|liked)\b/i)
+  })
+
+  it('contains no infinite loop and preserves fade and reduced-motion guards', () => {
+    expect(SRC).not.toMatch(/repeat:\s*Infinity/)
+    expect(SRC).toMatch(/fadingOut \? 0\.9/)
+    expect(SRC).toMatch(/reduced \? 0 :/)
+    expect(SRC).not.toMatch(/lucide-react|Sparkles|CelebrationParticles/)
   })
 })

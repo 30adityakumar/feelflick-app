@@ -1,8 +1,3 @@
-// src/features/onboarding/steps/MoodStep.jsx
-// Step 1 (mood baseline). Tile picker, up to MAX_MOODS selections. A selected
-// tile "settles" into the atmosphere (accent ring + glow + lift, no checkbox),
-// and its mood orb breathes slowly when motion is allowed.
-
 import { motion, useReducedMotion } from 'framer-motion'
 
 import { MOODS, MIN_MOODS, MAX_MOODS } from '../data'
@@ -17,10 +12,10 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
   const maxReached = count >= MAX_MOODS
 
   function toggle(key) {
-    setMoods(prev => {
-      if (prev.includes(key)) return prev.filter(x => x !== key)
-      if (prev.length >= MAX_MOODS) return prev
-      return [...prev, key]
+    setMoods(previous => {
+      if (previous.includes(key)) return previous.filter(value => value !== key)
+      if (previous.length >= MAX_MOODS) return previous
+      return [...previous, key]
     })
   }
 
@@ -28,11 +23,8 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
     <StepShell
       header={
         <StepHeader
-          className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-8 sm:pb-5"
-          kicker={firstName ? `Hey ${firstName} —` : 'The vibe · 1 of 4'}
-          subcopy={<>Pick {MIN_MOODS}–{MAX_MOODS} moods you actually find yourself in. We&apos;ll calibrate from
-          here — and the screen will respond as you choose.</>}
-          subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl"
+          kicker={`${firstName ? `Hey ${firstName} — ` : ''}start with instinct · 1 of 4`}
+          subcopy={<>Choose {MIN_MOODS}–{MAX_MOODS} emotional territories you genuinely enjoy in films. This is not tonight&apos;s mood; it is the kind of experience you often want cinema to create.</>}
         >
           The vibe you{' '}
           <em className="italic font-light text-[var(--color-brand-accent-text,#ed7a87)]">
@@ -45,65 +37,45 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
           statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-[var(--color-text-secondary,#c9c5bc)]' : 'text-white/30'}`}
           status={
             count === 0
-              ? `Pick at least ${MIN_MOODS} mood${MIN_MOODS === 1 ? '' : 's'} to continue`
+              ? `Choose at least ${MIN_MOODS} mood${MIN_MOODS === 1 ? '' : 's'}`
               : count < MIN_MOODS
-              ? `${count} selected — pick ${MIN_MOODS - count} more`
-              : maxReached
-              ? `${count} selected — that's your max`
-              : `${count} selected ✓`
+                ? `${count} selected — choose ${MIN_MOODS - count} more`
+                : maxReached
+                  ? `${count} selected — that's your max`
+                  : `${count} selected`
           }
           onContinue={onNext}
           disabled={!canContinue}
         />
       }
     >
-      {/* Mood tiles. WHY: inner py-2 + px-1 creates the buffer needed for the
-         selected-tile glow/border to render fully — without it, the parent's
-         overflow-y-auto implicitly clips the box-shadow on the top/left edges. */}
-      <div className="ob-scroll flex-1 min-h-0 overflow-y-auto px-5 pb-4 sm:px-6">
-        {/* Calm, screen-reader-only feedback when the selection cap is reached. */}
+      <div className="ob-step-scroll">
         <p className="sr-only" aria-live="polite">
-          {maxReached ? `You've selected the maximum of ${MAX_MOODS} moods. Unpick one to choose a different mood.` : ''}
+          {maxReached ? `You have selected the maximum of ${MAX_MOODS} moods. Unpick one to choose another.` : ''}
         </p>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 max-w-3xl mx-auto px-1 py-2" role="group" aria-label="Moods">
-          {MOODS.map(m => {
-            const on = moods.includes(m.key)
-            const dimmed = maxReached && !on
+        <div className="ob-mood-grid" role="group" aria-label="Emotional territories">
+          {MOODS.map(mood => {
+            const selected = moods.includes(mood.key)
+            const dimmed = maxReached && !selected
+
             return (
               <motion.button
-                key={m.key}
+                key={mood.key}
                 type="button"
-                onClick={() => toggle(m.key)}
-                whileTap={reduced ? undefined : { scale: 0.97 }}
-                aria-pressed={on}
+                onClick={() => toggle(mood.key)}
+                whileTap={reduced ? undefined : { scale: 0.98 }}
+                aria-pressed={selected}
                 aria-disabled={dimmed || undefined}
                 className={`ob-focus relative text-left p-4 sm:p-5 rounded-2xl overflow-hidden transition-all ${dimmed ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 style={{
-                  background: on ? `rgba(${m.rgb}, 0.16)` : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${on ? `rgba(${m.rgb}, 0.6)` : 'rgba(255,255,255,0.1)'}`,
-                  boxShadow: on
-                    ? `0 0 20px rgba(${m.rgb}, 0.30), inset 0 0 0 1px rgba(${m.rgb}, 0.45)`
-                    : 'none',
-                  transform: on ? 'translateY(-2px)' : 'translateY(0)',
-                  opacity: dimmed ? 0.45 : 1,
+                  '--mood-rgb': mood.rgb,
+                  background: selected ? `rgba(${mood.rgb}, 0.11)` : undefined,
+                  borderColor: selected ? `rgba(${mood.rgb}, 0.58)` : undefined,
                 }}
               >
-                {/* Mood orb — breathes slowly only when selected + motion is allowed
-                   (the .ob-orb-breathe animation collapses under the global
-                   prefers-reduced-motion reset; the class is also gated here). */}
-                <div
-                  aria-hidden="true"
-                  className={`absolute -top-5 -right-5 w-20 h-20 rounded-full${on && !reduced ? ' ob-orb-breathe' : ''}`}
-                  style={{
-                    background: `radial-gradient(circle, rgba(${m.rgb}, ${on ? 0.45 : 0.18}), transparent 70%)`,
-                    filter: 'blur(12px)',
-                    transition: 'background 0.6s ease',
-                  }}
-                />
-                <div className="relative mb-1.5">
-                  <span className="ob-display text-lg font-bold text-white">{m.label}</span>
-                </div>
-                <p className="relative text-[12.5px] text-white/60 leading-snug">{m.desc}</p>
+                <span className={`ob-mood-orb${selected && !reduced ? ' ob-orb-breathe' : ''}`} aria-hidden="true" />
+                <strong>{mood.label}</strong>
+                <span>{mood.desc}</span>
               </motion.button>
             )
           })}

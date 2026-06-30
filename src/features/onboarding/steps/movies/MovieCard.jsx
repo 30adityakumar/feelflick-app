@@ -28,9 +28,7 @@ export default function MovieCard({ movie, isSelected, onClick, hideMeta = false
           src={tmdbImg(movie.poster_path, 'w342')}
           alt=""
           loading="lazy"
-          className={`w-full h-full object-cover transition-all duration-300 ${
-            loaded ? 'opacity-100' : 'opacity-0'
-          } ${isSelected ? 'brightness-75' : 'group-hover:brightness-110'}`}
+          className={loaded ? 'is-loaded' : ''}
           onLoad={() => setLoaded(true)}
         />
         {isSelected && <div className="absolute inset-0 bg-black/20" />}

@@ -13,33 +13,28 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 
-import { supabase } from '@/shared/lib/supabase/client'
+import { prefetchHomeData } from '@/features/home/useHomeData'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { deriveOnboardingStatus } from '@/shared/lib/auth/onboardingStatus'
+import { supabase } from '@/shared/lib/supabase/client'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { completeOnboarding, markOnboardingAuthComplete } from '@/shared/services/onboarding'
-import { prefetchHomeData } from '@/features/home/useHomeData'
+import { errorKind, EVENTS, trackEvent } from '@/shared/services/betaEvents'
 import BrandSplash from '@/shared/ui/BrandSplash'
 
 import AmbientGlow, { deriveMoodSignature } from './components/AmbientGlow'
-import DnaRail from './components/DnaRail'
 import CelebrationReveal from './components/CelebrationReveal'
-import MoodStep from './steps/MoodStep'
+import DnaRail from './components/DnaRail'
+import TastePortrait from './components/TastePortrait'
+import { MOODS_LS_KEY, SENTIMENT_RATINGS } from './data'
+import { clearDraft, loadDraft, saveDraft } from './draft'
 import GenresStep from './steps/GenresStep'
+import MoodStep from './steps/MoodStep'
 import MoviesStep from './steps/MoviesStep'
 import RatingStep from './steps/RatingStep'
-
-import { MOODS_LS_KEY, SENTIMENT_RATINGS } from './data'
-import { loadDraft, saveDraft, clearDraft } from './draft'
-import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
 import './onboarding.css'
-
-// Drafts the in-flight onboarding (per signed-in user) so a refresh doesn't wipe
-// selections. Keyed/loaded/cleared via ./draft — user-scoped so one account's
-// draft can't leak into another on a shared browser (F2.23). Cleared on
-// completion, sign-out, and the already-onboarded redirect.
 
 export default function Onboarding() {
   const navigate = useNavigate()
@@ -47,7 +42,9 @@ export default function Onboarding() {
   const reduced = useReducedMotion()
 
   usePageMeta({ title: 'Taste profile · FeelFlick' })
-  useEffect(() => { trackEvent(EVENTS.onboarding_started, { surface: 'onboarding' }) }, []) // B1.4b funnel entry
+  useEffect(() => {
+    trackEvent(EVENTS.onboarding_started, { surface: 'onboarding' })
+  }, [])
 
   const [checking, setChecking] = useState(true)
   const [celebrate, setCelebrate] = useState(false)
@@ -65,9 +62,6 @@ export default function Onboarding() {
   const [, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Step state — starts empty and hydrates from the SIGNED-IN USER's scoped draft
-  // once their id is known (deferred so we never read another user's draft, and
-  // never a global default). Cleared on completion / sign-out / redirect.
   const userId = session?.user?.id ?? null
   const [hydrated, setHydrated] = useState(false)
   const [step, setStep] = useState(0)
@@ -76,7 +70,6 @@ export default function Onboarding() {
   const [favoriteMovies, setFavoriteMovies] = useState([])
   const [ratings, setRatings] = useState({})
 
-  // Hydrate the user's scoped draft once their id is available (runs once).
   useEffect(() => {
     if (!userId || hydrated) return
     const draft = loadDraft(userId)
@@ -90,69 +83,75 @@ export default function Onboarding() {
     setHydrated(true)
   }, [userId, hydrated])
 
-  // Persist the user's scoped draft on every change — only AFTER hydration (so the
-  // empty initial state can't clobber a just-loaded draft) and only once the gate
-  // has settled to render the steps (`!checking`), so a completed user being
-  // redirected can't re-write the draft the gate just cleared. Best-effort.
   useEffect(() => {
     if (!userId || !hydrated || checking) return
     saveDraft(userId, { step, moods, selectedGenres, favoriteMovies, ratings })
   }, [userId, hydrated, checking, step, moods, selectedGenres, favoriteMovies, ratings])
 
-  // Auth gate (same logic as legacy)
   useEffect(() => {
     if (!ready) return
-    if (!session?.user) { setChecking(false); return }
+    if (!session?.user) {
+      setChecking(false)
+      return
+    }
 
     ;(async () => {
       try {
         if (deriveOnboardingStatus(session.user).isComplete) {
-          clearDraft(session.user.id) // already onboarded → drop any stale draft
+          clearDraft(session.user.id)
           navigate('/home', { replace: true })
           return
         }
+
         const { data } = await supabase
           .from('users')
           .select('onboarding_complete')
           .eq('id', session.user.id)
           .maybeSingle()
-        // Single source of truth — `onboarding_complete`. We used to OR with
-        // `onboarding_completed_at` as a defensive check, but if the flag was
-        // explicitly reset to false while the timestamp lingered (a bad reset
-        // path or a partial wipe), the OR caused a redirect-loop with
-        // PostAuthGate: this gate said complete, PostAuthGate said not. The
-        // rerunOnboarding flow now nulls both, so the OR is unnecessary.
+
         if (data?.onboarding_complete) {
-          clearDraft(session.user.id) // already onboarded → drop any stale draft
+          clearDraft(session.user.id)
           navigate('/home', { replace: true })
-        } else setChecking(false)
+        } else {
+          setChecking(false)
+        }
       } catch {
         setChecking(false)
       }
     })()
   }, [ready, session, navigate])
 
-  // Helpers reused across steps
   function toggleGenre(id) {
-    setSelectedGenres(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    setSelectedGenres(previous => previous.includes(id)
+      ? previous.filter(value => value !== id)
+      : [...previous, id])
   }
-  function isMovieSelected(id) { return favoriteMovies.some(m => m.id === id) }
+
+  function isMovieSelected(id) {
+    return favoriteMovies.some(movie => movie.id === id)
+  }
+
   function addMovie(movie) {
     if (!isMovieSelected(movie.id) && favoriteMovies.length < 50) {
-      setFavoriteMovies(prev => [...prev, movie])
+      setFavoriteMovies(previous => [...previous, movie])
     }
   }
-  function removeMovie(id) { setFavoriteMovies(prev => prev.filter(m => m.id !== id)) }
+
+  function removeMovie(id) {
+    setFavoriteMovies(previous => previous.filter(movie => movie.id !== id))
+  }
 
   function handleRate(movie, sentiment) {
     const rating = SENTIMENT_RATINGS[sentiment]
-    setRatings(prev => {
-      const current = prev[movie.id]
+    setRatings(previous => {
+      const current = previous[movie.id]
       const currentSentiment = current === 9 ? 'loved' : current === 7 ? 'liked' : current === 5 ? 'okay' : null
       if (currentSentiment === sentiment) {
-        const next = { ...prev }; delete next[movie.id]; return next
+        const next = { ...previous }
+        delete next[movie.id]
+        return next
       }
-      return { ...prev, [movie.id]: rating }
+      return { ...previous, [movie.id]: rating }
     })
   }
 
@@ -241,12 +240,7 @@ export default function Onboarding() {
     }
   }
 
-  // Loading — uses the shared BrandSplash (delayed 200ms so fast checks never flash).
-  // Also hold the splash until the user's scoped draft has hydrated, so the steps
-  // never flash at an empty step 0 before a same-user draft restores.
-  if (checking || (userId && !hydrated)) {
-    return <BrandSplash />
-  }
+  if (checking || (userId && !hydrated)) return <BrandSplash />
 
   // Celebration → /home. Staggered reveals double as cover for the Supabase
   // writes happening underneath (~1-3s) so the wait feels intentional.
@@ -264,31 +258,16 @@ export default function Onboarding() {
     )
   }
 
-  // Main layout
   return (
     <div
-      className="onboarding fixed inset-0 flex flex-col bg-black text-white overflow-hidden"
+      className="onboarding"
       style={{ '--ob-accent-rgb': deriveMoodSignature(moods) }}
     >
       <AmbientGlow moods={moods} />
-      {/* Mood-signature atmosphere — a faint accent vignette + 1px top hairline
-         that tint the room to the user's selected mood. CSS-only (no JS motion);
-         the recolor tween collapses under the global reduced-motion reset. Mood
-         is an ambient accent only — the brand gradient stays on the foreground. */}
-      <div aria-hidden="true" className="ob-atmosphere pointer-events-none absolute inset-0" />
-      {/* subtle grain */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-50"
-        style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)',
-          backgroundSize: '4px 4px',
-        }}
-      />
+      <div aria-hidden="true" className="ob-atmosphere" />
+      <div aria-hidden="true" className="ob-grain" />
 
-      <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
-        {/* One fused chrome row: identity + progressbar + signal tally. The
-           tally self-suppresses on the rating step (handled inside DnaRail). */}
+      <div className="ob-app-frame">
         <DnaRail
           step={step}
           moods={moods}
@@ -297,58 +276,100 @@ export default function Onboarding() {
           ratings={ratings}
         />
 
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={step}
-              initial={reduced ? false : { opacity: 0, y: 14 }}
-              animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              exit={reduced ? { opacity: 0 } : { opacity: 0, y: -14 }}
-              transition={reduced ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="h-full"
-            >
-              {step === 0 && (
-                <MoodStep
-                  moods={moods}
-                  setMoods={setMoods}
-                  onNext={() => { setError(''); setStep(1); trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'mood' }) }}
-                  firstName={session?.user?.user_metadata?.name?.split(' ')[0] ?? null}
-                />
-              )}
-              {step === 1 && (
-                <GenresStep
-                  selectedGenres={selectedGenres}
-                  toggleGenre={toggleGenre}
-                  onBack={() => { setError(''); setStep(0) }}
-                  onNext={() => { setError(''); setStep(2); trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'genres' }) }}
-                />
-              )}
-              {step === 2 && (
-                <MoviesStep
-                  selectedGenreIds={selectedGenres}
-                  moods={moods}
-                  favoriteMovies={favoriteMovies}
-                  addMovie={addMovie}
-                  removeMovie={removeMovie}
-                  isMovieSelected={isMovieSelected}
-                  onBack={() => { setError(''); setStep(1) }}
-                  onFinish={() => { setError(''); setStep(3); trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'movies' }) }}
-                  loading={false}
-                  error={error}
-                />
-              )}
-              {step === 3 && (
-                <RatingStep
-                  favoriteMovies={favoriteMovies}
-                  ratings={ratings}
-                  onRate={handleRate}
-                  onBack={() => { setError(''); setRatings({}); setStep(2) }}
-                  onFinish={handleFinish}
-                  error={error}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+        <TastePortrait
+          compact
+          moods={moods}
+          genres={selectedGenres}
+          films={favoriteMovies}
+          ratings={ratings}
+        />
+
+        <div className="ob-conversation-layout">
+          <div className="ob-step-stage">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={step}
+                initial={reduced ? false : { opacity: 0, y: 12 }}
+                animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, y: -10 }}
+                transition={reduced ? { duration: 0 } : { duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                className="ob-step-motion"
+              >
+                {step === 0 && (
+                  <MoodStep
+                    moods={moods}
+                    setMoods={setMoods}
+                    onNext={() => {
+                      setError('')
+                      setStep(1)
+                      trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'mood' })
+                    }}
+                    firstName={session?.user?.user_metadata?.name?.split(' ')[0] ?? null}
+                  />
+                )}
+
+                {step === 1 && (
+                  <GenresStep
+                    selectedGenres={selectedGenres}
+                    toggleGenre={toggleGenre}
+                    onBack={() => {
+                      setError('')
+                      setStep(0)
+                    }}
+                    onNext={() => {
+                      setError('')
+                      setStep(2)
+                      trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'genres' })
+                    }}
+                  />
+                )}
+
+                {step === 2 && (
+                  <MoviesStep
+                    selectedGenreIds={selectedGenres}
+                    moods={moods}
+                    favoriteMovies={favoriteMovies}
+                    addMovie={addMovie}
+                    removeMovie={removeMovie}
+                    isMovieSelected={isMovieSelected}
+                    onBack={() => {
+                      setError('')
+                      setStep(1)
+                    }}
+                    onFinish={() => {
+                      setError('')
+                      setStep(3)
+                      trackEvent(EVENTS.onboarding_step_completed, { surface: 'onboarding', step_key: 'movies' })
+                    }}
+                    loading={false}
+                    error={error}
+                  />
+                )}
+
+                {step === 3 && (
+                  <RatingStep
+                    favoriteMovies={favoriteMovies}
+                    ratings={ratings}
+                    onRate={handleRate}
+                    onBack={() => {
+                      setError('')
+                      setRatings({})
+                      setStep(2)
+                    }}
+                    onFinish={handleFinish}
+                    error={error}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <TastePortrait
+            moods={moods}
+            genres={selectedGenres}
+            films={favoriteMovies}
+            ratings={ratings}
+          />
         </div>
       </div>
     </div>

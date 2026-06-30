@@ -93,7 +93,7 @@ function DnaSection({ profile }) {
           )}
         </div>
       ) : (
-        <PrivateNotice label="Cinematic DNA" />
+        <p className="ff-prof-empty">No Cinematic DNA yet — not enough films logged.</p>
       )}
     </section>
   )

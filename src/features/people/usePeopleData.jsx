@@ -18,7 +18,7 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 import { supabase } from '@/shared/lib/supabase/client'
 import { usePeopleFollowActions } from './hooks/usePeopleFollowActions'
 import { usePeopleHideActions } from './hooks/usePeopleHideActions'
-import { mergeSimilarity, deriveDiscovery, deriveSuggestedFOF } from './derive/peopleDiscovery'
+import { mergeSimilarity, deriveDiscovery, deriveSuggestedFOF, initialOf, avatarBg } from './derive/peopleDiscovery'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
 const PeopleDataContext = createContext(null)
@@ -29,6 +29,7 @@ const INITIAL = {
   more: [],
   suggested: [],
   followingIds: new Set(),
+  followingList: [], // [{id, name, avatarUrl, initial, avatarBg}] for all followed users
   status: 'loading', // loading | ready | discovery_unavailable | load_error
 }
 
@@ -113,6 +114,22 @@ export function PeopleDataProvider({ children }) {
 
     const { strongest, more, shownIds } = deriveDiscovery({ mergedSimilarity: optedInRows, discoverableTasteIds, usersById, fingerprintByUser })
 
+    // ── Following identity — fetch identities for followed users not already in usersById ──
+    // This lets us show a "People you follow" section even when the followed user is not
+    // in the caller's similarity/discovery pool (e.g. followed via search in a prior session).
+    const followingExtra = [...followingIds].filter((id) => !usersById.has(id))
+    if (followingExtra.length) {
+      const extraFollowRes = await supabase.rpc('get_people_public_identities', { requested_user_ids: followingExtra })
+      if (!extraFollowRes.error) for (const u of extraFollowRes.data || []) usersById.set(u.id, u)
+    }
+    const followingList = [...followingIds]
+      .map((id) => {
+        const u = usersById.get(id)
+        if (!u) return null
+        return { id: u.id, name: u.name, avatarUrl: u.avatar_url, initial: initialOf(u.name), avatarBg: avatarBg(u.id) }
+      })
+      .filter(Boolean)
+
     // ── Suggested (FOF) — optional rail; consent-gated to the same opt-in projection ──
     let suggested = []
     if (followingIds.size > 0) {
@@ -132,7 +149,7 @@ export function PeopleDataProvider({ children }) {
       }
     }
 
-    setState({ user: baseUser, strongest, more, suggested, followingIds, status: 'ready' })
+    setState({ user: baseUser, strongest, more, suggested, followingIds, followingList, status: 'ready' })
   }, [userId, session])
 
   useEffect(() => { load() }, [load])

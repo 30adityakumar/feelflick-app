@@ -72,10 +72,11 @@ describe('Doctrine — one-way follow, no friendship/feed/public-profile, no dea
     expect(followBtnSrc).toMatch(/following \? 'Following' : 'Follow'/)
     expect(allComponentSrc).not.toMatch(/[Ff]riends? whose|taste twins?|predict[s]? you|your circle/)
   })
-  it('no card links to /profile/:id, no View Cinematic DNA, names/avatars are not links', () => {
+  it('cards link to /people/:id (not /profile/:id), no "View Cinematic DNA" button', () => {
     expect(allComponentSrc).not.toMatch(/\/profile\//)
     expect(allComponentSrc).not.toMatch(/View Cinematic DNA|View profile/)
-    expect(cardSrc).not.toMatch(/<a |<Link/)
+    // Cards now link to /people/:id for the public profile
+    expect(cardSrc).toMatch(/\/people\//)
   })
   it('no Feed / Activity / Popular / public-rating copy', () => {
     expect(peopleJsxSrc + allComponentSrc).not.toMatch(/Popular on FeelFlick|most-watched|just (rated|watched)|Activity|CrewOverlap/)

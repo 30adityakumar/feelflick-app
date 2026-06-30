@@ -23,10 +23,8 @@ export default function PostWatchPortrait({ mvId, viewerNotes = null, friends = 
 
   return (
     <section
-      id="after-watching"
       className="ff-movie-section ff-movie-postwatch ff-movie-chapter-anchor"
       aria-labelledby="postwatch-h"
-      tabIndex={-1}
     >
       <h2 id="postwatch-h" className="sr-only">After watching</h2>
 

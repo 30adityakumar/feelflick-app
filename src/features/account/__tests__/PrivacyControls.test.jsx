@@ -47,8 +47,11 @@ describe('Account Privacy — F7.2 honest controls', () => {
     expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument()
   })
 
-  it('states honestly that Cinematic DNA / history / ratings are private', () => {
+  it('states honestly what stays private and what is visible to followers', () => {
     render(<Privacy />)
-    expect(screen.getByText(/visible only to you/i)).toBeInTheDocument()
+    // DNA, Diary, and ratings remain always-private
+    expect(screen.getByText(/Cinematic DNA, Diary, and ratings stay private/i)).toBeInTheDocument()
+    // History and watchlist are now public-by-default with opt-out
+    expect(screen.getByText(/visible to your followers by default/i)).toBeInTheDocument()
   })
 })

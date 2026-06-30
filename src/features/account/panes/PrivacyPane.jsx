@@ -1,7 +1,8 @@
 // src/features/account/panes/PrivacyPane.jsx
 // Controls: taste-match discovery (explicit opt-in, default off), follower sharing (history +
-// watchlist, both default off), and product analytics. Each toggle persists through the
-// save-state model with rollback; analytics runtime is coordinated in useAccountData.updatePrivacy.
+// watchlist, both default ON — turn off here if desired), and product analytics. Each toggle
+// persists through the save-state model with rollback; analytics runtime is coordinated in
+// useAccountData.updatePrivacy.
 
 import SectionIcon from '../components/SectionIcon'
 import SettingGroup from '../components/SettingGroup'
@@ -13,8 +14,8 @@ import { useAccountData } from '../useAccountData'
 // Exposed when discovery is ON / what always stays private — enumerated verbatim for honesty.
 const DISCOVERY_DESC = 'When on, other signed-in members may see your name, avatar, your top film-taste tags and film count when FeelFlick suggests compatible people. Your watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private.'
 const DISCOVERY_BETA_NOTE = 'Taste-match discovery is not currently surfaced in the beta, but your preference is saved for when it returns.'
-const HISTORY_DESC = 'When on, people who follow you can view your full watch history on your profile page. Off by default.'
-const WATCHLIST_DESC = "When on, people who follow you can view the films you've saved to watch. Off by default."
+const HISTORY_DESC = 'Followers can view your watch history on your profile page. On by default — turn off to make it private.'
+const WATCHLIST_DESC = "Followers can view the films you've saved to watch. On by default — turn off to make it private."
 const ANALYTICS_DESC = "Optional product-usage analytics (PostHog) help us improve FeelFlick. We never send your email, name, search text, reviews, Diary, or Cinematic DNA reflection, and session replay masks all text and inputs. Essential security, infrastructure and error logs aren't controlled by this setting."
 
 export default function PrivacyPane() {
@@ -28,8 +29,8 @@ export default function PrivacyPane() {
       <div className="ff-acct-privacy-summary">
         <SectionIcon name="privacy" size={20} />
         <div>
-          <strong>Your film behaviour remains private.</strong>
-          <p>Other members cannot browse your Cinematic DNA, Diary, ratings, reviews, watched films, or watch history &mdash; they&apos;re visible only to you.</p>
+          <strong>Your Cinematic DNA, Diary, and ratings stay private.</strong>
+          <p>Watch history and watchlist are visible to your followers by default. Turn them off below if you&apos;d prefer to keep them private.</p>
         </div>
       </div>
 

@@ -339,7 +339,7 @@ export const router = sentryCreateBrowserRouter([
                   { path: 'profile', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
                   { path: 'profile/:userId', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
                   { path: 'people', element: <LazyRoute Component={People} />, errorElement: <ErrorBoundary /> },
-                  { path: 'people/:userId', element: <LazyRoute Component={PersonPublicProfile} />, errorElement: <ErrorBoundary /> },
+                  { path: 'dna/:userId', element: <LazyRoute Component={PersonPublicProfile} />, errorElement: <ErrorBoundary /> },
                   { path: 'lists', element: <LazyRoute Component={Lists} />, errorElement: <ErrorBoundary /> },
                   // Confirmed unfinished — redirect until shipped
                   { path: 'feed', element: <Navigate to="/home" replace /> },

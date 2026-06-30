@@ -8,6 +8,7 @@ import { useReducedMotion } from 'framer-motion'
 import { useRef, useState } from 'react'
 import { MOODS } from '../derive'
 import DiscoverProgress from './DiscoverProgress'
+import DiscoverConstellationCenter from './DiscoverConstellationCenter'
 import MoodConstellation from './MoodConstellation'
 import SelectedMoodSummary from './SelectedMoodSummary'
 
@@ -36,6 +37,8 @@ export default function DiscoverMoodStage({ selected, setSelected, onNext, audio
       </header>
 
       <MoodConstellation selected={selected} moods={MOODS} onToggle={toggle} burst={burst} reducedMotion={reducedMotion} />
+
+      <DiscoverConstellationCenter selected={selected} />
 
       <SelectedMoodSummary selected={selected} moods={MOODS} />
 

@@ -78,7 +78,7 @@
 .ff-disc-stage__head { text-align: center; }
 .ff-disc-stage__title { margin: 0 auto; max-width: 880px; font-size: clamp(2.45rem, 5.4vw, 5.5rem); font-weight: 620; letter-spacing: -0.062em; line-height: .96; color: var(--ff-tp); text-wrap: balance; }
 .ff-disc-stage__sub { margin: 15px auto 0; max-width: 520px; font-size: 14px; line-height: 1.55; color: var(--ff-tm); }
-.ff-disc-actionbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; }
+.ff-disc-actionbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 28px; }
 .ff-disc-actionbar--split { flex-wrap: wrap; }
 .ff-disc-actionbar__meta { font-size: 12px; letter-spacing: 0.02em; color: var(--ff-tm); }
 
@@ -107,8 +107,8 @@
 .ff-disc-burst__dot { position: absolute; top: 50%; left: 50%; border-radius: 999px; animation: ff-disc-burst .8s cubic-bezier(.2,.7,.2,1) forwards; }
 @keyframes ff-disc-burst { 0% { transform: translate(-50%, -50%); opacity: .9; } 100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))); opacity: 0; } }
 
-/* Centred constellation identity (visible flavour; literal moods live in the a11y summary) */
-.ff-disc-constellation { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 240px; text-align: center; pointer-events: none; z-index: 2; }
+/* Constellation identity — sits below the mood field, not inside it */
+.ff-disc-constellation { display: block; text-align: center; pointer-events: none; margin-top: 20px; }
 .ff-disc-constellation__kicker { display: block; font-size: 10px; font-weight: 750; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ff-tm); }
 .ff-disc-constellation__name { display: block; margin-top: 7px; font-size: clamp(20px, 2vw, 26px); line-height: 1.1; letter-spacing: -0.04em; font-weight: 600; color: var(--ff-blend); }
 
@@ -257,7 +257,8 @@
 @media (max-width: 760px) {
   /* Mood field becomes a static grid (no absolute geometry, no centre/lines) */
   .ff-disc-field { min-height: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 26px 4px; padding: 26px 2px 8px; }
-  .ff-disc-field__lines, .ff-disc-constellation { display: none; }
+  .ff-disc-field__lines { display: none; }
+  .ff-disc-constellation { display: none; }
   .ff-disc-node { position: static !important; transform: none !important; display: flex; justify-content: center; }
   .ff-disc-orb { width: 44px; height: 44px; }
   .ff-disc-orb-btn.is-on .ff-disc-orb { transform: scale(1.12); }

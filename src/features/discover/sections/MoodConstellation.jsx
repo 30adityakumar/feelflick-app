@@ -7,8 +7,6 @@
 // is DETERMINISTIC (fixed geometry by index), reduced-motion-aware, aria-hidden,
 // and absent from the a11y tree — so it never destabilises visual regression.
 
-import DiscoverConstellationCenter from './DiscoverConstellationCenter'
-
 const BURST_DOTS = Array.from({ length: 10 }, (_, i) => ({
   a: (i / 10) * Math.PI * 2,
   r: 54 + (i % 3) * 14,
@@ -46,7 +44,6 @@ export default function MoodConstellation({ selected, moods, onToggle, burst, re
             className="ff-disc-field__line" />
         ))}
       </svg>
-      <DiscoverConstellationCenter selected={selected} />
       {moods.map((m) => {
         const on = selected.includes(m.id)
         const order = selected.indexOf(m.id) + 1

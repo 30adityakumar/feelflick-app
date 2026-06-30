@@ -5,7 +5,7 @@
 // (which own the real writes + TMDB-only routing).
 
 import BrowseFilmCard from './BrowseFilmCard'
-import { cardEvidence, cardBadge } from '../browsePresentation'
+import { cardBadge } from '../browsePresentation'
 
 export default function BrowseFilmGrid({
   films, sort, qualityLens = [], watchedSet, watchlistSet,
@@ -17,7 +17,6 @@ export default function BrowseFilmGrid({
         <div className="ff-browse-grid__cell" role="listitem" key={f.id}>
           <BrowseFilmCard
             film={f}
-            evidence={cardEvidence(f, sort)}
             badge={cardBadge(f, sort, qualityLens)}
             watched={watchedSet?.has(f.id)}
             inWatchlist={watchlistSet?.has(f.id)}

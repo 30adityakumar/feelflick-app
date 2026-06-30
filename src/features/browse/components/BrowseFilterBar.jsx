@@ -1,9 +1,9 @@
 // src/features/browse/components/BrowseFilterBar.jsx
 // Sticky control bar.
 //   Desktop: primary filter popovers (Genre / Era / Language / Runtime) + a
-//   "More filters" button (advanced drawer) on the left; a separate Sort group on
-//   the right (the four primary sorts as tabs — visually distinct from filters so
-//   "what's shown" and "how it's ordered" never blur).
+//   Hidden gems toggle + a "More filters" button on the left; a "Sort by" label
+//   with three sort tabs on the right (FeelFlick rating, Critics, Newest).
+//   "Hidden gems" moved from sort tabs to a first-class filter toggle.
 //   Mobile: only "Filters · N" (opens the sheet) + a compact Sort menu.
 // A second row shows active-scope chips. The bar owns which popover is open so
 // just one opens at a time, Escape closes + restores focus, outside-click closes.
@@ -22,6 +22,7 @@ export default function BrowseFilterBar({
   genre, decade, lang, runtime, onSetFilter,
   sort, onSetSort, advancedCount, onOpenDrawer,
   chips, onClearAll, isSearchMode,
+  vibe, onToggleHiddenGems,
 }) {
   const [openId, setOpenId] = useState(null)
   const triggerRefs = useRef({})
@@ -38,13 +39,14 @@ export default function BrowseFilterBar({
   useEffect(() => {
     if (!openId) return undefined
     const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(true) } }
-    const onDown = (e) => { if (!e.target.closest?.('.ff-filter-wrap')) close(false) }
+    const onDown = (e) => { if (!e.target.closest?.('.ff-filter-wrap') && !e.target.closest?.('.ff-popover')) close(false) }
     document.addEventListener('keydown', onKey, true)
     document.addEventListener('mousedown', onDown)
     return () => { document.removeEventListener('keydown', onKey, true); document.removeEventListener('mousedown', onDown) }
   }, [openId, close])
 
   const pick = (key) => (value) => { onSetFilter(key, value); close(true) }
+  const hiddenActive = Array.isArray(vibe) && vibe.includes('hidden')
 
   return (
     <div className="ff-browse-filterbar">
@@ -63,6 +65,14 @@ export default function BrowseFilterBar({
           <BrowseFilterPopover id="runtime" label="Runtime" valueText={labelFor(RUNTIME_OPTIONS, runtime).replace(/^Any length$/, '')}
             active={!!runtime} open={openId === 'runtime'} onToggle={toggle} triggerRef={setRef('runtime')}
             options={toPairs(RUNTIME_OPTIONS)} selected={runtime} onSelect={pick('runtime')} />
+          <button
+            type="button"
+            className={`ff-filter-button${hiddenActive ? ' is-active' : ''}`}
+            aria-pressed={hiddenActive}
+            onClick={onToggleHiddenGems}
+          >
+            Hidden gems
+          </button>
           <button type="button" className={`ff-filter-button ff-filter-button--more${advancedCount > 0 ? ' is-active' : ''}`} onClick={onOpenDrawer}>
             <SlidersHorizontal className="h-[15px] w-[15px]" aria-hidden="true" />
             More filters{advancedCount > 0 ? <span className="ff-filter-button__count">{advancedCount}</span> : null}
@@ -76,7 +86,8 @@ export default function BrowseFilterBar({
         </button>
 
         {/* Sort — desktop tabs */}
-        <div className="ff-browse-sorttabs" role="group" aria-label="Sort order">
+        <span className="ff-browse-sortlabel" aria-hidden="true">Sort by</span>
+        <div className="ff-browse-sorttabs" role="group" aria-label="Sort by">
           {PRIMARY_SORTS.map((s) => (
             <button key={s.value} type="button" disabled={isSearchMode}
               className={`ff-browse-sorttab${sort === s.value ? ' is-active' : ''}`}
@@ -88,8 +99,8 @@ export default function BrowseFilterBar({
 
         {/* Sort — mobile menu */}
         <div className="ff-browse-sort-mobile">
-          <BrowseFilterPopover id="sortm" label="Sort" valueText={PRIMARY_SORTS.find((s) => s.value === sort)?.label || ''}
-            active open={openId === 'sortm'} onToggle={toggle} align="right" triggerRef={setRef('sortm')}
+          <BrowseFilterPopover id="sortm" label="Sort" valueText=""
+            active={sort !== 'ff_rating.desc'} open={openId === 'sortm'} onToggle={toggle} align="right" triggerRef={setRef('sortm')}
             options={PRIMARY_SORTS.map((s) => [s.value, s.label])} selected={sort}
             onSelect={(v) => { onSetSort(v); close(true) }} />
         </div>

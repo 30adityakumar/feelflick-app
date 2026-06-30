@@ -43,7 +43,7 @@ function deriveCandidates(profile) {
   const topGenreId = profile?._legacy?.genres?.preferred?.[0]
   const genreName = topGenreId != null ? GENRES.find(g => g.id === topGenreId)?.dbName : null
   if (genreName) {
-    out.push({ key: 'genre', kind: 'personal', kicker: 'Your top genre', title: genreName, sub: 'The genre your ratings return to most', filters: { genre: genreName } })
+    out.push({ key: 'genre', kind: 'personal', kicker: 'Your top genre', title: genreName, sub: 'The territory you keep returning to', filters: { genre: genreName } })
   }
 
   // Personal — a non-English language the user keeps returning to (world cinema)
@@ -56,19 +56,19 @@ function deriveCandidates(profile) {
     if (nonEn) worldLang = nonEn.lang
   }
   if (worldLang) {
-    out.push({ key: 'language', kind: 'personal', kicker: 'World cinema', title: `${LANG_LABEL[worldLang]} cinema`, sub: 'A language your taste keeps returning to', filters: { lang: worldLang } })
+    out.push({ key: 'language', kind: 'personal', kicker: 'World cinema', title: `${LANG_LABEL[worldLang]} cinema`, sub: 'A cinema you\'ve rated your way into', filters: { lang: worldLang } })
   }
 
   // Personal — a filmmaker the user's ratings reward
   const director = profile?.affinity?.directors?.[0]?.name
   if (director && director !== 'Unknown') {
-    out.push({ key: 'director', kind: 'personal', kicker: 'Filmmaker trail', title: director, sub: 'A filmmaker your ratings reward', filters: { director } })
+    out.push({ key: 'director', kind: 'personal', kicker: 'Filmmaker trail', title: director, sub: 'A director your watch history singles out', filters: { director } })
   }
 
   // Editorial — always-available catalogue lenses (neutral labels, real fields)
-  out.push({ key: 'hidden', kind: 'editorial', kicker: 'Less obvious', title: 'Hidden gems', sub: 'Underseen films with credible quality', filters: { sort: 'discovery_potential.desc' } })
-  out.push({ key: 'cult', kind: 'editorial', kicker: 'Lasting pull', title: 'Cult classics', sub: 'Films that found a devoted following', filters: { sort: 'cult_status_score.desc' } })
-  out.push({ key: 'short', kind: 'editorial', kicker: 'Time-led', title: 'Short & sharp', sub: 'Films under ninety minutes', filters: { runtime: 'short' } })
+  out.push({ key: 'hidden', kind: 'editorial', kicker: 'Less obvious', title: 'Hidden gems', sub: 'Films that didn\'t find the audience they deserve', filters: { vibe: ['hidden'] } })
+  out.push({ key: 'cult', kind: 'editorial', kicker: 'Lasting pull', title: 'Cult classics', sub: 'Divisive on release. Still talked about.', filters: { sort: 'cult_status_score.desc' } })
+  out.push({ key: 'short', kind: 'editorial', kicker: 'Time-led', title: 'Short & sharp', sub: 'Under 90 minutes. No filler.', filters: { runtime: 'short' } })
 
   return out
 }

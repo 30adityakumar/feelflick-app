@@ -26,9 +26,7 @@ export default function BrowseMasthead({ ribbonPosters = [], draftQuery, setDraf
       <div className="ff-browse-masthead__scrim" aria-hidden="true" />
 
       <div className="ff-browse-masthead__content">
-        <p className="ff-eyebrow">Yours to explore</p>
         <h1 id="ff-browse-title" className="ff-browse-masthead__title">Follow your curiosity.</h1>
-        <p className="ff-browse-masthead__line">Choose the direction. FeelFlick keeps the catalogue relevant, understandable, and finite.</p>
 
         <BrowseScopedSearch draft={draftQuery} setDraft={setDraftQuery} onSubmit={onSearch} />
 

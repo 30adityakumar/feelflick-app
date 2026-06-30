@@ -86,20 +86,20 @@ export function rankingCopy(sort) {
 // Short summary suffix shown next to the result count, by sort.
 export function sortSummary(sort) {
   switch (sort) {
-    case 'discovery_potential.desc': return 'ordered by discovery potential'
-    case 'ff_critic_rating.desc':    return 'ordered by critic rating'
+    case 'discovery_potential.desc': return 'sorted by discovery potential'
+    case 'ff_critic_rating.desc':    return 'sorted by critics'
     case 'release_date.desc':        return 'newest first'
-    case 'cult_status_score.desc':   return 'ordered by cult following'
+    case 'cult_status_score.desc':   return 'sorted by cult following'
     case 'ff_rating.desc':
-    default:                         return 'ordered by FeelFlick rating'
+    default:                         return 'sorted by FeelFlick rating'
   }
 }
 
-// The four primary sort tabs surfaced in the UI (other sort values stay valid
+// The three primary sort tabs surfaced in the UI (other sort values stay valid
 // from the URL for back-compat but aren't primary controls).
+// "Hidden gems" has moved to the filter row as a vibe toggle.
 export const PRIMARY_SORTS = [
-  { value: 'ff_rating.desc', label: 'FeelFlick rating' },
-  { value: 'discovery_potential.desc', label: 'Hidden gems' },
+  { value: 'ff_rating.desc',        label: 'FeelFlick rating' },
   { value: 'ff_critic_rating.desc', label: 'Critics' },
-  { value: 'release_date.desc', label: 'Newest' },
+  { value: 'release_date.desc',     label: 'Newest' },
 ]

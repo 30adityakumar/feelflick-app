@@ -5,8 +5,14 @@
 import CinematicArtworkSlices from './CinematicArtworkSlices'
 import CinematicPassport from './CinematicPassport'
 
-export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, onEvidence, onScrollTo }) {
+export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, onEvidence, onScrollTo, subjectName = null }) {
   const { title, line, provenance, updated, facts, takingShape } = identity
+  // subjectName set → another user's read-only view: hide the owner-only "Private" status pill,
+  // the evidence sheet trigger ("Why this read?") and the owner export ("Share portrait").
+  const readOnly = Boolean(subjectName)
+  const takingShapeLine = subjectName
+    ? `${subjectName}'s taste is taking shape — a portrait is beginning to emerge.`
+    : 'Your taste is taking shape — a portrait is beginning to emerge.'
   return (
     <section className="ff-dna-hero" id="dna-portrait" aria-labelledby="ff-dna-h1">
       <CinematicArtworkSlices mixtape={mixtape} />
@@ -16,14 +22,14 @@ export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, o
         <div className="ff-dna-hero__copy">
           <div className="ff-dna-hero__status">
             <p className="ff-dna-eyebrow">Cinematic DNA</p>
-            <span className="ff-dna-pill"><i className="ff-dna-private-dot" aria-hidden="true" />Private</span>
+            {readOnly ? null : <span className="ff-dna-pill"><i className="ff-dna-private-dot" aria-hidden="true" />Private</span>}
             {updated ? <span className="ff-dna-pill ff-dna-pill--updated">{updated}</span> : null}
           </div>
           <h1 id="ff-dna-h1" className="ff-dna-hero__title">
             {title.lead}{title.em ? <em>{title.em}</em> : null}
           </h1>
           <p className="ff-dna-hero__line">{line}</p>
-          {takingShape ? <p className="ff-dna-hero__prov">Your taste is taking shape — a portrait is beginning to emerge.</p> : null}
+          {takingShape ? <p className="ff-dna-hero__prov">{takingShapeLine}</p> : null}
           {provenance ? <p className="ff-dna-hero__prov"><b>FeelFlick reflection</b> · {provenance}</p> : null}
           {facts.length > 0 ? (
             <div className="ff-dna-hero__facts">
@@ -33,9 +39,13 @@ export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, o
             </div>
           ) : null}
           <div className="ff-dna-hero__actions">
-            <button type="button" className="ff-dna-btn ff-dna-btn--primary" onClick={() => onScrollTo('dna-response')}>Explore your DNA</button>
-            <button type="button" className="ff-dna-btn ff-dna-btn--secondary" onClick={onEvidence}>Why this read?</button>
-            <button type="button" className="ff-dna-btn ff-dna-btn--ghost" onClick={() => onScrollTo('dna-passport')}>Share portrait</button>
+            <button type="button" className="ff-dna-btn ff-dna-btn--primary" onClick={() => onScrollTo('dna-response')}>{readOnly ? 'Explore DNA' : 'Explore your DNA'}</button>
+            {readOnly ? null : (
+              <>
+                <button type="button" className="ff-dna-btn ff-dna-btn--secondary" onClick={onEvidence}>Why this read?</button>
+                <button type="button" className="ff-dna-btn ff-dna-btn--ghost" onClick={() => onScrollTo('dna-passport')}>Share portrait</button>
+              </>
+            )}
           </div>
         </div>
         <CinematicPassport identity={identity} evidenceVersion={evidenceVersion} />

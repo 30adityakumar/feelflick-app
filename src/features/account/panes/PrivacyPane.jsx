@@ -12,8 +12,8 @@ import SaveStatus from '../components/SaveStatus'
 import { useAccountData } from '../useAccountData'
 
 // Exposed when discovery is ON / what always stays private — enumerated verbatim for honesty.
-const DISCOVERY_DESC = 'When on, other signed-in members may see your name, avatar, your top film-taste tags and film count when FeelFlick suggests compatible people. Your watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private.'
-const DISCOVERY_BETA_NOTE = 'Taste-match discovery is not currently surfaced in the beta, but your preference is saved for when it returns.'
+const DISCOVERY_DESC = 'When on, other signed-in members can open your profile and see your Cinematic DNA portrait — your name, avatar, archetype, top taste tags, how you rate, the way your taste has moved over time, and the directors you return to — and you may appear when FeelFlick suggests compatible people. Your individual reviews, Diary notes and exact watch dates always stay private.'
+const DISCOVERY_BETA_NOTE = "Taste-match suggestions aren't surfaced in the beta yet, but while this is on your Cinematic DNA portrait is visible to members who open your profile."
 const HISTORY_DESC = 'Followers can view your watch history on your profile page. On by default — turn off to make it private.'
 const WATCHLIST_DESC = "Followers can view the films you've saved to watch. On by default — turn off to make it private."
 const ANALYTICS_DESC = "Optional product-usage analytics (PostHog) help us improve FeelFlick. We never send your email, name, search text, reviews, Diary, or Cinematic DNA reflection, and session replay masks all text and inputs. Essential security, infrastructure and error logs aren't controlled by this setting."
@@ -29,8 +29,8 @@ export default function PrivacyPane() {
       <div className="ff-acct-privacy-summary">
         <SectionIcon name="privacy" size={20} />
         <div>
-          <strong>Your Cinematic DNA, Diary, and ratings stay private.</strong>
-          <p>Watch history and watchlist are visible to your followers by default. Turn them off below if you&apos;d prefer to keep them private.</p>
+          <strong>Your Diary and individual reviews stay private.</strong>
+          <p>Your Cinematic DNA portrait — including how you rate — is visible to other members when taste-match discovery is on. Watch history and watchlist are visible to your followers by default. Turn any of these off below.</p>
         </div>
       </div>
 

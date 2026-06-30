@@ -18,7 +18,7 @@ vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
 
 // Mock the DNA hook used by PublicDnaProfile for cross-user renders
 vi.mock('../hooks/usePublicDna', () => ({
-  usePublicDna: () => ({ status: 'loading', raw: null, retry: () => {} }),
+  usePublicDna: () => ({ status: 'loading', profile: null, raw: null, tasteRows: [], retry: () => {} }),
 }))
 // Mock people data provider so PeopleDataProvider renders children without Supabase
 vi.mock('@/features/people/usePeopleData', () => ({

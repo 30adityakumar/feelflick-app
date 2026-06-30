@@ -5,15 +5,16 @@
 
 const COUNT_WORD = { 2: 'Two', 3: 'Three' }
 
-export default function TasteJourney({ journey = [] }) {
+export default function TasteJourney({ journey = [], subjectName = null }) {
   if (!Array.isArray(journey) || journey.length < 2) return null
   const word = COUNT_WORD[journey.length] || `${journey.length}`
+  const Poss = subjectName ? `${subjectName}'s` : 'Your'
   return (
     <section className="ff-dna-section" id="dna-journey" aria-labelledby="ff-dna-journey-h2">
       <div className="ff-dna__shell">
         <div className="ff-dna-section__head">
           <div>
-            <p className="ff-dna-eyebrow">Your taste journey</p>
+            <p className="ff-dna-eyebrow">{Poss} taste journey</p>
             <h2 id="ff-dna-journey-h2">{word} chapters, not a tangled graph.</h2>
           </div>
           <p>Each chapter shows the one signal that mattered most.</p>

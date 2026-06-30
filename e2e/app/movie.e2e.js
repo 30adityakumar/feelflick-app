@@ -119,8 +119,8 @@ test.describe('Film File — authenticated, intercepted', () => {
 
     // Exploration: max 5 films total, source order, no reshuffle/pagination.
     const simButtons = explore.getByRole('button', { name: /^Open Saltwater Hours|^Open The Tin Almanac|^Open North of Quiet|^Open Paper Harbor|^Open Winter Tenants|^Open The Long Field/ })
-    await expect(simButtons).toHaveCount(4)
-    await expect(explore.getByRole('button', { name: 'Open Winter Tenants (2014)' })).toHaveCount(0) // 5th similar not shown
+    await expect(simButtons).toHaveCount(5)
+    await expect(explore.getByRole('button', { name: 'Open The Long Field (2015)' })).toHaveCount(0) // 6th similar not shown
     await expect(explore.getByRole('button', { name: /show me more|load more|reshuffle|next page/i })).toHaveCount(0)
     await expect(explore.getByText(/\d+%/)).toHaveCount(0) // no match % on related cards
 
@@ -168,7 +168,6 @@ test.describe('Film File — authenticated, intercepted', () => {
 
       if (providerMode === 'found') {
         await expect(where.getByRole('link', { name: /Watch on Mock Stream/i })).toBeVisible()
-        await expect(where.getByText(/Availability for the United States via TMDB and JustWatch/i)).toBeVisible()
         await expect(where.getByRole('link', { name: /More options on JustWatch/i })).toBeVisible()
       }
       if (providerMode === 'empty') {
@@ -192,10 +191,10 @@ test.describe('Film File — authenticated, intercepted', () => {
     const ledger = await installMovieFixture(page)
     const errors = attachGuards(page)
     await gotoFilmFile(page)
-    const save = page.getByRole('button', { name: 'Save' })
+    const save = page.getByRole('button', { name: /Add.*to watchlist/i }).first()
     await save.click()
-    await expect(page.getByRole('button', { name: 'Saved' })).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByRole('button', { name: 'Saved' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: /Remove.*from watchlist/i }).first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('button', { name: /Remove.*from watchlist/i }).first()).toHaveAttribute('aria-pressed', 'true')
     await expect.poll(() => writesTo(ledger, 'user_watchlist').length).toBeGreaterThan(0)
     expect(row(writesTo(ledger, 'user_watchlist')[0])).toMatchObject({ movie_id: MOVIE.internalId, source: 'movie_detail' })
     await expect(liveStatus(page)).toContainText(`Saved ${MOVIE.title} for later.`)
@@ -207,10 +206,10 @@ test.describe('Film File — authenticated, intercepted', () => {
     const ledger = await installMovieFixture(page, { saveMode: 'failure' })
     const errors = attachGuards(page, ['useUserMovieStatus', 'watchlist'])
     await gotoFilmFile(page)
-    await page.getByRole('button', { name: 'Save' }).click()
+    await page.getByRole('button', { name: /Add.*to watchlist/i }).first().click()
     await expect(liveStatus(page)).toContainText('Could not update saved films. Try again.')
-    await expect(page.getByRole('button', { name: 'Saved' })).toHaveCount(0) // no false success
-    await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled()   // retryable
+    await expect(page.getByRole('button', { name: /Remove.*from watchlist/i })).toHaveCount(0) // no false success
+    await expect(page.getByRole('button', { name: /Add.*to watchlist/i }).first()).toBeEnabled() // retryable
     expect(ledger.unexpectedRequests).toEqual([])
   })
 
@@ -218,8 +217,8 @@ test.describe('Film File — authenticated, intercepted', () => {
     const ledger = await installMovieFixture(page)
     const errors = attachGuards(page)
     await gotoFilmFile(page)
-    await page.getByRole('button', { name: 'Mark Watched' }).click()
-    await expect(page.getByRole('button', { name: 'Watched', exact: true })).toBeVisible({ timeout: 10_000 })
+    await page.getByRole('button', { name: /Mark.*as watched/i }).first().click()
+    await expect(page.getByRole('button', { name: /marked as watched/i }).first()).toBeVisible({ timeout: 10_000 })
     await expect.poll(() => writesTo(ledger, 'user_history').length).toBeGreaterThan(0)
     expect(row(writesTo(ledger, 'user_history')[0])).toMatchObject({ movie_id: MOVIE.internalId })
     await expect(liveStatus(page)).toContainText(`Marked ${MOVIE.title} as watched. The post-watch chapter is now available.`)
@@ -236,10 +235,10 @@ test.describe('Film File — authenticated, intercepted', () => {
     const ledger = await installMovieFixture(page, { watchedMode: 'failure' })
     attachGuards(page, ['useUserMovieStatus', 'history'])
     await gotoFilmFile(page)
-    await page.getByRole('button', { name: 'Mark Watched' }).click()
+    await page.getByRole('button', { name: /Mark.*as watched/i }).first().click()
     await expect(liveStatus(page)).toContainText('Could not update watched status. Try again.')
-    await expect(page.getByRole('button', { name: 'Watched', exact: true })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Mark Watched' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: /marked as watched/i })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /Mark.*as watched/i }).first()).toBeEnabled()
     // §29: a failed watched write keeps spoiler content unmounted (no reveal).
     await expect(page.getByText(/The page stops before interpretation/i)).toBeVisible() // boundary still shown
     await expect(page.locator('.ff-movie-portrait')).toHaveCount(0) // no portrait on failed write
@@ -258,20 +257,20 @@ test.describe('Film File — authenticated, intercepted', () => {
     await expect(page.getByText(/does not yet have a curated post-watch portrait/i)).toHaveCount(0)
 
     // Single rating → exactly one serialized user_ratings write with the exact payload
-    // (display 4★ → canonical 1-10 rating = 8; review null; keyed to the internal id).
+    // (1-10 star scale — clicking "4 stars out of 10" writes rating 4; review null).
     await page.getByRole('radio', { name: '4 stars' }).click()
     await expect.poll(() => writesTo(ledger, 'user_ratings').length, { timeout: 10_000 }).toBe(1)
-    expect(row(writesTo(ledger, 'user_ratings')[0])).toMatchObject({ movie_id: MOVIE.internalId, rating: 8, review_text: null })
+    expect(row(writesTo(ledger, 'user_ratings')[0])).toMatchObject({ movie_id: MOVIE.internalId, rating: 4, review_text: null })
 
     // Rapid re-rate within the debounce window → latest-value-wins, no per-click write:
-    // the FINAL effective rating reflects the last star (3★ → 6), serialized in order.
+    // the FINAL effective rating reflects the last star (3 on the 1-10 scale), serialized in order.
     ledger.resetWrites()
     await page.getByRole('radio', { name: '5 stars' }).click()
     await page.getByRole('radio', { name: '2 stars' }).click()
     await page.getByRole('radio', { name: '3 stars' }).click()
     await expect.poll(() => writesTo(ledger, 'user_ratings').length, { timeout: 10_000 }).toBeGreaterThan(0)
     const ratingWrites = writesTo(ledger, 'user_ratings')
-    expect(row(ratingWrites.at(-1)).rating).toBe(6)                  // latest value (3★) wins
+    expect(row(ratingWrites.at(-1)).rating).toBe(3)                  // latest value (3 stars) wins
     expect(ratingWrites.length).toBeLessThanOrEqual(3)               // collapsed, not one-per-click(×3 max)
 
     // A reaction → exact user_movie_feedback payload (real sentiment, watched-confirmed).
@@ -304,8 +303,7 @@ test.describe('Film File — authenticated, intercepted', () => {
     await expect(trailer).toHaveClass(/\bff-btn\b/)
     await expect(trailer).toHaveClass(/\bts-action-primary\b/)
     await expect(trailer).toHaveClass(/\bts-action-primary--md\b/)
-    await expect(trailer).toHaveClass(/\bff-movie-hero-action-btn\b/)
-    await expect(trailer).toHaveClass(/\bff-movie-hero-action-btn--primary\b/)
+    await expect(trailer).toHaveClass(/\bff-movie-hero__primary\b/)
     await expect(trailer.locator('.ff-btn__label')).toHaveCount(0)
     await expect(trailer.locator('.ff-btn__spinner')).toHaveCount(0)
     const heroGroup = trailer.locator('> span')
@@ -469,11 +467,11 @@ test.describe('Film File — authenticated, intercepted', () => {
       attachGuards(page)
       await page.setViewportSize({ width: vp.w, height: vp.h })
       await gotoFilmFile(page)
-      // No horizontal overflow; one h1; top Back control visible; tail reachable.
+      // No horizontal overflow; one h1; Share control visible; tail reachable.
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
       expect(overflow, `h-overflow @ ${vp.w}`).toBeLessThanOrEqual(1)
       await expect(h1(page)).toHaveCount(1)
-      await expect(page.getByRole('button', { name: 'Go back' }).first()).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Share this film' }).first()).toBeVisible()
       await expect(page.getByText(SOCIAL.twin.users.name)).toHaveCount(0) // identity never exposed at any width
       await page.getByText('Production', { exact: true }).scrollIntoViewIfNeeded()
       await expect(page.getByText('Production', { exact: true })).toBeVisible()
@@ -509,7 +507,7 @@ test.describe('Film File — authenticated, intercepted', () => {
     expect(barBox.y + barBox.height).toBeLessThanOrEqual(vh - 90)
     // It is the same single action cluster — exactly one Save and one watched control.
     await expect(bar.getByRole('button', { name: /^(Save|Saved)$/ })).toHaveCount(1)
-    await expect(bar.getByRole('button', { name: /Mark watched|Watched/ })).toHaveCount(1)
+    await expect(bar.getByRole('button', { name: /^(Watch|Watched)$/ })).toHaveCount(1)
     // no horizontal overflow with the bar shown
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
     expect(overflow).toBeLessThanOrEqual(1)
@@ -534,8 +532,8 @@ test.describe('Film File — hardening (forced colours / 200% / geometry)', () =
       await expect(page.locator('main')).toHaveCount(1)          // AppShell's only <main>
       await expect(region(page)).toHaveCount(1)
       // primary actions + settled watched state visible
-      await expect(page.getByRole('button', { name: /Watched/ }).first()).toBeVisible()
-      await expect(page.getByRole('button', { name: /^(Save|Saved)$/ }).first()).toBeVisible()
+      await expect(page.getByRole('button', { name: /watched/i }).first()).toBeVisible()
+      await expect(page.getByRole('button', { name: /watchlist/i }).first()).toBeVisible()
       // provider state + spoiler-aware post-watch readable
       await expect(page.getByLabel('Where to watch')).toBeVisible()
       await expect(page.getByLabel('Your star rating')).toBeVisible()

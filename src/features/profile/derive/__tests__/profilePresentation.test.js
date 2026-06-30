@@ -19,14 +19,16 @@ function contrast(fgRgba, bgHex) {
   return Math.max(L1, L2) / Math.min(L1, L2)
 }
 
-// F7.4 — pure presentation helpers. Thresholds are product judgements (forming < 5 watched OR
-// < 2 rated; established ≥ 15 watched AND ≥ 5 rated; emerging between).
+// F7.4 — pure presentation helpers. Thresholds are product judgements (forming < 5 watched —
+// ratings do NOT gate forming, since a DNA is computed from 5 watched films alone; established
+// ≥ 15 watched AND ≥ 5 rated; emerging between).
 describe('classifyProfileMaturity', () => {
   const cases = [
     [{ watchedCount: 0,  ratedCount: 0 }, MATURITY.FORMING],
     [{ watchedCount: 1,  ratedCount: 0 }, MATURITY.FORMING],
     [{ watchedCount: 4,  ratedCount: 2 }, MATURITY.FORMING],   // < 5 watched
-    [{ watchedCount: 5,  ratedCount: 1 }, MATURITY.FORMING],   // < 2 rated
+    [{ watchedCount: 5,  ratedCount: 0 }, MATURITY.EMERGING],  // 5 films, no ratings → DNA exists
+    [{ watchedCount: 5,  ratedCount: 1 }, MATURITY.EMERGING],  // ratings no longer gate forming
     [{ watchedCount: 5,  ratedCount: 2 }, MATURITY.EMERGING],  // floor met
     [{ watchedCount: 14, ratedCount: 5 }, MATURITY.EMERGING],  // < 15 watched
     [{ watchedCount: 15, ratedCount: 4 }, MATURITY.EMERGING],  // < 5 rated

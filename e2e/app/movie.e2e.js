@@ -507,7 +507,7 @@ test.describe('Film File — authenticated, intercepted', () => {
     expect(barBox.y + barBox.height).toBeLessThanOrEqual(vh - 90)
     // It is the same single action cluster — exactly one Save and one watched control.
     await expect(bar.getByRole('button', { name: /^(Save|Saved)$/ })).toHaveCount(1)
-    await expect(bar.getByRole('button', { name: /^(Watch|Watched)$/ })).toHaveCount(1)
+    await expect(bar.getByRole('button', { name: /^(Mark watched|Watched)$/ })).toHaveCount(1)
     // no horizontal overflow with the bar shown
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
     expect(overflow).toBeLessThanOrEqual(1)

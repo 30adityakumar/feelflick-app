@@ -41,7 +41,7 @@ const PROFILE = { id: 'other-1', name: 'Devarshi Shah', avatar_url: null, share_
 const RAW = {
   name: 'Devarshi Shah',
   avatar_url: null,
-  editorial_archetype: ['The Slow-Burner', 'The Class-Conscious'],
+  editorial_archetype: ['The Slow-Burner', 'The Class-Conscious', 'The Patient'],
   editorial_summary: null,
   editorial_signature: null,
   editorial_generated_at: null,
@@ -110,5 +110,22 @@ describe('PublicDnaProfile — privacy', () => {
     renderAt()
     expect(screen.getByText(/keeps their Cinematic DNA private/i)).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument()
+  })
+})
+
+describe('PublicDnaProfile — maturity from real rows, not a stale count', () => {
+  it('does NOT read as "still forming" when the count column is 0 but taste rows are present', () => {
+    // Regression: users.total_movies_watched can be stale at 0 while the real history exists.
+    // Maturity must come from max(actual rows, count), so the portrait renders, not "forming".
+    hook.state = {
+      status: 'ok',
+      profile: PROFILE,
+      raw: { ...RAW, total_watched: 0, total_rated: 0 },
+      tasteRows: TASTE_ROWS,
+      retry: () => {},
+    }
+    renderAt()
+    expect(screen.queryByText(/still forming/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Slow-Burner/)
   })
 })

@@ -162,6 +162,22 @@ describe('RatingLanguage', () => {
     const { container } = render(<RatingLanguage ratingLanguage={null} />)
     expect(container).toBeEmptyDOMElement()
   })
+  it('subjectName switches copy to third person and de-pronouns the interpret label', () => {
+    // 14×4★ + 3×5★ → languageKey "warm" → interpret embeds a pronoun ("…your praise.")
+    const warm = deriveRatingLanguage({ ratings: [...Array(14).fill({ rating: 8 }), ...Array(3).fill({ rating: 10 })] })
+    expect(warm.languageKey).toBe('warm')
+    // Owner page (no subjectName) — first person, unchanged
+    const { unmount } = render(<RatingLanguage ratingLanguage={warm} />)
+    expect(screen.getByText('Your rating language')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Warm in your praise.' })).toBeInTheDocument()
+    unmount()
+    // Another user's page — third person, no "your" leak
+    render(<RatingLanguage ratingLanguage={warm} subjectName="Devarshi" />)
+    expect(screen.getByText("Devarshi's rating language")).toBeInTheDocument()
+    expect(screen.getByText(/how strongly they respond/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Warm in their praise.' })).toBeInTheDocument()
+    expect(screen.queryByText(/in your praise|how strongly you respond/i)).not.toBeInTheDocument()
+  })
 })
 
 // ── Journey ───────────────────────────────────────────────────────────────────

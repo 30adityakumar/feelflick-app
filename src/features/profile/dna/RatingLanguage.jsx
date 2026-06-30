@@ -27,6 +27,11 @@ export default function RatingLanguage({ ratingLanguage, subjectName = null }) {
   const calibrating = subjectName
     ? `A clearer reading of how they respond will appear once they have rated a few more films. So far: ${rl.count} of ${MIN_RATINGS_FOR_LANGUAGE} ratings needed for a confident read.`
     : `Rate a few more films and a clearer reading of how you respond will appear here. So far: ${rl.count} of ${MIN_RATINGS_FOR_LANGUAGE} ratings needed for a confident read.`
+  // Two interpretation labels embed a pronoun; render them third-person for another user.
+  // (Derived `rl.interpret` is left untouched for the owner page / other consumers.)
+  const interpretText = subjectName
+    ? ({ warm: 'Warm in their praise.', measured: 'Measured in their praise.' }[rl.languageKey] ?? rl.interpret)
+    : rl.interpret
   return (
     <section className="ff-dna-section" id="dna-response" aria-labelledby="ff-dna-response-h2">
       <div className="ff-dna__shell">
@@ -57,7 +62,7 @@ export default function RatingLanguage({ ratingLanguage, subjectName = null }) {
             <aside className="ff-dna-rating__card">
               <div className="ff-dna-rating__big">{rl.averageStars.toFixed(1)}</div>
               <div className="ff-dna-rating__stars" aria-hidden="true">{starString(rl.averageStars)}</div>
-              <h3>{rl.interpret}</h3>
+              <h3>{interpretText}</h3>
               <p>{generously} — measured across {rl.count} ratings, not from the average alone.</p>
               <div className="ff-dna-rating__facts">
                 <div className="ff-dna-rating__fact"><span>Five-star films</span><strong>{rl.fiveStarCount}</strong></div>

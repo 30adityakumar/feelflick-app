@@ -24,6 +24,7 @@ import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
 import { deriveMoods, deriveDirectors, deriveMixtape } from './derive'
 import { deriveRatingLanguage } from './derive/ratingLanguage'
 import { deriveTasteJourney } from './derive/tasteJourney'
+import { archetypeForFingerprint } from './archetype'
 import { resolveDnaIdentity } from './dna/identity'
 import CinematicDnaHero from './dna/CinematicDnaHero'
 import DnaSectionNav from './dna/DnaSectionNav'
@@ -74,14 +75,18 @@ function buildDnaData(raw, tasteRows) {
     .map((r) => ({ movie_id: r.movie_id, rating: r.rating, rated_at: r.watched_at, review_text: '' }))
   const ratingsByMovieId = new Map(ratings.map((r) => [r.movie_id, r]))
 
-  const watched = Number.isFinite(raw.total_watched) ? raw.total_watched : history.length
-  const rated = Number.isFinite(raw.total_rated) ? raw.total_rated : ratings.length
+  // Use the larger of the authoritative RPC count and the actual rows we received — the count
+  // column can lag (e.g. users.total_movies_watched stale at 0) while the taste rows are real.
+  const watched = Math.max(history.length, Number(raw.total_watched) || 0)
+  const rated = Math.max(ratings.length, Number(raw.total_rated) || 0)
   const maturity = classifyProfileMaturity({ watchedCount: watched, ratedCount: rated })
   // Presentation-only confidence number → maps to the right evidence band label (exact % never shown).
   const dnaConfidence = maturity === MATURITY.ESTABLISHED ? 72 : maturity === MATURITY.EMERGING ? 48 : 15
-  const archetype = Array.isArray(raw.editorial_archetype) && raw.editorial_archetype.length > 0
+  // Parity with the self page: stored 3-part editorial archetype, else the deterministic
+  // fingerprint-derived archetype (never a fabricated one when there's no fingerprint).
+  const archetype = (Array.isArray(raw.editorial_archetype) && raw.editorial_archetype.length === 3)
     ? raw.editorial_archetype
-    : null
+    : archetypeForFingerprint(fingerprint)
 
   return {
     user: { name: raw.name },

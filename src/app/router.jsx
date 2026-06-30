@@ -59,7 +59,6 @@ const MoodBrowse = lazy(() => import('@/features/browse/MoodBrowse'))
 const Collection = lazy(() => import('@/features/browse/Collection'))
 const TasteProfile = lazy(() => import('@/features/profile/TasteProfile'))
 const People = lazy(() => import('@/features/people/People'))
-const PersonPublicProfile = lazy(() => import('@/features/people/PersonPublicProfile'))
 const Lists = lazy(() => import('@/features/lists/Lists'))
 const ListDetail = lazy(() => import('@/features/lists/ListDetail'))
 const CuratedList = lazy(() => import('@/features/lists/CuratedList'))
@@ -339,7 +338,6 @@ export const router = sentryCreateBrowserRouter([
                   { path: 'profile', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
                   { path: 'profile/:userId', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
                   { path: 'people', element: <LazyRoute Component={People} />, errorElement: <ErrorBoundary /> },
-                  { path: 'dna/:userId', element: <LazyRoute Component={PersonPublicProfile} />, errorElement: <ErrorBoundary /> },
                   { path: 'lists', element: <LazyRoute Component={Lists} />, errorElement: <ErrorBoundary /> },
                   // Confirmed unfinished — redirect until shipped
                   { path: 'feed', element: <Navigate to="/home" replace /> },

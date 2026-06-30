@@ -16,6 +16,7 @@ import { useParams } from 'react-router-dom'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { ThoughtfulRoot } from '@/shared/ui/thoughtful-seatmate'
+import PersonPublicProfile from '@/features/people/PersonPublicProfile'
 import { useProfileDataFetch } from './useProfileData'
 import { resolveDnaIdentity } from './dna/identity'
 import CinematicDnaHero from './dna/CinematicDnaHero'
@@ -45,7 +46,7 @@ export default function TasteProfile() {
   const isSelf = !paramUserId || paramUserId === user?.id
   usePageMeta({ title: isSelf ? 'Your Cinematic DNA — FeelFlick' : 'Cinematic DNA — FeelFlick' })
 
-  if (!isSelf) return <PrivateProfile />
+  if (!isSelf) return <PersonPublicProfile />
   return <SelfProfile authUser={user} />
 }
 
@@ -134,21 +135,6 @@ function SelfProfile({ authUser }) {
 }
 
 // /profile/:userId of anyone but the signed-in user. No data fetched. Honest, keyboard-accessible.
-function PrivateProfile() {
-  return (
-    <div className="ff-dna ff-dna-state">
-      <div className="ff-dna-state__box">
-        <p className="ff-dna-eyebrow">Cinematic DNA</p>
-        <h1>This profile is private.</h1>
-        <p>Cinematic DNA — watch history, ratings, and taste portrait — is visible only to its owner. Public taste profiles aren&rsquo;t available yet.</p>
-        <div className="ff-dna-state__actions">
-          <a className="ff-dna-btn ff-dna-btn--primary" href="/profile">Your Cinematic DNA</a>
-          <a className="ff-dna-btn ff-dna-btn--ghost" href="/people">People</a>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // Honest loading status — one polite live region, aria-busy, sr-only text; decorative skeleton hidden.
 function PageSkeleton() {

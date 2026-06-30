@@ -14,7 +14,7 @@ export default function StrongMatchCard({ person: p, following, pending, errored
   return (
     <article className="ff-people-card" role="listitem">
       <div className="ff-people-card__top">
-        <Link to={`/dna/${p.id}`} className="ff-people-card__avatar-link" aria-label={`View ${p.name}'s profile`}>
+        <Link to={`/profile/${p.id}`} className="ff-people-card__avatar-link" aria-label={`View ${p.name}'s profile`}>
           <PersonAvatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} />
         </Link>
         <div className="ff-people-card__band">
@@ -22,7 +22,7 @@ export default function StrongMatchCard({ person: p, following, pending, errored
           {mp.evidence ? <span className="ff-people-card__evidence">{mp.evidence}</span> : null}
         </div>
       </div>
-      <Link to={`/dna/${p.id}`} className="ff-people-card__name-link" tabIndex={-1} aria-hidden="true">
+      <Link to={`/profile/${p.id}`} className="ff-people-card__name-link" tabIndex={-1} aria-hidden="true">
         <h3 className="ff-people-card__name">{p.name}</h3>
       </Link>
       {p.bio ? <p className="ff-people-card__bio">{p.bio}</p> : null}

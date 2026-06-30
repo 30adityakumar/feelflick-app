@@ -27,7 +27,7 @@ export default function FollowingSection() {
         {followingList.map((p) => (
           <div key={p.id} className="ff-people-row" role="listitem">
             <Link
-              to={`/dna/${p.id}`}
+              to={`/profile/${p.id}`}
               className="ff-people-row__identity-link"
               aria-label={`View ${p.name}'s profile`}
             >
@@ -35,7 +35,7 @@ export default function FollowingSection() {
             </Link>
             <div className="ff-people-row__copy">
               <Link
-                to={`/dna/${p.id}`}
+                to={`/profile/${p.id}`}
                 className="ff-people-row__name-link"
                 tabIndex={-1}
                 aria-hidden="true"

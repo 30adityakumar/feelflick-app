@@ -12,11 +12,11 @@ import HideButton from './HideButton'
 export default function SuggestedPersonCard({ person: p, following, pending, errored, onFollow, onUnfollow, onHide }) {
   return (
     <div className="ff-people-row ff-people-row--suggested" role="listitem">
-      <Link to={`/dna/${p.id}`} className="ff-people-row__identity-link" aria-label={`View ${p.name}'s profile`}>
+      <Link to={`/profile/${p.id}`} className="ff-people-row__identity-link" aria-label={`View ${p.name}'s profile`}>
         <PersonAvatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} />
       </Link>
       <div className="ff-people-row__copy">
-        <Link to={`/dna/${p.id}`} className="ff-people-row__name-link" tabIndex={-1} aria-hidden="true">
+        <Link to={`/profile/${p.id}`} className="ff-people-row__name-link" tabIndex={-1} aria-hidden="true">
           <div className="ff-people-row__name">{p.name}</div>
         </Link>
         <div className="ff-people-row__via">via <span>{p.viaFriend}</span></div>

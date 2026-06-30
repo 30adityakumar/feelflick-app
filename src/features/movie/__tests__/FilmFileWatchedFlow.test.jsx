@@ -73,7 +73,7 @@ describe('Film File — watched settlement + live region (F5.4)', () => {
 
   it('1/2/3/4/5/6. settled success announces, no scroll/confetti before success', () => {
     render(<MovieDetail />)
-    fireEvent.click(screen.getByRole('button', { name: 'Mark Watched' }))
+    fireEvent.click(screen.getByRole('button', { name: /mark parasite as watched/i }))
     expect(toggleWatched).toHaveBeenCalledTimes(1)
     startWatched(true)
     // optimistic only — not settled yet → no announce, no scroll, no confetti
@@ -87,7 +87,7 @@ describe('Film File — watched settlement + live region (F5.4)', () => {
 
   it('8. normal motion scrolls with smooth behavior', () => {
     render(<MovieDetail />)
-    fireEvent.click(screen.getByRole('button', { name: 'Mark Watched' }))
+    fireEvent.click(screen.getByRole('button', { name: /mark parasite as watched/i }))
     startWatched(true); settleWatched(true, true)
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }))
   })
@@ -95,7 +95,7 @@ describe('Film File — watched settlement + live region (F5.4)', () => {
   it('7/9. reduced motion uses auto scroll + renders no confetti', () => {
     reduced = true
     render(<MovieDetail />)
-    fireEvent.click(screen.getByRole('button', { name: 'Mark Watched' }))
+    fireEvent.click(screen.getByRole('button', { name: /mark parasite as watched/i }))
     startWatched(true); settleWatched(true, true)
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'auto' }))
     expect(document.querySelector('[style*="mv-confetti"]')).toBeNull()
@@ -103,12 +103,12 @@ describe('Film File — watched settlement + live region (F5.4)', () => {
 
   it('10/11/12/13. failure/revert announces failure, no scroll, retryable', () => {
     render(<MovieDetail />)
-    fireEvent.click(screen.getByRole('button', { name: 'Mark Watched' }))
+    fireEvent.click(screen.getByRole('button', { name: /mark parasite as watched/i }))
     startWatched(true)               // optimistic
     settleWatched(false, true)        // revert → isWatched back to false
     expect(live().textContent).toMatch(/Could not update watched status\. Try again\./)
     expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Mark Watched' })).toBeEnabled() // still retryable
+    expect(screen.getByRole('button', { name: /mark parasite as watched/i })).toBeEnabled() // still retryable
   })
 
   it('14. initial hydration (no click) does not announce or scroll', () => {
@@ -123,20 +123,20 @@ describe('Film File — watched settlement + live region (F5.4)', () => {
 describe('Film File — Save settlement (F5.4)', () => {
   it('16/20. Save success announces after settlement + button exposes pressed/busy', () => {
     render(<MovieDetail />)
-    const save = screen.getByRole('button', { name: 'Save' })
+    const save = screen.getByRole('button', { name: /add parasite to watchlist/i })
     fireEvent.click(save)
     expect(toggleWatchlist).toHaveBeenCalledTimes(1)
     status.loading.watchlist = true; status.isInWatchlist = true; bump()
-    expect(screen.getByRole('button', { name: 'Saved' })).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('button', { name: /remove parasite from watchlist/i })).toHaveAttribute('aria-busy', 'true')
     expect(live().textContent).toBe('') // not settled yet
     status.loading.watchlist = false; bump()
     expect(live().textContent).toMatch(/Saved Parasite for later\./)
-    expect(screen.getByRole('button', { name: 'Saved' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /remove parasite from watchlist/i })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('18/19. Save failure/revert announces failure, no false success', () => {
     render(<MovieDetail />)
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    fireEvent.click(screen.getByRole('button', { name: /add parasite to watchlist/i }))
     status.loading.watchlist = true; status.isInWatchlist = true; bump()  // optimistic
     status.loading.watchlist = false; status.isInWatchlist = false; bump() // revert
     expect(live().textContent).toMatch(/Could not update saved films\. Try again\./)

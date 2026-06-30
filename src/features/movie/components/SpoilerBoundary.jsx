@@ -14,9 +14,9 @@ export default function SpoilerBoundary({ signedIn }) {
           </svg>
         </div>
         <div className="ff-movie-spoiler-boundary__body">
-          <p className="ff-movie-eyebrow ff-movie-spoiler-boundary__eyebrow">Spoiler protection</p>
+          <p className="ff-movie-eyebrow ff-movie-spoiler-boundary__eyebrow">Interpretation locked</p>
           <h2 id="spoiler-boundary-h" className="ff-movie-spoiler-boundary__h">
-            The page stops here, before interpretation.
+            The page stops before interpretation.
           </h2>
           <p className="ff-movie-spoiler-boundary__copy">
             {signedIn

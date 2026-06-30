@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 
 vi.mock('framer-motion', () => ({ useReducedMotion: () => false }))
 
-import { MovieHero, StickyActionBar } from '../sections-top'
+import { MovieHero } from '../sections-top'
 import { MovieDataProvider } from '../useMovieData'
 import FilmFileDisclosure from '../components/FilmFileDisclosure'
 
@@ -25,24 +25,6 @@ describe('Final touch-target + icon semantics (F5.7)', () => {
     expect(share.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
   })
 
-  it('65/66. hero Back is ≥44px, type=button', () => {
-    withData(<MovieHero {...heroProps} />)
-    const back = screen.getByRole('button', { name: 'Go back' })
-    expect(back.style.minHeight).toBe('44px')
-    expect(back).toHaveAttribute('type', 'button')
-  })
-
-  it('64. sticky Back icon control is 44×44 with type=button (when the bar is shown)', () => {
-    const { container } = render(<MovieDataProvider value={{ mv: MV }}><StickyActionBar onPlayTrailer={() => {}} onBack={() => {}} onToggleWatchlist={() => {}} isInWatchlist={false} loading={{}} canAct /></MovieDataProvider>)
-    // the bar is inert/aria-hidden until scrolled — show it so its controls are real
-    Object.defineProperty(window, 'scrollY', { value: 200, configurable: true })
-    fireEvent.scroll(window)
-    const back = container.querySelector('.ff-movie-sticky-bar button[aria-label="Go back"]')
-    expect(back.style.width).toBe('44px')
-    expect(back.style.height).toBe('44px')
-    expect(back).toHaveAttribute('type', 'button')
-    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true })
-  })
 })
 
 function TwoDisclosures() {

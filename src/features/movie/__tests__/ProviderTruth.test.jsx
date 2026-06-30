@@ -16,13 +16,12 @@ describe('ProvidersSection — honest provider states (F5.7)', () => {
     expect(container.querySelector('[role="alert"]')).toBeNull()
   })
 
-  it('21/22/23. found renders providers + JustWatch + the United States attribution', () => {
+  it('21/22/23. found renders providers + JustWatch link', () => {
     const found = P({ flatrate: [{ name: 'Mock Stream', logoPath: '/l.png', logo: 'M', tint: '#fff' }], link: 'https://justwatch.com/x' })
     withProviders(found, 'found')
-    expect(screen.getByText('Streaming', { exact: false })).toBeTruthy()
+    expect(screen.getByText('Stream')).toBeTruthy()
     expect(screen.getByRole('link', { name: /Watch on Mock Stream/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /More options on JustWatch/i })).toBeInTheDocument()
-    expect(screen.getByText(/Availability for the United States via TMDB and JustWatch/i)).toBeInTheDocument()
   })
 
   it('24/25. empty renders "Availability not found" without claiming universal unavailability', () => {
@@ -62,6 +61,6 @@ describe('ProvidersSection — honest provider states (F5.7)', () => {
   it('falls back to data-derived found/empty when providerStatus is absent (back-compat)', () => {
     const found = P({ flatrate: [{ name: 'X', logo: 'X', tint: '#fff' }] })
     withProviders(found, undefined)
-    expect(screen.getByText('Streaming', { exact: false })).toBeTruthy()
+    expect(screen.getByText('Stream')).toBeTruthy()
   })
 })

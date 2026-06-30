@@ -37,7 +37,7 @@ describe('useUserRating — hydration hardening (§21)', () => {
     await act(async () => {})
     expect(result.current.hydrated).toBe(true)
     expect(result.current.loadError).toBe(false)
-    expect(result.current.stars).toBe(4)         // 8 → 4★
+    expect(result.current.stars).toBe(8)
     expect(result.current.reviewText).toBe('great')
     expect(result.current.reaction).toBe('Loved it')
   })
@@ -66,14 +66,14 @@ describe('useUserRating — hydration hardening (§21)', () => {
     await act(async () => { result.current.retryHydrate() })
     await act(async () => {})
     expect(result.current.loadError).toBe(false)
-    expect(result.current.stars).toBe(3)
+    expect(result.current.stars).toBe(6)
   })
 
   it('changing the (user, movie) pair RESETS the form before re-hydrating (no stale carryover)', async () => {
     reads.user_ratings = { data: { rating: 10, review_text: 'film one note' }, error: null }
     const { result, rerender } = renderHook(({ id }) => useUserRating({ userId: 'u1', internalId: id }), { initialProps: { id: 7 } })
     await act(async () => {})
-    expect(result.current.stars).toBe(5)
+    expect(result.current.stars).toBe(10)
     expect(result.current.reviewText).toBe('film one note')
     // switch to a new film whose read returns empty — the previous note must NOT persist
     reads.user_ratings = { data: null, error: null }

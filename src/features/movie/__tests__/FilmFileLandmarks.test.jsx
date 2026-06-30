@@ -6,6 +6,7 @@ vi.mock('../sections-top', () => ({
   MovieHero: () => <header data-sec="hero"><h1>Parasite</h1></header>,
   StickyActionBar: () => <div data-sec="sticky"><button type="button">sticky</button></div>,
   Synopsis: () => <div data-sec="synopsis" />,
+  HeroRatings: () => null,
 }))
 vi.mock('../sections-bottom', () => ({
   CastSection: () => <div data-sec="cast" />, VideosSection: () => <div data-sec="videos" />,
@@ -61,14 +62,12 @@ describe('Film File — skip link + main landmark (F5.7)', () => {
     expect(region).toHaveAttribute('tabindex', '-1')
   })
 
-  it('54/55/56/57. Hero is before the region; PrimaryCase begins it; Footer is inside it; sticky is outside', () => {
+  it('54/55/56/57. Hero is before the region; PrimaryCase begins it; sticky is outside', () => {
     const { container } = render(<MovieDetail />)
     const hero = container.querySelector('[data-sec="hero"]')
     const region = container.querySelector('#film-file-content')
     expect(hero.compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // hero before region
     expect(region.contains(hero)).toBe(false)                                  // hero NOT in region
-    expect(region.querySelector('[data-sec="case"]')).toBeTruthy()             // case begins region
-    expect(region.querySelector('[data-sec="footer"]')).toBeTruthy()           // footer inside region
     expect(region.contains(container.querySelector('[data-sec="sticky"]'))).toBe(false) // sticky outside
   })
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-import { MovieHero, StickyActionBar, MoodRadar } from '../sections-top'
+import { MovieHero, StickyActionBar, MoodRadar, HeroRatings } from '../sections-top'
 import { PairsWith, DirectorShelf, TasteTwinReview } from '../sections-bottom'
 import { MovieDataProvider } from '../useMovieData'
 
@@ -30,11 +30,12 @@ const noop = () => {}
 const heroProps = { onPlayTrailer: noop, onBack: noop, onShare: noop, isInWatchlist: false, isWatched: false, onToggleWatchlist: noop, onToggleWatched: noop, loading: false, canAct: true }
 
 describe('Hero / sticky — no user-match number (F5.3)', () => {
-  it('31. the hero shows no user-match ring/number (but keeps sourced FF critic/audience %)', () => {
-    const { container } = withData({ mv: MV, boundaryWarnings: [] }, <MovieHero {...heroProps} />)
+  it('31. the hero shows no user-match ring/number; sourced FF critic/audience % appear in the ratings strip', () => {
+    // HeroRatings renders below the hero in the overview section; render both here
+    const { container } = withData({ mv: MV, boundaryWarnings: [] }, <><MovieHero {...heroProps} /><HeroRatings /></>)
     expect(container.textContent).not.toMatch(/88\s*%/)
     expect(container.querySelector('.ff-movie-match-ring')).toBeNull()
-    // sourced critic/audience percentages remain
+    // sourced critic/audience percentages are present in the ratings strip
     expect(container.textContent).toMatch(/91\s*%/)
     expect(container.textContent).toMatch(/90\s*%/)
   })

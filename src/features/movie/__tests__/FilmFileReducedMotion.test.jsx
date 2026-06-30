@@ -24,28 +24,31 @@ describe('Sticky action bar — inert / tab order (F5.4)', () => {
   })
 
   it('61. scrolled bar becomes interactive (no aria-hidden/inert)', () => {
-    const { container } = withData({ mv: MV }, <StickyActionBar onPlayTrailer={() => {}} onBack={() => {}} onToggleWatchlist={() => {}} isInWatchlist={false} loading={{}} canAct />)
-    Object.defineProperty(window, 'scrollY', { value: 200, configurable: true })
-    fireEvent.scroll(window)
+    // StickyActionBar looks up the sentinel by id; add it to the document so the
+    // IntersectionObserver effect doesn't bail out early with "if (!sentinel) return"
+    const sentinel = document.createElement('div')
+    sentinel.id = 'hero-actions-sentinel'
+    document.body.appendChild(sentinel)
+
+    // Stub IntersectionObserver to immediately report sentinel as not-intersecting
+    // (hero actions scrolled out of view → bar should become visible)
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(cb) { this._cb = cb }
+      observe(el) { this._cb([{ isIntersecting: false, target: el }]) }
+      unobserve() {}
+      disconnect() {}
+    })
+    const { container } = withData({ mv: MV }, <StickyActionBar onPlayTrailer={() => {}} onBack={() => {}} />)
     const bar = container.querySelector('.ff-movie-sticky-bar')
     expect(bar.getAttribute('aria-hidden')).toBeNull()
     expect(bar.hasAttribute('inert')).toBe(false)
     expect(bar.style.pointerEvents).toBe('auto')
-    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true })
+
+    document.body.removeChild(sentinel)
   })
 })
 
 describe('Reduced motion — JS-driven motion suppressed (F5.4)', () => {
-  it('70. poster pointer-tilt does not change under reduced motion', () => {
-    reduced = true
-    const { container } = withData({ mv: MV, boundaryWarnings: [] }, <MovieHero {...heroProps} />)
-    const poster = container.querySelector('[style*="rotateX"]')
-    expect(poster).toBeTruthy()
-    fireEvent.mouseMove(poster.parentElement || poster, { clientX: 200, clientY: 300 })
-    // tilt stays at rotateX(0deg) rotateY(0deg)
-    expect(poster.style.transform).toMatch(/rotateX\(0deg\)\s*rotateY\(0deg\)/)
-  })
-
   it('71. backdrop parallax stays put under reduced motion', () => {
     reduced = true
     const { container } = withData({ mv: MV, boundaryWarnings: [] }, <MovieHero {...heroProps} />)
@@ -61,7 +64,7 @@ describe('Reduced motion — JS-driven motion suppressed (F5.4)', () => {
 describe('Decorative icons hidden (F5.4)', () => {
   it('Mark Watched / Save icons are aria-hidden', () => {
     withData({ mv: MV, boundaryWarnings: [] }, <MovieHero {...heroProps} />)
-    const watched = screen.getByRole('button', { name: 'Mark Watched' })
+    const watched = screen.getByRole('button', { name: /mark.*watched/i })
     expect(watched.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
   })
 })

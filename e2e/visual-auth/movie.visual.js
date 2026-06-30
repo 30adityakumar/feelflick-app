@@ -117,14 +117,13 @@ test.describe('Film File — authenticated visual baselines', () => {
     await expect(page).toHaveScreenshot('synopsis-provider-desktop.png')
   })
 
-  test('desktop — experience profile expanded', async ({ page }) => {
+  test('desktop — cast section', async ({ page }) => {
     await installMovieFixture(page, { reducedMotion: true })
     await page.setViewportSize(DESKTOP)
     await load(page)
-    await openDisclosure(page, 'Why this film')
     await freeze(page)
-    await scrollTo(page, disclosure(page, 'Why this film'))
-    await expect(page).toHaveScreenshot('experience-profile-desktop.png')
+    await scrollTo(page, page.locator('.ff-movie-cast-grid'))
+    await expect(page).toHaveScreenshot('cast-section-desktop.png')
   })
 
   test('desktop — spoiler boundary (pre-watch)', async ({ page }) => {
@@ -132,17 +131,16 @@ test.describe('Film File — authenticated visual baselines', () => {
     await page.setViewportSize(DESKTOP)
     await load(page)
     await freeze(page)
-    await scrollTo(page, page.getByText(/The page stops here/i))
+    await scrollTo(page, page.getByText(/The page stops before interpretation/i))
     await expect(page).toHaveScreenshot('spoiler-boundary-desktop.png')
   })
 
-  test('desktop — exploration / continuation expanded', async ({ page }) => {
+  test('desktop — exploration tail (always visible)', async ({ page }) => {
     await installMovieFixture(page, { reducedMotion: true })
     await page.setViewportSize(DESKTOP)
     await load(page)
-    await openDisclosure(page, 'Explore from here')
     await freeze(page)
-    await scrollTo(page, disclosure(page, 'Explore from here'))
+    await scrollTo(page, page.getByText('Continue the thread'))
     await expect(page).toHaveScreenshot('continuation-desktop.png')
   })
 
@@ -202,7 +200,7 @@ test.describe('Film File — authenticated visual baselines', () => {
     await page.setViewportSize(MOBILE)
     await load(page)
     await freeze(page)
-    await scrollTo(page, page.getByText(/The page stops here/i))
+    await scrollTo(page, page.getByText(/The page stops before interpretation/i))
     await expect(page).toHaveScreenshot('spoiler-boundary-mobile.png')
   })
 

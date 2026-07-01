@@ -141,9 +141,10 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
 
     ;(async () => {
       try {
-        // The material-signature column only exists once the guardrails migration is applied, so
-        // only SELECT it when the hardened pipeline is enabled — otherwise the read 400s against the
-        // current (un-migrated) table and the reflection vanishes.
+        // editorial_material_sig is safe to SELECT unconditionally now (the guardrails migration is
+        // permanently applied) — it's still gated behind the flag because it's only MEANINGFUL when
+        // the living-DNA staleness auto-refresh is active; an environment with the flag off has no
+        // use for materialStale detection, so there's no reason to read it there.
         const editorialCols = isProfileAutoRefreshEnabled()
           ? 'editorial_summary, editorial_signature, editorial_archetype, editorial_generated_at, editorial_material_sig'
           : 'editorial_summary, editorial_signature, editorial_archetype, editorial_generated_at'
@@ -348,16 +349,13 @@ async function regenerateEditorial({ userId, history, archetypeFromFp, materialS
   const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null
 
-  // Auth is DEPLOY-GATED. The hardened edge function verifies the real user JWT, but until the
-  // guardrails are deployed (isProfileAutoRefreshEnabled) we send the anon key so the reflection keeps
-  // working against the currently-deployed edge function (which still expects the anon key).
-  const hardened = isProfileAutoRefreshEnabled()
-  let authToken = SUPABASE_ANON_KEY
-  if (hardened) {
-    const { data: { session } = {} } = await supabase.auth.getSession()
-    if (!session?.access_token) return null
-    authToken = session.access_token
-  }
+  // The deployed generate-taste-summary edge function unconditionally requires a real user JWT
+  // (verifyUser) — there is no anon-key fallback server-side, and no rollback to a pre-guardrails
+  // version. Sending the anon key here always 401s, regardless of isProfileAutoRefreshEnabled(),
+  // which only gates the AUTOMATIC (no-click) auto-refresh behaviors below — not this manual path.
+  const { data: { session } = {} } = await supabase.auth.getSession()
+  if (!session?.access_token) return null
+  const authToken = session.access_token
 
   const { watchedFilms, topDirectors, taggedTasteSignature } = aggregateWatchHistorySignals(history)
   if (!watchedFilms.length) return null
@@ -376,10 +374,9 @@ async function regenerateEditorial({ userId, history, archetypeFromFp, materialS
       'Content-Type': 'application/json',
       Authorization: `Bearer ${authToken}`,
     },
-    // targetUserId lets the server RPC enforce uid == profile; materialSig is recorded for audit.
-    // Only sent on the hardened path — the current deployed edge function ignores unknown fields,
-    // but we keep the pre-deploy body identical to the original to be safe.
-    body: JSON.stringify(hardened ? { ...body, targetUserId: userId, materialSig } : body),
+    // targetUserId is REQUIRED by the deployed edge function (enforces uid === targetUserId, 403
+    // otherwise); materialSig is optional and recorded for the living-DNA change-detector audit.
+    body: JSON.stringify({ ...body, targetUserId: userId, materialSig }),
   })
   if (!res.ok) return null
   const data = await res.json().catch(() => null)
@@ -405,11 +402,9 @@ async function regenerateEditorial({ userId, history, archetypeFromFp, materialS
     editorial_signature: signature,
     editorial_archetype: archetypeFromFp,
     editorial_generated_at: generatedAt,
+    editorial_material_sig: materialSig,
     taste_fingerprint: nextFingerprint,
   }
-  // The material signature (living-DNA change detector) lives in a column that only exists once the
-  // guardrails migration is applied — gate the write so we don't 400 against an un-migrated table.
-  if (hardened) fields.editorial_material_sig = materialSig
 
   // F7.9: the editorial result is only durable if the cache write SUCCEEDS. The Supabase client
   // RESOLVES (does not reject) on a DB-level error, so we MUST inspect { error } and throw —

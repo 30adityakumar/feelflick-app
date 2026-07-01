@@ -111,6 +111,24 @@ describe('F7.6 — explicit refresh action', () => {
     expect(result.current.editorial.summary).toBe('fresh summary')
   })
 
+  // Regression: the deployed edge function unconditionally requires a real user JWT (no anon-key
+  // fallback exists server-side, and never will again). Sending the anon key always 401s. This must
+  // hold regardless of the profileAutoRefresh flag — that flag only gates the AUTOMATIC (no-click)
+  // behaviors, never whether the manual button can authenticate.
+  it('refresh() ALWAYS sends the real session JWT (never the anon key), even with the flag OFF', async () => {
+    fpEditorialVersion = undefined; editorialRow = null   // flag intentionally left unstubbed → OFF
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await act(async () => { await result.current.refreshEditorial() })
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    const [, init] = fetchSpy.mock.calls[0]
+    expect(init.headers.Authorization).toBe('Bearer tok-test')      // the session token, not 'anon-test-key'
+    expect(init.headers.Authorization).not.toMatch(/anon-test-key/)
+    const sentBody = JSON.parse(init.body)
+    expect(sentBody.targetUserId).toBe('u1')                        // required by the edge function (403 otherwise)
+    expect(result.current.refreshStatus).toBe('success')
+  })
+
   it('duplicate concurrent refresh() collapses to ONE Edge call', async () => {
     fpEditorialVersion = undefined; editorialRow = null
     const { result } = mountSelf()

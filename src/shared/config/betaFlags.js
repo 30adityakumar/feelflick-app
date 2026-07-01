@@ -38,15 +38,13 @@ export function isBetaGateEnabled() {
   return v === 'true' || v === '1' || v === 'on'
 }
 
-// Master gate for the hardened Cinematic DNA reflection pipeline. Defaults OFF (like the beta gate)
-// so the client behaves EXACTLY as before until the backend is deployed. When OFF the reflection
-// still generates via the anon key against the current edge function, and the client neither reads
-// nor writes the editorial_material_sig column (which only exists after the guardrails migration).
-// When ON it activates ALL of: auto-refresh on material taste change, user-JWT auth to the hardened
-// edge function, and the material-signature column read/write. Turn on ONLY after the guardrail
-// migration + edge redeploy are applied — via VITE_ENABLE_PROFILE_AUTO_REFRESH=true — or the client
-// will send a JWT to an edge function that expects the anon key and write a column that doesn't
-// exist yet.
+// The guardrails migration + hardened edge function are now permanently deployed (no rollback, no
+// anon-key fallback server-side) — user-JWT auth and the editorial_material_sig column read/write
+// used by the MANUAL "Generate reflection" button are unconditional and do NOT depend on this flag.
+// This flag now gates ONLY the AUTOMATIC (no-click) behaviors: the living-DNA staleness auto-refresh
+// effect and the first-ever-generation rollout (see useProfileData.jsx). Defaults OFF so a fresh
+// environment (new deploy, local dev, CI) never starts making automatic Edge calls without an
+// explicit opt-in — the manual button already works regardless of this flag.
 export function isProfileAutoRefreshEnabled() {
   let raw
   try { raw = import.meta.env?.VITE_ENABLE_PROFILE_AUTO_REFRESH } catch { raw = undefined }

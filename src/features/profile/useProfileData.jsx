@@ -16,7 +16,7 @@ import { PROFILE_EVIDENCE_VERSION, isEditorialVersionCurrent } from '@/shared/li
 import { computeMaterialSignature } from './editorialSignature'
 
 import {
-  deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs,
+  deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs, deriveTopGenres,
   deriveMixtape, deriveTrajectory, deriveTrajectoryAllTime, deriveTrajectoryYear,
   deriveDecades, deriveRuntime, deriveDaypart,
   deriveFriends, deriveSkews, deriveYIR, deriveCommunityMood,
@@ -39,6 +39,7 @@ const HISTORY_COLS = `
     tmdb_id,
     title,
     director_name,
+    primary_genre,
     release_date,
     runtime,
     mood_tags,
@@ -60,6 +61,7 @@ const INITIAL_STATE = {
   moods: [],
   directors: [],
   motifs: [],
+  genres: null,
   mixtape: [],
   trajectory: [],
   trajectoryAllTime: [],
@@ -263,6 +265,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           moods: deriveMoods(fingerprint),
           directors: deriveDirectors({ history: canonicalHistory, ratingsByMovieId }),
           motifs: deriveMotifs({ history: canonicalHistory }),
+          genres: deriveTopGenres({ history: canonicalHistory }),
           mixtape: deriveMixtape({ history: canonicalHistory, ratingsByMovieId }),
           trajectory: deriveTrajectory({ history: canonicalHistory }),
           trajectoryAllTime: deriveTrajectoryAllTime({ history: canonicalHistory }),

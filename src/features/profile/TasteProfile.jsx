@@ -22,6 +22,7 @@ import { resolveDnaIdentity } from './dna/identity'
 import CinematicDnaHero from './dna/CinematicDnaHero'
 import DnaFormingState from './dna/DnaFormingState'
 import RatingLanguage from './dna/RatingLanguage'
+import CinematicSignature, { hasSignatureEvidence } from './dna/CinematicSignature'
 import TasteJourney from './dna/TasteJourney'
 import DirectorInfluence from './dna/DirectorInfluence'
 import CinematicPassportSection from './dna/CinematicPassportSection'
@@ -70,6 +71,8 @@ function SelfProfile({ authUser }) {
   // downstream section is shown (so the nav always starts at the portrait, matching the locked IA).
   const downstream = [
     data.ratingLanguage ? { id: 'dna-response', label: 'Response' } : null,
+    hasSignatureEvidence({ moods: data.moods, genres: data.genres, motifs: data.motifs })
+      ? { id: 'dna-signature', label: 'Signature' } : null,
     Array.isArray(data.journey) && data.journey.length >= 2 ? { id: 'dna-journey', label: 'Journey' } : null,
     Array.isArray(data.directors) && data.directors.length > 0 ? { id: 'dna-voices', label: 'Voices' } : null,
     !identity.forming ? { id: 'dna-numbers', label: 'Numbers' } : null,
@@ -118,6 +121,7 @@ function SelfProfile({ authUser }) {
             onScrollTo={scrollToSection}
           />
           <RatingLanguage ratingLanguage={data.ratingLanguage} />
+          <CinematicSignature moods={data.moods} genres={data.genres} motifs={data.motifs} />
           <TasteJourney journey={data.journey} />
           <DirectorInfluence directors={data.directors} />
           {/* "{Name} by the numbers" — the shared Cinematic-DNA stats section, defaulting to the

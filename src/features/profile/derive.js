@@ -140,6 +140,39 @@ export function deriveMotifs({ history }) {
   }))
 }
 
+// === GENRES (top N by watch count) ===
+// Tallies movies.primary_genre (a single value per film, unlike the array-valued
+// mood_tags/tone_tags above). ~23% of the catalog has no genre tag, so percentages are
+// computed against genredTotal (films that HAD a genre), never raw history.length —
+// otherwise an ungenred film would silently dilute every genre's share.
+
+export const MIN_GENRED_FILMS_FOR_GENRE_BARS = 5
+
+export function deriveTopGenres({ history }) {
+  const counts = new Map()
+  for (const h of history) {
+    const g = h.movies?.primary_genre
+    if (g) counts.set(g, (counts.get(g) || 0) + 1)
+  }
+  const genredTotal = [...counts.values()].reduce((a, c) => a + c, 0)
+  if (genredTotal === 0) return null
+
+  // Deterministic tie-break: primary_genre's small (~19-value) vocabulary makes count
+  // ties common, so insertion order alone isn't a stable sort key.
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  const genres = sorted.slice(0, 5).map(([genre, count]) => ({
+    genre: capitalize(genre),
+    count,
+    pct: Math.round((count / genredTotal) * 100),
+  }))
+  return {
+    genres,
+    genredTotal,
+    distinctCount: counts.size,
+    eligible: genredTotal >= MIN_GENRED_FILMS_FOR_GENRE_BARS && counts.size >= 2,
+  }
+}
+
 // === MIXTAPE (top 5 rated 5★ = rating ≥ 9 on the 1-10 scale, joined w/ history movie) ===
 
 export function deriveMixtape({ history, ratingsByMovieId }) {

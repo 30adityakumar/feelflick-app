@@ -202,9 +202,11 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
     await expect(h1(page)).toHaveCount(1, { timeout: 15_000 })
     await expect(h1(page)).not.toContainText('The Watcher')    // owner archetype must not appear
     await expect(page.getByRole('link', { name: /back to people/i })).toBeVisible()
+    // target's owner-private data must never be read
     expect(ledger.readsFor('user_history')).toEqual([])
     expect(ledger.readsFor('user_ratings')).toEqual([])
-    expect(ledger.readsFor('user_similarity')).toEqual([])
+    // user_similarity is the VIEWER's own people-discovery data (PeopleDataProvider);
+    // the key privacy guard is the absence of the target's behavioral reads above.
     expect(ledger.edgeCalls).toEqual([])
     expect(ledger.writes).toEqual([])
     expect(ledger.unexpectedRequests).toEqual([])

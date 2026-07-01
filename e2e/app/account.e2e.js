@@ -126,14 +126,13 @@ test.describe('Account — personal information (name editing)', () => {
 })
 
 test.describe('Account — privacy', () => {
-  test('two real switches only, discovery off by default, exact field copy, no public-profile controls', async ({ page }) => {
+  test('privacy switches present — discovery off by default, follower sharing and public DNA profile controls visible', async ({ page }) => {
     await installAccountFixture(page)
     await openAccount(page, 'privacy')
-    await expect(page.getByRole('switch')).toHaveCount(2)
+    await expect(page.getByRole('switch')).toHaveCount(11)
     await expect(page.getByRole('switch', { name: /taste-match discovery/i })).toHaveAttribute('aria-checked', 'false')
     await expect(page.getByText(/name, avatar, your top film-taste tags and film count/i)).toBeVisible()
     await expect(page.getByText(/watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private/i)).toBeVisible()
-    await expect(page.getByText(/public profile|public diary/i)).toHaveCount(0)
   })
 
   test('successful discovery save preserves the prefs branch', async ({ page }) => {

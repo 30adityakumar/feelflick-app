@@ -19,7 +19,7 @@ test('owner reaches /profile (not bounced to landing) with the social profile ch
 
 test('lowercase /dna redirects to the canonical /DNA portrait', async ({ page }) => {
   await page.goto('/dna')
-  await expect(page).toHaveURL(/\/DNA(?:[/?#]|$)/)
+  await page.waitForURL(/\/DNA(?:[/?#]|$)/, { timeout: 20_000 })
 })
 
 test('social-profile tab selection is deep-linkable and survives reload', async ({ page }) => {

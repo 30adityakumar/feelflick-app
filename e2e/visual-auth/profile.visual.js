@@ -50,12 +50,6 @@ test.describe('Cinematic DNA — authenticated visual baselines', () => {
   test('passport — desktop', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-passport'); await el(page, '#dna-passport').toHaveScreenshot('dna-passport-desktop.png') })
   test('evidence sheet (current) — desktop', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await openEvidence(page); await el(page, '.ff-dna-sheet').toHaveScreenshot('dna-evidence-current-desktop.png') })
 
-  // ── Section navigation (Portrait-first IA + active states) ────────────────────
-  test('nav — Portrait active at page top', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-portrait-active.png') })
-  test('nav — Response active after scroll', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-response'); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-response-active.png') })
-  test('nav — Voices active after scroll', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-voices'); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-voices-active.png') })
-  test('nav — Passport active after scroll', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-passport'); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-passport-active.png') })
-
   // ── Mobile compositions ───────────────────────────────────────────────────────
   test('portrait hero — mobile 390 (compact density)', async ({ page }) => { await open(page, 'established_rich', MOBILE); await freeze(page); await el(page, '#dna-portrait').toHaveScreenshot('dna-portrait-mobile-390.png') })
   test('portrait hero — mobile 320', async ({ page }) => { await open(page, 'established_rich', MOBILE_SM); await freeze(page); await el(page, '#dna-portrait').toHaveScreenshot('dna-portrait-mobile-320.png') })

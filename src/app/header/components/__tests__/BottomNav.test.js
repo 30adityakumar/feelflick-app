@@ -15,21 +15,27 @@ describe('BottomNav — IA contract', () => {
     expect(TABS.map(t => t.label)).toEqual(['Home', 'Browse', 'Discover', 'DNA', 'You'])
   })
 
-  it('wires each tab to its real route (DNA → /profile, You → /you hub)', () => {
+  it('wires each tab to its real route (DNA → /DNA Cinematic DNA portrait, You → /you hub)', () => {
     const byLabel = Object.fromEntries(TABS.map(t => [t.label, t.path]))
     expect(byLabel).toEqual({
       Home: '/home',
       Browse: '/browse',
       Discover: '/discover',
-      DNA: '/profile',
+      DNA: '/DNA',
       You: '/you',
     })
+  })
+
+  it('DNA (the Cinematic DNA portrait) is active for /DNA and lowercase /dna, not the social /profile', () => {
+    const dna = TABS.find(t => t.id === 'dna')
+    expect(dna.match).toEqual(expect.arrayContaining(['/DNA', '/dna']))
+    expect(dna.match).not.toContain('/profile')
   })
 
   it('keeps all five destinations reachable', () => {
     const paths = TABS.map(t => t.path)
     expect(paths).toEqual(
-      expect.arrayContaining(['/home', '/browse', '/discover', '/profile', '/you']),
+      expect.arrayContaining(['/home', '/browse', '/discover', '/DNA', '/you']),
     )
   })
 

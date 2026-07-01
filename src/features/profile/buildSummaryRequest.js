@@ -34,16 +34,22 @@ export function aggregateWatchHistorySignals(historyRows) {
     .filter(Boolean)
 
   const tagCounts = { mood: {}, tone: {}, fit: {} }
+  const dirCounts = {}
   for (const h of rows) {
     const m = h?.movies
     if (!m) continue
     ;(m.mood_tags ?? []).forEach((t) => { tagCounts.mood[t] = (tagCounts.mood[t] || 0) + 1 })
     ;(m.tone_tags ?? []).forEach((t) => { tagCounts.tone[t] = (tagCounts.tone[t] || 0) + 1 })
     if (m.fit_profile) tagCounts.fit[m.fit_profile] = (tagCounts.fit[m.fit_profile] || 0) + 1
+    if (m.director_name) dirCounts[m.director_name] = (dirCounts[m.director_name] || 0) + 1
   }
 
   return {
     watchedFilms,
+    // Real director names across the (canonical) history — used as supporting prompt context AND
+    // as grounding evidence, so the edge function's output-grounding check never rejects a
+    // legitimate director the user actually watched. Kept broad (top 10).
+    topDirectors: topN(dirCounts, 10).map(([name, count]) => ({ name, count })),
     taggedTasteSignature: {
       topMoodTags:    topN(tagCounts.mood, 6).map(([tag, count]) => ({ tag, count })),
       topToneTags:    topN(tagCounts.tone, 4).map(([tag, count]) => ({ tag, count })),

@@ -37,18 +37,23 @@ describe('Account Privacy — F7.2 honest controls', () => {
     expect(screen.getByText('Product analytics')).toBeInTheDocument()
   })
 
-  it('F8.2: discovery copy enumerates the exposed fields AND what stays private', () => {
+  it('F8.2: discovery copy enumerates the exposed portrait fields AND what stays private', () => {
     render(<Privacy />)
-    // exposed fields named
-    expect(screen.getByText(/name, avatar, your top film-taste tags and film count/i)).toBeInTheDocument()
+    // exposed portrait fields named (DNA portrait is now visible to other members when on)
+    expect(screen.getByText(/name, avatar, archetype, top taste tags, how you rate/i)).toBeInTheDocument()
     // explicitly states the private data is NOT included
-    expect(screen.getByText(/watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private/i)).toBeInTheDocument()
+    expect(screen.getByText(/individual reviews, Diary notes and exact watch dates always stay private/i)).toBeInTheDocument()
     // not called a leaderboard
     expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument()
   })
 
-  it('states honestly that Cinematic DNA / history / ratings are private', () => {
+  it('states honestly what stays private and what is visible to followers', () => {
     render(<Privacy />)
-    expect(screen.getByText(/visible only to you/i)).toBeInTheDocument()
+    // Diary and individual reviews remain always-private
+    expect(screen.getByText(/Diary and individual reviews stay private/i)).toBeInTheDocument()
+    // DNA portrait visibility is tied to taste-match discovery
+    expect(screen.getByText(/Cinematic DNA portrait — including how you rate — is visible/i)).toBeInTheDocument()
+    // History and watchlist are public-by-default with opt-out
+    expect(screen.getByText(/visible to your followers by default/i)).toBeInTheDocument()
   })
 })

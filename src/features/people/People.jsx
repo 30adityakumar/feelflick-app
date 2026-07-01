@@ -16,6 +16,7 @@ import { usePeopleSearch } from './hooks/usePeopleSearch'
 import PeopleUnavailable from './PeopleUnavailable'
 import PeopleHeader from './components/PeopleHeader'
 import PeopleSearch from './components/PeopleSearch'
+import FollowingSection from './components/FollowingSection'
 import StrongMatches from './components/StrongMatches'
 import MoreMatches from './components/MoreMatches'
 import SuggestedPeople from './components/SuggestedPeople'
@@ -112,7 +113,7 @@ function PeopleBody() {
       <PeopleSearch query={query} onChange={setQuery} onClear={clear} />
       {active ? (
         <PeopleSearchResults phase={phase} results={results} onClear={clear} />
-      ) : discovery}
+      ) : (<><FollowingSection />{discovery}</>)}
       <PeopleStatus />
       <MatchingExplainerDialog open={explainerOpen} onClose={closeExplainer} />
     </div>

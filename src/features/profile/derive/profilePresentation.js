@@ -11,10 +11,15 @@ export const MATURITY = { FORMING: 'forming', EMERGING: 'emerging', ESTABLISHED:
 
 // Evidence maturity from canonical counts. forming → too little evidence for generated
 // identity prose; emerging → cautious generated interpretation; established → full presentation.
+//
+// A Cinematic DNA (taste_fingerprint) is computed from 5 watched films and needs NO ratings —
+// ratings don't feed the archetype. So "forming" is gated on watched films ALONE: anyone who
+// has a DNA (≥5 films, e.g. a completed onboarding) gets a portrait, even with 0–1 ratings.
+// Ratings still distinguish EMERGING from ESTABLISHED (full confidence needs both).
 export function classifyProfileMaturity({ watchedCount = 0, ratedCount = 0 } = {}) {
   const w = Number.isFinite(watchedCount) ? watchedCount : 0
   const r = Number.isFinite(ratedCount) ? ratedCount : 0
-  if (w < 5 || r < 2) return MATURITY.FORMING
+  if (w < 5) return MATURITY.FORMING
   if (w >= 15 && r >= 5) return MATURITY.ESTABLISHED
   return MATURITY.EMERGING
 }

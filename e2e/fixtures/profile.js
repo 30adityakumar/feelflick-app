@@ -1,6 +1,6 @@
 // e2e/fixtures/profile.js
 // Deterministic Cinematic DNA fixture + full interception for authenticated Playwright runs of
-// /profile (and the private /profile/:userId). The dev test user authenticates for real
+// /DNA (and the private /DNA/:userId). The dev test user authenticates for real
 // (/auth/v1/** passes through), but EVERY Profile read/write under /rest/v1/**, the editorial
 // Edge Function (/functions/v1/generate-taste-summary), and all images are intercepted before the
 // route loads — so no behavioral row ever reaches the backend and no taste-summary is ever

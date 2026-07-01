@@ -24,5 +24,29 @@ export const SETTINGS = {
     // (matches get_discoverable_taste_profiles' opt-in fallback).
     showOnLeaderboards: false,
     analytics: true,
+    // Public social profile (/profile) — a SEPARATE consent from taste-match discovery. All default
+    // PRIVATE: the richer social profile (and each section) is only shown to other members after
+    // the owner explicitly opts in. showOnLeaderboards is NOT public-profile consent.
+    profilePublic: false,
+    filmsPublic: false,
+    diaryPublic: false,
+    reviewsPublic: false,
+    listsPublic: false,
+    connectionsPublic: false,
+    viewingRhythmPublic: false,
+  },
+  // Owner-authored /profile social-profile curation. Owner-only (read/written via user_settings RLS;
+  // exposed to visitors only through the profilePublic-gated get_dna_public_profile RPC).
+  dnaProfile: {
+    schemaVersion: 1,
+    handle: '',
+    bio: '',
+    location: '',
+    coverMovieIds: [],       // internal movie ids for the cover (default: My Four)
+    featuredFilmIds: [],     // "My Four" — up to 4 internal movie ids
+    pinnedReviewMovieId: null,
+    featuredListId: null,
+    currentExploration: null,
+    highlights: [],          // ordered highlight category keys the owner chose to show
   },
 }

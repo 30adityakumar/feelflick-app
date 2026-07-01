@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { installProfileFixture } from '../fixtures/profile.js'
 
-// Authoritative authenticated visual baselines for the Cinematic DNA redesign (/profile).
+// Authoritative authenticated visual baselines for the Cinematic DNA redesign (/DNA).
 // Runs under the `visual-app` project (real dev-user sign-in + saved session). Every Profile
 // read/write, the editorial Edge Function, and all images are intercepted by the deterministic
 // fixture, so the route is fully offline + reproducible (fixed clock + seeded RNG + reduced motion
@@ -27,7 +27,7 @@ const HIDE_HEADER = 'header,.fixed.top-0.left-0.right-0{display:none!important}'
 async function open(page, mode, vp, opts = {}) {
   await installProfileFixture(page, { mode, reducedMotion: true, ...opts })
   await page.setViewportSize(vp)
-  await page.goto(opts.path || '/profile')
+  await page.goto(opts.path || '/DNA')
   const ready = opts.state || '#cinematic-dna-content'
   await expect(page.locator(ready).first()).toBeVisible({ timeout: 20_000 })
   await page.waitForTimeout(150)
@@ -49,12 +49,6 @@ test.describe('Cinematic DNA — authenticated visual baselines', () => {
   test('voices — desktop', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-voices'); await el(page, '#dna-voices').toHaveScreenshot('dna-voices-desktop.png') })
   test('passport — desktop', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-passport'); await el(page, '#dna-passport').toHaveScreenshot('dna-passport-desktop.png') })
   test('evidence sheet (current) — desktop', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await openEvidence(page); await el(page, '.ff-dna-sheet').toHaveScreenshot('dna-evidence-current-desktop.png') })
-
-  // ── Section navigation (Portrait-first IA + active states) ────────────────────
-  test('nav — Portrait active at page top', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-portrait-active.png') })
-  test('nav — Response active after scroll', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-response'); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-response-active.png') })
-  test('nav — Voices active after scroll', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-voices'); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-voices-active.png') })
-  test('nav — Passport active after scroll', async ({ page }) => { await open(page, 'established_rich', DESKTOP); await freeze(page); await scrollToSel(page, '#dna-passport'); await el(page, '.ff-dna-nav').toHaveScreenshot('dna-nav-passport-active.png') })
 
   // ── Mobile compositions ───────────────────────────────────────────────────────
   test('portrait hero — mobile 390 (compact density)', async ({ page }) => { await open(page, 'established_rich', MOBILE); await freeze(page); await el(page, '#dna-portrait').toHaveScreenshot('dna-portrait-mobile-390.png') })
@@ -84,5 +78,5 @@ test.describe('Cinematic DNA — authenticated visual baselines', () => {
 
   // ── System states ─────────────────────────────────────────────────────────────
   test('error — desktop (safe copy)', async ({ page }) => { await open(page, 'load_error', DESKTOP, { state: '[role="alert"]' }); await freeze(page); await el(page, '.ff-dna-state').toHaveScreenshot('dna-error-desktop.png') })
-  test('private other-user — desktop (no fetch)', async ({ page }) => { await open(page, 'established_rich', DESKTOP, { path: '/profile/other-user-9999', state: 'h1' }); await freeze(page); await el(page, '.ff-dna-state').toHaveScreenshot('dna-private-desktop.png') })
+  test('private other-user — desktop (no fetch)', async ({ page }) => { await open(page, 'established_rich', DESKTOP, { path: '/DNA/other-user-9999', state: 'h1' }); await freeze(page); await el(page, '.ff-dna-state').toHaveScreenshot('dna-private-desktop.png') })
 })

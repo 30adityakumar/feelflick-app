@@ -29,7 +29,10 @@ function relativeUpdated(iso) {
   const m = Math.round(days / 30); return `Updated ${m} month${m === 1 ? '' : 's'} ago`
 }
 
-export function resolveDnaIdentity(data) {
+// `subjectName` switches the copy voice. Default null → first-person ("Your", "you") for the
+// owner's own page (byte-identical to the original copy). When a name is passed (another user's
+// read-only page) the copy becomes third-person possessive ("A, B's", "they/their").
+export function resolveDnaIdentity(data, subjectName = null) {
   const stats = data?.stats || {}
   const ed = data?.editorial || {}
   const status = data?.editorialStatus || 'none'
@@ -42,17 +45,25 @@ export function resolveDnaIdentity(data) {
   const hasArchetype = !forming && archetype.length >= 1
   const reflectionCurrent = status === 'current' && Boolean(ed.summary || ed.signature)
 
+  // Voice helpers — possessive + the films-they/you-watch fragments.
+  const Poss = subjectName ? `${subjectName}'s` : 'Your'
+  const theyWatch = subjectName ? 'the films they actually watch and rate' : 'the films you actually watch and rate'
+  const theirFilms = subjectName ? 'their films' : 'your films'
+  const theirTaste = subjectName ? 'their film taste' : 'your film taste'
+
   // Hero title — established/taking-shape use the deterministic archetype (primary + secondary
   // muted line); forming uses honest "still forming" framing (never a fabricated archetype).
   const title = forming
-    ? { lead: 'Your Cinematic DNA', em: 'is still forming.' }
-    : { lead: archetype[0] || 'Your Cinematic DNA', em: archetype[1] || '' }
+    ? { lead: `${Poss} Cinematic DNA`, em: 'is still forming.' }
+    : { lead: archetype[0] || `${Poss} Cinematic DNA`, em: archetype[1] || '' }
 
   // The line under the title.
   let line
-  if (forming) line = 'Your Cinematic DNA is still forming. Log and rate a few films, and FeelFlick starts reading your taste.'
+  if (forming) line = subjectName
+    ? `${Poss} Cinematic DNA is still forming — not enough films logged yet.`
+    : 'Your Cinematic DNA is still forming. Log and rate a few films, and FeelFlick starts reading your taste.'
   else if (reflectionCurrent) line = ed.summary || ed.signature
-  else line = 'A portrait built from the films you actually watch and rate.' // deterministic, non-fabricated
+  else line = `A portrait built from ${theyWatch}.` // deterministic, non-fabricated
 
   const provenance = reflectionCurrent ? 'generated from verified taste patterns' : null
 
@@ -74,8 +85,8 @@ export function resolveDnaIdentity(data) {
   // Passport tags — top moods (grounded, non-sensitive), ≤4.
   const tags = (data?.moods || []).slice(0, 4).map((m) => m.name).filter(Boolean)
   const passportLine = forming
-    ? 'A portrait of your film taste.'
-    : (reflectionCurrent ? (ed.signature || ed.summary) : 'A portrait built from your films.')
+    ? `A portrait of ${theirTaste}.`
+    : (reflectionCurrent ? (ed.signature || ed.summary) : `A portrait built from ${theirFilms}.`)
 
   const displayName = (data?.user?.name || '').trim().split(/\s+/)[0] || 'Your'
 

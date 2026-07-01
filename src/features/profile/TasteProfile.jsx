@@ -1,5 +1,5 @@
 // src/features/profile/TasteProfile.jsx
-// FeelFlick — Cinematic DNA (/profile, /profile/:userId).
+// FeelFlick — Cinematic DNA (/DNA, /DNA/:userId).
 //
 // The portrait redesign: a cinematic hero (deterministic archetype identity), an evidence-honest
 // set of sections that each self-hide when their evidence is missing, and a privacy-safe Cinematic
@@ -16,17 +16,19 @@ import { useParams } from 'react-router-dom'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { ThoughtfulRoot } from '@/shared/ui/thoughtful-seatmate'
+import PublicDnaProfile from './PublicDnaProfile'
 import { useProfileDataFetch } from './useProfileData'
 import { resolveDnaIdentity } from './dna/identity'
 import CinematicDnaHero from './dna/CinematicDnaHero'
 import DnaFormingState from './dna/DnaFormingState'
-import DnaSectionNav from './dna/DnaSectionNav'
 import RatingLanguage from './dna/RatingLanguage'
 import TasteJourney from './dna/TasteJourney'
 import DirectorInfluence from './dna/DirectorInfluence'
 import CinematicPassportSection from './dna/CinematicPassportSection'
 import DnaEvidenceSheet from './dna/DnaEvidenceSheet'
+import DnaStats from '@/features/dna/components/DnaStats'
 import './profile.css'
+import '@/features/dna/dna.css'
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -45,7 +47,7 @@ export default function TasteProfile() {
   const isSelf = !paramUserId || paramUserId === user?.id
   usePageMeta({ title: isSelf ? 'Your Cinematic DNA — FeelFlick' : 'Cinematic DNA — FeelFlick' })
 
-  if (!isSelf) return <PrivateProfile />
+  if (!isSelf) return <PublicDnaProfile />
   return <SelfProfile authUser={user} />
 }
 
@@ -70,10 +72,26 @@ function SelfProfile({ authUser }) {
     data.ratingLanguage ? { id: 'dna-response', label: 'Response' } : null,
     Array.isArray(data.journey) && data.journey.length >= 2 ? { id: 'dna-journey', label: 'Journey' } : null,
     Array.isArray(data.directors) && data.directors.length > 0 ? { id: 'dna-voices', label: 'Voices' } : null,
+    !identity.forming ? { id: 'dna-numbers', label: 'Numbers' } : null,
     !identity.forming ? { id: 'dna-passport', label: 'Passport' } : null,
   ].filter(Boolean)
-  const navItems = downstream.length > 0 ? [{ id: 'dna-portrait', label: 'Portrait' }, ...downstream] : []
 
+  const firstName = (data.user?.name || '').trim().split(/\s+/)[0] || 'You'
+  const numbersStats = {
+    filmsWatched: data.stats?.filmsLogged ?? 0,
+    avgStars: data.ratingLanguage?.averageStars ?? null,
+    reviews: data.reviewsCount ?? 0,
+    hoursWatched: data.stats?.hoursWatched ?? 0,
+  }
+  const numbersCharts = {
+    trendAll: (data.trajectoryAllTime || []).map((b) => ({ label: b.label, count: b.count })),
+    trendYear: data.trajectoryYear || [],
+    ratingBuckets: data.ratingLanguage?.buckets || [],
+    ratingLanguage: data.ratingLanguage,
+    decades: data.decades || [],
+    runtime: data.runtime,
+    daypart: data.daypart || [],
+  }
   return (
     <ThoughtfulRoot
       className="ff-dna"
@@ -99,10 +117,15 @@ function SelfProfile({ authUser }) {
             onEvidence={() => setEvidenceOpen(true)}
             onScrollTo={scrollToSection}
           />
-          <DnaSectionNav items={navItems} />
           <RatingLanguage ratingLanguage={data.ratingLanguage} />
           <TasteJourney journey={data.journey} />
           <DirectorInfluence directors={data.directors} />
+          {/* "{Name} by the numbers" — the shared Cinematic-DNA stats section, defaulting to the
+              current year. Wrapped in .dna so the dna.css chart tokens (--dna-*) resolve; width
+              aligned to the profile shell. */}
+          <div className="dna" id="dna-numbers" tabIndex={-1} style={{ '--dna-max': '1380px' }}>
+            <DnaStats firstName={firstName} stats={numbersStats} charts={numbersCharts} isOwner sections={{ viewingRhythm: true }} defaultPeriod="year" />
+          </div>
           <CinematicPassportSection
             identity={identity}
             evidenceVersion={data.evidenceVersion}
@@ -133,22 +156,7 @@ function SelfProfile({ authUser }) {
   )
 }
 
-// /profile/:userId of anyone but the signed-in user. No data fetched. Honest, keyboard-accessible.
-function PrivateProfile() {
-  return (
-    <div className="ff-dna ff-dna-state">
-      <div className="ff-dna-state__box">
-        <p className="ff-dna-eyebrow">Cinematic DNA</p>
-        <h1>This profile is private.</h1>
-        <p>Cinematic DNA — watch history, ratings, and taste portrait — is visible only to its owner. Public taste profiles aren&rsquo;t available yet.</p>
-        <div className="ff-dna-state__actions">
-          <a className="ff-dna-btn ff-dna-btn--primary" href="/profile">Your Cinematic DNA</a>
-          <a className="ff-dna-btn ff-dna-btn--ghost" href="/people">People</a>
-        </div>
-      </div>
-    </div>
-  )
-}
+// /DNA/:userId of anyone but the signed-in user. No data fetched. Honest, keyboard-accessible.
 
 // Honest loading status — one polite live region, aria-busy, sr-only text; decorative skeleton hidden.
 function PageSkeleton() {

@@ -58,7 +58,7 @@ test('a11y — browse (/browse)', async ({ page }) => {
   await audit(page, '/browse')
 })
 
-test('a11y — taste profile (/profile)', async ({ page }) => {
+test('a11y — social profile (/profile)', async ({ page }) => {
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/profile(?:[/?#]|$)/)
   await page.waitForLoadState('networkidle')

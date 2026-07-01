@@ -140,6 +140,23 @@
 .ff-people-unavailable__title { margin: 0 0 12px; font-size: 28px; font-weight: 700; color: var(--pl-text); }
 .ff-people-unavailable__body { margin: 0; color: var(--pl-text-2); font-size: 15px; line-height: 1.6; }
 
+/* ── Card / row profile links ───────────────────────────────────────── */
+.ff-people-card__avatar-link,
+.ff-people-card__name-link,
+.ff-people-row__identity-link,
+.ff-people-row__name-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.ff-people-card__avatar-link { display: inline-flex; }
+.ff-people-card__name-link:hover .ff-people-card__name,
+.ff-people-row__identity-link:hover ~ .ff-people-row__copy .ff-people-row__name { text-decoration: underline; text-underline-offset: 3px; }
+.ff-people-card__avatar-link:focus-visible,
+.ff-people-row__identity-link:focus-visible { outline: 2px solid var(--pl-text); outline-offset: 3px; border-radius: 50%; }
+.ff-people-card__name-link:focus-visible { outline: none; }
+.ff-people-card__name-link:focus-visible .ff-people-card__name { text-decoration: underline; text-underline-offset: 3px; }
+
 /* ── Focus visibility ───────────────────────────────────────────────── */
 .ff-people-v2 a:focus-visible, .ff-people-v2 button:focus-visible, .ff-people-v2 input:focus-visible,
 .ff-people-search-input:focus-visible {

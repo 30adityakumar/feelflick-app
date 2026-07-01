@@ -52,7 +52,7 @@ test.describe('Account — route + navigation (desktop)', () => {
 })
 
 test.describe('Account — profile summary', () => {
-  test('renders synthetic identity + Free plan, no stats, View DNA → /profile, photo unavailable, no storage call', async ({ page }) => {
+  test('renders synthetic identity + Free plan, no stats, View profile → /profile, photo unavailable, no storage call', async ({ page }) => {
     const ledger = await installAccountFixture(page)
     await openAccount(page)
     await expect(page.getByRole('heading', { level: 2, name: SYN.name })).toBeVisible()
@@ -62,7 +62,7 @@ test.describe('Account — profile summary', () => {
     await expect(page.getByText(/Founding Member|locked in/i)).toHaveCount(0)
     await expect(page.getByText(/films logged|hours watched/i)).toHaveCount(0)
     await expect(page.locator('.ff-acct-summary').getByText(/\d+%/)).toHaveCount(0)
-    await expect(page.getByRole('link', { name: 'View Cinematic DNA' })).toHaveAttribute('href', '/profile')
+    await expect(page.getByRole('link', { name: 'View profile' })).toHaveAttribute('href', '/profile')
     await openAccount(page, 'personal')
     await expect(page.getByText(/Photo changes are temporarily unavailable/i)).toBeVisible()
     expect(ledger.storageCalls, 'avatar editing disabled → no storage write').toEqual([])
@@ -126,14 +126,13 @@ test.describe('Account — personal information (name editing)', () => {
 })
 
 test.describe('Account — privacy', () => {
-  test('two real switches only, discovery off by default, exact field copy, no public-profile controls', async ({ page }) => {
+  test('privacy switches present — discovery off by default, follower sharing and public DNA profile controls visible', async ({ page }) => {
     await installAccountFixture(page)
     await openAccount(page, 'privacy')
-    await expect(page.getByRole('switch')).toHaveCount(2)
+    await expect(page.getByRole('switch')).toHaveCount(11)
     await expect(page.getByRole('switch', { name: /taste-match discovery/i })).toHaveAttribute('aria-checked', 'false')
-    await expect(page.getByText(/name, avatar, your top film-taste tags and film count/i)).toBeVisible()
-    await expect(page.getByText(/watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private/i)).toBeVisible()
-    await expect(page.getByText(/public profile|public diary/i)).toHaveCount(0)
+    await expect(page.getByText(/name, avatar, archetype, top taste tags, how you rate/i)).toBeVisible()
+    await expect(page.getByText(/individual reviews, Diary notes and exact watch dates always stay private/i)).toBeVisible()
   })
 
   test('successful discovery save preserves the prefs branch', async ({ page }) => {

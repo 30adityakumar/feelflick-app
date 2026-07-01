@@ -14,13 +14,15 @@ import { Home, LayoutGrid, Compass, Fingerprint, User } from 'lucide-react'
 import './BottomNav.css'
 
 // Exported as the mobile IA contract (asserted in __tests__/BottomNav.test.js):
-// five equal destinations in this order; DNA → /profile (Cinematic DNA), You → /you (mobile account hub).
+// five equal destinations in this order; DNA → /DNA (the private Cinematic DNA portrait — active
+// for /DNA and lowercase /dna), You → /you (mobile account hub). The social profile at /profile is
+// a separate destination reached from the account menu, so no bottom-nav tab owns it.
 export const TABS = [
-  { id: 'home',     label: 'Home',     path: '/home',     match: ['/home'],     Icon: Home       },
-  { id: 'browse',   label: 'Browse',   path: '/browse',   match: ['/browse'],   Icon: LayoutGrid },
-  { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'], Icon: Compass    },
-  { id: 'dna',      label: 'DNA',      path: '/profile',  match: ['/profile'],  Icon: Fingerprint},
-  { id: 'you',      label: 'You',      path: '/you',      match: ['/you'],      Icon: User       },
+  { id: 'home',     label: 'Home',     path: '/home',     match: ['/home'],               Icon: Home       },
+  { id: 'browse',   label: 'Browse',   path: '/browse',   match: ['/browse'],             Icon: LayoutGrid },
+  { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'],           Icon: Compass    },
+  { id: 'dna',      label: 'DNA',      path: '/DNA',      match: ['/DNA', '/dna'],        Icon: Fingerprint},
+  { id: 'you',      label: 'You',      path: '/you',      match: ['/you'],                Icon: User       },
 ]
 
 /**

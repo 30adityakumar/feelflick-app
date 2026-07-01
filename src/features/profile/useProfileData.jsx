@@ -11,12 +11,13 @@ import { getTasteFingerprint } from '@/shared/services/tasteCache'
 import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
 import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
 import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
-import { isEnabled } from '@/shared/config/betaFlags'
+import { isEnabled, isProfileAutoRefreshEnabled } from '@/shared/config/betaFlags'
 import { PROFILE_EVIDENCE_VERSION, isEditorialVersionCurrent } from '@/shared/lib/profileEvidenceVersion'
+import { computeMaterialSignature } from './editorialSignature'
 
 import {
   deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs,
-  deriveMixtape, deriveTrajectory, deriveTrajectoryAllTime,
+  deriveMixtape, deriveTrajectory, deriveTrajectoryAllTime, deriveTrajectoryYear,
   deriveDecades, deriveRuntime, deriveDaypart,
   deriveFriends, deriveSkews, deriveYIR, deriveCommunityMood,
 } from './derive'
@@ -48,6 +49,10 @@ const HISTORY_COLS = `
 `
 
 const EDITORIAL_TTL_MS = 24 * 60 * 60 * 1000  // 24 h
+// Client-side courtesy cooldown for AUTO-refresh: even when taste has materially changed, don't
+// auto-regenerate if the current reflection was written within this window. A safety net against a
+// reload hot-loop — the authoritative per-user cooldown/quota lives in the server RPC.
+const AUTO_REFRESH_COOLDOWN_MS = 60 * 60 * 1000  // 1 h
 
 const INITIAL_STATE = {
   user: null,
@@ -58,10 +63,14 @@ const INITIAL_STATE = {
   mixtape: [],
   trajectory: [],
   trajectoryAllTime: [],
+  trajectoryYear: [],
+  reviewsCount: 0,
   decades: [],
   runtime: null,
   daypart: [],
   editorial: null,
+  editorialStatus: 'forming',
+  editorialMaterialStale: false,
   ratingLanguage: null,
   journey: [],
   evidenceVersion: PROFILE_EVIDENCE_VERSION,
@@ -87,6 +96,8 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
   const regenInputsRef = useRef(null)
   const inFlightRef = useRef(false)
   const mountedRef = useRef(true)
+  // "Living DNA" auto-refresh fires at most ONCE per load (reset when the fetch effect re-runs).
+  const autoFiredRef = useRef(false)
   // Set true on (re)mount, false on unmount — the body MUST set true so StrictMode's dev
   // mount→unmount→remount double-invoke doesn't leave it permanently false (which would silently
   // swallow the refresh settlement). (F7.7: exposed by the intercepted browser refresh test.)
@@ -110,7 +121,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
       // Success — replace the reflection and mark it current. Prior editorial is only ever
       // overwritten on success (a failed refresh leaves the last valid reflection intact).
       if (mountedRef.current) {
-        setState(s => ({ ...s, editorial: { ...s.editorial, ...updated }, editorialStatus: 'current' }))
+        setState(s => ({ ...s, editorial: { ...s.editorial, ...updated }, editorialStatus: 'current', editorialMaterialStale: false }))
         setRefreshStatus('success')
       }
       trackEvent(EVENTS.profile_reflection_refresh_succeeded, { surface: 'profile' })
@@ -125,10 +136,17 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
   useEffect(() => {
     if (!userId) return
     let abort = false
+    autoFiredRef.current = false   // a fresh load may auto-refresh once
     setState(INITIAL_STATE)
 
     ;(async () => {
       try {
+        // The material-signature column only exists once the guardrails migration is applied, so
+        // only SELECT it when the hardened pipeline is enabled — otherwise the read 400s against the
+        // current (un-migrated) table and the reflection vanishes.
+        const editorialCols = isProfileAutoRefreshEnabled()
+          ? 'editorial_summary, editorial_signature, editorial_archetype, editorial_generated_at, editorial_material_sig'
+          : 'editorial_summary, editorial_signature, editorial_archetype, editorial_generated_at'
         const [historyRes, ratingsRes, fingerprint, userRes, editorialRes, simARes, simBRes, ffStatsRes] = await Promise.all([
           supabase
             .from('user_history')
@@ -146,7 +164,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
             .maybeSingle(),
           supabase
             .from('user_profiles_computed')
-            .select('editorial_summary, editorial_signature, editorial_archetype, editorial_generated_at')
+            .select(editorialCols)
             .eq('user_id', userId)
             .maybeSingle(),
           supabase
@@ -199,12 +217,23 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
         // here — generation is an explicit user action only.
         const profileMaturity = classifyProfileMaturity({ watchedCount: canonicalHistory.length, ratedCount: ratings.length })
         const editorialTtlFresh = editorial.generatedAt && (Date.now() - new Date(editorial.generatedAt).getTime()) < EDITORIAL_TTL_MS
+        // "Living DNA": a reflection is materially stale when the taste fingerprint's top-tag identity
+        // has shifted since it was written. Computed purely client-side — both the live signature
+        // (here) and the stored one (written by regenerateEditorial) come from this fingerprint. A
+        // legacy reflection with NO stored signature is NOT treated as material-stale (we can't know
+        // it changed, and we don't want to invalidate every existing reflection or stampede refresh);
+        // it simply gets a signature stamped on its next natural regeneration.
+        const liveMaterialSig = computeMaterialSignature(fingerprint)
+        const storedMaterialSig = storedEditorial?.editorial_material_sig || null
+        const materialStale = Boolean(storedMaterialSig && liveMaterialSig && storedMaterialSig !== liveMaterialSig)
+        const versionCurrent = editorial.summary && editorialTtlFresh && isEditorialVersionCurrent(fingerprint)
         const editorialStatus = profileMaturity === MATURITY.FORMING ? 'forming'
-          : (editorial.summary && editorialTtlFresh && isEditorialVersionCurrent(fingerprint)) ? 'current'
+          : (versionCurrent && !materialStale) ? 'current'
           : editorial.summary ? 'stale'
           : 'none'
-        // Stash exactly what an explicit refresh needs — no fetch is repeated on refresh.
-        regenInputsRef.current = { userId, history: canonicalHistory, archetypeFromFp, maturity: profileMaturity, isSelf }
+        // Stash exactly what an explicit refresh needs — no fetch is repeated on refresh. materialSig
+        // is the signature regenerateEditorial persists alongside the reflection it produces.
+        regenInputsRef.current = { userId, history: canonicalHistory, archetypeFromFp, maturity: profileMaturity, isSelf, materialSig: liveMaterialSig }
 
         // === Friend films count =================================
         // Need per-friend totals for the "X films logged" caption — one
@@ -236,11 +265,14 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           mixtape: deriveMixtape({ history: canonicalHistory, ratingsByMovieId }),
           trajectory: deriveTrajectory({ history: canonicalHistory }),
           trajectoryAllTime: deriveTrajectoryAllTime({ history: canonicalHistory }),
+          trajectoryYear: deriveTrajectoryYear({ history: canonicalHistory }),
+          reviewsCount: ratings.filter(r => r.review_text && r.review_text.trim()).length,
           decades: deriveDecades({ history: canonicalHistory }),
           runtime: deriveRuntime({ history: canonicalHistory }),
           daypart: deriveDaypart({ history: canonicalHistory }),
           editorial,
           editorialStatus,
+          editorialMaterialStale: materialStale,
           ratingLanguage: deriveRatingLanguage({ ratings }),
           journey: deriveTasteJourney({ history: canonicalHistory }),
           evidenceVersion: PROFILE_EVIDENCE_VERSION,
@@ -271,6 +303,25 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
     return () => { abort = true }
   }, [userId, authUser, isSelf, reloadKey])
 
+  // "Living DNA" auto-refresh (default-OFF flag `profileAutoRefresh`). When the owner's taste has
+  // MATERIALLY changed since the reflection was written, regenerate it automatically — at most once
+  // per load. This is the ONLY code path that can make an editorial Edge call on render, and only
+  // for the owner, only when the flag is on, and only outside the courtesy cooldown; every other
+  // state still makes zero calls on mount (preserves the F7.6 contract). The server RPC remains the
+  // authoritative per-user cooldown/quota — this gate is a courtesy to avoid a reload hot-loop.
+  useEffect(() => {
+    if (!isProfileAutoRefreshEnabled()) return
+    if (autoFiredRef.current) return
+    if (!state.editorialMaterialStale) return
+    const inputs = regenInputsRef.current
+    if (!inputs || !inputs.isSelf || inputs.maturity === MATURITY.FORMING) return
+    if (refreshStatus === 'generating' || inFlightRef.current) return
+    const genAt = state.editorial?.generatedAt
+    if (genAt && (Date.now() - new Date(genAt).getTime()) < AUTO_REFRESH_COOLDOWN_MS) return
+    autoFiredRef.current = true
+    refreshEditorial()
+  }, [state.editorialMaterialStale, state.editorial, refreshStatus, refreshEditorial])
+
   return { ...state, retry, refreshStatus, refreshEditorial }
 }
 
@@ -286,16 +337,29 @@ export function useProfileData() {
 
 // === INTERNAL ===
 
-async function regenerateEditorial({ userId, history, archetypeFromFp }) {
+async function regenerateEditorial({ userId, history, archetypeFromFp, materialSig = null }) {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null
 
-  const { watchedFilms, taggedTasteSignature } = aggregateWatchHistorySignals(history)
+  // Auth is DEPLOY-GATED. The hardened edge function verifies the real user JWT, but until the
+  // guardrails are deployed (isProfileAutoRefreshEnabled) we send the anon key so the reflection keeps
+  // working against the currently-deployed edge function (which still expects the anon key).
+  const hardened = isProfileAutoRefreshEnabled()
+  let authToken = SUPABASE_ANON_KEY
+  if (hardened) {
+    const { data: { session } = {} } = await supabase.auth.getSession()
+    if (!session?.access_token) return null
+    authToken = session.access_token
+  }
+
+  const { watchedFilms, topDirectors, taggedTasteSignature } = aggregateWatchHistorySignals(history)
   if (!watchedFilms.length) return null
 
   const body = buildSummaryRequestBody({
-    stats: {},  // profile-v2 doesn't derive v1-style top-genres; watchedFilms is primary signal.
+    // profile-v2 doesn't derive v1-style top-genres; watchedFilms is the primary signal. Real
+    // director names are included as prompt context AND grounding evidence (edge side).
+    stats: { topDirectors },
     watchedFilms,
     taggedTasteSignature,
   })
@@ -304,9 +368,12 @@ async function regenerateEditorial({ userId, history, archetypeFromFp }) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Authorization: `Bearer ${authToken}`,
     },
-    body: JSON.stringify(body),
+    // targetUserId lets the server RPC enforce uid == profile; materialSig is recorded for audit.
+    // Only sent on the hardened path — the current deployed edge function ignores unknown fields,
+    // but we keep the pre-deploy body identical to the original to be safe.
+    body: JSON.stringify(hardened ? { ...body, targetUserId: userId, materialSig } : body),
   })
   if (!res.ok) return null
   const data = await res.json().catch(() => null)
@@ -334,6 +401,9 @@ async function regenerateEditorial({ userId, history, archetypeFromFp }) {
     editorial_generated_at: generatedAt,
     taste_fingerprint: nextFingerprint,
   }
+  // The material signature (living-DNA change detector) lives in a column that only exists once the
+  // guardrails migration is applied — gate the write so we don't 400 against an un-migrated table.
+  if (hardened) fields.editorial_material_sig = materialSig
 
   // F7.9: the editorial result is only durable if the cache write SUCCEEDS. The Supabase client
   // RESOLVES (does not reject) on a DB-level error, so we MUST inspect { error } and throw —

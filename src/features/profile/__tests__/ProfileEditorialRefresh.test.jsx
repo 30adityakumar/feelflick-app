@@ -40,10 +40,17 @@ vi.mock('@/shared/lib/supabase/client', () => ({
       if (table === 'user_profiles_computed') return makeQuery({ data: editorialRow })
       return makeQuery({ data: [] })
     },
+    // The hardened edge function verifies the real user JWT → regenerateEditorial reads the session.
+    auth: { getSession: () => Promise.resolve({ data: { session: { access_token: 'tok-test' } } }) },
   },
 }))
 
 import { useProfileDataFetch } from '../useProfileData'
+import { computeMaterialSignature } from '../editorialSignature'
+
+// The fingerprint the mock returns → its material signature (used to build stale/fresh fixtures).
+const LIVE_SIG = computeMaterialSignature({ topMoodTags: [{ key: 'a', count: 1, share: 1 }], topToneTags: [], topFitProfiles: [] })
+const hoursAgo = (h) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString()
 
 const CURRENT_EDITORIAL = { user_id: 'u1', editorial_summary: 'cached summary', editorial_signature: 'cached sig', editorial_archetype: ['a', 'b', 'c'], editorial_generated_at: '2999-01-01T00:00:00Z', taste_fingerprint: {} }
 
@@ -173,5 +180,72 @@ describe('F7.9 — editorial cache-write failure settles honestly', () => {
     expect(result.current.refreshStatus).toBe('success')
     expect(result.current.editorialStatus).toBe('current')
     expect(result.current.editorial.summary).toBe('fresh summary')
+  })
+})
+
+// "Living DNA" auto-refresh — a NEW automatic edge call, gated by the default-OFF profileAutoRefresh
+// flag AND a material-change signal AND a courtesy cooldown. OFF (the default) changes nothing.
+describe('living-DNA auto-refresh (flag-gated, material-change only)', () => {
+  const STALE_ROW = { user_id: 'u1', editorial_summary: 'cached', editorial_signature: 'sig', editorial_archetype: ['a', 'b', 'c'], taste_fingerprint: {}, editorial_material_sig: 'DIFFERENT-OLD-SIG' }
+  beforeEach(() => { fpEditorialVersion = 2 })
+  afterEach(() => { vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', '') })
+
+  it('flag OFF → hardened pipeline inert: ZERO edge calls on mount (F7.6 preserved)', async () => {
+    // With the flag OFF the client doesn't even SELECT the material-sig column in production, so the
+    // pipeline can't fire. The safety contract is simply: no automatic edge call.
+    editorialRow = { ...STALE_ROW, editorial_generated_at: hoursAgo(3) }
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('flag ON + materially changed + outside cooldown → exactly ONE call; success clears the flag', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    editorialRow = { ...STALE_ROW, editorial_generated_at: hoursAgo(3) }
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.refreshStatus).toBe('success'))
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(result.current.editorialStatus).toBe('current')
+    expect(result.current.editorialMaterialStale).toBe(false)
+  })
+
+  it('flag ON + signature MATCHES (no material change) → ZERO calls', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    editorialRow = { ...STALE_ROW, editorial_material_sig: LIVE_SIG, editorial_generated_at: hoursAgo(3) }
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(result.current.editorialStatus).toBe('current')
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('flag ON + materially changed but WITHIN the courtesy cooldown → ZERO calls', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    editorialRow = { ...STALE_ROW, editorial_generated_at: hoursAgo(0.25) }
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(result.current.editorialMaterialStale).toBe(true)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('flag ON + non-self view → ZERO calls', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    editorialRow = { ...STALE_ROW, editorial_generated_at: hoursAgo(3) }
+    const { result } = renderHook(() => useProfileDataFetch({ userId: 'u1', authUser: VIEWER, isSelf: false }))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('flag ON + auto-refresh FAILS → prior reflection preserved, not falsely current', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    fetchOk = false
+    editorialRow = { ...STALE_ROW, editorial_generated_at: hoursAgo(3) }
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.refreshStatus).toBe('error'))
+    expect(result.current.editorial.summary).toBe('cached')
+    expect(result.current.editorialStatus).not.toBe('current')
   })
 })

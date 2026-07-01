@@ -40,7 +40,11 @@ const INITIAL = {
 }
 
 // /preferences owns `prefs` — never seed defaults for it (would clobber engine prefs).
-const DEFAULT_SHAPE = { notifications: DEFAULT_SETTINGS.notifications, privacy: DEFAULT_SETTINGS.privacy }
+const DEFAULT_SHAPE = {
+  notifications: DEFAULT_SETTINGS.notifications,
+  privacy: DEFAULT_SETTINGS.privacy,
+  dnaProfile: DEFAULT_SETTINGS.dnaProfile,
+}
 
 export function mergeWithDefaults(serverShape) {
   const s = serverShape && typeof serverShape === 'object' ? serverShape : {}
@@ -53,8 +57,9 @@ export function mergeWithDefaults(serverShape) {
     notifications,
     prefs: s.prefs && typeof s.prefs === 'object' ? s.prefs : {},
     privacy: { ...DEFAULT_SHAPE.privacy, ...(s.privacy || {}) },
+    dnaProfile: { ...DEFAULT_SHAPE.dnaProfile, ...(s.dnaProfile && typeof s.dnaProfile === 'object' ? s.dnaProfile : {}) },
     // Preserve any unknown top-level keys verbatim so we never drop forward-written data.
-    ...Object.fromEntries(Object.entries(s).filter(([k]) => !['notifications', 'prefs', 'privacy'].includes(k))),
+    ...Object.fromEntries(Object.entries(s).filter(([k]) => !['notifications', 'prefs', 'privacy', 'dnaProfile'].includes(k))),
   }
 }
 
@@ -151,6 +156,14 @@ export function AccountDataProvider({ children }) {
     })
   }, [saveSection])
 
+  // /DNA owner curation. Read-modify-write MERGE into the current dnaProfile object so a partial
+  // patch (e.g. just { bio }) never drops the other curated keys. Same rollback model as privacy.
+  const updateDnaProfile = useCallback((patch) => {
+    const current = pendingRef.current.dnaProfile || settingsRef.current?.dnaProfile || DEFAULT_SHAPE.dnaProfile
+    const next = { ...current, ...patch }
+    saveSection('dnaProfile', next)
+  }, [saveSection])
+
   const retrySection = useCallback((key) => {
     const last = pendingRef.current[key] ?? settingsRef.current?.[key]
     if (last !== undefined) saveSection(key, last)
@@ -187,7 +200,7 @@ export function AccountDataProvider({ children }) {
         ])
         if (abort) return
         const serverSettings = mergeWithDefaults(settingsRes.data?.settings)
-        confirmedRef.current = { notifications: serverSettings.notifications, privacy: serverSettings.privacy }
+        confirmedRef.current = { notifications: serverSettings.notifications, privacy: serverSettings.privacy, dnaProfile: serverSettings.dnaProfile }
         setState({
           authUser: u,
           profile: profileRes.data || null,
@@ -208,8 +221,8 @@ export function AccountDataProvider({ children }) {
   }, [authUserId, nonce])
 
   const value = useMemo(
-    () => ({ ...state, refresh, updateNotifications, updatePrivacy, retrySection, requestDeletion, cancelDeletion }),
-    [state, refresh, updateNotifications, updatePrivacy, retrySection, requestDeletion, cancelDeletion],
+    () => ({ ...state, refresh, updateNotifications, updatePrivacy, updateDnaProfile, retrySection, requestDeletion, cancelDeletion }),
+    [state, refresh, updateNotifications, updatePrivacy, updateDnaProfile, retrySection, requestDeletion, cancelDeletion],
   )
   return <AccountDataContext.Provider value={value}>{children}</AccountDataContext.Provider>
 }

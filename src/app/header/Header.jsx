@@ -36,13 +36,14 @@ const FOCUS = 'focus-visible:[outline:2px_solid_#f5f2eb] focus-visible:[outline-
 const IS_MAC = typeof navigator !== 'undefined' &&
   /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '')
 
-// Authenticated nav: Home (/home) leads, then Browse, Discover, and DNA (/profile).
-// Utility surfaces live in the avatar menu. See docs/ia-v2-decision-record.md.
+// Authenticated nav: Home (/home) leads, then Browse, Discover, and DNA (/DNA — the private
+// Cinematic DNA portrait). The public, shareable social profile lives at /profile, reached from
+// the account menu, connections, and share links. See docs/ia-v2-decision-record.md.
 export const NAV_AUTHED = [
   { to: '/home',     label: 'Home'     },
   { to: '/browse',   label: 'Browse'   },
   { to: '/discover', label: 'Discover' },
-  { to: '/profile',  label: 'DNA'      },
+  { to: '/DNA',      label: 'DNA'      },
 ]
 const NAV_ANON = [
   { to: '/discover', label: 'Discover' },

@@ -1,7 +1,7 @@
 // src/features/account/components/AccountSummary.jsx
-// Identity header: avatar, name, email, member-since, Edit profile, View Cinematic DNA, and an
-// honest plan summary ("Free plan"). No Films/Hours/DNA% stats — those belong to Cinematic DNA,
-// not account administration.
+// Identity header: avatar, name, email, member-since, Edit profile, View profile (the public social
+// profile at /profile), and an honest plan summary ("Free plan"). No Films/Hours/DNA% stats — those
+// belong to Cinematic DNA, not account administration.
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -26,7 +26,7 @@ export default function AccountSummary() {
         <p className="ff-acct-summary__meta">{email}{joined ? ` · Member since ${joined}` : ''}</p>
         <div className="ff-acct-summary__links">
           <button type="button" className="ff-acct-btn ff-acct-btn--secondary" onClick={() => setEditing(true)}>Edit profile</button>
-          <Link className="ff-acct-btn ff-acct-btn--secondary" to="/profile">View Cinematic DNA</Link>
+          <Link className="ff-acct-btn ff-acct-btn--secondary" to="/profile">View profile</Link>
         </div>
       </div>
       <div className="ff-acct-plan">

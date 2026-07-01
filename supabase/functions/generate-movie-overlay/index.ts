@@ -14,6 +14,7 @@
 
 import OpenAI from 'npm:openai@4'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { corsHeaders, anonClient, hashIp, guardPublic } from '../_shared/llmGuard.ts'
 
 const openai = new OpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY') })
 
@@ -23,31 +24,12 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-const rawOrigins = Deno.env.get('ALLOWED_ORIGINS')
-  ?? 'https://app.feelflick.com,https://feelflick.com,https://www.feelflick.com,https://feelflick-app.pages.dev,http://localhost:5173'
-const ALLOWED_ORIGINS = rawOrigins.split(',').map((s) => s.trim())
-
-function corsHeaders(origin: string): Record<string, string> {
-  return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
-}
-
-// 5 req/min/IP — same shape as generate-taste-summary.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-function isAllowed(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 })
-    return true
-  }
-  if (entry.count >= 5) return false
-  entry.count++
-  return true
-}
+// Durable GLOBAL daily budget kill-switch (the real cost cap for this bulk/backfill service).
+// Per-caller limits are intentionally DISABLED (cooldown 0, cap -1) so a legitimate bulk backfill
+// from one source isn't throttled; the global budget bounds total daily spend. NOTE: this remains
+// anon-key gated — converting it to a dedicated service secret is a recommended follow-up.
+const FN_NAME = 'generate-movie-overlay'
+const GLOBAL_BUDGET = Number(Deno.env.get('LLM_GLOBAL_DAILY_BUDGET') ?? '5000')
 
 const EMPTY = { ff_take: null, critic_quotes: null, daypart_fit: null }
 
@@ -156,11 +138,16 @@ Deno.serve(async (req: Request) => {
     return new Response('Unauthorized', { status: 401, headers })
   }
 
-  const ip = req.headers.get('x-forwarded-for') ?? 'anon'
-  if (!isAllowed(ip)) {
-    return new Response(JSON.stringify(EMPTY), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    })
+  // Durable GLOBAL budget kill-switch (per-caller limits disabled for the bulk backfill — cooldown 0,
+  // cap -1). The gate RPC is granted to anon/authenticated, so use an anon-key client (not the
+  // service-role one). Denials degrade to EMPTY.
+  const overlayGateClient = anonClient()
+  if (overlayGateClient) {
+    const overlayCallerKey = 'ip:' + hashIp(req.headers.get('x-forwarded-for') ?? 'anon')
+    const overlayGate = await guardPublic(overlayGateClient, { functionName: FN_NAME, callerKey: overlayCallerKey, cooldownSecs: 0, dailyCap: -1, globalCap: GLOBAL_BUDGET })
+    if (!overlayGate.allowed) {
+      return new Response(JSON.stringify(EMPTY), { headers: { ...headers, 'Content-Type': 'application/json' } })
+    }
   }
 
   let body: RequestBody

@@ -118,7 +118,7 @@ describe('Header — authenticated', () => {
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/home')
     expect(screen.getByRole('link', { name: 'Browse' })).toHaveAttribute('href', '/browse')
     expect(screen.getByRole('link', { name: 'Discover' })).toHaveAttribute('href', '/discover')
-    expect(screen.getByRole('link', { name: 'DNA' })).toHaveAttribute('href', '/profile')
+    expect(screen.getByRole('link', { name: 'DNA' })).toHaveAttribute('href', '/DNA')
   })
 
   it('shows the account menu (44px target) and no anonymous Sign in or hamburger', () => {

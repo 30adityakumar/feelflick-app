@@ -21,8 +21,8 @@ vi.mock('html-to-image', () => ({ toPng: vi.fn() }))
 import TasteProfile from '../TasteProfile'
 
 const renderSelf = () => render(
-  <MemoryRouter initialEntries={['/profile']}>
-    <Routes><Route path="/profile" element={<TasteProfile />} /></Routes>
+  <MemoryRouter initialEntries={['/DNA']}>
+    <Routes><Route path="/DNA" element={<TasteProfile />} /></Routes>
   </MemoryRouter>
 )
 

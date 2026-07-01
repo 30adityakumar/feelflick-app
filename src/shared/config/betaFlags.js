@@ -53,3 +53,33 @@ export function isProfileAutoRefreshEnabled() {
   const v = String(raw).toLowerCase()
   return v === 'true' || v === '1' || v === 'on'
 }
+
+// FNV-1a 32-bit → a stable 0-99 bucket. Not a secret and not cryptographic — only a deterministic,
+// evenly-distributed per-user rollout assignment (same user always lands in the same bucket).
+function fnv1aBucket(str) {
+  let h = 0x811c9dc5
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0) % 100
+}
+
+// Percentage rollout dial for AUTOMATICALLY GENERATING a user's FIRST-EVER reflection. This is
+// distinct from isProfileAutoRefreshEnabled() above, which only re-generates an EXISTING reflection
+// once the underlying taste has materially changed — it has no signal to compare against for a user
+// who has never generated one, so it can never cover a first-ever generation on its own. Turning
+// isProfileAutoRefreshEnabled() on does not, by itself, start auto-generating first reflections for
+// every eligible user's next visit — that's a real automatic-LLM-call/cost change across the whole
+// user base (bounded by the existing per-user cooldown/cap and global daily budget guardrails, but
+// still a genuine increase in call volume), so it ships behind its own dial, defaulting to 0 (off).
+// Set VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT to a number 0-100 to widen the rollout without a code change.
+export function isUserInProfileAutoGenRollout(userId) {
+  if (!userId) return false
+  let raw
+  try { raw = import.meta.env?.VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT } catch { raw = undefined }
+  const pct = Number(raw)
+  if (!Number.isFinite(pct) || pct <= 0) return false
+  if (pct >= 100) return true
+  return fnv1aBucket(String(userId)) < pct
+}

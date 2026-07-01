@@ -55,6 +55,20 @@ describe('useProfileDataFetch — editorial generation maturity gate (F7.4)', ()
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('FORMING profile + auto-refresh flag ON + first-gen rollout at 100% → still NEVER calls', async () => {
+    // The maturity gate applies to BOTH auto-refresh triggers (staleness and first-gen) — a full
+    // rollout must not bypass it for an under-evidenced profile.
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '100')
+    historyRows = films(3); ratingRows = []
+    const { result } = renderHook(() => useProfileDataFetch({ userId: 'u1', authUser: { id: 'u1' }, isSelf: true }))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(fetchSpy).not.toHaveBeenCalled()
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', '')
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '')
+  })
+
   it('F7.6: ESTABLISHED profile with MISSING editorial still makes ZERO calls on render', async () => {
     // F7.6 supersedes F7.4 generation-on-render entirely: even an eligible profile with no
     // editorial never auto-generates. Generation is the explicit refresh action only.

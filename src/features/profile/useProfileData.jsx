@@ -11,7 +11,7 @@ import { getTasteFingerprint } from '@/shared/services/tasteCache'
 import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
 import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
 import { trackEvent, EVENTS, errorKind } from '@/shared/services/betaEvents'
-import { isEnabled, isProfileAutoRefreshEnabled } from '@/shared/config/betaFlags'
+import { isEnabled, isProfileAutoRefreshEnabled, isUserInProfileAutoGenRollout } from '@/shared/config/betaFlags'
 import { PROFILE_EVIDENCE_VERSION, isEditorialVersionCurrent } from '@/shared/lib/profileEvidenceVersion'
 import { computeMaterialSignature } from './editorialSignature'
 
@@ -303,24 +303,30 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
     return () => { abort = true }
   }, [userId, authUser, isSelf, reloadKey])
 
-  // "Living DNA" auto-refresh (default-OFF flag `profileAutoRefresh`). When the owner's taste has
-  // MATERIALLY changed since the reflection was written, regenerate it automatically — at most once
-  // per load. This is the ONLY code path that can make an editorial Edge call on render, and only
-  // for the owner, only when the flag is on, and only outside the courtesy cooldown; every other
-  // state still makes zero calls on mount (preserves the F7.6 contract). The server RPC remains the
-  // authoritative per-user cooldown/quota — this gate is a courtesy to avoid a reload hot-loop.
+  // "Living DNA" auto-refresh (default-OFF flag `profileAutoRefresh`). This is the ONLY code path
+  // that can make an editorial Edge call on render, and only for the owner, only when the flag is
+  // on, and only outside the courtesy cooldown; every other state still makes zero calls on mount
+  // (preserves the F7.6 contract). The server RPC remains the authoritative per-user cooldown/quota
+  // — this gate is a courtesy to avoid a reload hot-loop. Two distinct triggers:
+  //   - staleness: the owner's taste has MATERIALLY changed since an EXISTING reflection was written.
+  //   - first-gen: the owner has NEVER generated a reflection (editorialStatus === 'none'). This has
+  //     no prior signature to compare against, so it can't be caught by the staleness check above —
+  //     it's additionally gated behind a percentage rollout (isUserInProfileAutoGenRollout, default
+  //     0%/off), since it means an automatic Edge call for every eligible user's next visit instead
+  //     of only on deliberate click. Widen the rollout via VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT.
   useEffect(() => {
     if (!isProfileAutoRefreshEnabled()) return
     if (autoFiredRef.current) return
-    if (!state.editorialMaterialStale) return
     const inputs = regenInputsRef.current
     if (!inputs || !inputs.isSelf || inputs.maturity === MATURITY.FORMING) return
+    const isFirstGen = state.editorialStatus === 'none'
+    if (!state.editorialMaterialStale && !(isFirstGen && isUserInProfileAutoGenRollout(inputs.userId))) return
     if (refreshStatus === 'generating' || inFlightRef.current) return
     const genAt = state.editorial?.generatedAt
     if (genAt && (Date.now() - new Date(genAt).getTime()) < AUTO_REFRESH_COOLDOWN_MS) return
     autoFiredRef.current = true
     refreshEditorial()
-  }, [state.editorialMaterialStale, state.editorial, refreshStatus, refreshEditorial])
+  }, [state.editorialMaterialStale, state.editorialStatus, state.editorial, refreshStatus, refreshEditorial])
 
   return { ...state, retry, refreshStatus, refreshEditorial }
 }

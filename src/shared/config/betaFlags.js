@@ -37,3 +37,19 @@ export function isBetaGateEnabled() {
   const v = String(raw).toLowerCase()
   return v === 'true' || v === '1' || v === 'on'
 }
+
+// Master gate for the hardened Cinematic DNA reflection pipeline. Defaults OFF (like the beta gate)
+// so the client behaves EXACTLY as before until the backend is deployed. When OFF the reflection
+// still generates via the anon key against the current edge function, and the client neither reads
+// nor writes the editorial_material_sig column (which only exists after the guardrails migration).
+// When ON it activates ALL of: auto-refresh on material taste change, user-JWT auth to the hardened
+// edge function, and the material-signature column read/write. Turn on ONLY after the guardrail
+// migration + edge redeploy are applied — via VITE_ENABLE_PROFILE_AUTO_REFRESH=true — or the client
+// will send a JWT to an edge function that expects the anon key and write a column that doesn't
+// exist yet.
+export function isProfileAutoRefreshEnabled() {
+  let raw
+  try { raw = import.meta.env?.VITE_ENABLE_PROFILE_AUTO_REFRESH } catch { raw = undefined }
+  const v = String(raw).toLowerCase()
+  return v === 'true' || v === '1' || v === 'on'
+}

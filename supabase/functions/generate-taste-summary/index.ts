@@ -1,39 +1,14 @@
 import OpenAI from 'npm:openai@4'
+import { corsHeaders, verifyUser, guardGeneration, recordOutcome, groundingCheck } from '../_shared/llmGuard.ts'
 
 const openai = new OpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY') })
 
-// Default CORS allowlist — overridden by the ALLOWED_ORIGINS env var if set.
-//   app.feelflick.com           — production app (Cloudflare Pages, current)
-//   feelflick.com / www.        — apex (used today for marketing; will host the app
-//                                 once the planned subdomain → apex migration lands)
-//   feelflick-app.pages.dev     — canonical CF Pages preview
-//   localhost:5173              — Vite dev server
-const rawOrigins = Deno.env.get('ALLOWED_ORIGINS')
-  ?? 'https://app.feelflick.com,https://feelflick.com,https://www.feelflick.com,https://feelflick-app.pages.dev,http://localhost:5173'
-const ALLOWED_ORIGINS = rawOrigins.split(',').map((s) => s.trim())
-
-function corsHeaders(origin: string): Record<string, string> {
-  return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
-}
-
-// Simple in-memory rate limiter: 5 requests/min per IP
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-
-function isAllowed(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 })
-    return true
-  }
-  if (entry.count >= 5) return false
-  entry.count++
-  return true
-}
+// Durable per-user guardrails (values overridable via edge env; enforced by the SECURITY DEFINER
+// RPC in the guardrails migration). GLOBAL_BUDGET = 0 is the hard kill-switch for all generation.
+const FN_NAME = 'generate-taste-summary'
+const COOLDOWN_SECS = Number(Deno.env.get('EDITORIAL_COOLDOWN_SECS') ?? '3600')
+const DAILY_CAP     = Number(Deno.env.get('EDITORIAL_DAILY_CAP') ?? '20')
+const GLOBAL_BUDGET = Number(Deno.env.get('LLM_GLOBAL_DAILY_BUDGET') ?? '5000')
 
 const FALLBACK_SUMMARY = ''
 const FALLBACK_SIGNATURE = ''
@@ -97,6 +72,8 @@ Examples of good signature outputs:
 - Slow burns and softer endings`
 
 interface RequestBody {
+  targetUserId?: string      // the profile being generated — must equal the verified caller (auth.uid)
+  materialSig?: string | null // recorded in the audit log (not used for auth)
   genres: Array<{ name: string; pct: number }>
   directors: Array<{ name: string; count: number }>
   moods: Array<{ name: string; sessions: number }>
@@ -119,41 +96,36 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405, headers })
   }
+  const jsonHeaders = { ...headers, 'Content-Type': 'application/json' }
+  const fallback = () => new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), { headers: jsonHeaders })
 
-  // Verify Supabase anon key
-  const authHeader = req.headers.get('authorization')
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
-  if (!authHeader || authHeader !== `Bearer ${anonKey}`) {
-    return new Response('Unauthorized', { status: 401, headers })
-  }
-
-  // Rate limit by client IP
-  const ip = req.headers.get('x-forwarded-for') ?? 'anon'
-  if (!isAllowed(ip)) {
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    })
-  }
+  // AUTHENTICATE the real user (a public anon key is no longer accepted as identity).
+  const verified = await verifyUser(req)
+  if (!verified) return new Response('Unauthorized', { status: 401, headers })
 
   let body: RequestBody
   try {
     body = await req.json()
   } catch {
-    // Bad JSON — return fallback, not 400
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    })
+    return fallback() // Bad JSON — honest empty, not 400
   }
 
-  const { genres = [], directors = [], moods = [], totalWatched = 0, avgRating = 0, ratingLabel = '', watchedFilms = [], taggedTasteSignature } = body
+  const { targetUserId, materialSig = null, genres = [], directors = [], moods = [], totalWatched = 0, avgRating = 0, ratingLabel = '', watchedFilms = [], taggedTasteSignature } = body
 
-  // Not enough data to generate anything meaningful.
-  // Either genre breakdown (v1 callers) or a watch list (profile-v2) suffices.
-  if (!genres.length && !watchedFilms.length) {
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    })
+  // A caller may only generate their OWN reflection (the RPC re-checks this atomically too).
+  if (!targetUserId || targetUserId !== verified.uid) {
+    return new Response('Forbidden', { status: 403, headers })
   }
+
+  // Not enough data to generate anything meaningful — return before spending the rate/budget slot.
+  if (!genres.length && !watchedFilms.length) return fallback()
+
+  // DURABLE per-user gate: cooldown + daily cap + global budget. Denials return an honest empty
+  // reflection (the client keeps the prior one); it never surfaces as an error to the user.
+  const gate = await guardGeneration(verified.client, {
+    functionName: FN_NAME, targetUserId, cooldownSecs: COOLDOWN_SECS, dailyCap: DAILY_CAP, globalCap: GLOBAL_BUDGET, materialSig,
+  })
+  if (!gate.allowed) return fallback()
 
   const g1 = genres[0]?.name ?? '?', p1 = genres[0]?.pct ?? 0
   const g2 = genres[1]?.name ?? '?', p2 = genres[1]?.pct ?? 0
@@ -221,14 +193,20 @@ Return JSON with two fields:
       summary = raw || FALLBACK_SUMMARY
     }
 
-    return new Response(JSON.stringify({ summary, signature }), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    })
+    // OUTPUT GROUNDING (security-and-data rule: AI output must stay grounded in real data). Reject a
+    // reflection that names a film/director/proper-noun the user never watched → honest empty
+    // fallback (client keeps the prior reflection). Evidence = the real watched titles + directors.
+    const ground = groundingCheck(`${summary}\n${signature}`, { watchedFilms, directors: directors.map((d) => d.name) })
+    if (!ground.ok) {
+      await recordOutcome(verified.client, gate.id, 'grounding_rejected', { offenders: ground.offenders.slice(0, 5) })
+      return fallback()
+    }
+
+    await recordOutcome(verified.client, gate.id, 'ok', { model: 'gpt-4.1-mini', tokens: completion.usage?.total_tokens ?? null })
+    return new Response(JSON.stringify({ summary, signature }), { headers: jsonHeaders })
   } catch (err) {
     console.error('[generate-taste-summary] OpenAI error:', err)
-    // Return 200 with fallback — never break the profile page
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    })
+    await recordOutcome(verified.client, gate.id, 'llm_error', {})
+    return fallback() // 200 with fallback — never break the profile page
   }
 })

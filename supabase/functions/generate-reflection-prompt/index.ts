@@ -1,42 +1,17 @@
 import OpenAI from 'npm:openai@4'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { corsHeaders, anonClient, hashIp, guardPublic } from '../_shared/llmGuard.ts'
 
 const openai = new OpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY') })
 
-// Default CORS allowlist — overridden by the ALLOWED_ORIGINS env var if set.
-//   app.feelflick.com           — production app (Cloudflare Pages, current)
-//   feelflick.com / www.        — apex (used today for marketing; will host the app
-//                                 once the planned subdomain → apex migration lands)
-//   feelflick-app.pages.dev     — canonical CF Pages preview
-//   localhost:5173              — Vite dev server
-const rawOrigins = Deno.env.get('ALLOWED_ORIGINS')
-  ?? 'https://app.feelflick.com,https://feelflick.com,https://www.feelflick.com,https://feelflick-app.pages.dev,http://localhost:5173'
-const ALLOWED_ORIGINS = rawOrigins.split(',').map((s) => s.trim())
-
 const FALLBACK_PROMPT = 'What stayed with you after the credits?'
 
-function corsHeaders(origin: string): Record<string, string> {
-  return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
-}
-
-// Rate limiter: 5 requests/min per IP
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-
-function isAllowed(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 })
-    return true
-  }
-  if (entry.count >= 5) return false
-  entry.count++
-  return true
-}
+// Durable per-caller rate limit + global budget kill-switch (replaces the old in-memory per-IP
+// limiter). Anon-reachable (public /movie page), so it rate-limits by a hashed IP, not a user.
+const FN_NAME = 'generate-reflection-prompt'
+const COOLDOWN_SECS = Number(Deno.env.get('REFLECTION_COOLDOWN_SECS') ?? '10')
+const DAILY_CAP     = Number(Deno.env.get('REFLECTION_DAILY_CAP') ?? '60')
+const GLOBAL_BUDGET = Number(Deno.env.get('LLM_GLOBAL_DAILY_BUDGET') ?? '5000')
 
 const SYSTEM_PROMPT = `You are FeelFlick's post-watch reflection writer.
 Write a single specific reflection question for someone who just watched a film.
@@ -64,9 +39,15 @@ Deno.serve(async (req: Request) => {
     return new Response('Unauthorized', { status: 401, headers })
   }
 
-  const ip = req.headers.get('x-forwarded-for') ?? 'anon'
-  if (!isAllowed(ip)) {
-    return new Response('Too Many Requests', { status: 429, headers })
+  // Durable per-caller rate limit + global budget (anon path). Denials degrade to the fallback
+  // question — never surfaced as an error.
+  const gateClient = anonClient()
+  if (gateClient) {
+    const callerKey = 'ip:' + hashIp(req.headers.get('x-forwarded-for') ?? 'anon')
+    const gate = await guardPublic(gateClient, { functionName: FN_NAME, callerKey, cooldownSecs: COOLDOWN_SECS, dailyCap: DAILY_CAP, globalCap: GLOBAL_BUDGET })
+    if (!gate.allowed) {
+      return new Response(JSON.stringify({ prompt: FALLBACK_PROMPT }), { status: 200, headers: { ...headers, 'Content-Type': 'application/json' } })
+    }
   }
 
   let tmdbId: number

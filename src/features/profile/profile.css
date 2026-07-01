@@ -66,6 +66,7 @@
 .ff-dna-hero__status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ff-dna-hero__title { margin: 20px 0 0; font-size: clamp(3.2rem, 7vw, 8.2rem); line-height: .87; letter-spacing: -.078em; font-weight: 640; text-wrap: balance; }
 .ff-dna-hero__title em { display: block; color: var(--text-2); font-style: normal; font-weight: 390; }
+.ff-dna-hero__title-dot { display: inline-block; font-size: .4em; vertical-align: .32em; margin-right: .16em; }
 .ff-dna-hero__line { margin: 27px 0 0; max-width: 640px; color: var(--text-2); font-size: clamp(1.1rem, 1.9vw, 1.45rem); line-height: 1.55; letter-spacing: -.02em; }
 .ff-dna-hero__prov { margin-top: 10px; color: var(--label); font-size: .8rem; }
 .ff-dna-hero__prov b { color: var(--rose); font-weight: 700; }

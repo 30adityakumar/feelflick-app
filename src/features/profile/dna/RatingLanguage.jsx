@@ -1,8 +1,9 @@
 // src/features/profile/dna/RatingLanguage.jsx
 // Response — how strongly you respond. Histogram of the canonical 1–10 ratings rendered as ten
-// 0.5★ buckets (the exact stored contract; never nine forced buckets). Below the minimum sample
-// it is factual + count-led (no behavioural interpretation); at the established sample it adds the
-// deterministic selectivity reading. No LLM, no fabricated metric.
+// buckets labelled on the stored 1–10 scale (the exact stored contract; never nine forced
+// buckets, never divided down to a 5-star scale). Below the minimum sample it is factual +
+// count-led (no behavioural interpretation); at the established sample it adds the deterministic
+// selectivity reading. No LLM, no fabricated metric.
 
 import { MIN_RATINGS_FOR_LANGUAGE } from '../derive/ratingLanguage'
 
@@ -53,20 +54,20 @@ export default function RatingLanguage({ ratingLanguage, subjectName = null }) {
                 <div className="ff-dna-hist__col" key={b.rating}>
                   <div className="ff-dna-hist__count">{b.count || ''}</div>
                   <div className="ff-dna-hist__bar" style={{ '--h': `${Math.max(3, (b.count / max) * 100)}%`, '--c': BUCKET_COLOR[i] }} />
-                  <div className="ff-dna-hist__label">{b.label}</div>
+                  <div className="ff-dna-hist__label">{b.rating}</div>
                 </div>
               ))}
             </div>
           </div>
           {rl.eligible ? (
             <aside className="ff-dna-rating__card">
-              <div className="ff-dna-rating__big">{rl.averageStars.toFixed(1)}</div>
+              <div className="ff-dna-rating__big">{rl.average.toFixed(1)}<span className="ff-dna-rating__big-suffix">/10</span></div>
               <div className="ff-dna-rating__stars" aria-hidden="true">{starString(rl.averageStars)}</div>
               <h3>{interpretText}</h3>
               <p>{generously} — measured across {rl.count} ratings, not from the average alone.</p>
               <div className="ff-dna-rating__facts">
-                <div className="ff-dna-rating__fact"><span>Five-star films</span><strong>{rl.fiveStarCount}</strong></div>
-                <div className="ff-dna-rating__fact"><span>Most-used rating</span><strong>{rl.modeStars}</strong></div>
+                <div className="ff-dna-rating__fact"><span>Perfect ratings</span><strong>{rl.fiveStarCount}</strong></div>
+                <div className="ff-dna-rating__fact"><span>Most-used rating</span><strong>{rl.mode}/10</strong></div>
               </div>
             </aside>
           ) : (
@@ -74,8 +75,8 @@ export default function RatingLanguage({ ratingLanguage, subjectName = null }) {
               <p className="ff-dna-eyebrow">Still calibrating</p>
               <p className="ff-dna-rating__count">{calibrating}</p>
               <div className="ff-dna-rating__facts">
-                <div className="ff-dna-rating__fact"><span>Five-star films</span><strong>{rl.fiveStarCount}</strong></div>
-                <div className="ff-dna-rating__fact"><span>Most-used rating</span><strong>{rl.modeStars}</strong></div>
+                <div className="ff-dna-rating__fact"><span>Perfect ratings</span><strong>{rl.fiveStarCount}</strong></div>
+                <div className="ff-dna-rating__fact"><span>Most-used rating</span><strong>{rl.mode}/10</strong></div>
               </div>
             </aside>
           )}

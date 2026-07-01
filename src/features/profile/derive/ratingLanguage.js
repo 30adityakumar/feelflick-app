@@ -16,8 +16,6 @@
 // Below this we present factual counts only (documented product threshold, not a guarantee).
 export const MIN_RATINGS_FOR_LANGUAGE = 8
 
-const STAR_LABELS = ['½', '1', '1½', '2', '2½', '3', '3½', '4', '4½', '5'] // index 0..9 → rating 1..10
-
 function isValidRating(r) {
   return Number.isInteger(r) && r >= 1 && r <= 10
 }
@@ -39,7 +37,7 @@ export function deriveRatingLanguage({ ratings = [] } = {}) {
   // Ten 0.5★ buckets (rating 1..10). count[i] = number of ratings whose stored value === i+1.
   const counts = Array.from({ length: 10 }, () => 0)
   for (const r of valid) counts[r - 1] += 1
-  const buckets = counts.map((c, i) => ({ rating: i + 1, stars: (i + 1) / 2, label: STAR_LABELS[i], count: c }))
+  const buckets = counts.map((c, i) => ({ rating: i + 1, stars: (i + 1) / 2, count: c }))
 
   const sum = valid.reduce((a, r) => a + r, 0)
   const averageRaw = sum / count // 1..10
@@ -76,11 +74,11 @@ export function deriveRatingLanguage({ ratings = [] } = {}) {
   // Concentration band for the factual summary line (where most ratings land).
   const sorted = [...valid].sort((a, b) => a - b)
   const q = (p) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]
-  const lo = STAR_LABELS[q(0.25) - 1]
-  const hi = STAR_LABELS[q(0.75) - 1]
+  const lo = q(0.25)
+  const hi = q(0.75)
   const summaryLine = lo === hi
-    ? `Most of your ratings land around ${hi} stars.`
-    : `Most ratings land between ${lo} and ${hi} stars.`
+    ? `Most of your ratings land around ${hi} out of 10.`
+    : `Most ratings land between ${lo} and ${hi} out of 10.`
 
   const interpret = {
     calibrating: 'Still calibrating.',

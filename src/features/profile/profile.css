@@ -115,6 +115,7 @@
 .ff-dna-hist__label { color: var(--text-2); font-size: .76rem; font-weight: 700; }
 .ff-dna-rating__card { background: radial-gradient(circle at 80% 16%, rgba(237,201,124,.10), transparent 35%), var(--surface); display: flex; flex-direction: column; }
 .ff-dna-rating__big { font-size: 5.6rem; line-height: .86; letter-spacing: -.08em; font-weight: 650; }
+.ff-dna-rating__big-suffix { font-size: .3em; font-weight: 500; letter-spacing: -.02em; color: var(--text-2); margin-left: .06em; }
 .ff-dna-rating__stars { margin-top: 13px; color: var(--amber-h); font-size: 1.2rem; letter-spacing: .12em; }
 .ff-dna-rating__card h3 { margin: 26px 0 0; font-size: 1.9rem; line-height: 1; letter-spacing: -.05em; }
 .ff-dna-rating__card p { margin: 14px 0 0; color: var(--text-2); font-size: .95rem; line-height: 1.6; }

@@ -18,8 +18,10 @@ test('owner reaches /profile (not bounced to landing) with the social profile ch
 })
 
 test('lowercase /dna redirects to the canonical /DNA portrait', async ({ page }) => {
-  await page.goto('/dna')
-  await page.waitForURL(/\/DNA(?:[/?#]|$)/, { timeout: 20_000 })
+  // waitUntil:'commit' returns as soon as the response is received, leaving the full
+  // 30 s budget for React to boot + fire the Navigate (Vite cold-start in CI is slow).
+  await page.goto('/dna', { waitUntil: 'commit' })
+  await page.waitForURL(/\/DNA(?:[/?#]|$)/, { timeout: 30_000 })
 })
 
 test('social-profile tab selection is deep-linkable and survives reload', async ({ page }) => {

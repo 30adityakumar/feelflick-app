@@ -37,7 +37,7 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
     await expect(page.getByText('16 watched')).toBeVisible()
     await expect(page.getByText('6 rated')).toBeVisible()
     await expect(page.getByText(/Evidence (still growing|taking shape|well established)/).first()).toBeVisible()
-    await expect(region.getByText(/\b\d{1,3}%/)).toHaveCount(0)                            // no exact accuracy %
+    await expect(page.locator('#dna-portrait').getByText(/\b\d{1,3}%/)).toHaveCount(0)      // no exact accuracy % in hero (DnaStats in #dna-numbers legitimately shows factual stats %)
     await expect(page.getByRole('progressbar')).toHaveCount(0)
     // no refresh affordance for a current reflection (sheet closed); zero side effects
     await expect(page.getByRole('button', { name: /generate reflection|refresh reflection/i })).toHaveCount(0)
@@ -195,12 +195,13 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
   })
 
   // M — private other-user route: no behavioral query for the target, no Edge/write
-  test('M — /DNA/:otherId is private, fetches nothing for the target', async ({ page }) => {
+  test('M — /DNA/:otherId fetches nothing for the target, shows no owner content', async ({ page }) => {
     const ledger = await installProfileFixture(page)
     await page.goto('/DNA/00000000-0000-0000-0000-000000000999')
-    await expect(h1(page)).toHaveText(/private/i)
-    await expect(h1(page)).toHaveCount(1)
-    await expect(page.getByRole('link', { name: /your cinematic dna/i })).toBeVisible()
+    // fixture aborts the public RPCs → ErrorState renders (not the owner's portrait)
+    await expect(h1(page)).toHaveCount(1, { timeout: 15_000 })
+    await expect(h1(page)).not.toContainText('The Watcher')    // owner archetype must not appear
+    await expect(page.getByRole('link', { name: /back to people/i })).toBeVisible()
     expect(ledger.readsFor('user_history')).toEqual([])
     expect(ledger.readsFor('user_ratings')).toEqual([])
     expect(ledger.readsFor('user_similarity')).toEqual([])

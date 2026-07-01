@@ -131,8 +131,8 @@ test.describe('Account — privacy', () => {
     await openAccount(page, 'privacy')
     await expect(page.getByRole('switch')).toHaveCount(11)
     await expect(page.getByRole('switch', { name: /taste-match discovery/i })).toHaveAttribute('aria-checked', 'false')
-    await expect(page.getByText(/name, avatar, your top film-taste tags and film count/i)).toBeVisible()
-    await expect(page.getByText(/watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private/i)).toBeVisible()
+    await expect(page.getByText(/name, avatar, archetype, top taste tags, how you rate/i)).toBeVisible()
+    await expect(page.getByText(/individual reviews, Diary notes and exact watch dates always stay private/i)).toBeVisible()
   })
 
   test('successful discovery save preserves the prefs branch', async ({ page }) => {

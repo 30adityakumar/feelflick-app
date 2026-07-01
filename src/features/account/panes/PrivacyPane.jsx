@@ -87,6 +87,49 @@ export default function PrivacyPane() {
         />
       </SettingGroup>
 
+      <SettingGroup title="Public DNA profile">
+        <SettingRow
+          label="Public DNA profile"
+          desc="When on, other signed-in members can open your cinematic social profile at /profile. Separate from taste-match discovery. Off by default. You can also edit this and each section from the Edit profile sheet on /profile."
+          end={(
+            <>
+              <SaveStatus status={status} onRetry={() => retrySection('privacy')} />
+              <SettingsSwitch
+                checked={!!p.profilePublic}
+                disabled={busy}
+                label={`${p.profilePublic ? 'Make private' : 'Make public'} DNA profile`}
+                onChange={(next) => updatePrivacy({ profilePublic: next })}
+              />
+            </>
+          )}
+        />
+        {[
+          ['filmsPublic', 'Show films'],
+          ['diaryPublic', 'Show diary'],
+          ['reviewsPublic', 'Show reviews'],
+          ['listsPublic', 'Show public lists'],
+          ['connectionsPublic', 'Show connections'],
+          ['viewingRhythmPublic', 'Show viewing rhythm (time of day)'],
+        ].map(([key, label]) => (
+          <SettingRow
+            key={key}
+            label={label}
+            desc="Only applies when your DNA profile is public."
+            end={(
+              <>
+                <SaveStatus status={status} onRetry={() => retrySection('privacy')} />
+                <SettingsSwitch
+                  checked={!!p[key]}
+                  disabled={busy || !p.profilePublic}
+                  label={`${p[key] ? 'Hide' : 'Show'} ${label}`}
+                  onChange={(next) => updatePrivacy({ [key]: next })}
+                />
+              </>
+            )}
+          />
+        ))}
+      </SettingGroup>
+
       <SettingGroup title="Analytics">
         <SettingRow
           label="Product analytics"

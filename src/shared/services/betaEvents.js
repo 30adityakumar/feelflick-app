@@ -36,6 +36,17 @@ export const EVENTS = Object.freeze({
   profile_reflection_refresh_succeeded: 'profile_reflection_refresh_succeeded',
   profile_reflection_refresh_failed: 'profile_reflection_refresh_failed',
   profile_forming_state_seen: 'profile_forming_state_seen',
+  // DNA social profile (/DNA) — non-PII surface events only (no target ids/names/handles/text)
+  dna_profile_viewed: 'dna_profile_viewed',
+  dna_profile_tab_changed: 'dna_profile_tab_changed',
+  dna_profile_edit_opened: 'dna_profile_edit_opened',
+  dna_profile_saved: 'dna_profile_saved',
+  dna_profile_follow_succeeded: 'dna_profile_follow_succeeded',
+  dna_profile_compare_opened: 'dna_profile_compare_opened',
+  dna_profile_shared: 'dna_profile_shared',
+  dna_profile_endorsed: 'dna_profile_endorsed',
+  dna_profile_review_liked: 'dna_profile_review_liked',
+  dna_profile_list_saved: 'dna_profile_list_saved',
   // People
   people_opened: 'people_opened',
   people_search_used: 'people_search_used',
@@ -57,6 +68,8 @@ const EVENT_NAMES = new Set(Object.values(EVENTS))
 // ── Payload key allow-list (everything else is dropped). All non-PII, non-freeform. ───────────
 export const ALLOWED_KEYS = new Set([
   'event_version', 'surface', 'source', 'step_key', 'reaction', 'placement',
+  // /DNA profile: which tab (short fixed vocabulary), and whether the viewer is the owner.
+  'tab', 'is_owner',
   // Discover redesign — non-PII enum-ish dimensions for the moment-tuned result:
   // which semantic direction a film occupied + why a session ended. Short fixed
   // vocabularies (closest/gentler/bolder/promoted; pool/cap; skip/watched).
@@ -118,6 +131,7 @@ export const queryLengthBucket = (len) =>
 // Order matters: the more specific /lists/curated|personal must run before the generic /lists/:id.
 const PATH_RULES = [
   [/^\/profile\/[^/]+/, '/profile/:id'],
+  [/^\/DNA\/[^/]+/i, '/DNA/:id'],
   [/^\/movie\/[^/]+/, '/movie/:id'],
   [/^\/collection\/[^/]+/, '/collection/:id'],
   [/^\/lists\/curated\/[^/]+/, '/lists/curated/:slug'],

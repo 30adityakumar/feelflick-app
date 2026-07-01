@@ -1,7 +1,7 @@
 // src/features/home/components/HomeDnaStrip.jsx
 // Compact Cinematic DNA strip that closes the Home recommendation experience.
 //
-// Deliberately NOT the former full-page DNA dashboard (that lives on /profile) —
+// Deliberately NOT the former full-page DNA dashboard (that lives on /DNA) —
 // it is the *teaser/bridge* into it: an honest, evolving one-liner whose wording
 // is proportional to how much evidence exists, a few real taste signals (recurring
 // tones + moods), an emerging lean set apart as developing, and a descriptive door
@@ -66,7 +66,7 @@ export default function HomeDnaStrip({ dna }) {
       )}
 
       <div className="ff-dna__door">
-        <Link to="/profile" className="ff-dna__cta">Open your Cinematic DNA</Link>
+        <Link to="/DNA" className="ff-dna__cta">Open your Cinematic DNA</Link>
         <span className="ff-dna__hint">See the evidence behind it.</span>
       </div>
     </section>

@@ -52,7 +52,7 @@ test.describe('Account — route + navigation (desktop)', () => {
 })
 
 test.describe('Account — profile summary', () => {
-  test('renders synthetic identity + Free plan, no stats, View DNA → /profile, photo unavailable, no storage call', async ({ page }) => {
+  test('renders synthetic identity + Free plan, no stats, View profile → /profile, photo unavailable, no storage call', async ({ page }) => {
     const ledger = await installAccountFixture(page)
     await openAccount(page)
     await expect(page.getByRole('heading', { level: 2, name: SYN.name })).toBeVisible()
@@ -62,7 +62,7 @@ test.describe('Account — profile summary', () => {
     await expect(page.getByText(/Founding Member|locked in/i)).toHaveCount(0)
     await expect(page.getByText(/films logged|hours watched/i)).toHaveCount(0)
     await expect(page.locator('.ff-acct-summary').getByText(/\d+%/)).toHaveCount(0)
-    await expect(page.getByRole('link', { name: 'View Cinematic DNA' })).toHaveAttribute('href', '/profile')
+    await expect(page.getByRole('link', { name: 'View profile' })).toHaveAttribute('href', '/profile')
     await openAccount(page, 'personal')
     await expect(page.getByText(/Photo changes are temporarily unavailable/i)).toBeVisible()
     expect(ledger.storageCalls, 'avatar editing disabled → no storage write').toEqual([])

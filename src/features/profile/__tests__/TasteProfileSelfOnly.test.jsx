@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 
-// F7.2 privacy containment (updated): /profile/:userId for another user now renders
+// F7.2 privacy containment (updated): /DNA/:userId for another user now renders
 // PublicDnaProfile (SECURITY DEFINER RPCs only) — NOT the self DNA hook.
 // The key security invariant is unchanged: useProfileDataFetch (owner-only table reads) is
 // NEVER called for a non-self user. Cross-user data flows through the public RPCs only.
@@ -34,8 +34,8 @@ import TasteProfile from '../TasteProfile'
 const renderAt = (path) => render(
   <MemoryRouter initialEntries={[path]}>
     <Routes>
-      <Route path="/profile" element={<TasteProfile />} />
-      <Route path="/profile/:userId" element={<TasteProfile />} />
+      <Route path="/DNA" element={<TasteProfile />} />
+      <Route path="/DNA/:userId" element={<TasteProfile />} />
     </Routes>
   </MemoryRouter>
 )
@@ -43,30 +43,30 @@ const renderAt = (path) => render(
 beforeEach(() => fetchSpy.mockClear())
 
 describe('TasteProfile — F7.2 privacy containment', () => {
-  it("another user's /profile/:userId renders PersonPublicProfile and NEVER calls the owner-only data hook", () => {
-    renderAt('/profile/other-1')
+  it("another user's /DNA/:userId renders PersonPublicProfile and NEVER calls the owner-only data hook", () => {
+    renderAt('/DNA/other-1')
     // The decisive security assertion: no cross-user history/ratings/similarity query ran via the owner-only hook
     expect(fetchSpy).not.toHaveBeenCalled()
     // PersonPublicProfile is rendered — shows the Back to People nav link
     expect(screen.getByRole('link', { name: /back to people/i })).toBeInTheDocument()
   })
 
-  it("the signed-in user's own /profile fetches self only (isSelf=true)", () => {
-    renderAt('/profile')
+  it("the signed-in user's own /DNA fetches self only (isSelf=true)", () => {
+    renderAt('/DNA')
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(fetchSpy).toHaveBeenCalledWith(expect.objectContaining({ userId: 'self-1', isSelf: true }))
     expect(screen.queryByText(/this profile is private/i)).not.toBeInTheDocument()
   })
 
-  it('/profile/:ownId (own id in the route param) is treated as self', () => {
-    renderAt('/profile/self-1')
+  it('/DNA/:ownId (own id in the route param) is treated as self', () => {
+    renderAt('/DNA/self-1')
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(fetchSpy).toHaveBeenCalledWith(expect.objectContaining({ userId: 'self-1', isSelf: true }))
     expect(screen.queryByText(/this profile is private/i)).not.toBeInTheDocument()
   })
 
   it('a fresh visit to another user (no prior self render) never calls the owner-only data hook', () => {
-    renderAt('/profile/other-2')
+    renderAt('/DNA/other-2')
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(screen.getByRole('link', { name: /back to people/i })).toBeInTheDocument()
   })

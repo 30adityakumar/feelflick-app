@@ -58,6 +58,7 @@ const ShareStudio = lazy(() => import('@/features/share/ShareCard'))
 const MoodBrowse = lazy(() => import('@/features/browse/MoodBrowse'))
 const Collection = lazy(() => import('@/features/browse/Collection'))
 const TasteProfile = lazy(() => import('@/features/profile/TasteProfile'))
+const DnaPage = lazy(() => import('@/features/dna/DnaPage'))
 const People = lazy(() => import('@/features/people/People'))
 const Lists = lazy(() => import('@/features/lists/Lists'))
 const ListDetail = lazy(() => import('@/features/lists/ListDetail'))
@@ -116,6 +117,13 @@ function LazyRoute({ Component }) {
   )
 }
 
+
+/** Canonicalize the lowercase /dna/:userId → /DNA/:userId, preserving id + query/hash. */
+function DnaLowercaseRedirect() {
+  const loc = useLocation()
+  const canonical = loc.pathname.replace(/^\/dna(?=\/|$)/, '/DNA')
+  return <Navigate to={`${canonical}${loc.search}${loc.hash}`} replace />
+}
 
 /** Root entry: if authed → /home, otherwise show Landing */
 function RootEntry() {
@@ -335,8 +343,15 @@ export const router = sentryCreateBrowserRouter([
                   { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },
                   { path: 'history', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
                   { path: 'watched', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
-                  { path: 'profile', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
-                  { path: 'profile/:userId', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+                  // /profile — the cinematic social profile (public, shareable, profilePublic-gated).
+                  { path: 'profile', element: <LazyRoute Component={DnaPage} />, errorElement: <ErrorBoundary /> },
+                  { path: 'profile/:userId', element: <LazyRoute Component={DnaPage} />, errorElement: <ErrorBoundary /> },
+                  // /DNA — the private Cinematic DNA portrait/dossier (owner-only; a non-owner's
+                  // /DNA/:userId renders the read-only PublicDnaProfile). /dna* canonicalizes here.
+                  { path: 'DNA', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+                  { path: 'DNA/:userId', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+                  { path: 'dna', element: <Navigate to="/DNA" replace /> },
+                  { path: 'dna/:userId', element: <DnaLowercaseRedirect /> },
                   { path: 'people', element: <LazyRoute Component={People} />, errorElement: <ErrorBoundary /> },
                   { path: 'lists', element: <LazyRoute Component={Lists} />, errorElement: <ErrorBoundary /> },
                   // Confirmed unfinished — redirect until shipped

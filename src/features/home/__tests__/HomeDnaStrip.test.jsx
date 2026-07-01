@@ -38,7 +38,7 @@ describe('HomeDnaStrip', () => {
     expect(container.textContent).toContain('Prestige drama')
     expect(screen.getByText(/still forming/)).toBeInTheDocument()
     // The door names its destination.
-    expect(screen.getByRole('link', { name: 'Open your Cinematic DNA' })).toHaveAttribute('href', '/profile')
+    expect(screen.getByRole('link', { name: 'Open your Cinematic DNA' })).toHaveAttribute('href', '/DNA')
   })
 
   it('headline is depth-aware: an onboarding-only profile never claims "keeps sharpening"', () => {

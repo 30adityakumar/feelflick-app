@@ -11,7 +11,7 @@ import { installProfileFixture } from '../fixtures/profile.js'
 
 const h1 = (page) => page.getByRole('heading', { level: 1 })
 async function openProfile(page) {
-  await page.goto('/profile')
+  await page.goto('/DNA')
   await expect(page.locator('#cinematic-dna-content')).toBeVisible({ timeout: 20_000 })
 }
 // The refresh affordance lives inside the Evidence sheet now.
@@ -195,9 +195,9 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
   })
 
   // M — private other-user route: no behavioral query for the target, no Edge/write
-  test('M — /profile/:otherId is private, fetches nothing for the target', async ({ page }) => {
+  test('M — /DNA/:otherId is private, fetches nothing for the target', async ({ page }) => {
     const ledger = await installProfileFixture(page)
-    await page.goto('/profile/00000000-0000-0000-0000-000000000999')
+    await page.goto('/DNA/00000000-0000-0000-0000-000000000999')
     await expect(h1(page)).toHaveText(/private/i)
     await expect(h1(page)).toHaveCount(1)
     await expect(page.getByRole('link', { name: /your cinematic dna/i })).toBeVisible()
@@ -212,7 +212,7 @@ test.describe('Cinematic DNA — authenticated, intercepted', () => {
   // N — safe error: sanitized copy with retry + Home, no raw backend text
   test('N — load error renders sanitized copy with retry + Home, no raw text', async ({ page }) => {
     const ledger = await installProfileFixture(page, { mode: 'load_error' })
-    await page.goto('/profile')
+    await page.goto('/DNA')
     await expect(page.getByRole('alert')).toBeVisible({ timeout: 20_000 })
     await expect(h1(page)).toHaveText(/couldn’t load your cinematic dna/i)
     await expect(page.getByText(/relation does not exist|raw technical detail|42P01/i)).toHaveCount(0)

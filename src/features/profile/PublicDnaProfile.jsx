@@ -1,5 +1,5 @@
 // src/features/profile/PublicDnaProfile.jsx
-// Full, read-only Cinematic DNA portrait for /profile/:userId (another user).
+// Full, read-only Cinematic DNA portrait for /DNA/:userId (another user).
 // Renders the SAME sections the owner sees on their own /profile — archetype hero, Response
 // (rating language), Journey (taste over time), Voices (directors) — plus the social sections
 // (history, watchlist, lists) and a Follow control.
@@ -27,7 +27,6 @@ import { deriveTasteJourney } from './derive/tasteJourney'
 import { archetypeForFingerprint } from './archetype'
 import { resolveDnaIdentity } from './dna/identity'
 import CinematicDnaHero from './dna/CinematicDnaHero'
-import DnaSectionNav from './dna/DnaSectionNav'
 import RatingLanguage from './dna/RatingLanguage'
 import TasteJourney from './dna/TasteJourney'
 import DirectorInfluence from './dna/DirectorInfluence'
@@ -218,14 +217,6 @@ function DnaContent({ targetId, profile, raw, tasteRows, dnaPrivate }) {
   const data = !dnaPrivate && raw ? buildDnaData(raw, tasteRows) : null
   const identity = data ? resolveDnaIdentity(data, subjectName) : null
 
-  // Section nav (no Passport on the read-only view — passport visual lives in the hero).
-  const downstream = identity && !identity.forming ? [
-    data.ratingLanguage ? { id: 'dna-response', label: 'Response' } : null,
-    Array.isArray(data.journey) && data.journey.length >= 2 ? { id: 'dna-journey', label: 'Journey' } : null,
-    Array.isArray(data.directors) && data.directors.length > 0 ? { id: 'dna-voices', label: 'Voices' } : null,
-  ].filter(Boolean) : []
-  const navItems = downstream.length > 0 ? [{ id: 'dna-portrait', label: 'Portrait' }, ...downstream] : []
-
   const portraitUnavailable = dnaPrivate
     ? `${subjectName} keeps their Cinematic DNA private.`
     : identity?.forming
@@ -251,7 +242,6 @@ function DnaContent({ targetId, profile, raw, tasteRows, dnaPrivate }) {
             onScrollTo={scrollToSection}
             subjectName={subjectName}
           />
-          {navItems.length > 0 ? <DnaSectionNav items={navItems} /> : null}
           <RatingLanguage ratingLanguage={data.ratingLanguage} subjectName={subjectName} />
           <TasteJourney journey={data.journey} subjectName={subjectName} />
           <DirectorInfluence directors={data.directors} subjectName={subjectName} />

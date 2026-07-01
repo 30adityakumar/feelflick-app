@@ -63,10 +63,10 @@ vi.mock('@/features/people/hooks/usePersonPublicProfile', () => ({
 
 import PublicDnaProfile from '../PublicDnaProfile'
 
-const renderAt = (path = '/profile/other-1') => render(
+const renderAt = (path = '/DNA/other-1') => render(
   <MemoryRouter initialEntries={[path]}>
     <Routes>
-      <Route path="/profile/:userId" element={<PublicDnaProfile />} />
+      <Route path="/DNA/:userId" element={<PublicDnaProfile />} />
     </Routes>
   </MemoryRouter>
 )

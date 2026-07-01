@@ -235,6 +235,24 @@ export function deriveTrajectoryAllTime({ history }) {
     })
 }
 
+// "This year" view — one bar per month of the CURRENT calendar year, through the current month
+// only (never a future month). Used by the "by the numbers" stats section's year toggle.
+export function deriveTrajectoryYear({ history }, now = new Date()) {
+  const year = now.getFullYear()
+  const currentMonth = now.getMonth()
+  const buckets = []
+  for (let mo = 0; mo <= currentMonth; mo++) buckets.push({ label: MONTH_LABELS[mo], count: 0 })
+  for (const h of history) {
+    if (!h.watched_at) continue
+    const d = new Date(h.watched_at)
+    if (d.getFullYear() !== year) continue
+    const mo = d.getMonth()
+    if (mo > currentMonth) continue
+    buckets[mo].count += 1
+  }
+  return buckets
+}
+
 // === DECADES (% of watched films per decade) ===
 
 export function deriveDecades({ history }) {

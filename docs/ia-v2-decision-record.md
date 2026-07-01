@@ -17,6 +17,18 @@
 >
 > **Date:** 2026-06-03 · **Status:** implemented in F2.
 
+> **⇄ Addendum — DNA/profile route swap (later, uncommitted).** The URLs for the two
+> Cinematic-DNA surfaces were **swapped** so each address matches what the page *is*:
+> **`/DNA` (+ `/DNA/:userId`) now serves the private Cinematic DNA portrait/dossier**
+> (`TasteProfile`), and **`/profile` (+ `/profile/:userId`) now serves the public,
+> shareable cinematic social profile** (`DnaPage`). The primary "DNA" nav tab keeps its
+> label and still points at `/DNA` (now the portrait); the social profile is reached from
+> the account menu ("View profile"), connections, and share links. Privacy is unchanged —
+> each page branches self-vs-visitor on the `:userId` param and is backed by owner-only
+> RLS + profilePublic-/dnaPrivate-gated RPCs, all of which travel with the component, not
+> the URL. This reverses the "DNA → social, /profile → dossier" mapping described in the
+> body below.
+
 ---
 
 ## 1. Current problem

@@ -74,7 +74,7 @@ describe('Doctrine — one-way follow, no friendship/feed/public-profile, no dea
   })
   it('cards link to /profile/:id (not /dna/:id), no "View Cinematic DNA" button', () => {
     expect(allComponentSrc).not.toMatch(/View Cinematic DNA|View profile/)
-    // Cards now link to /profile/:id — the existing DNA profile page
+    // Cards now link to /profile/:id — the cinematic social profile page
     expect(cardSrc).toMatch(/\/profile\//)
   })
   it('no Feed / Activity / Popular / public-rating copy', () => {

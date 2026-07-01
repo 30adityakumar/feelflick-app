@@ -1,5 +1,5 @@
 // Fetches another user's identity + Cinematic DNA detail via SECURITY DEFINER RPCs (no direct
-// owner-only table reads). Powers the full read-only portrait on /profile/:userId.
+// owner-only table reads). Powers the full read-only portrait on /DNA/:userId.
 //
 //   status: 'loading' | 'ok' | 'private' | 'error'
 //     ok       — DNA shared; render the full portrait

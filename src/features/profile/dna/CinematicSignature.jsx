@@ -13,12 +13,14 @@
 
 import { MIN_GENRED_FILMS_FOR_GENRE_BARS } from '../derive'
 
+const MOOD_RADAR_MAX = 5
 const MIN_MOODS_FOR_RADAR = 3
 const MIN_TAGS_FOR_CLOUD = 4
 const TONE_CLOUD_MAX = 10
 
 const RADAR_PALETTE = ['var(--rose-h)', 'var(--amber-h)', 'var(--blue-h)', 'var(--violet-h)', 'var(--mint-h)']
 const GENRE_PALETTE = ['var(--rose-h)', 'var(--blue-h)', 'var(--amber-h)', 'var(--mint-h)', 'var(--violet-h)']
+const TONE_PALETTE = ['var(--rose-h)', 'var(--amber-h)', 'var(--blue-h)', 'var(--violet-h)', 'var(--mint-h)']
 
 const moodRank = (i) => (i === 0 ? 'strongest signal' : i < 3 ? 'strong signal' : 'developing signal')
 
@@ -41,35 +43,49 @@ function polygonPoints(n, fracR, cx, cy, R) {
 }
 
 function MoodRadar({ moods, Poss }) {
-  if (moods.length < MIN_MOODS_FOR_RADAR) {
+  const shown = moods.slice(0, MOOD_RADAR_MAX)
+  if (shown.length < MIN_MOODS_FOR_RADAR) {
     return (
       <p className="ff-dna-signature__calibrating">
-        A shape of {Poss.toLowerCase()} mood signature appears once a few more distinct moods show up. So far: {moods.length} of {MIN_MOODS_FOR_RADAR} moods needed.
+        A shape of {Poss.toLowerCase()} mood signature appears once a few more distinct moods show up. So far: {shown.length} of {MIN_MOODS_FOR_RADAR} moods needed.
       </p>
     )
   }
-  const n = moods.length
+  const n = shown.length
   const cx = 160, cy = 160, R = 120
-  const dataPts = moods.map((m, i) => radarPoint(i, n, Math.max(0.06, Math.min(1, m.weight)), cx, cy, R))
-  const top3 = moods.slice(0, 3).map((m) => m.name).join(', ')
+  const dataPts = shown.map((m, i) => radarPoint(i, n, Math.max(0.06, Math.min(1, m.weight)), cx, cy, R))
+  const top3 = shown.slice(0, 3).map((m) => m.name).join(', ')
   return (
     <>
       <figure className="ff-dna-radar" aria-labelledby="ff-dna-signature-h2" aria-describedby="ff-dna-radar-summary">
         {/* viewBox extends beyond the 320x320 chart geometry (cx/cy stay 160,160) so long axis
             labels — e.g. "Heartwarming" — have room to render without clipping at the card edge. */}
         <svg aria-hidden="true" viewBox="-50 -10 420 340" className="ff-dna-radar__svg">
+          <defs>
+            <linearGradient id="ffDnaRadarFill" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="var(--violet-h)" stopOpacity=".4" />
+              <stop offset="100%" stopColor="var(--rose-h)" stopOpacity=".16" />
+            </linearGradient>
+          </defs>
           {[0.25, 0.5, 0.75, 1].map((frac) => (
             <polygon key={frac} points={polygonPoints(n, frac, cx, cy, R)} className="ff-dna-radar__grid" />
           ))}
-          {moods.map((m, i) => {
+          {shown.map((m, i) => {
             const p = radarPoint(i, n, 1, cx, cy, R)
             return <line key={m.name} x1={cx} y1={cy} x2={p.x} y2={p.y} className="ff-dna-radar__spoke" />
           })}
           <polygon points={dataPts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')} className="ff-dna-radar__shape" />
           {dataPts.map((p, i) => (
-            <circle key={moods[i].name} cx={p.x} cy={p.y} r="5" className="ff-dna-radar__dot-svg" style={{ '--c': RADAR_PALETTE[i % RADAR_PALETTE.length] }} />
+            <circle
+              key={shown[i].name}
+              cx={p.x}
+              cy={p.y}
+              r={i === 0 ? 7 : 5}
+              className="ff-dna-radar__dot-svg"
+              style={{ '--c': RADAR_PALETTE[i % RADAR_PALETTE.length] }}
+            />
           ))}
-          {moods.map((m, i) => {
+          {shown.map((m, i) => {
             const p = radarPoint(i, n, 1, cx, cy, R)
             const labelR = R + 26
             const lx = cx + labelR * Math.cos(p.angle)
@@ -77,19 +93,28 @@ function MoodRadar({ moods, Poss }) {
             const cos = Math.cos(p.angle), sin = Math.sin(p.angle)
             const anchor = cos > 0.3 ? 'start' : cos < -0.3 ? 'end' : 'middle'
             const dy = sin > 0.3 ? '.9em' : sin < -0.3 ? '-.3em' : '.35em'
-            return <text key={m.name} x={lx} y={ly} textAnchor={anchor} dy={dy} className="ff-dna-radar__label">{m.name}</text>
+            return (
+              <text
+                key={m.name}
+                x={lx}
+                y={ly}
+                textAnchor={anchor}
+                dy={dy}
+                className={i === 0 ? 'ff-dna-radar__label ff-dna-radar__label--top' : 'ff-dna-radar__label'}
+              >
+                {m.name}
+              </text>
+            )
           })}
         </svg>
       </figure>
       <p id="ff-dna-radar-summary" className="ff-dna-radar__summary">{Poss} strongest mood signals are {top3}.</p>
-      <ol className="ff-dna-radar__list">
-        {moods.map((m, i) => (
-          <li key={m.name}>
-            <span aria-hidden="true" className="ff-dna-radar__dot" style={{ '--c': RADAR_PALETTE[i % RADAR_PALETTE.length] }} />
-            <span className="ff-dna-radar__name">{m.name}</span>
-            <span className="ff-dna-radar__count">· {m.count} film{m.count === 1 ? '' : 's'}</span>
-            <span className="ff-dna-radar__rank">{moodRank(i)}</span>
-          </li>
+      {/* Full per-mood detail (name, film count, rank) stays available to assistive tech — the
+          chart + one summary sentence carry the visible surface so the card reads as one clean
+          shape instead of a chart followed by a second, redundant list restating it. */}
+      <ol className="sr-only">
+        {shown.map((m, i) => (
+          <li key={m.name}>{m.name} — {moodRank(i)}, {m.count} film{m.count === 1 ? '' : 's'}</li>
         ))}
       </ol>
     </>
@@ -111,13 +136,14 @@ function GenreBars({ genres, subjectName }) {
       </p>
     )
   }
+  const maxPct = Math.max(...genres.genres.map((entry) => entry.pct))
   return (
-    <div className="ff-dna-genre" role="img" aria-label={`Top genres: ${genres.genres.map((g) => `${g.genre} ${g.pct}%`).join(', ')}`}>
+    <div className="ff-dna-genrebar" role="img" aria-label={`Top genres: ${genres.genres.map((g) => `${g.genre} ${g.pct}%`).join(', ')}`}>
       {genres.genres.map((g, i) => (
-        <div className="ff-dna-genre__row" key={g.genre}>
-          <div className="ff-dna-genre__name">{g.genre}</div>
-          <div className="ff-dna-genre__track"><div className="ff-dna-genre__fill" style={{ '--v': `${g.pct}%`, '--c': GENRE_PALETTE[i % GENRE_PALETTE.length] }} /></div>
-          <div className="ff-dna-genre__value">{g.pct}%<span>{g.count} film{g.count === 1 ? '' : 's'}</span></div>
+        <div className="ff-dna-genrebar__col" key={g.genre}>
+          <div className="ff-dna-genrebar__value">{g.pct}%</div>
+          <div className="ff-dna-genrebar__bar" style={{ '--h': `${Math.max(4, (g.pct / maxPct) * 100)}%`, '--c': GENRE_PALETTE[i % GENRE_PALETTE.length] }} />
+          <div className="ff-dna-genrebar__label">{g.genre}<span>{g.count} film{g.count === 1 ? '' : 's'}</span></div>
         </div>
       ))}
     </div>
@@ -135,20 +161,27 @@ function ToneCloud({ motifs, Poss }) {
   const shown = motifs.slice(0, TONE_CLOUD_MAX)
   return (
     <div className="ff-dna-tonecloud" role="img" aria-label={`Signature tones: ${shown.map((m) => `${m.tag} ${Math.round(m.w * 100)}%`).join(', ')}`}>
-      {shown.map((m) => (
-        <span
-          key={m.tag}
-          className="ff-dna-tonechip"
-          style={{
-            fontSize: `${(0.82 + m.w * 0.62).toFixed(2)}rem`,
-            fontWeight: m.w > 0.66 ? 720 : m.w > 0.33 ? 600 : 500,
-            color: m.w > 0.66 ? 'var(--text)' : 'var(--text-2)',
-          }}
-          title={`${m.tag} — ${Math.round(m.w * 100)}% relative weight`}
-        >
-          {m.tag}
-        </span>
-      ))}
+      {shown.map((m, i) => {
+        const hue = TONE_PALETTE[i % TONE_PALETTE.length]
+        // Weight is conveyed three ways at once — size, color saturation (vivid hue at high
+        // weight fading to muted gray at low weight), and font-weight — never by size alone.
+        const tilt = (i % 2 === 0 ? -1 : 1) * (2 + (i % 3) * 2)
+        return (
+          <span
+            key={m.tag}
+            className="ff-dna-tonechip"
+            style={{
+              fontSize: `${(0.78 + m.w * 1.5).toFixed(2)}rem`,
+              fontWeight: m.w > 0.66 ? 760 : m.w > 0.33 ? 600 : 500,
+              color: `color-mix(in srgb, ${hue} ${Math.round(20 + m.w * 80)}%, var(--text-3))`,
+              transform: `rotate(${tilt}deg)`,
+            }}
+            title={`${m.tag} — ${Math.round(m.w * 100)}% relative weight`}
+          >
+            {m.tag}
+          </span>
+        )
+      })}
     </div>
   )
 }

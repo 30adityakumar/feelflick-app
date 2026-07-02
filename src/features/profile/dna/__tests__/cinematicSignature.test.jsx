@@ -12,6 +12,9 @@ const MOODS_2 = [mood('Bittersweet', 0.8), mood('Tense', 0.6)]
 const GENRES_ELIGIBLE = deriveTopGenres({ history: [...Array(5).fill(g('Drama')), ...Array(3).fill(g('Comedy'))] })
 const GENRES_SINGLE = deriveTopGenres({ history: Array(6).fill(g('Drama')) })
 const GENRES_THIN = deriveTopGenres({ history: [g('Drama'), g('Comedy')] })
+const GENRES_SIX = deriveTopGenres({
+  history: [...Array(6).fill(g('A')), ...Array(5).fill(g('B')), ...Array(4).fill(g('C')), ...Array(3).fill(g('D')), ...Array(2).fill(g('E')), ...Array(1).fill(g('F'))],
+})
 const TONES_4 = [tone('Restrained', 1), tone('Patient', 0.7), tone('Brooding', 0.4), tone('Dry', 0.2)]
 const TONES_3 = [tone('Restrained', 1), tone('Patient', 0.7), tone('Brooding', 0.4)]
 const TONES_12 = Array.from({ length: 12 }, (_, i) => tone(`Tone${i}`, 1 - i * 0.08))
@@ -80,31 +83,38 @@ describe('CinematicSignature — genre bars', () => {
     render(<CinematicSignature moods={[]} genres={GENRES_THIN} motifs={[]} />)
     expect(screen.getByText(/genre-tagged films needed/i)).toBeInTheDocument()
   })
+
+  it('caps at GENRE_BARS_MAX (4) when more genres are eligible', () => {
+    render(<CinematicSignature moods={[]} genres={GENRES_SIX} motifs={[]} />)
+    expect(screen.getByText('A')).toBeInTheDocument()
+    expect(screen.getByText('D')).toBeInTheDocument()
+    expect(screen.queryByText('E')).not.toBeInTheDocument()
+    expect(screen.queryByText('F')).not.toBeInTheDocument()
+  })
 })
 
-describe('CinematicSignature — tone cloud', () => {
-  it('renders the real cloud at >=4 tags: aria-label sentence contains each tag + %', () => {
+describe('CinematicSignature — tone ring', () => {
+  it('renders the real ring at >=4 tags: aria-label sentence contains each tag + %, center shows the strongest tone', () => {
     render(<CinematicSignature moods={[]} genres={null} motifs={TONES_4} />)
-    const cloud = screen.getByRole('img', { name: /signature tones:/i })
-    expect(cloud).toHaveAccessibleName(/restrained 100%/i)
-    expect(cloud).toHaveAccessibleName(/dry 20%/i)
+    const ring = screen.getByRole('img', { name: /signature tones:/i })
+    expect(ring).toHaveAccessibleName(/restrained 43%/i)
+    expect(ring).toHaveAccessibleName(/dry 9%/i)
+    expect(screen.getByText('Restrained', { selector: 'strong' })).toBeInTheDocument()
+    expect(screen.getByText('strongest tone')).toBeInTheDocument()
   })
 
-  it('scales chip size with weight (highest-weight chip is visually larger than the lowest)', () => {
+  it('renders a legend row per shown tone, in rank order', () => {
     render(<CinematicSignature moods={[]} genres={null} motifs={TONES_4} />)
-    const highest = screen.getByText('Restrained')
-    const lowest = screen.getByText('Dry')
-    const highestSize = parseFloat(highest.style.fontSize)
-    const lowestSize = parseFloat(lowest.style.fontSize)
-    expect(highestSize).toBeGreaterThan(lowestSize)
+    const legend = document.querySelector('.ff-dna-tonering__legend')
+    expect(legend.textContent.indexOf('Restrained')).toBeLessThan(legend.textContent.indexOf('Dry'))
   })
 
-  it('bounds the cloud to 10 chips when fed 12 motifs', () => {
+  it('bounds the ring to TONE_RING_MAX (6) when fed 12 motifs', () => {
     render(<CinematicSignature moods={[]} genres={null} motifs={TONES_12} />)
-    expect(screen.getByText('Tone0')).toBeInTheDocument()
-    expect(screen.getByText('Tone9')).toBeInTheDocument()
-    expect(screen.queryByText('Tone10')).not.toBeInTheDocument()
-    expect(screen.queryByText('Tone11')).not.toBeInTheDocument()
+    expect(screen.getByText('Tone0', { selector: '.ff-dna-tonering__item span' })).toBeInTheDocument()
+    expect(screen.getByText('Tone5', { selector: '.ff-dna-tonering__item span' })).toBeInTheDocument()
+    expect(screen.queryByText('Tone6', { selector: '.ff-dna-tonering__item span' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Tone11', { selector: '.ff-dna-tonering__item span' })).not.toBeInTheDocument()
   })
 
   it('shows the calibrating fallback below 4 tags', () => {

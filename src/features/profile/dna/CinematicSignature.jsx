@@ -1,26 +1,27 @@
 // src/features/profile/dna/CinematicSignature.jsx
-// Three views of the same taste: mood signature (radar), top genre (ranked bars), and
-// signature tones (weighted cloud). Fulfills the original, never-shipped "radar" intent left
-// in derive.js's own comments (deriveMoods), and finally gives deriveMotifs (tone tags) a home
-// — both were already computed but unrendered anywhere on /DNA before this section.
+// Three coequal views of the same taste, in a symmetric 3-column grid: mood signature (radar),
+// top genre (vertical bars), signature tones (ring). Fulfills the original, never-shipped
+// "radar" intent left in derive.js's own comments (deriveMoods), and finally gives deriveMotifs
+// (tone tags) a home — both were already computed but unrendered anywhere on /DNA before this
+// section.
 //
-// Deliberately three different chart techniques so the section explores different
-// visualizations rather than repeating one bar-chart grammar three times. All pure SVG/CSS,
-// no charting library, matching this codebase's convention. Colors are a local, muted hue
-// cycle (--rose-h/--amber-h/--blue-h/--violet-h/--mint-h) — not the bright MOOD_PALETTE used
-// elsewhere in derive.js, and never --accent (coral), which stays reserved for marks/links/
-// progress rather than chart-body atmosphere.
+// Each facet has its OWN anchor hue (mood = violet, genre = blue, tone = amber) with tonal
+// variation (color-mix) WITHIN a card, rather than all three charts cycling the same 5-hue
+// rainbow — a coherent per-card identity instead of arbitrary decoration. Never --accent
+// (coral), which stays reserved for marks/links/progress rather than chart-body atmosphere.
+// All pure SVG/CSS, no charting library, matching this codebase's convention.
 
 import { MIN_GENRED_FILMS_FOR_GENRE_BARS } from '../derive'
 
 const MOOD_RADAR_MAX = 5
 const MIN_MOODS_FOR_RADAR = 3
+const GENRE_BARS_MAX = 4
 const MIN_TAGS_FOR_CLOUD = 4
-const TONE_CLOUD_MAX = 10
+const TONE_RING_MAX = 6
 
-const RADAR_PALETTE = ['var(--rose-h)', 'var(--amber-h)', 'var(--blue-h)', 'var(--violet-h)', 'var(--mint-h)']
-const GENRE_PALETTE = ['var(--rose-h)', 'var(--blue-h)', 'var(--amber-h)', 'var(--mint-h)', 'var(--violet-h)']
-const TONE_PALETTE = ['var(--rose-h)', 'var(--amber-h)', 'var(--blue-h)', 'var(--violet-h)', 'var(--mint-h)']
+const MOOD_HUE = 'var(--violet-h)'
+const GENRE_HUE = 'var(--blue-h)'
+const TONE_HUE = 'var(--amber-h)'
 
 const moodRank = (i) => (i === 0 ? 'strongest signal' : i < 3 ? 'strong signal' : 'developing signal')
 
@@ -63,8 +64,8 @@ function MoodRadar({ moods, Poss }) {
         <svg aria-hidden="true" viewBox="-50 -10 420 340" className="ff-dna-radar__svg">
           <defs>
             <linearGradient id="ffDnaRadarFill" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="var(--violet-h)" stopOpacity=".4" />
-              <stop offset="100%" stopColor="var(--rose-h)" stopOpacity=".16" />
+              <stop offset="0%" stopColor={MOOD_HUE} stopOpacity=".38" />
+              <stop offset="100%" stopColor={MOOD_HUE} stopOpacity=".1" />
             </linearGradient>
           </defs>
           {[0.25, 0.5, 0.75, 1].map((frac) => (
@@ -82,7 +83,7 @@ function MoodRadar({ moods, Poss }) {
               cy={p.y}
               r={i === 0 ? 7 : 5}
               className="ff-dna-radar__dot-svg"
-              style={{ '--c': RADAR_PALETTE[i % RADAR_PALETTE.length] }}
+              style={{ '--c': `color-mix(in srgb, ${MOOD_HUE} ${85 - i * 14}%, var(--text-3))` }}
             />
           ))}
           {shown.map((m, i) => {
@@ -136,13 +137,17 @@ function GenreBars({ genres, subjectName }) {
       </p>
     )
   }
-  const maxPct = Math.max(...genres.genres.map((entry) => entry.pct))
+  const shown = genres.genres.slice(0, GENRE_BARS_MAX)
+  const maxPct = Math.max(...shown.map((entry) => entry.pct))
   return (
-    <div className="ff-dna-genrebar" role="img" aria-label={`Top genres: ${genres.genres.map((g) => `${g.genre} ${g.pct}%`).join(', ')}`}>
-      {genres.genres.map((g, i) => (
+    <div className="ff-dna-genrebar" role="img" aria-label={`Top genres: ${shown.map((g) => `${g.genre} ${g.pct}%`).join(', ')}`}>
+      {shown.map((g) => (
         <div className="ff-dna-genrebar__col" key={g.genre}>
           <div className="ff-dna-genrebar__value">{g.pct}%</div>
-          <div className="ff-dna-genrebar__bar" style={{ '--h': `${Math.max(4, (g.pct / maxPct) * 100)}%`, '--c': GENRE_PALETTE[i % GENRE_PALETTE.length] }} />
+          <div
+            className="ff-dna-genrebar__bar"
+            style={{ '--h': `${Math.max(4, (g.pct / maxPct) * 100)}%`, '--c': `color-mix(in srgb, ${GENRE_HUE} ${30 + Math.round((g.pct / maxPct) * 65)}%, var(--text-3))` }}
+          />
           <div className="ff-dna-genrebar__label">{g.genre}<span>{g.count} film{g.count === 1 ? '' : 's'}</span></div>
         </div>
       ))}
@@ -150,38 +155,40 @@ function GenreBars({ genres, subjectName }) {
   )
 }
 
-function ToneCloud({ motifs, Poss }) {
+function ToneRing({ motifs, Poss }) {
   if (motifs.length < MIN_TAGS_FOR_CLOUD) {
     return (
       <p className="ff-dna-signature__calibrating">
-        A cloud of {Poss.toLowerCase()} recurring tones appears once a few more tone-tagged films build up. So far: {motifs.length} of {MIN_TAGS_FOR_CLOUD} distinct tones.
+        A shape of {Poss.toLowerCase()} recurring tones appears once a few more tone-tagged films build up. So far: {motifs.length} of {MIN_TAGS_FOR_CLOUD} distinct tones.
       </p>
     )
   }
-  const shown = motifs.slice(0, TONE_CLOUD_MAX)
+  const shown = motifs.slice(0, TONE_RING_MAX)
+  const totalW = shown.reduce((s, m) => s + m.w, 0)
+  let acc = 0
+  const stops = shown.map((m, i) => {
+    const from = acc
+    const share = totalW > 0 ? (m.w / totalW) * 100 : 0
+    acc += share
+    const color = `color-mix(in srgb, ${TONE_HUE} ${85 - i * 10}%, var(--text-3))`
+    return { tag: m.tag, from, to: acc, color, pct: Math.round(share) }
+  })
+  const gradientStr = stops.map((s) => `${s.color} ${s.from}% ${s.to}%`).join(', ')
+  const top = shown[0]
   return (
-    <div className="ff-dna-tonecloud" role="img" aria-label={`Signature tones: ${shown.map((m) => `${m.tag} ${Math.round(m.w * 100)}%`).join(', ')}`}>
-      {shown.map((m, i) => {
-        const hue = TONE_PALETTE[i % TONE_PALETTE.length]
-        // Weight is conveyed three ways at once — size, color saturation (vivid hue at high
-        // weight fading to muted gray at low weight), and font-weight — never by size alone.
-        const tilt = (i % 2 === 0 ? -1 : 1) * (2 + (i % 3) * 2)
-        return (
-          <span
-            key={m.tag}
-            className="ff-dna-tonechip"
-            style={{
-              fontSize: `${(0.78 + m.w * 1.5).toFixed(2)}rem`,
-              fontWeight: m.w > 0.66 ? 760 : m.w > 0.33 ? 600 : 500,
-              color: `color-mix(in srgb, ${hue} ${Math.round(20 + m.w * 80)}%, var(--text-3))`,
-              transform: `rotate(${tilt}deg)`,
-            }}
-            title={`${m.tag} — ${Math.round(m.w * 100)}% relative weight`}
-          >
-            {m.tag}
-          </span>
-        )
-      })}
+    <div className="ff-dna-tonering" role="img" aria-label={`Signature tones: ${stops.map((s) => `${s.tag} ${s.pct}%`).join(', ')}`}>
+      <div className="ff-dna-tonering__ring" style={{ '--_ring': `conic-gradient(${gradientStr})` }} aria-hidden="true">
+        <div className="ff-dna-tonering__center"><strong>{top.tag}</strong><span>strongest tone</span></div>
+      </div>
+      <div className="ff-dna-tonering__legend">
+        {stops.map((s) => (
+          <div className="ff-dna-tonering__item" key={s.tag}>
+            <i style={{ '--_c': s.color }} />
+            <span>{s.tag}</span>
+            <b>{s.pct}%</b>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -201,7 +208,7 @@ export default function CinematicSignature({ moods = [], genres = null, motifs =
           <p>Three views of the same taste — the moods {pronoun} return to, the genres {pronoun} favor, and the tones that recur.</p>
         </div>
         <div className="ff-dna-signature">
-          <article className="ff-dna-signature__card ff-dna-signature__mood">
+          <article className="ff-dna-signature__card ff-dna-signature__mood" style={{ '--facet': MOOD_HUE }}>
             <div className="ff-dna-signature__head">
               <small>Mood signature</small>
               <h3>The moods {pronoun} return to.</h3>
@@ -209,7 +216,7 @@ export default function CinematicSignature({ moods = [], genres = null, motifs =
             </div>
             <MoodRadar moods={moods} Poss={Poss} />
           </article>
-          <article className="ff-dna-signature__card ff-dna-signature__genre">
+          <article className="ff-dna-signature__card ff-dna-signature__genre" style={{ '--facet': GENRE_HUE }}>
             <div className="ff-dna-signature__head">
               <small>Top genre</small>
               <h3>What {pronoun} watch most.</h3>
@@ -217,13 +224,13 @@ export default function CinematicSignature({ moods = [], genres = null, motifs =
             </div>
             <GenreBars genres={genres} subjectName={subjectName} />
           </article>
-          <article className="ff-dna-signature__card ff-dna-signature__tone">
+          <article className="ff-dna-signature__card ff-dna-signature__tone" style={{ '--facet': TONE_HUE }}>
             <div className="ff-dna-signature__head">
               <small>Signature tones</small>
               <h3>The tones that recur.</h3>
               <p>Sized by how often each tone appears, relative to {Poss.toLowerCase()} strongest one.</p>
             </div>
-            <ToneCloud motifs={motifs} Poss={Poss} />
+            <ToneRing motifs={motifs} Poss={Poss} />
           </article>
         </div>
       </div>

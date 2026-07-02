@@ -140,7 +140,7 @@ function SelfProfile({ authUser }) {
       )}
 
       <footer className="ff-dna-footer">
-        <div className="ff-dna__shell" style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', width: '100%' }}>
+        <div className="ff-dna__shell" style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <span>Cinematic DNA · Private to you</span>
           <span><a href="/home">Tonight</a> · <a href="/browse">Browse</a></span>
         </div>

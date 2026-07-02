@@ -333,6 +333,7 @@
   .dna-listgrid { grid-template-columns: 1fr; }
   .dna__section-head { grid-template-columns: 1fr; gap: 14px; }
   .dna-cover__frame:nth-child(4) { display: none; }
+  .dna-period button { min-height: 44px; }
 }
 @media (max-width: 520px) {
   .dna-id__grid { grid-template-columns: 1fr; }

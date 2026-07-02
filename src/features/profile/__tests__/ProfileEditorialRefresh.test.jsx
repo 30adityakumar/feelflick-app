@@ -111,6 +111,24 @@ describe('F7.6 — explicit refresh action', () => {
     expect(result.current.editorial.summary).toBe('fresh summary')
   })
 
+  // Regression: the deployed edge function unconditionally requires a real user JWT (no anon-key
+  // fallback exists server-side, and never will again). Sending the anon key always 401s. This must
+  // hold regardless of the profileAutoRefresh flag — that flag only gates the AUTOMATIC (no-click)
+  // behaviors, never whether the manual button can authenticate.
+  it('refresh() ALWAYS sends the real session JWT (never the anon key), even with the flag OFF', async () => {
+    fpEditorialVersion = undefined; editorialRow = null   // flag intentionally left unstubbed → OFF
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await act(async () => { await result.current.refreshEditorial() })
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    const [, init] = fetchSpy.mock.calls[0]
+    expect(init.headers.Authorization).toBe('Bearer tok-test')      // the session token, not 'anon-test-key'
+    expect(init.headers.Authorization).not.toMatch(/anon-test-key/)
+    const sentBody = JSON.parse(init.body)
+    expect(sentBody.targetUserId).toBe('u1')                        // required by the edge function (403 otherwise)
+    expect(result.current.refreshStatus).toBe('success')
+  })
+
   it('duplicate concurrent refresh() collapses to ONE Edge call', async () => {
     fpEditorialVersion = undefined; editorialRow = null
     const { result } = mountSelf()
@@ -248,4 +266,54 @@ describe('living-DNA auto-refresh (flag-gated, material-change only)', () => {
     expect(result.current.editorial.summary).toBe('cached')
     expect(result.current.editorialStatus).not.toBe('current')
   })
+})
+
+// First-ever generation is a SEPARATE trigger from staleness above — there is no prior signature to
+// compare against, so it needs its own gate: a percentage rollout, default 0%/off, independent of
+// the profileAutoRefresh flag being on.
+describe('living-DNA auto-refresh — first-ever generation (rollout-gated)', () => {
+  beforeEach(() => { fpEditorialVersion = undefined; editorialRow = null }) // never generated → status 'none'
+  afterEach(() => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', '')
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '')
+  })
+
+  it('flag ON + rollout 0% (default) → ZERO calls even though status is none', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(result.current.editorialStatus).toBe('none')
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('flag ON + rollout 100% → exactly ONE call; success → status current', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '100')
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.refreshStatus).toBe('success'))
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(result.current.editorialStatus).toBe('current')
+  })
+
+  it('rollout 100% but flag OFF → ZERO calls (profileAutoRefresh remains the master gate)', async () => {
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '100')
+    const { result } = mountSelf()
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('rollout 100% + non-self view → ZERO calls', async () => {
+    vi.stubEnv('VITE_ENABLE_PROFILE_AUTO_REFRESH', 'true')
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '100')
+    const { result } = renderHook(() => useProfileDataFetch({ userId: 'u1', authUser: VIEWER, isSelf: false }))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await new Promise(r => setTimeout(r, 0))
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  // The FORMING maturity gate on this same code path is already covered against a real variable
+  // watched/rated-count mock in ProfileEditorialGate.test.jsx (F7.4) — this file's mock returns a
+  // fixed 15-watched/5-rated history regardless of userId, so it cannot exercise a FORMING profile.
 })

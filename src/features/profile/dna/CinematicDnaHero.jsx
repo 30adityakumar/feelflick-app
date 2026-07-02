@@ -26,7 +26,7 @@ export default function CinematicDnaHero({ identity, mixtape, evidenceVersion, o
             {updated ? <span className="ff-dna-pill ff-dna-pill--updated">{updated}</span> : null}
           </div>
           <h1 id="ff-dna-h1" className="ff-dna-hero__title">
-            {title.lead}{title.em ? <em>{title.em}</em> : null}
+            {title.lead}{title.em ? <>{' '}<em><span className="ff-dna-hero__title-dot" aria-hidden="true">·</span>{title.em}</em></> : null}
           </h1>
           <p className="ff-dna-hero__line">{line}</p>
           {takingShape ? <p className="ff-dna-hero__prov">{takingShapeLine}</p> : null}

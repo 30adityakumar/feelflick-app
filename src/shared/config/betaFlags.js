@@ -38,18 +38,46 @@ export function isBetaGateEnabled() {
   return v === 'true' || v === '1' || v === 'on'
 }
 
-// Master gate for the hardened Cinematic DNA reflection pipeline. Defaults OFF (like the beta gate)
-// so the client behaves EXACTLY as before until the backend is deployed. When OFF the reflection
-// still generates via the anon key against the current edge function, and the client neither reads
-// nor writes the editorial_material_sig column (which only exists after the guardrails migration).
-// When ON it activates ALL of: auto-refresh on material taste change, user-JWT auth to the hardened
-// edge function, and the material-signature column read/write. Turn on ONLY after the guardrail
-// migration + edge redeploy are applied — via VITE_ENABLE_PROFILE_AUTO_REFRESH=true — or the client
-// will send a JWT to an edge function that expects the anon key and write a column that doesn't
-// exist yet.
+// The guardrails migration + hardened edge function are now permanently deployed (no rollback, no
+// anon-key fallback server-side) — user-JWT auth and the editorial_material_sig column read/write
+// used by the MANUAL "Generate reflection" button are unconditional and do NOT depend on this flag.
+// This flag now gates ONLY the AUTOMATIC (no-click) behaviors: the living-DNA staleness auto-refresh
+// effect and the first-ever-generation rollout (see useProfileData.jsx). Defaults OFF so a fresh
+// environment (new deploy, local dev, CI) never starts making automatic Edge calls without an
+// explicit opt-in — the manual button already works regardless of this flag.
 export function isProfileAutoRefreshEnabled() {
   let raw
   try { raw = import.meta.env?.VITE_ENABLE_PROFILE_AUTO_REFRESH } catch { raw = undefined }
   const v = String(raw).toLowerCase()
   return v === 'true' || v === '1' || v === 'on'
+}
+
+// FNV-1a 32-bit → a stable 0-99 bucket. Not a secret and not cryptographic — only a deterministic,
+// evenly-distributed per-user rollout assignment (same user always lands in the same bucket).
+function fnv1aBucket(str) {
+  let h = 0x811c9dc5
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0) % 100
+}
+
+// Percentage rollout dial for AUTOMATICALLY GENERATING a user's FIRST-EVER reflection. This is
+// distinct from isProfileAutoRefreshEnabled() above, which only re-generates an EXISTING reflection
+// once the underlying taste has materially changed — it has no signal to compare against for a user
+// who has never generated one, so it can never cover a first-ever generation on its own. Turning
+// isProfileAutoRefreshEnabled() on does not, by itself, start auto-generating first reflections for
+// every eligible user's next visit — that's a real automatic-LLM-call/cost change across the whole
+// user base (bounded by the existing per-user cooldown/cap and global daily budget guardrails, but
+// still a genuine increase in call volume), so it ships behind its own dial, defaulting to 0 (off).
+// Set VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT to a number 0-100 to widen the rollout without a code change.
+export function isUserInProfileAutoGenRollout(userId) {
+  if (!userId) return false
+  let raw
+  try { raw = import.meta.env?.VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT } catch { raw = undefined }
+  const pct = Number(raw)
+  if (!Number.isFinite(pct) || pct <= 0) return false
+  if (pct >= 100) return true
+  return fnv1aBucket(String(userId)) < pct
 }

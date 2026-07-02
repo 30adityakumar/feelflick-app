@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { isEnabled, isBetaGateEnabled, FLAG_KEYS } from '../betaFlags'
+import { isEnabled, isBetaGateEnabled, isUserInProfileAutoGenRollout, FLAG_KEYS } from '../betaFlags'
 
 describe('betaFlags — kill switches default safe', () => {
   afterEach(() => vi.unstubAllEnvs())
@@ -24,6 +24,51 @@ describe('betaFlags — kill switches default safe', () => {
 
   it('an unknown flag never gates (returns true)', () => {
     expect(isEnabled('nope')).toBe(true)
+  })
+})
+
+describe('betaFlags — first-gen rollout dial defaults OFF, deterministic per user', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('defaults to 0% (off) when unset', () => {
+    expect(isUserInProfileAutoGenRollout('user-a')).toBe(false)
+  })
+
+  it('stays off for 0, negative, non-numeric, or empty values', () => {
+    for (const v of ['0', '-5', 'nope', '']) {
+      vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', v)
+      expect(isUserInProfileAutoGenRollout('user-a')).toBe(false)
+    }
+  })
+
+  it('100% (or above) always includes every user', () => {
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '100')
+    for (const id of ['user-a', 'user-b', 'some-uuid-1234', 'zzz']) {
+      expect(isUserInProfileAutoGenRollout(id)).toBe(true)
+    }
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '250')
+    expect(isUserInProfileAutoGenRollout('user-a')).toBe(true)
+  })
+
+  it('a given user always lands in the same bucket (deterministic, not random)', () => {
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '50')
+    const first = isUserInProfileAutoGenRollout('stable-user-id')
+    for (let i = 0; i < 5; i++) expect(isUserInProfileAutoGenRollout('stable-user-id')).toBe(first)
+  })
+
+  it('a mid-range percentage includes some users and excludes others (not all-or-nothing)', () => {
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '50')
+    const ids = Array.from({ length: 40 }, (_, i) => `user-${i}`)
+    const included = ids.filter((id) => isUserInProfileAutoGenRollout(id))
+    expect(included.length).toBeGreaterThan(0)
+    expect(included.length).toBeLessThan(ids.length)
+  })
+
+  it('with no userId, always returns false regardless of percentage', () => {
+    vi.stubEnv('VITE_PROFILE_AUTO_GEN_ROLLOUT_PCT', '100')
+    expect(isUserInProfileAutoGenRollout(null)).toBe(false)
+    expect(isUserInProfileAutoGenRollout(undefined)).toBe(false)
+    expect(isUserInProfileAutoGenRollout('')).toBe(false)
   })
 })
 
